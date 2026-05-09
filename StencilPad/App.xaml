@@ -1,0 +1,14 @@
+﻿<Application x:Class="StencilPad.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:StencilPad">
+    <Application.Resources>
+        <ResourceDictionary>
+            <BitmapImage x:Key="SelectionTool" UriSource="Resources/Icons/SelectionTool.png"/>
+            <BitmapImage x:Key="ShapeTool" UriSource="Resources/Icons/ShapeTool.png"/>
+            <BitmapImage x:Key="EditShapeTool" UriSource="Resources/Icons/EditShapeTool.png"/>
+            <BitmapImage x:Key="RulerTool" UriSource="Resources/Icons/RulerTool.png"/>
+            <BitmapImage x:Key="EditHandleSetTool" UriSource="Resources/Icons/EditHandleSetTool.png"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

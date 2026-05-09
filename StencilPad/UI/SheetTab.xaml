@@ -1,0 +1,21 @@
+﻿<UserControl x:Class="StencilPad.UI.SheetTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:StencilPad.Canvases.UI"
+             xmlns:local="clr-namespace:StencilPad.UI">
+    <DockPanel>
+        <local:ToolPanel x:Name="ToolPanel"
+                         DockPanel.Dock="Left"
+                         DataContext="{Binding ToolPanelViewModel}"/>
+        <ScrollViewer x:Name="Scroll"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
+                      Background="#FFFFFF">
+            <c:SheetCanvas x:Name="SheetCanvas"
+                           Sheet="{Binding Sheet}"
+                           Zoom="{Binding Zoom}"
+                           ShowGrid="{Binding ShowGrid}"
+                           SnapToGrid="{Binding SnapToGrid}"/>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>
