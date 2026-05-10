@@ -2,10 +2,10 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement, IHandleSetSheetElement
+public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 {
     public EditablePolygon EditablePolygon { get; }
-    public IHandleSet HandleSet => EditablePolygon;
+    public override IHandleSet HandleSet => EditablePolygon;
     
     private Unit _spacing = Unit.FromMillimeters(4);
     public Unit Spacing

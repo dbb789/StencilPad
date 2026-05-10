@@ -2,10 +2,9 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class Ruler : SheetElement<Ruler>, IHandleSetSheetElement
+public class Ruler : SheetElement<Ruler>
 {
-    public StartEndHandleSet HandleSet { get; }
-    IHandleSet IHandleSetSheetElement.HandleSet => HandleSet;
+    public override StartEndHandleSet HandleSet { get; }
 
     public Unit2D Start => HandleSet.Start;
     public Unit2D End => HandleSet.End;

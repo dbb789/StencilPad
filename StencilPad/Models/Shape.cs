@@ -2,10 +2,10 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class Shape : SheetElement<Shape>, IPolygonSheetElement, IHandleSetSheetElement
+public class Shape : SheetElement<Shape>, IPolygonSheetElement
 {
     public EditablePolygon EditablePolygon { get; }
-    public IHandleSet HandleSet => EditablePolygon;
+    public override IHandleSet HandleSet => EditablePolygon;
 
     public Shape()
     {

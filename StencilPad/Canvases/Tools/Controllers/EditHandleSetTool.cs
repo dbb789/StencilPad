@@ -32,7 +32,7 @@ public class EditHandleSetTool : ITool
     private readonly IToolContext _context;
     private readonly SheetElementEditActions _sheetElementEditActions;
     private readonly IOperationService _operationService;
-    private readonly List<IHandleSetSheetElement> _selection;
+    private readonly List<ISheetElement> _selection;
     
     private EditHandleSetToolOverlay? _overlay;
     private EditSheetElementContext? _editContext;
@@ -116,7 +116,7 @@ public class EditHandleSetTool : ITool
         _editContext = new EditSheetElementContext(_sheet, _selection);
     }
 
-    private void OnHandleDragged(IHandleSetSheetElement element,
+    private void OnHandleDragged(ISheetElement element,
                                  Handle handle,
                                  Unit2D delta)
     {
@@ -149,7 +149,7 @@ public class EditHandleSetTool : ITool
         _editContext = null;
     }
     
-    private void OnHandleSelectionChanged(IHandleSetSheetElement element,
+    private void OnHandleSelectionChanged(ISheetElement element,
                                           Handle handle,
                                           bool selected)
     {
@@ -250,11 +250,10 @@ public class EditHandleSetTool : ITool
         _operationService.Push(editContext.FlushOperation());
     }
     
-    private IEnumerable<IHandleSetSheetElement> GetEditableSelection()
+    private IEnumerable<ISheetElement> GetEditableSelection()
     {
         return _sheet.Selection
-            .Where(e => e is IHandleSetSheetElement)
-            .Cast<IHandleSetSheetElement>();
+            .Where(e => e.HandleSet.Handles.Any());
     }
 }
 

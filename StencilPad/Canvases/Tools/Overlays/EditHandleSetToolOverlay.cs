@@ -12,9 +12,9 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class EditHandleSetToolOverlay : Canvas, IDisposable
 {
-    private record struct HandleEntry(IHandleSetSheetElement Element, Handle Handle);
+    private record struct HandleEntry(ISheetElement Element, Handle Handle);
 
-    public IEnumerable<IHandleSetSheetElement> Selection
+    public IEnumerable<ISheetElement> Selection
     {
         get => _selection;
         set
@@ -43,16 +43,16 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     }
 
     public event Action? HandleDragBegin;
-    public event Action<IHandleSetSheetElement, Handle, Unit2D>? HandleDragged;
+    public event Action<ISheetElement, Handle, Unit2D>? HandleDragged;
     public event Action? HandleDragEnd;
     
-    public event Action<IHandleSetSheetElement, Handle, bool>? HandleSelectionChanged;
+    public event Action<ISheetElement, Handle, bool>? HandleSelectionChanged;
     public event Action<ISheetElementAction>? ActionInvoked;
 
     private readonly Sheet _sheet;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
-    private readonly List<IHandleSetSheetElement> _selection;
+    private readonly List<ISheetElement> _selection;
     private readonly EditOverlayRenderer _editOverlayRenderer;
 
     private readonly WidgetContainer<HandleWidget> _widgets;
