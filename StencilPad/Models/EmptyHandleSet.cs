@@ -42,9 +42,4 @@ public class EmptyHandleSet : IHandleSet
             throw new InvalidOperationException("EmptyHandleSet cannot have any selected handles.");
         }
     }
-
-    public EmptyHandleSet DeepClone()
-    {
-        return this;
-    }
 }

@@ -24,6 +24,8 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     
     public event Action<Unit2D>? SelectionDragged;
     public event Action<Unit2D>? PointSelected;
+    public event Action? Group;
+    public event Action? Ungroup;
     public event Action? MirrorX;
     public event Action? MirrorY;
     public event Action? ShowProperties;
@@ -56,6 +58,16 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     private void InitializeContextMenu()
     {
         var contextMenu = new ContextMenu();
+        
+        var groupItem = new MenuItem { Header = "Group", IsEnabled = true };
+        groupItem.Click += (s, e) => Group?.Invoke();
+        contextMenu.Items.Add(groupItem);
+        
+        var ungroupItem = new MenuItem { Header = "Ungroup", IsEnabled = true };
+        ungroupItem.Click += (s, e) => Ungroup?.Invoke();
+        contextMenu.Items.Add(ungroupItem);
+
+        contextMenu.Items.Add(new Separator());
 
         var mirrorXMenuItem = new MenuItem { Header = "Flip Horizontally", IsEnabled = false };
         mirrorXMenuItem.Click += (s, e) => MirrorX?.Invoke();

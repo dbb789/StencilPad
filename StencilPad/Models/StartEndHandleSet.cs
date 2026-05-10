@@ -2,12 +2,18 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class StartEndHandleSet : IHandleSet
+public class StartEndHandleSet : IHandleSet, IHandleParent
 {
     public event Action? HandlesChanged;
     public event Action? SelectionChanged;
 
-    public IEnumerable<Handle> Handles { get; } = [ Handle.Bounds(0), Handle.Bounds(1) ];
+    public IEnumerable<Handle> Handles
+    {
+        get
+        {
+            return [Handle.Bounds(this, 0), Handle.Bounds(this, 1)];
+        }
+    }
 
     private Unit2D _start;
     private Unit2D _end;

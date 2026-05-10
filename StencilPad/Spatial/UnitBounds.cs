@@ -20,11 +20,18 @@ public readonly record struct UnitBounds
         
         return FromCenterSize(center, size);
     }
-    
-    public static UnitBounds Union(UnitBounds a, UnitBounds b)
+
+    // Allow a null value for the first parameter to simplify union operations
+    // over a collection of bounds.
+    public static UnitBounds Union(UnitBounds? a, UnitBounds b)
     {
-        var minA = a.Min;
-        var maxA = a.Max;
+        if (a is null)
+        {
+            return b;
+        }
+        
+        var minA = a.Value.Min;
+        var maxA = a.Value.Max;
         var minB = b.Min;
         var maxB = b.Max;
 

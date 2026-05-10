@@ -55,6 +55,9 @@ public class SelectionTool : ITool
         _context.RubberBand.BoundsSelected += BoundsSelected;
         _context.SelectAllRequested += SelectAll;
         _context.ClearSelectionRequested += ClearSelection;
+
+        _overlay.Group += Group;
+        _overlay.Ungroup += Ungroup;
         _overlay.PointSelected += PointSelected;
         _overlay.SelectionDragged += SelectionDragged;
         _overlay.ShowProperties += ShowProperties;
@@ -74,6 +77,8 @@ public class SelectionTool : ITool
 
         if (_overlay is not null)
         {
+            _overlay.Group -= Group;
+            _overlay.Ungroup -= Ungroup;
             _context.RubberBand.PointSelected -= PointSelected;
             _context.RubberBand.BoundsSelected -= BoundsSelected;
             _context.SelectAllRequested -= SelectAll;
@@ -184,6 +189,32 @@ public class SelectionTool : ITool
         }
     }
 
+    private void Group()
+    {
+        if (_sheet.Selection.Count < 2)
+        {
+            return;
+        }
+
+        var children = _sheet.Selection.ToList();
+        
+        var group = new ElementGroup(children);
+        
+        _sheet.Elements.Add(group);
+
+        foreach (var child in children)
+        {
+            _sheet.Elements.Remove(child);
+        }
+        
+        _sheet.Selection.Clear();
+        _sheet.Selection.Add(group);
+    }
+
+    private void Ungroup()
+    {
+    }
+    
     private void MirrorX()
     {
         var bounds = GetSelectionBounds();

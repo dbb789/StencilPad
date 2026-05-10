@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;

@@ -154,7 +154,8 @@ public class ShapeToolOverlay : Canvas, IDisposable
         {
             var widget = _vertexWidgets[i];
 
-            widget.Handle = Handle.Vertex(i);
+            // FIXME: This is for visual purposes only - make a variant that doesn't need a handle.
+            widget.Handle = Handle.Vertex(null!, i);
             widget.Selectable = false;
             widget.Draggable = false;
             widget.InvalidateVisual();

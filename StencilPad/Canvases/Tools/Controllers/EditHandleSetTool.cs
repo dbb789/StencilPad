@@ -122,7 +122,7 @@ public class EditHandleSetTool : ITool
     {
         if (!handle.CanGroupMove)
         {
-            element.HandleSet.SetPoint(handle, element.HandleSet.GetPoint(handle) + delta);
+            handle.SetPoint(handle.GetPoint() + delta);
             return;
         }
         
@@ -132,7 +132,7 @@ public class EditHandleSetTool : ITool
             {
                 if (selected.CanGroupMove)
                 {
-                    e.HandleSet.SetPoint(selected, e.HandleSet.GetPoint(selected) + delta);
+                    selected.SetPoint(selected.GetPoint() + delta);
                 }
             }
         }
@@ -199,7 +199,7 @@ public class EditHandleSetTool : ITool
         foreach (var element in _selection)
         {
             var handles = element.HandleSet.Handles
-                .Where(h => bounds.Contains(element.HandleSet.GetPoint(h)));
+                .Where(h => bounds.Contains(h.GetPoint()));
 
             if (modifyingSelection)
             {

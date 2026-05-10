@@ -172,7 +172,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         for (int i = 0; i < _handleMap.Count; ++i)
         {
             var entry = _handleMap[i];
-            var point = _viewport.ToPoint(entry.Element.HandleSet.GetPoint(entry.Handle));
+            var point = _viewport.ToPoint(entry.Handle.GetPoint());
             
             SetLeft(_widgets[i], point.X);
             SetTop(_widgets[i], point.Y);
@@ -205,7 +205,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         
         var entry = _handleMap[index];
         var newPosition = _unitSnap.UnitSnap(_viewport.FromPoint(position));
-        var delta = newPosition - entry.Element.HandleSet.GetPoint(entry.Handle);
+        var delta = newPosition - entry.Handle.GetPoint();
 
         if (delta == Unit2D.Zero)
         {

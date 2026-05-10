@@ -20,6 +20,10 @@ public static class SheetElementRendererFactory
         {
             renderer = new RulerRenderer(ruler);
         }
+        else if (element is ElementGroup elementGroup)
+        {
+            renderer = new GroupRenderer(elementGroup);
+        }
 
         return renderer;
     }

@@ -2,7 +2,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class EditablePolygon : IPolygon, IHandleSet
+public class EditablePolygon : IPolygon, IHandleSet, IHandleParent
 {
     public AssignableList<Vertex> Vertices => _polygon.Vertices;
     public AssignableList<Edge> Edges => _polygon.Edges;
@@ -103,8 +103,8 @@ public class EditablePolygon : IPolygon, IHandleSet
 
         for (int i = 0; i < _polygon.Edges.Count; i++)
         {
-            if (_selection.Selection.Contains(Handle.Vertex(i)) &&
-                _selection.Selection.Contains(Handle.Vertex((i + 1) % _polygon.Vertices.Count)))
+            if (_selection.Selection.Contains(Handle.Vertex(this, i)) &&
+                _selection.Selection.Contains(Handle.Vertex(this, (i + 1) % _polygon.Vertices.Count)))
             {
                 edges.Add(i);
             }
@@ -134,15 +134,15 @@ public class EditablePolygon : IPolygon, IHandleSet
         {
             for (int i = 0; i < Vertices.Count; i++)
             {
-                yield return Handle.Vertex(i);
+                yield return Handle.Vertex(this, i);
             }
 
             for (int i = 0; i < Edges.Count; i++)
             {
                 if (Edges[i].Type == EdgeType.Bezier)
                 {
-                    yield return Handle.ControlBegin(i);
-                    yield return Handle.ControlEnd(i);
+                    yield return Handle.ControlBegin(this, i);
+                    yield return Handle.ControlEnd(this, i);
                 }
             }
         }
