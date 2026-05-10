@@ -47,8 +47,9 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     public event Action? HandleDragEnd;
     
     public event Action<IHandleSetSheetElement, Handle, bool>? HandleSelectionChanged;
-    public event Action<SheetElementAction>? ActionInvoked;
+    public event Action<ISheetElementAction>? ActionInvoked;
 
+    private readonly Sheet _sheet;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly List<IHandleSetSheetElement> _selection;
@@ -57,10 +58,13 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     private readonly WidgetContainer<HandleWidget> _widgets;
     private List<HandleEntry> _handleMap = [];
 
-    public EditHandleSetToolOverlay(IViewport viewport,
+    public EditHandleSetToolOverlay(Sheet sheet,
+                                    IViewport viewport,
                                     IUnitSnap unitSnap,
+                                    SheetElementEditActions sheetElementEditActions,
                                     EditOverlayRenderer editOverlayRenderer)
     {
+        _sheet = sheet;
         _viewport = viewport;
         _unitSnap = unitSnap;
         _selection = [];
@@ -83,7 +87,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         Rebuild();
 
         ContextMenu = new ContextMenu();
-        ContextMenuOpening += (_, _) => RebuildContextMenu();
+        ContextMenuOpening += (_, _) => RebuildContextMenu(sheetElementEditActions);
     }
 
     public void Dispose()
@@ -101,22 +105,22 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         _widgets.WidgetAdded -= OnWidgetAdded;
     }
 
-    private void RebuildContextMenu()
+    private void RebuildContextMenu(SheetElementEditActions sheetElementEditActions)
     {
         ContextMenu.Items.Clear();
 
-        var actions = SheetElementActionFactory.Create(_selection);
+        var actions = sheetElementEditActions.Create(_selection);
 
         foreach (var action in actions)
         {
-            if (action.IsVisible(_selection))
+            if (action.IsVisible(_sheet, _selection))
             {
                 var menuItem = new MenuItem
                 {
                     Header = action.Name,
                 };
 
-                menuItem.IsEnabled = action.IsEnabled(_selection);
+                menuItem.IsEnabled = action.IsEnabled(_sheet, _selection);
                 menuItem.Click += (s, e) =>
                 {
                     ActionInvoked?.Invoke(action);

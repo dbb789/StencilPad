@@ -77,6 +77,7 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         _operationService = operationService;
 
         var firstVertex = targets[0].Element.EditablePolygon.Vertices[targets[0].VertexIndex];
+
         _cornerType = firstVertex.CornerType;
         _cornerSize = firstVertex.CornerSize;
     }

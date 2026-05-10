@@ -11,20 +11,26 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class EditHandleSetTool : ITool
 {
-    public class Factory(IOperationService OperationService) : IToolFactory
+    public class Factory(SheetElementEditActions SheetElementEditActions,
+                         IOperationService OperationService) : IToolFactory
     {
         public string IconResource => "EditHandleSetTool";
         public string Tooltip => "Edit Points";
 
         public ITool Create(IToolButton button, Sheet sheet, IToolContext context)
         {
-            return new EditHandleSetTool(button, sheet, context, OperationService);
+            return new EditHandleSetTool(button,
+                                         sheet,
+                                         context,
+                                         SheetElementEditActions,
+                                         OperationService);
         }
     }
 
     private readonly IToolButton _button;
     private readonly Sheet _sheet;
     private readonly IToolContext _context;
+    private readonly SheetElementEditActions _sheetElementEditActions;
     private readonly IOperationService _operationService;
     private readonly List<IHandleSetSheetElement> _selection;
     
@@ -34,11 +40,13 @@ public class EditHandleSetTool : ITool
     private EditHandleSetTool(IToolButton button,
                               Sheet sheet,
                               IToolContext context,
+                              SheetElementEditActions sheetElementEditActions,
                               IOperationService operationService)
     {
         _button = button;
         _sheet = sheet;
         _context = context;
+        _sheetElementEditActions = sheetElementEditActions;
         _operationService = operationService;
         _editContext = null;
         _selection = new(GetEditableSelection());
@@ -58,9 +66,12 @@ public class EditHandleSetTool : ITool
             return;
         }
         
-        _overlay = new EditHandleSetToolOverlay(_context.Viewport,
+        _overlay = new EditHandleSetToolOverlay(_sheet,
+                                                _context.Viewport,
                                                 _context.UnitSnap,
+                                                _sheetElementEditActions,
                                                 _context.EditOverlayRenderer);
+        
         _context.ToolOverlay.ActiveOverlay = _overlay;
         _context.EditOverlayRenderer.IsEnabled = true;
 
@@ -230,11 +241,11 @@ public class EditHandleSetTool : ITool
         return Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
     }
     
-    private void ActionInvoked(SheetElementAction action)
+    private void ActionInvoked(ISheetElementAction action)
     {
         var editContext = new EditSheetElementContext(_sheet, _selection);
         
-        action.Invoke(_selection);
+        action.Invoke(_sheet, _selection);
         
         _operationService.Push(editContext.FlushOperation());
     }

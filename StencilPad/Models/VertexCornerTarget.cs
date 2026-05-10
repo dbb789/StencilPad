@@ -1,3 +1,3 @@
 namespace StencilPad.Models;
 
-public record VertexCornerTarget(IPolygonSheetElement Element, int VertexIndex);
+public readonly record struct VertexCornerTarget(IPolygonSheetElement Element, int VertexIndex);

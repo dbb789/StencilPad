@@ -33,7 +33,7 @@ public class SheetElementAction<TInterface> : SheetElementAction
     }
 }
 
-public abstract class SheetElementAction
+public abstract class SheetElementAction : ISheetElementAction
 {
     public string Name { get; init;  } = "";
 
@@ -41,17 +41,17 @@ public abstract class SheetElementAction
     protected abstract bool IsEnabled(ISheetElement element);
     protected abstract void Invoke(ISheetElement element);
 
-    public bool IsVisible(IEnumerable<ISheetElement> elements)
+    public bool IsVisible(Sheet _, IEnumerable<ISheetElement> elements)
     {
         return elements.All(IsVisible);
     }
     
-    public bool IsEnabled(IEnumerable<ISheetElement> elements)
+    public bool IsEnabled(Sheet _, IEnumerable<ISheetElement> elements)
     {
         return elements.All(IsEnabled);
     }
 
-    public void Invoke(IEnumerable<ISheetElement> elements)
+    public void Invoke(Sheet _, IEnumerable<ISheetElement> elements)
     {
         foreach (var element in elements)
         {

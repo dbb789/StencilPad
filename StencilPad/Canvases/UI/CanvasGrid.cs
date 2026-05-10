@@ -14,11 +14,11 @@ public class CanvasGrid : ContentControl, IUnitSnap
     
     public static readonly DependencyProperty MinorSpacingProperty =
         DependencyProperty.Register(nameof(MinorSpacing), typeof(Unit), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(Unit.FromMillimeters(1.0), FrameworkPropertyMetadataOptions.AffectsRender));
+            new FrameworkPropertyMetadata(Unit.FromMillimeters(2m), FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty MajorSpacingProperty =
         DependencyProperty.Register(nameof(MajorSpacing), typeof(Unit), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(Unit.FromMillimeters(10.0), FrameworkPropertyMetadataOptions.AffectsRender));
+            new FrameworkPropertyMetadata(Unit.FromMillimeters(10), FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty MinorBrushProperty =
         DependencyProperty.Register(nameof(MinorBrush), typeof(Brush), typeof(CanvasGrid),
