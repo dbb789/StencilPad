@@ -1,34 +1,28 @@
-using StencilPad.Spatial;
-
 namespace StencilPad.Models;
 
 public readonly record struct Handle
 {
-    public static Handle Vertex(IHandleParent Parent, int index) => new(Parent, HandleType.Vertex, index);
-    public static Handle Bounds(IHandleParent Parent, int index) => new(Parent, HandleType.Bounds, index);
-    public static Handle ControlBegin(IHandleParent Parent, int index) => new(Parent, HandleType.ControlBegin, index);
-    public static Handle ControlEnd(IHandleParent Parent, int index) => new(Parent, HandleType.ControlEnd, index);
-    
-    public bool CanGroupMove => Type == HandleType.Vertex || Type == HandleType.Bounds;
+    public static Handle Move(IHandleKey Key) => new(Key, HandleType.Move);
+    public static Handle Adjust(IHandleKey Key) => new(Key, HandleType.Adjust);
 
-    private readonly IHandleParent _parent;
+    public bool CanGroupMove => Type == HandleType.Move;
+
+    private readonly IHandleKey _key;
     public HandleType Type { get; init; }
-    public int Index { get; init; }
     
-    public Handle(IHandleParent parent, HandleType type, int index)
+    public Handle(IHandleKey key, HandleType type)
     {
-        _parent = parent;
+        _key = key;
         Type = type;
-        Index = index;
     }
 
-    public Unit2D GetPoint()
+    public TKey Key<TKey>() where TKey : IHandleKey
     {
-        return _parent.GetPoint(this);
-    }
-
-    public void SetPoint(Unit2D position)
-    {
-        _parent.SetPoint(this, position);
+        if (_key is not TKey)
+        {
+            throw new InvalidOperationException($"Handle key is of type {_key.GetType().Name}, not {typeof(TKey).Name}");
+        }
+        
+        return (TKey)_key;
     }
 }

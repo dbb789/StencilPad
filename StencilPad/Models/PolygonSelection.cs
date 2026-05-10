@@ -68,10 +68,11 @@ public class PolygonSelection
         for (int i = 0; i < _selection.Count; ++i)
         {
             var handle = _selection[i];
-
-            if (handle.Index >= vertexIndex)
+            var key = handle.Key<PolygonHandleKey>();
+            
+            if (key.Index >= vertexIndex)
             {
-                _selection[i] = handle with { Index = handle.Index + 1 };
+                _selection[i] = Handle.Move(PolygonHandleKey.Vertex(key.Index + 1));
             }
         }
 
@@ -83,14 +84,15 @@ public class PolygonSelection
         for (int i = _selection.Count - 1; i >= 0; --i)
         {
             var handle = _selection[i];
+            var key = handle.Key<PolygonHandleKey>();
 
-            if (handle.Index == vertexIndex)
+            if (key.Index == vertexIndex)
             {
                 _selection.RemoveAt(i);
             }
-            else if (handle.Index > vertexIndex)
+            else if (key.Index > vertexIndex)
             {
-                _selection[i] = handle with { Index = handle.Index - 1 };
+                _selection[i] = Handle.Move(PolygonHandleKey.Vertex(key.Index - 1));
             }
         }
 
@@ -101,9 +103,12 @@ public class PolygonSelection
     {
         for (int i = 0; i < _selection.Count; ++i)
         {
-            var modifier = _selection[i];
-
-            _selection[i] = modifier with { Index = (modifier.Index - delta + vertexCount) % vertexCount };
+            var handle = _selection[i];
+            var key = handle.Key<PolygonHandleKey>();
+            
+            
+            _selection[i] = new Handle(new PolygonHandleKey(key.Type, (key.Index - delta + vertexCount) % vertexCount),
+                                       handle.Type);
         }
         
         Changed?.Invoke();

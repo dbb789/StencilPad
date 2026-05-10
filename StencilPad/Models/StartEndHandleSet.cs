@@ -2,8 +2,16 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class StartEndHandleSet : IHandleSet, IHandleParent
+public class StartEndHandleSet : IHandleSet
 {
+    private enum HandleType
+    {
+        Start,
+        End
+    }
+    
+    private readonly record struct HandleKey(HandleType Type) : IHandleKey;
+    
     public event Action? HandlesChanged;
     public event Action? SelectionChanged;
 
@@ -11,7 +19,8 @@ public class StartEndHandleSet : IHandleSet, IHandleParent
     {
         get
         {
-            return [Handle.Bounds(this, 0), Handle.Bounds(this, 1)];
+            return [ Handle.Move(new HandleKey(HandleType.Start)),
+                     Handle.Move(new HandleKey(HandleType.End)) ];
         }
     }
 
@@ -39,12 +48,12 @@ public class StartEndHandleSet : IHandleSet, IHandleParent
 
     public Unit2D GetPoint(Handle handle)
     {
-        return (handle.Index == 0) ? _start : _end;
+        return (handle.Key<HandleKey>().Type == HandleType.Start) ? _start : _end;
     }
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        if (handle.Index == 0)
+        if (handle.Key<HandleKey>().Type == HandleType.Start)
         {
             Start = position;
         }
@@ -69,6 +78,11 @@ public class StartEndHandleSet : IHandleSet, IHandleParent
 
     public StartEndHandleSet DeepClone()
     {
-        return new(_start, _end);
+        var clone = new StartEndHandleSet(_start, _end);
+
+        clone._selection.Clear();
+        clone._selection.AddRange(_selection);
+
+        return clone;
     }
 }

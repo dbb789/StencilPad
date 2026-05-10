@@ -2,7 +2,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class EditablePolygon : IPolygon, IHandleSet, IHandleParent
+public class EditablePolygon : IPolygon, IHandleSet
 {
     public AssignableList<Vertex> Vertices => _polygon.Vertices;
     public AssignableList<Edge> Edges => _polygon.Edges;
@@ -93,8 +93,8 @@ public class EditablePolygon : IPolygon, IHandleSet, IHandleParent
 
     public IEnumerable<int> GetSelectedVertices()
     {
-        return _selection.Selection.Where(x => x.Type == HandleType.Vertex)
-                                   .Select(x => x.Index);
+        return _selection.Selection.Where(x => x.Key<PolygonHandleKey>().Type == PolygonHandleType.Vertex)
+                                   .Select(x => x.Key<PolygonHandleKey>().Index);
     }
 
     public IEnumerable<int> GetSelectedEdges()
@@ -103,8 +103,8 @@ public class EditablePolygon : IPolygon, IHandleSet, IHandleParent
 
         for (int i = 0; i < _polygon.Edges.Count; i++)
         {
-            if (_selection.Selection.Contains(Handle.Vertex(this, i)) &&
-                _selection.Selection.Contains(Handle.Vertex(this, (i + 1) % _polygon.Vertices.Count)))
+            if (_selection.Selection.Contains(Handle.Move(PolygonHandleKey.Vertex(i))) &&
+                _selection.Selection.Contains(Handle.Move(PolygonHandleKey.Vertex((i + 1) % _polygon.Vertices.Count))))
             {
                 edges.Add(i);
             }
@@ -134,15 +134,15 @@ public class EditablePolygon : IPolygon, IHandleSet, IHandleParent
         {
             for (int i = 0; i < Vertices.Count; i++)
             {
-                yield return Handle.Vertex(this, i);
+                yield return Handle.Move(PolygonHandleKey.Vertex(i));
             }
 
             for (int i = 0; i < Edges.Count; i++)
             {
                 if (Edges[i].Type == EdgeType.Bezier)
                 {
-                    yield return Handle.ControlBegin(this, i);
-                    yield return Handle.ControlEnd(this, i);
+                    yield return Handle.Adjust(PolygonHandleKey.ControlBegin(i));
+                    yield return Handle.Adjust(PolygonHandleKey.ControlEnd(i));
                 }
             }
         }
@@ -150,16 +150,18 @@ public class EditablePolygon : IPolygon, IHandleSet, IHandleParent
 
     public Unit2D GetPoint(Handle handle)
     {
-        switch (handle.Type)
+        var key = handle.Key<PolygonHandleKey>();
+
+        switch (key.Type)
         {
-        case HandleType.Vertex:
-            return Vertices[handle.Index].Position;
+        case PolygonHandleType.Vertex:
+            return Vertices[key.Index].Position;
             
-        case HandleType.ControlBegin:
-            return Vertices[handle.Index].Position + Edges[handle.Index].ControlBeginOffset;
+        case PolygonHandleType.ControlBegin:
+            return Vertices[key.Index].Position + Edges[key.Index].ControlBeginOffset;
             
-        case HandleType.ControlEnd:
-            return Vertices.At(handle.Index + 1).Position + Edges[handle.Index].ControlEndOffset;
+        case PolygonHandleType.ControlEnd:
+            return Vertices.At(key.Index + 1).Position + Edges[key.Index].ControlEndOffset;
         }
 
         throw new ArgumentOutOfRangeException(nameof(handle));
@@ -167,20 +169,22 @@ public class EditablePolygon : IPolygon, IHandleSet, IHandleParent
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        switch (handle.Type)
+        var key = handle.Key<PolygonHandleKey>();
+
+        switch (key.Type)
         {
-        case HandleType.Vertex:
-            Vertices[handle.Index] = Vertices[handle.Index] with { Position = position };
+        case PolygonHandleType.Vertex:
+            Vertices[key.Index] = Vertices[key.Index] with { Position = position };
             break;
             
-        case HandleType.ControlBegin:
-            Edges[handle.Index] = Edges[handle.Index] with
-                { ControlBeginOffset = position - Vertices[handle.Index].Position };
+        case PolygonHandleType.ControlBegin:
+            Edges[key.Index] = Edges[key.Index] with
+                { ControlBeginOffset = position - Vertices[key.Index].Position };
             break;
             
-        case HandleType.ControlEnd:
-            Edges[handle.Index] = Edges[handle.Index] with
-                { ControlEndOffset = position - Vertices.At(handle.Index + 1).Position };
+        case PolygonHandleType.ControlEnd:
+            Edges[key.Index] = Edges[key.Index] with
+                { ControlEndOffset = position - Vertices.At(key.Index + 1).Position };
             break;
 
         default:

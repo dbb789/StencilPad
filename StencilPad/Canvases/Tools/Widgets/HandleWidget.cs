@@ -48,7 +48,7 @@ public class HandleWidget : SelectableDraggableWidget
         dc.DrawRectangle(Brushes.Transparent, null,
             new Rect(0, 0, RenderSize.Width, RenderSize.Height));
 
-        if (Handle.Type == HandleType.Vertex || Handle.Type == HandleType.Bounds)
+        if (Handle.Type == HandleType.Move)
         {
             var pen = new Pen(IsSelected ? Brushes.Blue : Brushes.Transparent, 2.0);
             var geometry = new RectangleGeometry(
