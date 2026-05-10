@@ -300,9 +300,12 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
 
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
         dc.PushTransform(_viewport.GetMillimetersToPixelsTransform());
+        
+        var elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 0.4);
+        var elementFill = new SolidColorBrush(Color.FromArgb(10, 0, 0, 255));
 
-        var pen = new Pen(Brushes.Blue, 0.2);
-        var fill = new SolidColorBrush(Color.FromArgb(10, 0, 0, 255));
+        var groupPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 128, 255)), 0.4);
+        var groupFill = new SolidColorBrush(Color.FromArgb(10, 0, 128, 255));
 
         foreach (var selected in _sheet.Selection)
         {
@@ -310,7 +313,14 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             {
                 var bounds = renderer.SelectionBounds;
 
-                dc.DrawRectangle(fill, pen, bounds.Millimeters);
+                if (selected is ElementGroup)
+                {
+                    dc.DrawRectangle(groupFill, groupPen, bounds.Millimeters);
+                }
+                else
+                {
+                    dc.DrawRectangle(elementFill, elementPen, bounds.Millimeters);
+                }
             }
         }
 

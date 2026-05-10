@@ -21,14 +21,6 @@ public class GroupHandleSet : IHandleSet
         }
     }
 
-    public void Dispose()
-    {
-        foreach (var child in _children)
-        {
-            child.HandlesChanged -= InvokeHandlesChanged;
-        }
-    }
-    
     public IEnumerable<Handle> GetSelectedHandles()
     {
         return _selection;

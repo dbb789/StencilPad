@@ -28,7 +28,7 @@ public class GroupRenderer : SheetElementRenderer
     public GroupRenderer(ElementGroup elementGroup)
     {
         _elementGroup = elementGroup;
-        _childRenderers = [];
+        _childRenderers = new(_elementGroup.Children.Count());
         
         foreach (var child in _elementGroup.Children)
         {
