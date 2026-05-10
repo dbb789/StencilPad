@@ -6,12 +6,12 @@ public class GroupHandleSet : IHandleSet
 {
     private readonly record struct GroupHandleKey : IHandleKey
     {
+        public int Index { get; init; }
         public IHandleKey ChildKey { get; init; }
-        public IHandleSet Child { get; init; }
 
-        public GroupHandleKey(IHandleSet child, IHandleKey childKey)
+        public GroupHandleKey(int index, IHandleKey childKey)
         {
-            Child = child;
+            Index = index;
             ChildKey = childKey;
         }
     }
@@ -27,9 +27,25 @@ public class GroupHandleSet : IHandleSet
     
     public GroupHandleSet(IEnumerable<IHandleSet> children)
     {
-        _children = new(children);
+        _children = [];
         _handles = [];
         _selection = [];
+
+        SetChildren(children);
+    }
+
+    public void SetChildren(IEnumerable<IHandleSet> children)
+    {
+        foreach (var child in _children)
+        {
+            child.HandlesChanged -= ChildHandlesChanged;
+        }
+        
+        _children.Clear();
+        _selection.Clear();
+        SelectionChanged?.Invoke();
+        
+        _children.AddRange(children);
         
         foreach (var child in _children)
         {
@@ -55,25 +71,27 @@ public class GroupHandleSet : IHandleSet
     {
         var key = handle.Key<GroupHandleKey>();
 
-        key.Child.SetPoint(new Handle(key.ChildKey, handle.Type), position);
+        _children[key.Index].SetPoint(new Handle(key.ChildKey, handle.Type), position);
     }
 
     public Unit2D GetPoint(Handle handle)
     {
         var key = handle.Key<GroupHandleKey>();
 
-        return key.Child.GetPoint(new Handle(key.ChildKey, handle.Type));
+        return _children[key.Index].GetPoint(new Handle(key.ChildKey, handle.Type));
     }
     
     private void ChildHandlesChanged()
     {
         _handles.Clear();
 
-        foreach (var child in _children)
+        for (int i = 0; i < _children.Count; ++i)
         {
+            var child = _children[i];
+            
             foreach (var handle in child.Handles)
             {
-                _handles.Add(new Handle(new GroupHandleKey(child, handle.Key<IHandleKey>()), handle.Type));
+                _handles.Add(new Handle(new GroupHandleKey(i, handle.Key<IHandleKey>()), handle.Type));
             }
         }
         

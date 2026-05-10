@@ -26,10 +26,16 @@ public class ElementGroup : SheetElement<ElementGroup>
     public override void AssignFrom(ElementGroup other)
     {
         _children = new(other.Children.Select(child => child.DeepClone()));
+        HandleSet.SetChildren(_children.Select(child => child.HandleSet));
+        HandleSet.SetSelectedHandles(other.HandleSet.GetSelectedHandles());
     }
 
     public override ISheetElement DeepClone()
     {
-        return new ElementGroup(Children.Select(child => child.DeepClone()));
+        var clone = new ElementGroup(Children.Select(child => child.DeepClone()));
+
+        clone.HandleSet.SetSelectedHandles(HandleSet.GetSelectedHandles());
+
+        return clone;
     }
 }
