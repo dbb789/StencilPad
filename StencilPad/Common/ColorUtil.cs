@@ -110,12 +110,12 @@ public static class ColorUtil
 
         switch (i % 6)
         {
-            case 0:  r = v; g = t; b = p; break;
-            case 1:  r = q; g = v; b = p; break;
-            case 2:  r = p; g = v; b = t; break;
-            case 3:  r = p; g = q; b = v; break;
-            case 4:  r = t; g = p; b = v; break;
-            default: r = v; g = p; b = q; break;
+        case 0:  r = v; g = t; b = p; break;
+        case 1:  r = q; g = v; b = p; break;
+        case 2:  r = p; g = v; b = t; break;
+        case 3:  r = p; g = q; b = v; break;
+        case 4:  r = t; g = p; b = v; break;
+        default: r = v; g = p; b = q; break;
         }
 
         return Color.FromArgb(a, (byte)(r * 255), (byte)(g * 255), (byte)(b * 255));

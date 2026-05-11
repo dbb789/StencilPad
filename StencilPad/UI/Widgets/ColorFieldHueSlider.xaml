@@ -1,0 +1,33 @@
+<UserControl x:Class="StencilPad.UI.Widgets.ColorFieldHueSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="16">
+    <Grid ClipToBounds="True">
+        <!-- Hue gradient -->
+        <Rectangle>
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop Color="#FFFF0000" Offset="0"/>
+                    <GradientStop Color="#FFFFFF00" Offset="0.1667"/>
+                    <GradientStop Color="#FF00FF00" Offset="0.3333"/>
+                    <GradientStop Color="#FF00FFFF" Offset="0.5"/>
+                    <GradientStop Color="#FF0000FF" Offset="0.6667"/>
+                    <GradientStop Color="#FFFF00FF" Offset="0.8333"/>
+                    <GradientStop Color="#FFFF0000" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- Drag canvas with marker -->
+        <Canvas x:Name="DragCanvas" Background="Transparent"
+                MouseDown="DragCanvas_MouseDown"
+                MouseMove="DragCanvas_MouseMove"
+                MouseUp="DragCanvas_MouseUp">
+            <Rectangle x:Name="Marker"
+                       Width="4" Height="16"
+                       Stroke="Black" StrokeThickness="1"
+                       Fill="White" Opacity="0.8"
+                       IsHitTestVisible="False"/>
+        </Canvas>
+    </Grid>
+</UserControl>

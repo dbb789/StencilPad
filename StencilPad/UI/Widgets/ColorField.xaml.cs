@@ -21,78 +21,62 @@ public partial class ColorField : UserControl
     private double _hue;
     private double _saturation;
     private double _brightness;
-    private bool _isUpdating;
+    private Color _committedColor;
+    private string _hexValue = "";
     private bool _draggingSv;
-    private bool _draggingHue;
-    private bool _draggingAlpha;
 
     public ColorField()
     {
         InitializeComponent();
 
-        AlphaBarRect.Fill = new LinearGradientBrush
+        HueSlider.ValueChanged += (_, _) =>
         {
-            StartPoint = new Point(0, 0.5),
-            EndPoint = new Point(1, 0.5),
-            GradientStops =
-            {
-                new GradientStop(Colors.Transparent, 0),
-                new GradientStop(Colors.Black, 1)
-            }
+            _hue = HueSlider.Value;
+            CommitHsv(Value.A);
         };
 
+        AlphaSlider.ValueChanged += (_, _) => CommitHsv(AlphaSlider.Value);
+
         Loaded += (_, _) => UpdateFromValue(Value);
-        SizeChanged += (_, _) => UpdateMarkerPositions();
+        SizeChanged += (_, _) => UpdateSvMarkerPosition();
     }
 
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not ColorField field || field._isUpdating)
-        {
+        if (d is not ColorField field)
             return;
-        }
-        
-        field.UpdateFromValue((Color)e.NewValue);
+
+        var newColor = (Color)e.NewValue;
+
+        if (newColor == field._committedColor)
+            return;
+
+        field.UpdateFromValue(newColor);
     }
 
     private void UpdateFromValue(Color color)
     {
-        _isUpdating = true;
-
-        try
-        {
-            ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
-            UpdateSvGradient();
-            UpdateAlphaGradient();
-            UpdateMarkerPositions();
-            UpdateHexTextBox();
-            UpdatePreview();
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
+        _committedColor = color;
+        ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+        UpdateSvGradient();
+        UpdateHueSlider();
+        UpdateAlphaSlider(color);
+        UpdateSvMarkerPosition();
+        UpdateHexTextBox(color);
+        UpdatePreview(color);
     }
 
     private void CommitHsv(byte alpha)
     {
         var color = ColorUtil.HsvToRgb(_hue, _saturation, _brightness, alpha);
-
-        _isUpdating = true;
-
-        try
-        {
-            Value = color;
-            UpdateSvGradient();
-            UpdateAlphaGradient();
-            UpdateMarkerPositions();
-            UpdateHexTextBox();
-            UpdatePreview();
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
+        _committedColor = color;
+        Value = color;
+        UpdateSvGradient();
+        UpdateHueSlider();
+        UpdateAlphaSlider(color);
+        UpdateSvMarkerPosition();
+        UpdateHexTextBox(color);
+        UpdatePreview(color);
     }
 
     // SV canvas
@@ -107,18 +91,14 @@ public partial class ColorField : UserControl
     private void SvCanvas_MouseMove(object sender, MouseEventArgs e)
     {
         if (_draggingSv)
-        {
             SetSvFromPoint(e.GetPosition(SvCanvas));
-        }
     }
 
     private void SvCanvas_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!_draggingSv)
-        {
             return;
-        }
-        
+
         _draggingSv = false;
         SvCanvas.ReleaseMouseCapture();
     }
@@ -130,120 +110,48 @@ public partial class ColorField : UserControl
         CommitHsv(Value.A);
     }
 
-    private void HueCanvas_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-        _draggingHue = true;
-        HueCanvas.CaptureMouse();
-        SetHueFromPoint(e.GetPosition(HueCanvas));
-    }
-
-    private void HueCanvas_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (_draggingHue)
-        {
-            SetHueFromPoint(e.GetPosition(HueCanvas));
-        }
-    }
-
-    private void HueCanvas_MouseUp(object sender, MouseButtonEventArgs e)
-    {
-        if (!_draggingHue)
-        {
-            return;
-        }
-        
-        _draggingHue = false;
-        HueCanvas.ReleaseMouseCapture();
-    }
-
-    private void SetHueFromPoint(Point p)
-    {
-        _hue = Math.Clamp(p.X / HueCanvas.ActualWidth, 0, 1) * 360;
-        CommitHsv(Value.A);
-    }
-
-    private void AlphaCanvas_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-        _draggingAlpha = true;
-        
-        AlphaCanvas.CaptureMouse();
-        
-        SetAlphaFromPoint(e.GetPosition(AlphaCanvas));
-    }
-
-    private void AlphaCanvas_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (_draggingAlpha)
-        {
-            SetAlphaFromPoint(e.GetPosition(AlphaCanvas));
-        }
-    }
-
-    private void AlphaCanvas_MouseUp(object sender, MouseButtonEventArgs e)
-    {
-        if (!_draggingAlpha)
-        {
-            return;
-        }
-        
-        _draggingAlpha = false;
-        AlphaCanvas.ReleaseMouseCapture();
-    }
-
-    private void SetAlphaFromPoint(Point p)
-    {
-        var alpha = (byte)Math.Clamp(p.X / AlphaCanvas.ActualWidth * 255, 0, 255);
-        
-        CommitHsv(alpha);
-    }
+    // Hex text box
 
     private void HexTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (_isUpdating)
-        {
+        if (HexTextBox.Text == _hexValue)
             return;
-        }
-        
-        if (!ColorUtil.TryParseHex(HexTextBox.Text, out var color))
-        {
-            return;
-        }
-        
-        _isUpdating = true;
 
-        try
-        {
-            ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
-            
-            Value = color;
-            
-            UpdateSvGradient();
-            UpdateAlphaGradient();
-            UpdateMarkerPositions();
-            UpdatePreview();
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
+        _hexValue = HexTextBox.Text;
+
+        if (!ColorUtil.TryParseHex(_hexValue, out var color))
+            return;
+
+        ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+        _committedColor = color;
+        Value = color;
+        UpdateSvGradient();
+        UpdateHueSlider();
+        UpdateAlphaSlider(color);
+        UpdateSvMarkerPosition();
+        UpdatePreview(color);
     }
+
+    // Update helpers
 
     private void UpdateSvGradient()
     {
         var brush = (LinearGradientBrush)SvSaturationRect.Fill;
-        
         brush.GradientStops[1].Color = ColorUtil.HsvToRgb(_hue, 1, 1, 255);
     }
 
-    private void UpdateAlphaGradient()
+    private void UpdateHueSlider()
     {
-        var brush = (LinearGradientBrush)AlphaBarRect.Fill;
-        
-        brush.GradientStops[0].Color = Color.FromArgb(0, Value.R, Value.G, Value.B);
-        brush.GradientStops[1].Color = Color.FromArgb(255, Value.R, Value.G, Value.B);
+        HueSlider.Value = _hue;
     }
 
-    private void UpdateMarkerPositions()
+    private void UpdateAlphaSlider(Color color)
+    {
+        AlphaSlider.BaseColor = Color.FromArgb(255, color.R, color.G, color.B);
+        AlphaSlider.Value = color.A;
+    }
+
+    private void UpdateSvMarkerPosition()
     {
         if (!IsLoaded)
             return;
@@ -255,28 +163,16 @@ public partial class ColorField : UserControl
         Canvas.SetTop(SvMarkerOuter, svY - SvMarkerOuter.Height / 2);
         Canvas.SetLeft(SvMarker, svX - SvMarker.Width / 2);
         Canvas.SetTop(SvMarker, svY - SvMarker.Height / 2);
-
-        var hueX = _hue / 360.0 * HueCanvas.ActualWidth;
-
-        Canvas.SetLeft(HueMarker, hueX - HueMarker.Width / 2);
-        Canvas.SetTop(HueMarker, (HueCanvas.ActualHeight - HueMarker.Height) / 2);
-
-        var alphaX = Value.A / 255.0 * AlphaCanvas.ActualWidth;
-
-        Canvas.SetLeft(AlphaMarker, alphaX - AlphaMarker.Width / 2);
-        Canvas.SetTop(AlphaMarker, (AlphaCanvas.ActualHeight - AlphaMarker.Height) / 2);
     }
 
-    private void UpdateHexTextBox()
+    private void UpdateHexTextBox(Color color)
     {
-        HexTextBox.Text = ColorUtil.ToHexString(Value);
+        _hexValue = ColorUtil.ToHexString(color);
+        HexTextBox.Text = _hexValue;
     }
 
-    private void UpdatePreview()
+    private void UpdatePreview(Color color)
     {
-        PreviewRect.Fill = new SolidColorBrush(Value);
+        PreviewRect.Fill = new SolidColorBrush(color);
     }
-
-    // Color conversions
-
 }
