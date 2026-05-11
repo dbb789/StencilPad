@@ -4,8 +4,10 @@ using StencilPad.Models;
 namespace StencilPad.Schemas;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(ElementGroupSchema), "group")]
 [JsonDerivedType(typeof(ShapeSchema), "shape")]
-[JsonDerivedType(typeof(MarkerPathSchema), "MarkerPath")]
+[JsonDerivedType(typeof(MarkerPathSchema), "markerpath")]
+[JsonDerivedType(typeof(RulerSchema), "ruler")]
 public abstract class SheetElementSchema
 {
     public abstract ISheetElement Unpack();
@@ -14,8 +16,10 @@ public abstract class SheetElementSchema
     {
         return element switch
         {
+            ElementGroup g => ElementGroupSchema.Pack(g),
             Shape s => ShapeSchema.Pack(s),
             MarkerPath s => MarkerPathSchema.Pack(s),
+            Ruler s => RulerSchema.Pack(s),
             _ => null
         };
     }

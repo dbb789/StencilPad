@@ -74,9 +74,10 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 
     public override MarkerPath DeepClone()
     {
-        var clone = new MarkerPath(EditablePolygon.DeepClone());
+        var clone = new MarkerPath();
 
         clone.Id = Id;
+        clone.AssignFrom(this);
         
         return clone;
     }

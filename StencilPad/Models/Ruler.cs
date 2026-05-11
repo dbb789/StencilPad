@@ -6,11 +6,25 @@ public class Ruler : SheetElement<Ruler>
 {
     public override StartEndHandleSet HandleSet { get; }
 
-    public Unit2D Start => HandleSet.Start;
-    public Unit2D End => HandleSet.End;
+    public Unit2D Start
+    {
+        get => HandleSet.Start;
+        set => HandleSet.Start = value;
+    }
+    
+    public Unit2D End
+    {
+        get => HandleSet.End;
+        set => HandleSet.End = value;
+    }
 
     public Unit Length => (End - Start).Magnitude;
 
+    public Ruler()
+    {
+        HandleSet = new StartEndHandleSet(Unit2D.Zero, Unit2D.Zero);
+    }
+    
     public Ruler(Unit2D start, Unit2D end)
     {
         HandleSet = new StartEndHandleSet(start, end);
@@ -32,15 +46,16 @@ public class Ruler : SheetElement<Ruler>
     
     public override void AssignFrom(Ruler other)
     {
-        HandleSet.Start = other.HandleSet.Start;
-        HandleSet.End = other.HandleSet.End;
+        Start = other.Start;
+        End = other.End;
     }
 
     public override Ruler DeepClone()
     {
-        var clone = new Ruler(Start, End);
+        var clone = new Ruler();
         
         clone.Id = Id;
+        clone.AssignFrom(this);
         
         return clone;
     }
