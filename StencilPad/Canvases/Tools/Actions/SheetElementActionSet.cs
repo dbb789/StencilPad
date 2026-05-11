@@ -50,15 +50,17 @@ public class SheetElementActionSet
                     sheet.Selection.Add(group);
                 }
             },
-            new MultiSheetElementAction<ElementGroup>
+            new MultiSheetElementAction
             {
                 Name = "Ungroup",
+                Enabled = elements => elements.Any(e => e is ElementGroup),
                 Action = (sheet, elements) =>
                 {
+                    var groups = elements.OfType<ElementGroup>();
                     var operation = new BulkCommandOperation();
                     var added = new List<ISheetElement>();
                     
-                    foreach (var group in elements)
+                    foreach (var group in groups)
                     {
                         foreach (var child in group.Children)
                         {
