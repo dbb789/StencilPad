@@ -10,8 +10,9 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBox Grid.Column="0" 
-                 Text="{Binding TextValue, ElementName=Root, UpdateSourceTrigger=PropertyChanged}" 
+        <TextBox x:Name="TextBox"
+                 TextChanged="TextBoxChanged"
+                 Grid.Column="0" 
                  VerticalContentAlignment="Center"
                  Padding="4,2"/>
 

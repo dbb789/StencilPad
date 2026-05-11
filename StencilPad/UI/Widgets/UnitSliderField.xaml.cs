@@ -14,10 +14,6 @@ public partial class UnitSliderField : UserControl
         DependencyProperty.Register(nameof(UnitType), typeof(UnitType), typeof(UnitSliderField),
             new FrameworkPropertyMetadata(UnitType.Millimeters, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
-    public static readonly DependencyProperty TextValueProperty =
-        DependencyProperty.Register(nameof(TextValue), typeof(string), typeof(UnitSliderField),
-            new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
-
     public static readonly DependencyProperty MinimumProperty =
         DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(UnitSliderField),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(0), OnConstraintChanged));
@@ -26,19 +22,11 @@ public partial class UnitSliderField : UserControl
         DependencyProperty.Register(nameof(Maximum), typeof(Unit), typeof(UnitSliderField),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(1000000), OnConstraintChanged));
 
-    ////////////////////////////////////////
-    
-    public static readonly DependencyProperty SliderValueProperty =
-        DependencyProperty.Register(nameof(SliderValue), typeof(double), typeof(UnitSliderField),
-            new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSliderValueChanged));
-
     public static readonly DependencyProperty SliderMinimumProperty =
-        DependencyProperty.Register(nameof(SliderMinimum), typeof(double), typeof(UnitSliderField),
-            new FrameworkPropertyMetadata(0.0));
+        DependencyProperty.Register(nameof(SliderMinimum), typeof(double), typeof(UnitSliderField), new FrameworkPropertyMetadata(0.0));
 
     public static readonly DependencyProperty SliderMaximumProperty =
-        DependencyProperty.Register(nameof(SliderMaximum), typeof(double), typeof(UnitSliderField),
-            new FrameworkPropertyMetadata(100.0));
+        DependencyProperty.Register(nameof(SliderMaximum), typeof(double), typeof(UnitSliderField), new FrameworkPropertyMetadata(100.0));
 
     public Unit Value
     {
@@ -50,12 +38,6 @@ public partial class UnitSliderField : UserControl
     {
         get => (UnitType)GetValue(UnitTypeProperty);
         set => SetValue(UnitTypeProperty, value);
-    }
-
-    public string TextValue
-    {
-        get => (string)GetValue(TextValueProperty);
-        set => SetValue(TextValueProperty, value);
     }
 
     public Unit Minimum
@@ -70,12 +52,6 @@ public partial class UnitSliderField : UserControl
         set => SetValue(MaximumProperty, value);
     }
 
-    public double SliderValue
-    {
-        get => (double)GetValue(SliderValueProperty);
-        set => SetValue(SliderValueProperty, value);
-    }
-
     public double SliderMinimum
     {
         get => (double)GetValue(SliderMinimumProperty);
@@ -88,6 +64,9 @@ public partial class UnitSliderField : UserControl
         set => SetValue(SliderMaximumProperty, value);
     }
 
+    private string _textValue = "";
+    private double _sliderValue = 0.0;
+    
     public UnitSliderField()
     {
         InitializeComponent();
@@ -95,82 +74,14 @@ public partial class UnitSliderField : UserControl
         UpdateSliderValue();
     }
 
-    private bool _isUpdating;
-
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not UnitSliderField field || field._isUpdating)
+        if (d is not UnitSliderField field)
         {
             return;
         }
         
-        field._isUpdating = true;
-        
-        try
-        {
-            if (e.Property == ValueProperty || e.Property == UnitTypeProperty)
-            {
-                var clamped = field.ClampValue(field.Value);
-
-                if (clamped != field.Value)
-                {
-                    field.Value = clamped;
-                }
-
-                field.UpdateTextValue();
-                field.UpdateSliderValue();
-            }
-
-            if (e.Property == TextValueProperty || e.Property == UnitTypeProperty)
-            {
-                if (Unit.TryParse(field.TextValue, field.UnitType, out var parsedValue))
-                {
-                    var clamped = field.ClampValue(parsedValue);
-                    
-                    field.Value = clamped;
-                    field.UpdateSliderValue();
-                }
-            }
-        }
-        finally
-        {
-            field._isUpdating = false;
-        }
-    }
-
-    private static void OnSliderValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is not UnitSliderField field || field._isUpdating)
-        {
-            return;
-        }
-        
-        field._isUpdating = true;
-        
-        try
-        {
-            var unit = Unit.FromType((decimal)field.SliderValue, field.UnitType);
-            var clamped = field.ClampValue(unit);
-
-            field.Value = clamped;
-            field.UpdateTextValue();
-        }
-        finally
-        {
-            field._isUpdating = false;
-        }
-    }
-
-    private static void OnConstraintChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is not UnitSliderField field || field._isUpdating)
-        {
-            return;
-        }
-        
-        field._isUpdating = true;
-        
-        try
+        if (e.Property == ValueProperty || e.Property == UnitTypeProperty)
         {
             var clamped = field.ClampValue(field.Value);
             
@@ -182,20 +93,59 @@ public partial class UnitSliderField : UserControl
             field.UpdateTextValue();
             field.UpdateSliderValue();
         }
-        finally
+    }
+
+    private static void OnConstraintChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not UnitSliderField field)
         {
-            field._isUpdating = false;
+            return;
         }
+
+        var clamped = field.ClampValue(field.Value);
+        
+        if (clamped != field.Value)
+        {
+            field.Value = clamped;
+        }
+        
+        field.UpdateTextValue();
+        field.UpdateSliderValue();
     }
     
+    private void TextBoxChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_textValue != TextBox.Text)
+        {
+            _textValue = TextBox.Text;
+
+            if (Unit.TryParse(_textValue, UnitType, out var parsed))
+            {
+                Value = ClampValue(parsed);
+            }
+        }
+    }
+
+    private void SliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (Math.Abs(_sliderValue - Slider.Value) > 0.00001)
+        {
+            _sliderValue = Slider.Value;
+            
+            Value = ClampValue(Unit.FromType((decimal)_sliderValue, UnitType));
+        }
+    }
+
     private void UpdateTextValue()
     {
-        TextValue = Value.ToType(UnitType).ToString("0.###");
+        _textValue = Value.ToType(UnitType).ToString("0.###");
+        TextBox.Text = _textValue;
     }
 
     private void UpdateSliderValue()
     {
-        SliderValue = Value.ToType(UnitType);
+        _sliderValue = Math.Clamp(Value.ToType(UnitType), SliderMinimum, SliderMaximum);
+        Slider.Value = _sliderValue;
     }
     
     private Unit ClampValue(Unit value)

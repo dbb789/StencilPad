@@ -15,7 +15,8 @@
         </Grid.ColumnDefinitions>
 
         <TextBox Grid.Row="0" Grid.Column="0"
-                 Text="{Binding TextValue, ElementName=Root, UpdateSourceTrigger=PropertyChanged}"
+                 x:Name="TextBox"
+                 TextChanged="TextBoxChanged"
                  VerticalContentAlignment="Center"
                  Padding="4,2"/>
 
@@ -32,6 +33,8 @@
         </ComboBox>
 
         <Slider Grid.Row="1" Grid.ColumnSpan="2"
+                x:Name="Slider"
+                ValueChanged="SliderChanged"
                 Margin="0,4,0,0"
                 Minimum="{Binding SliderMinimum, ElementName=Root}"
                 Maximum="{Binding SliderMaximum, ElementName=Root}"
