@@ -25,32 +25,12 @@
 
         <TabControl Grid.Row="0">
             <TabItem Header="Fill Colour">
-                <Grid Margin="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="Colour:"
-                               VerticalAlignment="Center"/>
-                    <widgets:ColorField Grid.Column="2" MinWidth="180"
-                                        Value="{Binding FillColor}"/>
-                </Grid>
+                <widgets:ColorField Margin="8" MinWidth="200"
+                                    Value="{Binding FillColor}"/>
             </TabItem>
             <TabItem Header="Line Colour">
-                <Grid Margin="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="Colour:"
-                               VerticalAlignment="Center"/>
-                    <widgets:ColorField Grid.Column="2" MinWidth="180"
-                                        Value="{Binding LineColor}"/>
-                </Grid>
+                <widgets:ColorField Margin="8" MinWidth="200"
+                                    Value="{Binding LineColor}"/>
             </TabItem>
             <TabItem Header="Line Style">
                 <Grid Margin="8">
