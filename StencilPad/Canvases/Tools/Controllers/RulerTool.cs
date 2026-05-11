@@ -14,7 +14,9 @@ public class RulerTool : ITool
         public string IconResource => "RulerTool";
         public string Tooltip => "Ruler";
 
-        public ITool Create(IToolButton _, Sheet sheet, IToolContext context)
+        public ITool Create(IToolButton button,
+                            Sheet sheet,
+                            IToolContext context)
         {
             return new RulerTool(sheet, context, OperationService);
         }
@@ -25,7 +27,9 @@ public class RulerTool : ITool
     private readonly IOperationService _operationService;
     private RulerToolOverlay? _overlay;
 
-    private RulerTool(Sheet sheet, IToolContext context, IOperationService operationService)
+    private RulerTool(Sheet sheet,
+                      IToolContext context,
+                      IOperationService operationService)
     {
         _sheet = sheet;
         _context = context;
