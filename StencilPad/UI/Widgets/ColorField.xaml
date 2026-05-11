@@ -14,40 +14,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- SV square -->
-        <Grid Grid.Row="0" ClipToBounds="True">
-            <Rectangle x:Name="SvSaturationRect">
-                <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                        <GradientStop Color="White" Offset="0"/>
-                        <GradientStop Color="Red" Offset="1"/>
-                    </LinearGradientBrush>
-                </Rectangle.Fill>
-            </Rectangle>
-            <Rectangle>
-                <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                        <GradientStop Color="Transparent" Offset="0"/>
-                        <GradientStop Color="Black" Offset="1"/>
-                    </LinearGradientBrush>
-                </Rectangle.Fill>
-            </Rectangle>
-            <Canvas x:Name="SvCanvas" Background="Transparent"
-                    MouseDown="SvCanvas_MouseDown"
-                    MouseMove="SvCanvas_MouseMove"
-                    MouseUp="SvCanvas_MouseUp">
-                <Ellipse x:Name="SvMarkerOuter"
-                         Width="12" Height="12"
-                         Stroke="Black" StrokeThickness="2"
-                         Fill="Transparent" Opacity="0.5"
-                         IsHitTestVisible="False"/>
-                <Ellipse x:Name="SvMarker"
-                         Width="10" Height="10"
-                         Stroke="White" StrokeThickness="2"
-                         Fill="Transparent"
-                         IsHitTestVisible="False"/>
-            </Canvas>
-        </Grid>
+        <!-- SV picker -->
+        <widgets:ColorFieldSVPicker Grid.Row="0" x:Name="SvPicker"/>
 
         <!-- Hue slider -->
         <widgets:ColorFieldHueSlider Grid.Row="2" x:Name="HueSlider"/>

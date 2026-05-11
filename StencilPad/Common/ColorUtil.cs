@@ -21,30 +21,23 @@ public static class ColorUtil
         
         var s = text.TrimStart('#');
 
-        try
+        if (s.Length == 6 &&
+            byte.TryParse(s[0..2], NumberStyles.HexNumber, null, out var r) &&
+            byte.TryParse(s[2..4], NumberStyles.HexNumber, null, out var g) &&
+            byte.TryParse(s[4..6], NumberStyles.HexNumber, null, out var b))
         {
-            if (s.Length == 6 &&
-                byte.TryParse(s[0..2], NumberStyles.HexNumber, null, out var r) &&
-                byte.TryParse(s[2..4], NumberStyles.HexNumber, null, out var g) &&
-                byte.TryParse(s[4..6], NumberStyles.HexNumber, null, out var b))
-            {
-                color = Color.FromArgb(255, r, g, b);
-                return true;
-            }
-
-            if (s.Length == 8 &&
-                byte.TryParse(s[0..2], NumberStyles.HexNumber, null, out var a2) &&
-                byte.TryParse(s[2..4], NumberStyles.HexNumber, null, out var r2) &&
-                byte.TryParse(s[4..6], NumberStyles.HexNumber, null, out var g2) &&
-                byte.TryParse(s[6..8], NumberStyles.HexNumber, null, out var b2))
-            {
-                color = Color.FromArgb(a2, r2, g2, b2);
-                return true;
-            }
+            color = Color.FromArgb(255, r, g, b);
+            return true;
         }
-        catch
+        
+        if (s.Length == 8 &&
+            byte.TryParse(s[0..2], NumberStyles.HexNumber, null, out var a2) &&
+            byte.TryParse(s[2..4], NumberStyles.HexNumber, null, out var r2) &&
+            byte.TryParse(s[4..6], NumberStyles.HexNumber, null, out var g2) &&
+            byte.TryParse(s[6..8], NumberStyles.HexNumber, null, out var b2))
         {
-            // Fall through.
+            color = Color.FromArgb(a2, r2, g2, b2);
+            return true;
         }
 
         return false;
