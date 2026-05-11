@@ -4,7 +4,7 @@ using StencilPad.Models;
 
 namespace StencilPad.ViewModels;
 
-public class SheetTabViewModel : ViewModelBase
+public class SheetTabViewModel : ViewModelBase, IDisposable
 {
     public string Header => Sheet.Name;
 
@@ -47,6 +47,11 @@ public class SheetTabViewModel : ViewModelBase
         ToolPanelViewModel = new();
     }
 
+    public void Dispose()
+    {
+        Sheet.PropertyChanged -= Sheet_PropertyChanged;
+    }
+    
     public void AttachCanvas(SheetCanvas canvas)
     {
         CanvasAttached?.Invoke(canvas);

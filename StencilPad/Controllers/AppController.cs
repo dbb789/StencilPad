@@ -176,6 +176,9 @@ public class AppController
         {
             _viewModel.SelectedTab = _viewModel.Tabs.FirstOrDefault();
         }
+
+        tabToRemove.Controller.Dispose();
+        tabToRemove.ViewModel.Dispose();
     }
 
     private void AddNewSheet()

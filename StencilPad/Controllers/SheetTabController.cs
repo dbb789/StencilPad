@@ -1,10 +1,11 @@
 using StencilPad.ViewModels;
 using StencilPad.Canvases.Tools.Controllers;
+using StencilPad.Canvases.UI;
 using StencilPad.Services;
 
 namespace StencilPad.Controllers;
 
-public class SheetTabController
+public class SheetTabController : IDisposable
 {
     public class Factory(ToolSet ToolSet, IModelPropertiesService ModelPropertiesService)
     {
@@ -28,26 +29,37 @@ public class SheetTabController
         _toolSet = toolSet;
         _modelPropertiesService = modelPropertiesService;
         
-        tabViewModel.CanvasAttached += sheetCanvas =>
-        {
-            if (sheetCanvas != _toolController?.ToolContext)
-            {
-                _toolController?.Dispose();
-                _toolController = null;
-            }
-            
-            _toolController ??= new ToolController(_toolSet,
-                                                   _tabViewModel.ToolPanelViewModel,
-                                                   _tabViewModel.Sheet,
-                                                   sheetCanvas,
-                                                   _modelPropertiesService);
+        _tabViewModel.CanvasAttached += CanvasAttached;
+        _tabViewModel.CanvasDetached += CanvasDetached;
+    }
 
-            _toolController.ActivateCurrentTool();
-        };
+    public void Dispose()
+    {
+        _tabViewModel.CanvasAttached -= CanvasAttached;
+        _tabViewModel.CanvasDetached -= CanvasDetached;
 
-        tabViewModel.CanvasDetached += () =>
+        _toolController?.Dispose();
+    }
+
+    private void CanvasAttached(SheetCanvas sheetCanvas)
+    {
+        if (sheetCanvas != _toolController?.ToolContext)
         {
-            _toolController?.DeactivateCurrentTool();
-        };
+            _toolController?.Dispose();
+            _toolController = null;
+        }
+        
+        _toolController ??= new ToolController(_toolSet,
+                                               _tabViewModel.ToolPanelViewModel,
+                                               _tabViewModel.Sheet,
+                                               sheetCanvas,
+                                               _modelPropertiesService);
+
+        _toolController.ActivateCurrentTool();
+    }
+
+    private void CanvasDetached()
+    {
+        _toolController?.DeactivateCurrentTool();
     }
 }

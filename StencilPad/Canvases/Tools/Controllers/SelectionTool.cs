@@ -67,7 +67,6 @@ public class SelectionTool : ITool
         _context.ClearSelectionRequested += ClearSelection;
 
         _overlay.ActionInvoked += ActionInvoked;
-
         _overlay.PointSelected += PointSelected;
         _overlay.SelectionDragged += SelectionDragged;
         _overlay.ShowProperties += ShowProperties;
@@ -84,8 +83,7 @@ public class SelectionTool : ITool
             _context.SelectAllRequested -= SelectAll;
             _context.ClearSelectionRequested -= ClearSelection;
 
-            _overlay.ActionInvoked += ActionInvoked;
-            
+            _overlay.ActionInvoked -= ActionInvoked;
             _overlay.PointSelected -= PointSelected;
             _overlay.SelectionDragged -= SelectionDragged;
             _overlay.ShowProperties -= ShowProperties;
