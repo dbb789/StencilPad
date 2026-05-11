@@ -134,7 +134,7 @@ public class Polygon : IPolygon
         for (int i = 0; i < _vertices.Count; ++i)
         {
             var vertex = _vertices[i];
-            var mirrored = vertex.Position with { Y = centerY * 2.0 - vertex.Position.Y };
+            var mirrored = vertex.Position with { Y = (centerY * 2) - vertex.Position.Y };
 
             _vertices.Items[i] = vertex with { Position = mirrored };
         }
@@ -147,7 +147,7 @@ public class Polygon : IPolygon
         for (int i = 0; i < _vertices.Count; ++i)
         {
             var vertex = _vertices[i];
-            var mirrored = vertex.Position with { X = centerX * 2.0 - vertex.Position.X };
+            var mirrored = vertex.Position with { X = (centerX * 2) - vertex.Position.X };
 
             _vertices.Items[i] = vertex with { Position = mirrored };
         }

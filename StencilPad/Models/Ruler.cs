@@ -32,10 +32,14 @@ public class Ruler : SheetElement<Ruler>
     
     public override void MirrorX(Unit centerY)
     {
+        Start = new Unit2D(Start.X, (centerY * 2) - Start.Y);
+        End = new Unit2D(End.X, (centerY * 2) - End.Y);
     }
     
     public override void MirrorY(Unit centerX)
     {
+        Start = new Unit2D((centerX * 2) - Start.X, Start.Y);
+        End = new Unit2D((centerX * 2) - End.X, End.Y);
     }
 
     public override void Translate(Unit2D delta)
