@@ -10,15 +10,16 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 {
     public struct Enumerator : IEnumerator<ISheetElement>
     {
+        public ISheetElement Current => _current;
         ISheetElement IEnumerator<ISheetElement>.Current => _current;
         object IEnumerator.Current => _current;
 
-        private readonly Collection<ISheetElement> _elements;
+        private readonly SheetElementList _elements;
         private readonly HashSet<Guid> _selectedIds;
         private HashSet<Guid>.Enumerator _enumerator;
         private ISheetElement _current;
 
-        public Enumerator(Collection<ISheetElement> elements,
+        public Enumerator(SheetElementList elements,
                           HashSet<Guid> selectedIds)
         {
             _elements = elements;
@@ -32,9 +33,8 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
             while (_enumerator.MoveNext())
             {
                 var id = _enumerator.Current;
-                var element = _elements.Where(e => e.Id == id).FirstOrDefault();
-
-                if (element is not null)
+                
+                if (_elements.TryGetElement(id, out var element))
                 {
                     _current = element;
 
@@ -59,17 +59,17 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
     public int Count => _selectedIds.Count;
     
-    private readonly ObservableCollection<ISheetElement> _elements;
+    private readonly SheetElementList _elements;
     private readonly HashSet<Guid> _selectedIds;
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
     
-    public SheetSelection(ObservableCollection<ISheetElement> elements)
+    public SheetSelection(SheetElementList elements)
     {
         _elements = elements;
         _selectedIds = new();
-        
-        _elements.CollectionChanged += OnElementsChanged;
+
+        _elements.ElementRemoving += Remove;
     }
 
     public void Add(ISheetElement element)
@@ -105,7 +105,12 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
             Remove(removed);
         }
     }
-    
+
+    public Enumerator GetEnumerator()
+    {
+        return new Enumerator(_elements, _selectedIds);
+    }
+
     IEnumerator<ISheetElement> IEnumerable<ISheetElement>.GetEnumerator()
     {
         return new Enumerator(_elements, _selectedIds);

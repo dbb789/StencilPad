@@ -19,7 +19,7 @@ public class Sheet : ModelBase
         }
     }
     
-    public ObservableCollection<ISheetElement> Elements { get; }
+    public SheetElementList Elements { get; }
     public SheetSelection Selection { get; }
 
     public Sheet()
