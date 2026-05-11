@@ -1,0 +1,74 @@
+<Window x:Class="StencilPad.UI.Properties.ShapePropertiesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:widgets="clr-namespace:StencilPad.UI.Widgets"
+        xmlns:vm="clr-namespace:StencilPad.ViewModels.Properties"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:ShapePropertiesViewModel}"
+        Title="{Binding Title}" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        MinWidth="260">
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="{x:Static SystemCommands.CloseWindowCommand}"/>
+    </Window.InputBindings>
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}" Executed="Close_Click"/>
+    </Window.CommandBindings>
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0">
+            <TabItem Header="Fill Colour">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Colour:"
+                               VerticalAlignment="Center"/>
+                    <widgets:ColourField Grid.Column="2" MinWidth="180"
+                                         Value="{Binding FillColor}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Line Colour">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Colour:"
+                               VerticalAlignment="Center"/>
+                    <widgets:ColourField Grid.Column="2" MinWidth="180"
+                                         Value="{Binding LineColor}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Line Style">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Line Width:"
+                               VerticalAlignment="Center"/>
+                    <widgets:UnitField Grid.Column="2" MinWidth="180"
+                                       Value="{Binding LineWidth}"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Button Grid.Row="2" Content="Close"
+                MinWidth="75" HorizontalAlignment="Right" Click="Close_Click"/>
+    </Grid>
+</Window>

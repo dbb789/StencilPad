@@ -15,14 +15,23 @@ public class SheetElementActionSet
                                  IOperationService operationService)
     {
         Actions = [
+            new MultiSheetElementAction<Shape>
+            {
+                Name = "Shape Properties…",
+                Action = (context, sheet, elements) =>
+                {
+                    modelPropertiesService.ShowShapeProperties(elements);
+                }
+            },
             new MultiSheetElementAction<MarkerPath>
             {
-                Name = "Properties",
+                Name = "Marker Path Properties…",
                 Action = (context, sheet, elements) =>
                 {
                     modelPropertiesService.ShowMarkerPathProperties(elements);
                 }
             },
+            null,
             new MultiSheetElementAction
             {
                 Name = "Group",

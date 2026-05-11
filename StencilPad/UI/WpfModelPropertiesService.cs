@@ -54,4 +54,20 @@ public class WpfModelPropertiesService : IModelPropertiesService
 
         window.Show();
     }
+
+    public void ShowShapeProperties(IEnumerable<Shape> shapes)
+    {
+        _openWindow?.Close();
+
+        var window = new ShapePropertiesWindow(shapes)
+        {
+            Owner = _owner
+        };
+
+        _openWindow = window;
+
+        window.Closed += (_, _) => _openWindow = null;
+
+        window.Show();
+    }
 }

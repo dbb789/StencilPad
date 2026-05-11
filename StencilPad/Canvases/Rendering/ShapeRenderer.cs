@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
@@ -31,13 +32,15 @@ public class ShapeRenderer : SheetElementRenderer
     {
         _shape = shape;
         _shape.EditablePolygon.PolygonChanged += RebuildGeometry;
-
+        _shape.PropertyChanged += PropertyChanged;
+        
         RebuildGeometry();
     }
 
     public override void Dispose()
     {
         _shape.EditablePolygon.PolygonChanged -= RebuildGeometry;
+        _shape.PropertyChanged -= PropertyChanged;
     }
 
     public override bool HitTest(Unit2D unit)
@@ -75,6 +78,13 @@ public class ShapeRenderer : SheetElementRenderer
         dc.DrawGeometry(fill, pen, _geometry);
     }
 
+    private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Any change here is going to affect the rendering, so we can just
+        // invalidate the visual.
+        InvokeInvalidateVisual();
+    }
+    
     private void RebuildGeometry()
     {
         _geometry = new StreamGeometry
