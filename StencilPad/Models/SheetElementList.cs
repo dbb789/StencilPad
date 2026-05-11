@@ -86,13 +86,13 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
     public void Remove(ISheetElement element)
     {
         var id = element.Id;
-        
-        if (!_elements.ContainsKey(id))
+
+        if (!_elements.TryGetValue(id, out var existingElement))
         {
             throw new ArgumentException($"Element with Id {id} does not exist in the list.");
         }
 
-        ElementRemoving?.Invoke(element);
+        ElementRemoving?.Invoke(existingElement);
         
         // Safety - keep element around until after ElementRemoving is invoked.
         _elements.Remove(id);
@@ -103,7 +103,7 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
         _keys.RemoveAt(keyIndex);
         ++_version;
 
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element, keyIndex));
+        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, existingElement, keyIndex));
     }
 
     public void Clear()

@@ -120,7 +120,7 @@ public class SelectionTool : ITool
 
         if (_sheet.Selection.Count == 1)
         {
-            lastSelection = _sheet.Selection.First();
+            lastSelection = _sheet.Selection.FirstOrDefault();
         }
 
         _sheet.Selection.Clear();

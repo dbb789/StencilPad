@@ -78,11 +78,16 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
     public bool Add(ISheetElement element)
     {
+        if (!_elements.TryGetElement(element.Id, out var existingElement))
+        {
+            throw new ArgumentException("Element does not exist in parent collection.", nameof(element));
+        }
+        
         if (_selectedIds.Add(element.Id))
         {
             ++_version;
 
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, existingElement));
 
             return true;
         }
@@ -92,11 +97,16 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
     public bool Remove(ISheetElement element)
     {
+        if (!_elements.TryGetElement(element.Id, out var existingElement))
+        {
+            throw new ArgumentException("Element does not exist in parent collection.", nameof(element));
+        }
+        
         if (_selectedIds.Remove(element.Id))
         {
             ++_version;
 
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, existingElement));
 
             return true;
         }
