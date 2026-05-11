@@ -19,11 +19,13 @@ public class Sheet : ModelBase
         }
     }
     
-    public ObservableCollection<ISheetElement> Elements { get; } = [];
-    public ObservableCollection<ISheetElement> Selection { get; } = [];
+    public ObservableCollection<ISheetElement> Elements { get; }
+    public SheetSelection Selection { get; }
 
     public Sheet()
     {
+        Elements = new();
+        Selection = new SheetSelection(Elements);
         Elements.CollectionChanged += OnElementsChanged;
     }
 
@@ -62,7 +64,7 @@ public class Sheet : ModelBase
             return;
         }
 
-        foreach (SheetElement removed in e.OldItems)
+        foreach (ISheetElement removed in e.OldItems)
         {
             Selection.Remove(removed);
         }
