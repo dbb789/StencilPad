@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using StencilPad.Common;
 
 namespace StencilPad.UI.Widgets;
 
@@ -47,8 +48,10 @@ public partial class ColorField : UserControl
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not ColorField field || field._isUpdating)
+        {
             return;
-
+        }
+        
         field.UpdateFromValue((Color)e.NewValue);
     }
 
@@ -58,7 +61,7 @@ public partial class ColorField : UserControl
 
         try
         {
-            RgbToHsv(color, out _hue, out _saturation, out _brightness);
+            ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
             UpdateSvGradient();
             UpdateAlphaGradient();
             UpdateMarkerPositions();
@@ -73,7 +76,7 @@ public partial class ColorField : UserControl
 
     private void CommitHsv(byte alpha)
     {
-        var color = HsvToRgb(_hue, _saturation, _brightness, alpha);
+        var color = ColorUtil.HsvToRgb(_hue, _saturation, _brightness, alpha);
 
         _isUpdating = true;
 
@@ -104,14 +107,18 @@ public partial class ColorField : UserControl
     private void SvCanvas_MouseMove(object sender, MouseEventArgs e)
     {
         if (_draggingSv)
+        {
             SetSvFromPoint(e.GetPosition(SvCanvas));
+        }
     }
 
     private void SvCanvas_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!_draggingSv)
+        {
             return;
-
+        }
+        
         _draggingSv = false;
         SvCanvas.ReleaseMouseCapture();
     }
@@ -123,8 +130,6 @@ public partial class ColorField : UserControl
         CommitHsv(Value.A);
     }
 
-    // Hue canvas
-
     private void HueCanvas_MouseDown(object sender, MouseButtonEventArgs e)
     {
         _draggingHue = true;
@@ -135,14 +140,18 @@ public partial class ColorField : UserControl
     private void HueCanvas_MouseMove(object sender, MouseEventArgs e)
     {
         if (_draggingHue)
+        {
             SetHueFromPoint(e.GetPosition(HueCanvas));
+        }
     }
 
     private void HueCanvas_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!_draggingHue)
+        {
             return;
-
+        }
+        
         _draggingHue = false;
         HueCanvas.ReleaseMouseCapture();
     }
@@ -153,26 +162,30 @@ public partial class ColorField : UserControl
         CommitHsv(Value.A);
     }
 
-    // Alpha canvas
-
     private void AlphaCanvas_MouseDown(object sender, MouseButtonEventArgs e)
     {
         _draggingAlpha = true;
+        
         AlphaCanvas.CaptureMouse();
+        
         SetAlphaFromPoint(e.GetPosition(AlphaCanvas));
     }
 
     private void AlphaCanvas_MouseMove(object sender, MouseEventArgs e)
     {
         if (_draggingAlpha)
+        {
             SetAlphaFromPoint(e.GetPosition(AlphaCanvas));
+        }
     }
 
     private void AlphaCanvas_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!_draggingAlpha)
+        {
             return;
-
+        }
+        
         _draggingAlpha = false;
         AlphaCanvas.ReleaseMouseCapture();
     }
@@ -180,25 +193,30 @@ public partial class ColorField : UserControl
     private void SetAlphaFromPoint(Point p)
     {
         var alpha = (byte)Math.Clamp(p.X / AlphaCanvas.ActualWidth * 255, 0, 255);
+        
         CommitHsv(alpha);
     }
-
-    // Hex text box
 
     private void HexTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (_isUpdating)
+        {
             return;
-
-        if (!TryParseHex(HexTextBox.Text, out var color))
+        }
+        
+        if (!ColorUtil.TryParseHex(HexTextBox.Text, out var color))
+        {
             return;
-
+        }
+        
         _isUpdating = true;
 
         try
         {
-            RgbToHsv(color, out _hue, out _saturation, out _brightness);
+            ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+            
             Value = color;
+            
             UpdateSvGradient();
             UpdateAlphaGradient();
             UpdateMarkerPositions();
@@ -210,17 +228,17 @@ public partial class ColorField : UserControl
         }
     }
 
-    // Update helpers
-
     private void UpdateSvGradient()
     {
         var brush = (LinearGradientBrush)SvSaturationRect.Fill;
-        brush.GradientStops[1].Color = HsvToRgb(_hue, 1, 1, 255);
+        
+        brush.GradientStops[1].Color = ColorUtil.HsvToRgb(_hue, 1, 1, 255);
     }
 
     private void UpdateAlphaGradient()
     {
         var brush = (LinearGradientBrush)AlphaBarRect.Fill;
+        
         brush.GradientStops[0].Color = Color.FromArgb(0, Value.R, Value.G, Value.B);
         brush.GradientStops[1].Color = Color.FromArgb(255, Value.R, Value.G, Value.B);
     }
@@ -251,7 +269,7 @@ public partial class ColorField : UserControl
 
     private void UpdateHexTextBox()
     {
-        HexTextBox.Text = FormatHex(Value);
+        HexTextBox.Text = ColorUtil.ToHexString(Value);
     }
 
     private void UpdatePreview()
@@ -261,106 +279,4 @@ public partial class ColorField : UserControl
 
     // Color conversions
 
-    private static void RgbToHsv(Color color, out double h, out double s, out double v)
-    {
-        var r = color.R / 255.0;
-        var g = color.G / 255.0;
-        var b = color.B / 255.0;
-        var max = Math.Max(r, Math.Max(g, b));
-        var min = Math.Min(r, Math.Min(g, b));
-        var delta = max - min;
-
-        v = max;
-        s = max == 0 ? 0 : delta / max;
-
-        if (delta == 0)
-        {
-            h = 0;
-            return;
-        }
-
-        if (max == r)
-            h = 60 * (((g - b) / delta) % 6);
-        else if (max == g)
-            h = 60 * (((b - r) / delta) + 2);
-        else
-            h = 60 * (((r - g) / delta) + 4);
-
-        if (h < 0)
-            h += 360;
-    }
-
-    private static Color HsvToRgb(double h, double s, double v, byte a)
-    {
-        if (s == 0)
-        {
-            var grey = (byte)(v * 255);
-            return Color.FromArgb(a, grey, grey, grey);
-        }
-
-        h /= 60;
-
-        var i = (int)Math.Floor(h);
-        var f = h - i;
-        var p = v * (1 - s);
-        var q = v * (1 - s * f);
-        var t = v * (1 - s * (1 - f));
-
-        double r, g, b;
-
-        switch (i % 6)
-        {
-            case 0:  r = v; g = t; b = p; break;
-            case 1:  r = q; g = v; b = p; break;
-            case 2:  r = p; g = v; b = t; break;
-            case 3:  r = p; g = q; b = v; break;
-            case 4:  r = t; g = p; b = v; break;
-            default: r = v; g = p; b = q; break;
-        }
-
-        return Color.FromArgb(a, (byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
-    }
-
-    private static string FormatHex(Color color)
-    {
-        return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
-    }
-
-    private static bool TryParseHex(string text, out Color color)
-    {
-        color = Colors.Black;
-
-        if (string.IsNullOrWhiteSpace(text))
-            return false;
-
-        var s = text.TrimStart('#');
-
-        try
-        {
-            if (s.Length == 6 &&
-                byte.TryParse(s[0..2], System.Globalization.NumberStyles.HexNumber, null, out var r) &&
-                byte.TryParse(s[2..4], System.Globalization.NumberStyles.HexNumber, null, out var g) &&
-                byte.TryParse(s[4..6], System.Globalization.NumberStyles.HexNumber, null, out var b))
-            {
-                color = Color.FromArgb(255, r, g, b);
-                return true;
-            }
-
-            if (s.Length == 8 &&
-                byte.TryParse(s[0..2], System.Globalization.NumberStyles.HexNumber, null, out var a2) &&
-                byte.TryParse(s[2..4], System.Globalization.NumberStyles.HexNumber, null, out var r2) &&
-                byte.TryParse(s[4..6], System.Globalization.NumberStyles.HexNumber, null, out var g2) &&
-                byte.TryParse(s[6..8], System.Globalization.NumberStyles.HexNumber, null, out var b2))
-            {
-                color = Color.FromArgb(a2, r2, g2, b2);
-                return true;
-            }
-        }
-        catch
-        {
-            return false;
-        }
-
-        return false;
-    }
 }
