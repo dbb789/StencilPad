@@ -1,6 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-
 namespace StencilPad.Models;
 
 public class Sheet : ModelBase
@@ -30,26 +27,10 @@ public class Sheet : ModelBase
 
     public bool AssignElement(ISheetElement newElement)
     {
-        var element = Elements.Where(e => e.Id == newElement.Id).First();
-
-        if (element is not null)
+        if (Elements.TryGetElement(newElement.Id, out var element))
         {
             element.AssignFromElement(newElement);
 
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool RemoveElement(Guid Id)
-    {
-        var element = Elements.Where(e => e.Id == Id).FirstOrDefault();
-
-        if (element is not null)
-        {
-            Elements.Remove(element);
-            
             return true;
         }
 

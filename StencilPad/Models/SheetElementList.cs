@@ -7,25 +7,28 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
 {
     public struct Enumerator : IEnumerator<ISheetElement>
     {
-        public ISheetElement Current => _elements[_keys[_index]];
-        ISheetElement IEnumerator<ISheetElement>.Current => _elements[_keys[_index]];
-        object IEnumerator.Current => _elements[_keys[_index]];
+        public ISheetElement Current => _parent._elements[_parent._keys[_index]];
+        object IEnumerator.Current => _parent._elements[_parent._keys[_index]];
 
-        private readonly List<Guid> _keys;
-        private readonly Dictionary<Guid, ISheetElement> _elements;
+        private readonly SheetElementList _parent;
+        private readonly int _version;
         private int _index;
         
-        public Enumerator(List<Guid> keys,
-                          Dictionary<Guid, ISheetElement> elements)
+        public Enumerator(SheetElementList parent)
         {
-            _keys = keys;
-            _elements = elements;
+            _parent = parent;
+            _version = _parent._version;
             _index = -1;
         }
 
         public bool MoveNext()
         {
-            return ++_index < _keys.Count;
+            if (_version != _parent._version)
+            {
+                throw new InvalidOperationException("Collection was modified during enumeration.");
+            }
+            
+            return ++_index < _parent._keys.Count;
         }
 
         public void Reset()
@@ -39,9 +42,10 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
         }
     }
 
-    private List<Guid> _keys;
-    private Dictionary<Guid, ISheetElement> _elements;
-
+    private readonly List<Guid> _keys;
+    private readonly Dictionary<Guid, ISheetElement> _elements;
+    private int _version;
+    
     // NOTE: Strictly defined to be called before CollectionChanged so that the
     // selection in SheetSelection can be updated before everything else is
     // notified.
@@ -53,6 +57,7 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
     {
         _keys = new();
         _elements = new();
+        _version = 0;
     }
 
     public bool TryGetElement(Guid id, out ISheetElement element)
@@ -71,8 +76,11 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
         
         _keys.Add(id);
         _elements[id] = element;
-
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element));
+        ++_version;
+        
+        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+                                                                             element,
+                                                                             _keys.Count - 1));
     }
 
     public void Remove(ISheetElement element)
@@ -90,9 +98,12 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
         _elements.Remove(id);
         
         // O(n) but shouldn't be a real-world problem.
-        _keys.Remove(id);
+        int keyIndex = _keys.IndexOf(id);
+        
+        _keys.RemoveAt(keyIndex);
+        ++_version;
 
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element));
+        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element, keyIndex));
     }
 
     public void Clear()
@@ -104,22 +115,23 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
         
         _keys.Clear();
         _elements.Clear();
+        ++_version;
         
         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
     
     public Enumerator GetEnumerator()
     {
-        return new Enumerator(_keys, _elements);
+        return new Enumerator(this);
     }
 
     IEnumerator<ISheetElement> IEnumerable<ISheetElement>.GetEnumerator()
     {
-        return new Enumerator(_keys, _elements);
+        return new Enumerator(this);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return new Enumerator(_keys, _elements);
+        return new Enumerator(this);
     }
 }

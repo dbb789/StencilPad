@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
 namespace StencilPad.Models;
@@ -11,30 +10,33 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
     public struct Enumerator : IEnumerator<ISheetElement>
     {
         public ISheetElement Current => _current;
-        ISheetElement IEnumerator<ISheetElement>.Current => _current;
         object IEnumerator.Current => _current;
 
-        private readonly SheetElementList _elements;
-        private readonly HashSet<Guid> _selectedIds;
+        private readonly SheetSelection _parent;
+        private readonly int _version;
         private HashSet<Guid>.Enumerator _enumerator;
         private ISheetElement _current;
 
-        public Enumerator(SheetElementList elements,
-                          HashSet<Guid> selectedIds)
+        public Enumerator(SheetSelection parent)
         {
-            _elements = elements;
-            _selectedIds = selectedIds;
-            _enumerator = _selectedIds.GetEnumerator();
+            _parent = parent;
+            _version = _parent._version;
+            _enumerator = _parent._selectedIds.GetEnumerator();
             _current = null!;
         }
 
         public bool MoveNext()
         {
+            if (_version != _parent._version)
+            {
+                throw new InvalidOperationException("Collection was modified during enumeration.");
+            }
+
             while (_enumerator.MoveNext())
             {
                 var id = _enumerator.Current;
                 
-                if (_elements.TryGetElement(id, out var element))
+                if (_parent._elements.TryGetElement(id, out var element))
                 {
                     _current = element;
 
@@ -47,7 +49,7 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
         public void Reset()
         {
-            _enumerator = _selectedIds.GetEnumerator();
+            _enumerator = _parent._selectedIds.GetEnumerator();
             _current = null!;
         }
 
@@ -61,63 +63,72 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
     
     private readonly SheetElementList _elements;
     private readonly HashSet<Guid> _selectedIds;
-
+    private int _version;
+    
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
     
     public SheetSelection(SheetElementList elements)
     {
         _elements = elements;
         _selectedIds = new();
+        _version = 0;
 
-        _elements.ElementRemoving += Remove;
+        _elements.ElementRemoving += (e) => Remove(e);
     }
 
-    public void Add(ISheetElement element)
+    public bool Add(ISheetElement element)
     {
-        _selectedIds.Add(element.Id);
+        if (_selectedIds.Add(element.Id))
+        {
+            ++_version;
 
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element));
+
+            return true;
+        }
+
+        return false;
     }
 
-    public void Remove(ISheetElement element)
+    public bool Remove(ISheetElement element)
     {
-        _selectedIds.Remove(element.Id);
+        if (_selectedIds.Remove(element.Id))
+        {
+            ++_version;
 
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element));
+
+            return true;
+        }
+
+        return false;
     }
 
     public void Clear()
     {
+        if (_selectedIds.Count == 0)
+        {
+            return;
+        }
+        
         _selectedIds.Clear();
+        ++_version;
 
         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
 
-    private void OnElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.OldItems is null)
-        {
-            return;
-        }
-
-        foreach (ISheetElement removed in e.OldItems)
-        {
-            Remove(removed);
-        }
-    }
-
     public Enumerator GetEnumerator()
     {
-        return new Enumerator(_elements, _selectedIds);
+        return new Enumerator(this);
     }
 
     IEnumerator<ISheetElement> IEnumerable<ISheetElement>.GetEnumerator()
     {
-        return new Enumerator(_elements, _selectedIds);
+        return new Enumerator(this);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return new Enumerator(_elements, _selectedIds);
+        return new Enumerator(this);
     }
 }

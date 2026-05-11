@@ -20,10 +20,7 @@ public class RemoveSheetElementOperation : SheetOperation, ICommandOperation
 
     protected override void Execute(Sheet sheet)
     {
-        if (!sheet.RemoveElement(_sheetElement.Id))
-        {
-            throw new InvalidOperationException($"Failed to remove element with id {_sheetElement.Id} from sheet with id {sheet.Id}");
-        }
+        sheet.Elements.Remove(_sheetElement);
     }
     
     public override IOperation Invert()
