@@ -26,7 +26,6 @@ public class Sheet : ModelBase
     {
         Elements = new();
         Selection = new SheetSelection(Elements);
-        Elements.CollectionChanged += OnElementsChanged;
     }
 
     public bool AssignElement(ISheetElement newElement)
@@ -55,18 +54,5 @@ public class Sheet : ModelBase
         }
 
         return false;
-    }
-    
-    private void OnElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.OldItems is null)
-        {
-            return;
-        }
-
-        foreach (ISheetElement removed in e.OldItems)
-        {
-            Selection.Remove(removed);
-        }
     }
 }
