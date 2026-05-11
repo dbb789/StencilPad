@@ -66,11 +66,9 @@ public class EditHandleSetTool : ITool
             return;
         }
         
-        _overlay = new EditHandleSetToolOverlay(_sheet,
-                                                _context.Viewport,
-                                                _context.UnitSnap,
-                                                _sheetElementEditActions.Actions,
-                                                _context.EditOverlayRenderer);
+        _overlay = new EditHandleSetToolOverlay(_context,
+                                                _sheet,
+                                                _sheetElementEditActions.Actions);
         
         _context.ToolOverlay.ActiveOverlay = _overlay;
         _context.EditOverlayRenderer.IsEnabled = true;
@@ -245,7 +243,7 @@ public class EditHandleSetTool : ITool
     {
         var editContext = new EditSheetElementContext(_sheet, _selection);
         
-        action.Invoke(_sheet, _selection);
+        action.Invoke(_context, _sheet, _selection);
         
         _operationService.Push(editContext.FlushOperation());
     }

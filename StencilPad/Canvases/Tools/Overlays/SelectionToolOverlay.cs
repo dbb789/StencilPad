@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Rendering;
+using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Models;
@@ -14,10 +14,8 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class SelectionToolOverlay : FrameworkElement, IDisposable
 {
-    private SheetRenderer _sheetRenderer;
+    private IToolContext _context;
     private Sheet _sheet;
-    private IViewport _viewport;
-    private IUnitSnap _unitSnap;
 
     private Point? _dragPixelStart;
     private Unit2D _dragUnitStart;
@@ -40,16 +38,12 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     
     public event Action<ISheetElementAction>? ActionInvoked;
 
-    public SelectionToolOverlay(SheetRenderer sheetRenderer,
+    public SelectionToolOverlay(IToolContext context,
                                 Sheet sheet,
-                                IViewport viewport,
-                                IUnitSnap unitSnap,
                                 IEnumerable<ISheetElementAction?> actions)
     {
-        _sheetRenderer = sheetRenderer;
+        _context = context;
         _sheet = sheet;
-        _viewport = viewport;
-        _unitSnap = unitSnap;
         _sheet.Selection.CollectionChanged += SelectionChanged;
 
         // InitializeContextMenu();
@@ -67,6 +61,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
                                     IEnumerable<ISheetElementAction?> actions)
     {
         if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
+                                                _context,
                                                 _sheet,
                                                 _sheet.Selection,
                                                 actions,
@@ -151,13 +146,13 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     {
         var mousePosition = e.GetPosition(this);
 
-        if (PointIsOverSelection(_viewport.FromPoint(mousePosition)))
+        if (PointIsOverSelection(_context.Viewport.FromPoint(mousePosition)))
         {
             var bounds = GetSelectionBounds();
             if (bounds.HasValue)
             {
                 _dragPixelStart = mousePosition;
-                _dragUnitStart = _viewport.FromPoint(mousePosition);
+                _dragUnitStart = _context.Viewport.FromPoint(mousePosition);
                 _dragSelectionBounds = bounds.Value;
                 e.Handled = true;
             }
@@ -178,7 +173,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             {
                 _draggingSelection = true;
 
-                var currentUnit = _viewport.FromPoint(mousePosition);
+                var currentUnit = _context.Viewport.FromPoint(mousePosition);
                 var displacement = currentUnit - _dragUnitStart;
 
                 var currentBounds = GetSelectionBounds();
@@ -197,7 +192,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     {
         if (!_draggingSelection)
         {
-            var mousePosition = _viewport.FromPoint(e.GetPosition(this));
+            var mousePosition = _context.Viewport.FromPoint(e.GetPosition(this));
             
             PointSelected?.Invoke(mousePosition);
             e.Handled = true;
@@ -237,7 +232,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
 
         for (int i = 0; i < desiredCorners.Length; i++)
         {
-            var snapped = _unitSnap.UnitSnap(desiredCorners[i]);
+            var snapped = _context.UnitSnap.UnitSnap(desiredCorners[i]);
             var error = (snapped - desiredCorners[i]).Magnitude.Millimeters;
 
             if (error < bestError)
@@ -247,14 +242,14 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             }
         }
 
-        return _unitSnap.UnitSnap(desiredCorners[bestIndex]) - currentCorners[bestIndex];
+        return _context.UnitSnap.UnitSnap(desiredCorners[bestIndex]) - currentCorners[bestIndex];
     }
 
     private bool PointIsOverSelection(Unit2D point)
     {
         foreach (var selected in _sheet.Selection)
         {
-            if (_sheetRenderer.TryGetElementRenderer(selected, out var renderer) &&
+            if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer) &&
                 renderer.HitTest(point))
             {
                 return true;
@@ -270,7 +265,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
 
         foreach (var selected in _sheet.Selection)
         {
-            if (_sheetRenderer.TryGetElementRenderer(selected, out var renderer))
+            if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
                 if (selectionBounds.HasValue)
                 {
@@ -293,7 +288,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             foreach (var item in e.OldItems)
             {
                 if (item is SheetElement element &&
-                    _sheetRenderer.TryGetElementRenderer(element, out var renderer))
+                    _context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
                 {
                     renderer.InvalidateVisual -= InvalidateVisual;
                 }
@@ -305,7 +300,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             foreach (var item in e.NewItems)
             {
                 if (item is SheetElement element &&
-                    _sheetRenderer.TryGetElementRenderer(element, out var renderer))
+                    _context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
                 {
                     renderer.InvalidateVisual += InvalidateVisual;
                 }
@@ -320,7 +315,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         base.OnRender(dc);
 
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
-        dc.PushTransform(_viewport.GetMillimetersToPixelsTransform());
+        dc.PushTransform(_context.Viewport.GetMillimetersToPixelsTransform());
         
         var elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 0.4);
         var elementFill = new SolidColorBrush(Color.FromArgb(10, 0, 0, 255));
@@ -330,7 +325,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
 
         foreach (var selected in _sheet.Selection)
         {
-            if (_sheetRenderer.TryGetElementRenderer(selected, out var renderer))
+            if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
                 var bounds = renderer.SelectionBounds;
 

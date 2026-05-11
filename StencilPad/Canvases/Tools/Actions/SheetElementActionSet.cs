@@ -19,7 +19,24 @@ public class SheetElementActionSet
                 Action = (sheet, elements) =>
                 {
                     var operation = new BulkCommandOperation();
-                    var group = new ElementGroup(elements);
+                    var children = new List<ISheetElement>();
+
+                    foreach (var element in elements)
+                    {
+                        if (element is ElementGroup)
+                        {
+                            foreach (var child in ((ElementGroup)element).Children)
+                            {
+                                children.Add(child);
+                            }
+                        }
+                        else
+                        {
+                            children.Add(element);
+                        }
+                    }
+                    
+                    var group = new ElementGroup(children);
 
                     operation.Add(new AddSheetElementOperation(sheet, group));
                     

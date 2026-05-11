@@ -1,3 +1,4 @@
+using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
 
 namespace StencilPad.Canvases.Tools.Actions;
@@ -9,17 +10,17 @@ public class MultiSheetElementAction<TInterface> : ISheetElementAction
     public Func<IEnumerable<TInterface>, bool>? Enabled { get; init; }
     public Action<Sheet, IEnumerable<TInterface>>? Action { get; init;  }
 
-    public bool IsVisible(Sheet _, IEnumerable<ISheetElement> elements)
+    public bool IsVisible(IToolContext c, Sheet s, IEnumerable<ISheetElement> elements)
     {
         return elements.All(e => e is TInterface);
     }
     
-    public bool IsEnabled(Sheet _, IEnumerable<ISheetElement> elements)
+    public bool IsEnabled(IToolContext c, Sheet s, IEnumerable<ISheetElement> elements)
     {
         return Enabled?.Invoke(elements.OfType<TInterface>()) ?? true;
     }
 
-    public void Invoke(Sheet sheet, IEnumerable<ISheetElement> elements)
+    public void Invoke(IToolContext c, Sheet sheet, IEnumerable<ISheetElement> elements)
     {
         Action?.Invoke(sheet, elements.OfType<TInterface>());
     }

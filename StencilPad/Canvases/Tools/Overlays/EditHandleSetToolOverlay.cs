@@ -1,13 +1,12 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
+using StencilPad.Canvases.Tools.Actions;
+using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Models;
 using StencilPad.Spatial;
-using StencilPad.Canvases.Tools.Actions;
-using StencilPad.Canvases.UI;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
@@ -50,26 +49,22 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     public event Action<ISheetElement, Handle, bool>? HandleSelectionChanged;
     public event Action<ISheetElementAction>? ActionInvoked;
 
+    private readonly IToolContext _context;
     private readonly Sheet _sheet;
-    private readonly IViewport _viewport;
-    private readonly IUnitSnap _unitSnap;
     private readonly List<ISheetElement> _selection;
     private readonly EditOverlayRenderer _editOverlayRenderer;
 
     private readonly WidgetContainer<HandleWidget> _widgets;
     private List<HandleEntry> _handleMap = [];
 
-    public EditHandleSetToolOverlay(Sheet sheet,
-                                    IViewport viewport,
-                                    IUnitSnap unitSnap,
-                                    IEnumerable<ISheetElementAction?> editActions,
-                                    EditOverlayRenderer editOverlayRenderer)
+    public EditHandleSetToolOverlay(IToolContext context,
+                                    Sheet sheet,
+                                    IEnumerable<ISheetElementAction?> editActions)
     {
+        _context = context;
         _sheet = sheet;
-        _viewport = viewport;
-        _unitSnap = unitSnap;
         _selection = [];
-        _editOverlayRenderer = editOverlayRenderer;
+        _editOverlayRenderer = context.EditOverlayRenderer;
 
         _widgets = new WidgetContainer<HandleWidget>(this);
         _widgets.WidgetAdded += OnWidgetAdded;
@@ -83,7 +78,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
 
         _editOverlayRenderer.InvalidateVisual += InvalidateVisual;
-        _viewport.ViewportChanged += Reposition;
+        _context.Viewport.ViewportChanged += Reposition;
 
         Rebuild();
 
@@ -102,7 +97,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
 
         _editOverlayRenderer.InvalidateVisual -= InvalidateVisual;
-        _viewport.ViewportChanged -= Reposition;
+        _context.Viewport.ViewportChanged -= Reposition;
         _widgets.WidgetAdded -= OnWidgetAdded;
     }
 
@@ -113,6 +108,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         var subSelection = _selection.Where(e => e.HandleSet.GetSelectedHandles().Any());
 
         if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
+                                                _context,
                                                 _sheet,
                                                 subSelection,
                                                 actions,
@@ -128,7 +124,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
-        dc.PushTransform(_viewport.GetMillimetersToPixelsTransform());
+        dc.PushTransform(_context.Viewport.GetMillimetersToPixelsTransform());
         _editOverlayRenderer.Render(dc);
         dc.Pop();
     }
@@ -163,7 +159,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         for (int i = 0; i < _handleMap.Count; ++i)
         {
             var entry = _handleMap[i];
-            var point = _viewport.ToPoint(entry.Element.HandleSet.GetPoint(entry.Handle));
+            var point = _context.Viewport.ToPoint(entry.Element.HandleSet.GetPoint(entry.Handle));
 
             SetLeft(_widgets[i], point.X);
             SetTop(_widgets[i], point.Y);
@@ -195,7 +191,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
         
         var entry = _handleMap[index];
-        var newPosition = _unitSnap.UnitSnap(_viewport.FromPoint(position));
+        var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(position));
         var delta = newPosition - entry.Element.HandleSet.GetPoint(entry.Handle);
 
         if (delta == Unit2D.Zero)

@@ -56,10 +56,8 @@ public class SelectionTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new SelectionToolOverlay(_context.SheetRenderer,
+        _overlay = new SelectionToolOverlay(_context,
                                             _sheet,
-                                            _context.Viewport,
-                                            _context.UnitSnap,
                                             _sheetElementActionSet.Actions);
         _context.ToolOverlay.ActiveOverlay = _overlay;
 
@@ -315,7 +313,7 @@ public class SelectionTool : ITool
     
     private void ActionInvoked(ISheetElementAction action)
     {
-        action.Invoke(_sheet, _sheet.Selection);
+        action.Invoke(_context, _sheet, _sheet.Selection);
     }
 
     private UnitBounds? GetSelectionBounds()
