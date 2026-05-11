@@ -15,6 +15,22 @@ public class ElementGroup : SheetElement<ElementGroup>
         HandleSet = new(_children.Select(child => child.HandleSet));
     }
 
+    public override void MirrorX(Unit centerY)
+    {
+        foreach (var child in _children)
+        {
+            child.MirrorX(centerY);
+        }
+    }
+
+    public override void MirrorY(Unit centerX)
+    {
+        foreach (var child in _children)
+        {
+            child.MirrorY(centerX);
+        }
+    }
+    
     public override void Translate(Unit2D delta)
     {
         foreach (var child in _children)

@@ -50,6 +50,16 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         EditablePolygon = editablePolygon;
     }
     
+    public override void MirrorX(Unit centerY)
+    {
+        EditablePolygon.MirrorX(centerY);
+    }
+
+    public override void MirrorY(Unit centerX)
+    {
+        EditablePolygon.MirrorY(centerX);
+    }
+
     public override void Translate(Unit2D delta)
     {
         EditablePolygon.Translate(delta);

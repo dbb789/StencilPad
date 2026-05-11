@@ -68,19 +68,9 @@ public class SelectionTool : ITool
 
         _overlay.ActionInvoked += ActionInvoked;
 
-        _overlay.Group += Group;
-        _overlay.Ungroup += Ungroup;
         _overlay.PointSelected += PointSelected;
         _overlay.SelectionDragged += SelectionDragged;
         _overlay.ShowProperties += ShowProperties;
-        _overlay.MirrorX += MirrorX;
-        _overlay.MirrorY += MirrorY;
-        _overlay.JustifyTop += JustifyTop;
-        _overlay.JustifyMiddle += JustifyMiddle;
-        _overlay.JustifyBottom += JustifyBottom;
-        _overlay.JustifyLeft += JustifyLeft;
-        _overlay.JusifyCentre += JustifyCentre;
-        _overlay.JustifyRight += JustifyRight;
     }
 
     public void ToolEnd()
@@ -89,8 +79,6 @@ public class SelectionTool : ITool
 
         if (_overlay is not null)
         {
-            _overlay.Group -= Group;
-            _overlay.Ungroup -= Ungroup;
             _context.RubberBand.PointSelected -= PointSelected;
             _context.RubberBand.BoundsSelected -= BoundsSelected;
             _context.SelectAllRequested -= SelectAll;
@@ -101,14 +89,6 @@ public class SelectionTool : ITool
             _overlay.PointSelected -= PointSelected;
             _overlay.SelectionDragged -= SelectionDragged;
             _overlay.ShowProperties -= ShowProperties;
-            _overlay.MirrorX -= MirrorX;
-            _overlay.MirrorY -= MirrorY;
-            _overlay.JustifyTop -= JustifyTop;
-            _overlay.JustifyMiddle -= JustifyMiddle;
-            _overlay.JustifyBottom -= JustifyBottom;
-            _overlay.JustifyLeft -= JustifyLeft;
-            _overlay.JusifyCentre -= JustifyCentre;
-            _overlay.JustifyRight -= JustifyRight;
             _overlay.Dispose();
             _overlay = null;
         }
@@ -204,132 +184,8 @@ public class SelectionTool : ITool
         }
     }
 
-    private void Group()
-    {
-        if (_sheet.Selection.Count < 2)
-        {
-            return;
-        }
-
-        var children = _sheet.Selection.ToList();
-        
-        var group = new ElementGroup(children);
-        
-        _sheet.Elements.Add(group);
-
-        foreach (var child in children)
-        {
-            _sheet.Elements.Remove(child);
-        }
-        
-        _sheet.Selection.Clear();
-        _sheet.Selection.Add(group);
-    }
-
-    private void Ungroup()
-    {
-    }
-    
-    private void MirrorX()
-    {
-        var bounds = GetSelectionBounds();
-
-        if (bounds is null)
-        {
-            return;
-        }
-        var centerY = bounds.Value.Center.Y;
-
-        foreach (var element in _sheet.Selection.OfType<IPolygonSheetElement>())
-        {
-            element.EditablePolygon.MirrorX(centerY);
-        }
-    }
-
-    private void MirrorY()
-    {
-        var bounds = GetSelectionBounds();
-
-        if (bounds is null)
-        {
-            return;
-        }
-        
-        var centerX = bounds.Value.Center.X;
-
-        foreach (var element in _sheet.Selection.OfType<IPolygonSheetElement>())
-        {
-            element.EditablePolygon.MirrorY(centerX);
-        }
-    }
-
-    private void JustifyTop()
-    {
-        Justify((selection, element) => new Unit2D(Unit.Zero, selection.Min.Y - element.Min.Y));
-    }
-
-    private void JustifyMiddle()
-    {
-        Justify((selection, element) => new Unit2D(Unit.Zero, selection.Center.Y - element.Center.Y));
-    }
-
-    private void JustifyBottom()
-    {
-        Justify((selection, element) => new Unit2D(Unit.Zero, selection.Max.Y - element.Max.Y));
-    }
-
-    private void JustifyLeft()
-    {
-        Justify((selection, element) => new Unit2D(selection.Min.X - element.Min.X, Unit.Zero));
-    }
-
-    private void JustifyCentre()
-    {
-        Justify((selection, element) => new Unit2D(selection.Center.X - element.Center.X, Unit.Zero));
-    }
-
-    private void JustifyRight()
-    {
-        Justify((selection, element) => new Unit2D(selection.Max.X - element.Max.X, Unit.Zero));
-    }
-    
-    private void Justify(Func<UnitBounds, UnitBounds, Unit2D> getDelta)
-    {
-        var selectionBounds = GetSelectionBounds();
-        
-        if (selectionBounds is null)
-        {
-            return;
-        }
-        
-        foreach (var element in _sheet.Selection)
-        {
-            if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
-            {
-                element.Translate(getDelta(selectionBounds.Value, renderer.SelectionBounds));
-            }
-        }
-    }
-    
     private void ActionInvoked(ISheetElementAction action)
     {
         action.Invoke(_context, _sheet, _sheet.Selection);
-    }
-
-    private UnitBounds? GetSelectionBounds()
-    {
-        UnitBounds? selectionBounds = null;
-
-        foreach (var element in _sheet.Selection)
-        {
-            if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
-            {
-                selectionBounds = selectionBounds.HasValue
-                    ? UnitBounds.Union(selectionBounds.Value, renderer.SelectionBounds)
-                    : renderer.SelectionBounds;
-            }
-        }
-
-        return selectionBounds;
     }
 }

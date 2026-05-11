@@ -15,6 +15,14 @@ public class Ruler : SheetElement<Ruler>
     {
         HandleSet = new StartEndHandleSet(start, end);
     }
+    
+    public override void MirrorX(Unit centerY)
+    {
+    }
+    
+    public override void MirrorY(Unit centerX)
+    {
+    }
 
     public override void Translate(Unit2D delta)
     {
