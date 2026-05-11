@@ -27,24 +27,32 @@ public class Sheet : ModelBase
         Elements.CollectionChanged += OnElementsChanged;
     }
 
-    public void AssignElement(ISheetElement newElement)
+    public bool AssignElement(ISheetElement newElement)
     {
         var element = Elements.Where(e => e.Id == newElement.Id).First();
 
         if (element is not null)
         {
             element.AssignFromElement(newElement);
+
+            return true;
         }
+
+        return false;
     }
 
-    public void RemoveElement(Guid Id)
+    public bool RemoveElement(Guid Id)
     {
         var element = Elements.Where(e => e.Id == Id).FirstOrDefault();
 
         if (element is not null)
         {
             Elements.Remove(element);
+            
+            return true;
         }
+
+        return false;
     }
     
     private void OnElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)

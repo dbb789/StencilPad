@@ -1,17 +1,17 @@
 namespace StencilPad.Models.Operations;
 
-public class DeleteSheetElementOperation : SheetOperation, ICommandOperation
+public class RemoveSheetElementOperation : SheetOperation, ICommandOperation
 {
     private readonly ISheetElement _sheetElement;
     
-    public DeleteSheetElementOperation(Sheet sheet,
+    public RemoveSheetElementOperation(Sheet sheet,
                                        ISheetElement sheetElement)
         : base(sheet)
     {
         _sheetElement = sheetElement.DeepClone();
     }
 
-    public DeleteSheetElementOperation(Guid sheetId,
+    public RemoveSheetElementOperation(Guid sheetId,
                                        ISheetElement sheetElement)
         : base(sheetId)
     {
@@ -20,7 +20,10 @@ public class DeleteSheetElementOperation : SheetOperation, ICommandOperation
 
     protected override void Execute(Sheet sheet)
     {
-        sheet.RemoveElement(_sheetElement.Id);
+        if (!sheet.RemoveElement(_sheetElement.Id))
+        {
+            throw new InvalidOperationException($"Failed to remove element with id {_sheetElement.Id} from sheet with id {sheet.Id}");
+        }
     }
     
     public override IOperation Invert()

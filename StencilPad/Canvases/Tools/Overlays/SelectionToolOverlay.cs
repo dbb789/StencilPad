@@ -5,6 +5,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
+using StencilPad.Canvases.Tools.Actions;
+using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
@@ -36,10 +38,13 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     public event Action? JusifyCentre;
     public event Action? JustifyRight;
     
+    public event Action<ISheetElementAction>? ActionInvoked;
+
     public SelectionToolOverlay(SheetRenderer sheetRenderer,
                                 Sheet sheet,
                                 IViewport viewport,
-                                IUnitSnap unitSnap)
+                                IUnitSnap unitSnap,
+                                IEnumerable<ISheetElementAction?> actions)
     {
         _sheetRenderer = sheetRenderer;
         _sheet = sheet;
@@ -47,12 +52,28 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         _unitSnap = unitSnap;
         _sheet.Selection.CollectionChanged += SelectionChanged;
 
-        InitializeContextMenu();
+        // InitializeContextMenu();
+        ContextMenu = new ContextMenu();
+        ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
     }
 
     public void Dispose()
     {
         _sheet.Selection.CollectionChanged -= SelectionChanged;
+    }
+    
+    private void RebuildContextMenu(object sender,
+                                    ContextMenuEventArgs e,
+                                    IEnumerable<ISheetElementAction?> actions)
+    {
+        if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
+                                                _sheet,
+                                                _sheet.Selection,
+                                                actions,
+                                                ActionInvoked))
+        {
+            e.Handled = true;
+        }
     }
 
     private void InitializeContextMenu()

@@ -31,7 +31,9 @@ public class Ruler : SheetElement<Ruler>
     public override Ruler DeepClone()
     {
         var clone = new Ruler(Start, End);
+        
         clone.Id = Id;
+        
         return clone;
     }
 }

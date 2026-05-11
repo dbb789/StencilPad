@@ -1,10 +1,11 @@
+using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Controllers.Actions;
 
-public class PolygonSheetElementEditActions
+public class PolygonSheetElementEditActionSet
 {
     private static Func<IPolygonSheetElement, bool> OneOrMoreVerticesSelected = e =>
     {
@@ -36,7 +37,7 @@ public class PolygonSheetElementEditActions
         return e.EditablePolygon.Closed;
     };
 
-    public IEnumerable<ISheetElementAction> Actions { get; }
+    public IEnumerable<ISheetElementAction?> Actions { get; }
 
     private class CornerPropertiesAction : ISheetElementAction
     {
@@ -51,7 +52,7 @@ public class PolygonSheetElementEditActions
         
         public bool IsVisible(Sheet sheet, IEnumerable<ISheetElement> elements)
         {
-            return elements.OfType<IPolygonSheetElement>().Any();
+            return elements.All(e => e is IPolygonSheetElement);
         }
 
         public bool IsEnabled(Sheet sheet, IEnumerable<ISheetElement> elements)
@@ -91,10 +92,11 @@ public class PolygonSheetElementEditActions
     }
  
     
-    public PolygonSheetElementEditActions(IModelPropertiesService modelPropertiesService)
+    public PolygonSheetElementEditActionSet(IModelPropertiesService modelPropertiesService)
     {
         Actions = [
             new CornerPropertiesAction(modelPropertiesService),
+            null,
             new SheetElementAction<IPolygonSheetElement>
             {
                 Name = "Insert Point",
@@ -136,6 +138,7 @@ public class PolygonSheetElementEditActions
                     }
                 }
             },
+            null,
             new SheetElementAction<IPolygonSheetElement>
             {
                 Name = "Open Path",

@@ -1,3 +1,4 @@
+using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Models;
@@ -14,30 +15,40 @@ public class SelectionTool : ITool
         public string Tooltip => "Select";
 
         private readonly IModelPropertiesService _modelPropertiesService;
-
-        public Factory(IModelPropertiesService modelPropertiesService)
+        private readonly SheetElementActionSet _sheetElementActionSet;
+        
+        public Factory(IModelPropertiesService modelPropertiesService,
+                       SheetElementActionSet sheetElementActionSet)
         {
             _modelPropertiesService = modelPropertiesService;
+            _sheetElementActionSet = sheetElementActionSet;
         }
 
         public ITool Create(IToolButton _, Sheet sheet, IToolContext context)
         {
-            return new SelectionTool(sheet, context, _modelPropertiesService);
+            return new SelectionTool(sheet,
+                                     context,
+                                     _modelPropertiesService,
+                                     _sheetElementActionSet);
         }
     }
 
     private readonly Sheet _sheet;
     private readonly IToolContext _context;
     private readonly IModelPropertiesService _modelPropertiesService;
+    private readonly SheetElementActionSet _sheetElementActionSet;
+    
     private SelectionToolOverlay? _overlay;
 
     private SelectionTool(Sheet sheet,
                           IToolContext context,
-                          IModelPropertiesService modelPropertiesService)
+                          IModelPropertiesService modelPropertiesService,
+                          SheetElementActionSet sheetElementActionSet)
     {
         _sheet = sheet;
         _context = context;
         _modelPropertiesService = modelPropertiesService;
+        _sheetElementActionSet = sheetElementActionSet;
     }
 
     public void Dispose()
@@ -48,13 +59,16 @@ public class SelectionTool : ITool
         _overlay = new SelectionToolOverlay(_context.SheetRenderer,
                                             _sheet,
                                             _context.Viewport,
-                                            _context.UnitSnap);
+                                            _context.UnitSnap,
+                                            _sheetElementActionSet.Actions);
         _context.ToolOverlay.ActiveOverlay = _overlay;
 
         _context.RubberBand.PointSelected += PointSelected;
         _context.RubberBand.BoundsSelected += BoundsSelected;
         _context.SelectAllRequested += SelectAll;
         _context.ClearSelectionRequested += ClearSelection;
+
+        _overlay.ActionInvoked += ActionInvoked;
 
         _overlay.Group += Group;
         _overlay.Ungroup += Ungroup;
@@ -83,6 +97,9 @@ public class SelectionTool : ITool
             _context.RubberBand.BoundsSelected -= BoundsSelected;
             _context.SelectAllRequested -= SelectAll;
             _context.ClearSelectionRequested -= ClearSelection;
+
+            _overlay.ActionInvoked += ActionInvoked;
+            
             _overlay.PointSelected -= PointSelected;
             _overlay.SelectionDragged -= SelectionDragged;
             _overlay.ShowProperties -= ShowProperties;
@@ -294,6 +311,11 @@ public class SelectionTool : ITool
                 element.Translate(getDelta(selectionBounds.Value, renderer.SelectionBounds));
             }
         }
+    }
+    
+    private void ActionInvoked(ISheetElementAction action)
+    {
+        action.Invoke(_sheet, _sheet.Selection);
     }
 
     private UnitBounds? GetSelectionBounds()

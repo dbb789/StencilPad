@@ -1,6 +1,6 @@
 using System.Windows.Input;
+using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
-using StencilPad.Canvases.Tools.Controllers.Actions;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
@@ -11,7 +11,7 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class EditHandleSetTool : ITool
 {
-    public class Factory(SheetElementEditActions SheetElementEditActions,
+    public class Factory(SheetElementEditActionSet SheetElementEditActions,
                          IOperationService OperationService) : IToolFactory
     {
         public string IconResource => "EditHandleSetTool";
@@ -30,7 +30,7 @@ public class EditHandleSetTool : ITool
     private readonly IToolButton _button;
     private readonly Sheet _sheet;
     private readonly IToolContext _context;
-    private readonly SheetElementEditActions _sheetElementEditActions;
+    private readonly SheetElementEditActionSet _sheetElementEditActions;
     private readonly IOperationService _operationService;
     private readonly List<ISheetElement> _selection;
     
@@ -40,7 +40,7 @@ public class EditHandleSetTool : ITool
     private EditHandleSetTool(IToolButton button,
                               Sheet sheet,
                               IToolContext context,
-                              SheetElementEditActions sheetElementEditActions,
+                              SheetElementEditActionSet sheetElementEditActions,
                               IOperationService operationService)
     {
         _button = button;
@@ -69,7 +69,7 @@ public class EditHandleSetTool : ITool
         _overlay = new EditHandleSetToolOverlay(_sheet,
                                                 _context.Viewport,
                                                 _context.UnitSnap,
-                                                _sheetElementEditActions,
+                                                _sheetElementEditActions.Actions,
                                                 _context.EditOverlayRenderer);
         
         _context.ToolOverlay.ActiveOverlay = _overlay;

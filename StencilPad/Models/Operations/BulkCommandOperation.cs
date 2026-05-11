@@ -1,16 +1,24 @@
-using StencilPad.Spatial;
-
 namespace StencilPad.Models.Operations;
 
 public class BulkCommandOperation : ICommandOperation
 {
-    private IEnumerable<IOperation> _operations;
+    private List<IOperation> _operations;
 
-    public BulkCommandOperation(IEnumerable<IOperation> operations)
+    public BulkCommandOperation(IEnumerable<ICommandOperation> operations)
     {
-        _operations = operations.ToList();
+        _operations = new(operations);
     }
 
+    public BulkCommandOperation()
+    {
+        _operations = new(2);
+    }
+
+    public void Add(ICommandOperation operation)
+    {
+        _operations.Add(operation);
+    }
+    
     public void Execute(Project project)
     {
         foreach (var op in _operations)
@@ -21,6 +29,10 @@ public class BulkCommandOperation : ICommandOperation
 
     public IOperation Invert()
     {
-        return new BulkCommandOperation(_operations.Select(op => op.Invert()).Reverse());
+        var inverted = new BulkCommandOperation();
+
+        inverted._operations.AddRange(_operations.Select(op => op.Invert()).Reverse());
+
+        return inverted;
     }
 }

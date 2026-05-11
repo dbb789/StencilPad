@@ -4,9 +4,10 @@ using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Widgets;
-using StencilPad.Canvases.Tools.Controllers.Actions;
 using StencilPad.Models;
 using StencilPad.Spatial;
+using StencilPad.Canvases.Tools.Actions;
+using StencilPad.Canvases.UI;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
@@ -61,7 +62,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     public EditHandleSetToolOverlay(Sheet sheet,
                                     IViewport viewport,
                                     IUnitSnap unitSnap,
-                                    SheetElementEditActions sheetElementEditActions,
+                                    IEnumerable<ISheetElementAction?> editActions,
                                     EditOverlayRenderer editOverlayRenderer)
     {
         _sheet = sheet;
@@ -87,7 +88,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         Rebuild();
 
         ContextMenu = new ContextMenu();
-        ContextMenuOpening += (_, _) => RebuildContextMenu(sheetElementEditActions);
+        ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
     }
 
     public void Dispose()
@@ -105,29 +106,19 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         _widgets.WidgetAdded -= OnWidgetAdded;
     }
 
-    private void RebuildContextMenu(SheetElementEditActions sheetElementEditActions)
+    private void RebuildContextMenu(object sender,
+                                    ContextMenuEventArgs e,
+                                    IEnumerable<ISheetElementAction?> actions)
     {
-        ContextMenu.Items.Clear();
+        var subSelection = _selection.Where(e => e.HandleSet.GetSelectedHandles().Any());
 
-        var actions = sheetElementEditActions.Create(_selection);
-
-        foreach (var action in actions)
+        if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
+                                                _sheet,
+                                                subSelection,
+                                                actions,
+                                                ActionInvoked))
         {
-            if (action.IsVisible(_sheet, _selection))
-            {
-                var menuItem = new MenuItem
-                {
-                    Header = action.Name,
-                };
-
-                menuItem.IsEnabled = action.IsEnabled(_sheet, _selection);
-                menuItem.Click += (s, e) =>
-                {
-                    ActionInvoked?.Invoke(action);
-                };
-
-                ContextMenu.Items.Add(menuItem);
-            }
+            e.Handled = true;
         }
     }
     

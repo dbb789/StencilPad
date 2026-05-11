@@ -25,6 +25,6 @@ public class AddSheetElementOperation : SheetOperation, ICommandOperation
     
     public override IOperation Invert()
     {
-        return new DeleteSheetElementOperation(SheetId, _sheetElement);
+        return new RemoveSheetElementOperation(SheetId, _sheetElement);
     }
 }

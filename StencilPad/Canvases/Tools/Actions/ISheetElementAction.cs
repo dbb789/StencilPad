@@ -1,6 +1,6 @@
 using StencilPad.Models;
 
-namespace StencilPad.Canvases.Tools.Controllers.Actions;
+namespace StencilPad.Canvases.Tools.Actions;
 
 public interface ISheetElementAction
 {

@@ -11,7 +11,7 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     public ElementGroup(IEnumerable<ISheetElement> children)
     {
-        _children = new(children);
+        _children = new(children.Select(c => c.DeepClone()));
         HandleSet = new(_children.Select(child => child.HandleSet));
     }
 
@@ -34,6 +34,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     {
         var clone = new ElementGroup(Children.Select(child => child.DeepClone()));
 
+        clone.Id = Id;
         clone.HandleSet.SetSelectedHandles(HandleSet.GetSelectedHandles());
 
         return clone;

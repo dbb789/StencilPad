@@ -301,7 +301,7 @@ public class AppController
         }
 
         var operations = tab.Sheet.Selection
-            .Select(e => new DeleteSheetElementOperation(tab.Sheet, e));
+            .Select(e => new RemoveSheetElementOperation(tab.Sheet, e));
 
         _operationService.Push(new BulkCommandOperation(operations));
     }
@@ -330,7 +330,7 @@ public class AppController
         _clipboardService.Copy(tab.Sheet.Selection);
 
         var operations = tab.Sheet.Selection
-            .Select(e => new DeleteSheetElementOperation(tab.Sheet, e));
+            .Select(e => new RemoveSheetElementOperation(tab.Sheet, e));
 
         _operationService.Push(new BulkCommandOperation(operations));
     }

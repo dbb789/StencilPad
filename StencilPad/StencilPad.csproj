@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Canvases\Tools\Controllers\Actions\PolygonSheetElementEditActions.cs" />
+    <None Include="Canvases\Tools\Actions\PolygonSheetElementEditActionSet.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,13 +1,13 @@
 ﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Tools.Controllers;
-using StencilPad.Canvases.Tools.Controllers.Actions;
 using StencilPad.Controllers;
 using StencilPad.Models;
 using StencilPad.UI;
 using StencilPad.UI.Dialogs;
 using StencilPad.ViewModels;
 using StencilPad.Services;
+using StencilPad.Canvases.Tools.Actions;
 
 namespace StencilPad;
 
@@ -52,7 +52,8 @@ public partial class App : Application
         services.AddSingleton<IFileService, FileService>();
 
         ToolSet.ConfigureServices(services);
-        SheetElementEditActions.ConfigureServices(services);
+        SheetElementActionSet.ConfigureServices(services);
+        SheetElementEditActionSet.ConfigureServices(services);
         
         services.AddSingleton<IOperationService, OperationService>();
         services.AddSingleton<SheetTabController.Factory>();
