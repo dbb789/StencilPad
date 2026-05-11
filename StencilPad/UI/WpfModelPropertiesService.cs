@@ -23,7 +23,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
         _openWindow = null;
     }
 
-    public void ShowVertexCornerProperties(Sheet sheet, IReadOnlyList<VertexCornerTarget> targets)
+    public void ShowVertexCornerProperties(Sheet sheet, IEnumerable<VertexCornerTarget> targets)
     {
         _openWindow?.Close();
 
@@ -39,7 +39,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
         window.Show();
     }
 
-    public void ShowMarkerPathProperties(IReadOnlyList<MarkerPath> MarkerPaths)
+    public void ShowMarkerPathProperties(IEnumerable<MarkerPath> MarkerPaths)
     {
         _openWindow?.Close();
 

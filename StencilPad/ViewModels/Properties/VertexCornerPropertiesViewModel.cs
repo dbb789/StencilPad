@@ -10,7 +10,7 @@ public record CornerTypeItem(CornerType Value, string Description);
 public class VertexCornerPropertiesViewModel : ViewModelBase
 {
     private readonly Sheet _sheet;
-    private readonly IReadOnlyList<VertexCornerTarget> _targets;
+    private readonly IEnumerable<VertexCornerTarget> _targets;
     private readonly IOperationService _operationService;
     private CornerType _cornerType;
     private CornerSize _cornerSize;
@@ -22,9 +22,9 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         new(CornerType.Beveled, "Beveled"),
     ];
 
-    public string Title => _targets.Count == 1
+    public string Title => _targets.Count() == 1
         ? "Vertex Corner"
-        : $"Vertex Corner ({_targets.Count} selected)";
+        : $"Vertex Corner ({_targets.Count()} selected)";
 
     public CornerType CornerType
     {
@@ -69,16 +69,17 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
     }
 
     public VertexCornerPropertiesViewModel(Sheet sheet,
-                                           IReadOnlyList<VertexCornerTarget> targets,
+                                           IEnumerable<VertexCornerTarget> targets,
                                            IOperationService operationService)
     {
+        var first = targets.First();
+        var vertex = first.Element.EditablePolygon.Vertices[first.VertexIndex];
+        
+        _cornerType = vertex.CornerType;
+        _cornerSize = vertex.CornerSize;
+        
         _sheet = sheet;
         _targets = targets;
         _operationService = operationService;
-
-        var firstVertex = targets[0].Element.EditablePolygon.Vertices[targets[0].VertexIndex];
-
-        _cornerType = firstVertex.CornerType;
-        _cornerSize = firstVertex.CornerSize;
     }
 }

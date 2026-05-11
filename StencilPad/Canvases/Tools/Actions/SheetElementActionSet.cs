@@ -11,9 +11,18 @@ public class SheetElementActionSet
 {
     public IEnumerable<ISheetElementAction?> Actions { get; }
 
-    public SheetElementActionSet(IOperationService operationService)
+    public SheetElementActionSet(IModelPropertiesService modelPropertiesService,
+                                 IOperationService operationService)
     {
         Actions = [
+            new MultiSheetElementAction<MarkerPath>
+            {
+                Name = "Properties",
+                Action = (context, sheet, elements) =>
+                {
+                    modelPropertiesService.ShowMarkerPathProperties(elements);
+                }
+            },
             new MultiSheetElementAction
             {
                 Name = "Group",

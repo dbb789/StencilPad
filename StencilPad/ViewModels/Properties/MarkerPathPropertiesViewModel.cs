@@ -5,17 +5,20 @@ namespace StencilPad.ViewModels.Properties;
 
 public class MarkerPathPropertiesViewModel : ViewModelBase
 {
-    private readonly IReadOnlyList<MarkerPath> _markerPaths;
+    private readonly IEnumerable<MarkerPath> _markerPaths;
 
-    public string Title => _markerPaths.Count == 1
+    public string Title => _markerPaths.Count() == 1
         ? "Marker Path Properties"
-        : $"Marker Path Properties ({_markerPaths.Count} selected)";
+        : $"Marker Path Properties ({_markerPaths.Count()} selected)";
 
+    private Unit _spacing;
     public Unit Spacing
     {
-        get => _markerPaths[0].Spacing;
+        get => _spacing;
         set
         {
+            _spacing = value;
+            
             foreach (var markerPath in _markerPaths)
             {
                 markerPath.Spacing = value;
@@ -25,11 +28,14 @@ public class MarkerPathPropertiesViewModel : ViewModelBase
         }
     }
 
+    private Unit _offset;
     public Unit Offset
     {
-        get => _markerPaths[0].Offset;
+        get => _offset;
         set
         {
+            _offset = value;
+            
             foreach (var markerPath in _markerPaths)
             {
                 markerPath.Offset = value;
@@ -39,8 +45,13 @@ public class MarkerPathPropertiesViewModel : ViewModelBase
         }
     }
 
-    public MarkerPathPropertiesViewModel(IReadOnlyList<MarkerPath> markerPaths)
-    {
+    public MarkerPathPropertiesViewModel(IEnumerable<MarkerPath> markerPaths)
+    {   
         _markerPaths = markerPaths;
+
+        var first = markerPaths.First();
+
+        _spacing = first.Spacing;
+        _offset = first.Offset;
     }
 }

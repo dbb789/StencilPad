@@ -8,7 +8,7 @@ public partial class MarkerPathPropertiesWindow : Window
 {
     public MarkerPathPropertiesViewModel ViewModel { get; }
 
-    public MarkerPathPropertiesWindow(IReadOnlyList<MarkerPath> MarkerPaths)
+    public MarkerPathPropertiesWindow(IEnumerable<MarkerPath> MarkerPaths)
     {
         InitializeComponent();
         ViewModel = new MarkerPathPropertiesViewModel(MarkerPaths);

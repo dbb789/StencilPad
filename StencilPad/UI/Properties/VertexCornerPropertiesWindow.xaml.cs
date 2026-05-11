@@ -8,7 +8,7 @@ namespace StencilPad.UI.Properties;
 public partial class VertexCornerPropertiesWindow : Window
 {
     public VertexCornerPropertiesWindow(Sheet sheet,
-                                        IReadOnlyList<VertexCornerTarget> targets,
+                                        IEnumerable<VertexCornerTarget> targets,
                                         IOperationService operationService)
     {
         InitializeComponent();

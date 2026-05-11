@@ -5,6 +5,6 @@ namespace StencilPad.Services;
 public interface IModelPropertiesService
 {
     void CloseAll();
-    void ShowVertexCornerProperties(Sheet sheet, IReadOnlyList<VertexCornerTarget> targets);
-    void ShowMarkerPathProperties(IReadOnlyList<MarkerPath> MarkerPaths);
+    void ShowVertexCornerProperties(Sheet sheet, IEnumerable<VertexCornerTarget> targets);
+    void ShowMarkerPathProperties(IEnumerable<MarkerPath> MarkerPaths);
 }

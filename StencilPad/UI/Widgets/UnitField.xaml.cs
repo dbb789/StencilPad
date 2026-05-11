@@ -19,12 +19,12 @@ public partial class UnitField : UserControl
             new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
     public static readonly DependencyProperty MinimumProperty =
-        DependencyProperty.Register(nameof(Minimum), typeof(Unit?), typeof(UnitField),
-            new FrameworkPropertyMetadata(null, OnConstraintChanged));
+        DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(UnitField),
+            new FrameworkPropertyMetadata(Unit.FromMillimeters(0), OnConstraintChanged));
 
     public static readonly DependencyProperty MaximumProperty =
-        DependencyProperty.Register(nameof(Maximum), typeof(Unit?), typeof(UnitField),
-            new FrameworkPropertyMetadata(null, OnConstraintChanged));
+        DependencyProperty.Register(nameof(Maximum), typeof(Unit), typeof(UnitField),
+            new FrameworkPropertyMetadata(Unit.FromMillimeters(1000000), OnConstraintChanged));
     
     public Unit Value
     {
@@ -44,85 +44,97 @@ public partial class UnitField : UserControl
         set => SetValue(TextValueProperty, value);
     }
 
-    public Unit? Minimum
+    public Unit Minimum
     {
-        get => (Unit?)GetValue(MinimumProperty);
+        get => (Unit)GetValue(MinimumProperty);
         set => SetValue(MinimumProperty, value);
     }
 
-    public Unit? Maximum
+    public Unit Maximum
     {
-        get => (Unit?)GetValue(MaximumProperty);
+        get => (Unit)GetValue(MaximumProperty);
         set => SetValue(MaximumProperty, value);
     }
 
     public UnitField()
     {
         InitializeComponent();
+        UpdateTextValue();
     }
 
     private bool _isUpdating;
 
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not UnitField unitField || unitField._isUpdating)
+        if (d is not UnitField field || field._isUpdating)
         {
             return;
         }
 
-        unitField._isUpdating = true;
+        field._isUpdating = true;
+        
         try
         {
             if (e.Property == ValueProperty || e.Property == UnitTypeProperty)
             {
-                var clamped = unitField.ClampValue(unitField.Value);
-                if (clamped != unitField.Value)
-                    unitField.Value = clamped;
-                unitField.TextValue = clamped.ToType(unitField.UnitType).ToString("0.###");
+                var clamped = field.ClampValue(field.Value);
+
+                if (clamped != field.Value)
+                {
+                    field.Value = clamped;
+                }
+
+                field.UpdateTextValue();
             }
 
             if (e.Property == TextValueProperty || e.Property == UnitTypeProperty)
             {
-                if (Unit.TryParse(unitField.TextValue, unitField.UnitType, out var parsedValue))
+                if (Unit.TryParse(field.TextValue, field.UnitType, out var parsedValue))
                 {
-                    unitField.Value = unitField.ClampValue(parsedValue);
+                    field.Value = field.ClampValue(parsedValue);
                 }
             }
         }
         finally
         {
-            unitField._isUpdating = false;
+            field._isUpdating = false;
         }
     }
 
     private static void OnConstraintChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not UnitField unitField || unitField._isUpdating)
+        if (d is not UnitField field || field._isUpdating)
+        {
             return;
-
-        unitField._isUpdating = true;
+        }
+        
+        field._isUpdating = true;
+        
         try
         {
-            var clamped = unitField.ClampValue(unitField.Value);
-            if (clamped != unitField.Value)
-                unitField.Value = clamped;
-            unitField.TextValue = clamped.ToType(unitField.UnitType).ToString("0.###");
+            var clamped = field.ClampValue(field.Value);
+
+            if (clamped != field.Value)
+            {
+                field.Value = clamped;
+            }
+
+            field.UpdateTextValue();
         }
         finally
         {
-            unitField._isUpdating = false;
+            field._isUpdating = false;
         }
     }
 
+    private void UpdateTextValue()
+    {
+        TextValue = Value.ToType(UnitType).ToString("0.###");
+    }
+    
     private Unit ClampValue(Unit value)
     {
-        if (Minimum.HasValue && Maximum.HasValue)
-            return Unit.Clamp(value, Minimum.Value, Maximum.Value);
-        if (Minimum.HasValue && value < Minimum.Value)
-            return Minimum.Value;
-        if (Maximum.HasValue && value > Maximum.Value)
-            return Maximum.Value;
-        return value;
+        return Unit.Clamp(value, Minimum, Maximum);
     }
 }
 
