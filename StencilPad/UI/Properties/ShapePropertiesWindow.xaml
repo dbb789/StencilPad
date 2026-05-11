@@ -34,8 +34,8 @@
 
                     <TextBlock Grid.Column="0" Text="Colour:"
                                VerticalAlignment="Center"/>
-                    <widgets:ColourField Grid.Column="2" MinWidth="180"
-                                         Value="{Binding FillColor}"/>
+                    <widgets:ColorField Grid.Column="2" MinWidth="180"
+                                        Value="{Binding FillColor}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Line Colour">
@@ -48,8 +48,8 @@
 
                     <TextBlock Grid.Column="0" Text="Colour:"
                                VerticalAlignment="Center"/>
-                    <widgets:ColourField Grid.Column="2" MinWidth="180"
-                                         Value="{Binding LineColor}"/>
+                    <widgets:ColorField Grid.Column="2" MinWidth="180"
+                                        Value="{Binding LineColor}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Line Style">
