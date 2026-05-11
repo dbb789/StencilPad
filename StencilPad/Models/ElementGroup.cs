@@ -9,6 +9,14 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     private List<ISheetElement> _children;
 
+    public event Action? ChildrenChanged;
+    
+    public ElementGroup()
+    {
+        _children = new();
+        HandleSet = new();
+    }
+    
     public ElementGroup(IEnumerable<ISheetElement> children)
     {
         _children = new(children.Select(c => c.DeepClone()));
@@ -44,14 +52,16 @@ public class ElementGroup : SheetElement<ElementGroup>
         _children = new(other.Children.Select(child => child.DeepClone()));
         HandleSet.SetChildren(_children.Select(child => child.HandleSet));
         HandleSet.SetSelectedHandles(other.HandleSet.GetSelectedHandles());
+
+        ChildrenChanged?.Invoke();
     }
 
     public override ISheetElement DeepClone()
     {
-        var clone = new ElementGroup(Children.Select(child => child.DeepClone()));
+        var clone = new ElementGroup();
 
         clone.Id = Id;
-        clone.HandleSet.SetSelectedHandles(HandleSet.GetSelectedHandles());
+        clone.AssignFrom(this);
 
         return clone;
     }

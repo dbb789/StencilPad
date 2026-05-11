@@ -44,9 +44,10 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     
     public override Shape DeepClone()
     {
-        var clone = new Shape(EditablePolygon.DeepClone());
+        var clone = new Shape();
 
         clone.Id = Id;
+        clone.AssignFrom(this);
         
         return clone;
     }

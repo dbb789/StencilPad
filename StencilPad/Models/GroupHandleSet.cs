@@ -24,7 +24,14 @@ public class GroupHandleSet : IHandleSet
     private readonly List<IHandleSet> _children;
     private readonly List<Handle> _handles;
     private readonly List<Handle> _selection;
-    
+
+    public GroupHandleSet()
+    {
+        _children = [];
+        _handles = [];
+        _selection = [];
+    }
+
     public GroupHandleSet(IEnumerable<IHandleSet> children)
     {
         _children = [];

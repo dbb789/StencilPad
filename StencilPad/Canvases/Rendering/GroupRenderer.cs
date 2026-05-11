@@ -39,14 +39,38 @@ public class GroupRenderer : SheetElementRenderer
                 AddRenderer(renderer);
             }
         }
+
+        _elementGroup.ChildrenChanged += RebuildRenderers;
     }
 
     public override void Dispose()
+    {
+        _elementGroup.ChildrenChanged -= RebuildRenderers;
+        
+        foreach (var renderer in _childRenderers.ToList())
+        {
+            RemoveRenderer(renderer);
+        }
+    }
+
+    private void RebuildRenderers()
     {
         foreach (var renderer in _childRenderers.ToList())
         {
             RemoveRenderer(renderer);
         }
+
+        foreach (var child in _elementGroup.Children)
+        {
+            var renderer = SheetElementRendererFactory.Create(child);
+
+            if (renderer is not null)
+            {
+                AddRenderer(renderer);
+            }
+        }
+
+        InvokeInvalidateVisual();
     }
 
     private void AddRenderer(SheetElementRenderer renderer)
