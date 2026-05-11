@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using StencilPad.Spatial;
 
 namespace StencilPad.Models;
@@ -7,6 +8,48 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public EditablePolygon EditablePolygon { get; }
     public override IHandleSet HandleSet => EditablePolygon;
 
+    private Color _fillColor = Color.FromArgb(0, 255, 255, 255);
+    public Color FillColor
+    {
+        get => _fillColor;
+        set
+        {
+            if (_fillColor != value)
+            {
+                _fillColor = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private Color _lineColor = Color.FromArgb(255, 0, 0, 0);
+    public Color LineColor
+    {
+        get => _lineColor;
+        set
+        {
+            if (_lineColor != value)
+            {
+                _lineColor = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private Unit _lineWidth = Unit.FromMillimeters(0.2);
+    public Unit LineWidth
+    {
+        get => _lineWidth;
+        set
+        {
+            if (_lineWidth != value)
+            {
+                _lineWidth = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    
     public Shape()
     {
         EditablePolygon = new EditablePolygon();

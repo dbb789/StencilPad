@@ -69,14 +69,9 @@ public class ShapeRenderer : SheetElementRenderer
             return;
         }
 
-        var pen = new Pen(Brushes.Black, 0.2);
-        var fill = Brushes.Transparent;
+        var pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
+        var fill = new SolidColorBrush(_shape.FillColor);
 
-        // if (_shape.EditablePolygon.Closed)
-        // {
-        //     fill = new SolidColorBrush(Color.FromArgb(128, 255, 255, 255));
-        // }
-        
         dc.DrawGeometry(fill, pen, _geometry);
     }
 
