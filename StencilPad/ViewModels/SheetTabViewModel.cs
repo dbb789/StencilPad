@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using StencilPad.Canvases.UI;
 using StencilPad.Models;
+using StencilPad.Spatial;
 
 namespace StencilPad.ViewModels;
 
@@ -32,6 +33,8 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
     }
 
     public ToolPanelViewModel ToolPanelViewModel { get; }
+
+    public IViewport? Viewport { get; set; }
     
     public event Action<SheetCanvas>? CanvasAttached;
     public event Action? CanvasDetached;

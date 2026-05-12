@@ -28,6 +28,10 @@ public static class SheetElementRendererFactory
         {
             renderer = new TextElementRenderer(textElement);
         }
+        else if (element is ImageElement imageElement)
+        {
+            renderer = new ImageElementRenderer(imageElement);
+        }
 
         return renderer;
     }

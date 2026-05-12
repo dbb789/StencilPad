@@ -1,8 +1,11 @@
+using System.IO;
 using System.Windows;
+using Microsoft.Win32;
 using StencilPad.Canvases.Rendering;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Services;
+using StencilPad.Spatial;
 using StencilPad.ViewModels;
 
 namespace StencilPad.Controllers;
@@ -68,7 +71,6 @@ public class AppController
         _viewModel.DeleteSheetCommand = new RelayCommand(DeleteActiveSheet);
         _viewModel.PrintCommand = new RelayCommand(PrintSelectedTab);
         _viewModel.ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
-        _viewModel.AboutCommand = new RelayCommand(ShowAbout);
         
         _viewModel.OpenProjectCommand = new RelayCommand(async () => await OpenProject());
         _viewModel.SaveProjectCommand = new RelayCommand(async () => await SaveProject());
@@ -79,6 +81,7 @@ public class AppController
         _viewModel.DeleteCommand = new RelayCommand(DeleteSelection);
         _viewModel.UndoCommand = new RelayCommand(Undo);
         _viewModel.RedoCommand = new RelayCommand(Redo);
+        _viewModel.ImportImageCommand = new RelayCommand(ImportImage);
 
         _operationService.OperationPushed += PushOperation;
 
@@ -360,17 +363,60 @@ public class AppController
         _operationService.Push(new BulkCommandOperation(operations));
     }
     
+    private void ImportImage()
+    {
+        var tab = _viewModel.SelectedTab;
+        if (tab is null)
+        {
+            return;
+        }
+
+        var dialog = new OpenFileDialog
+        {
+            Title = "Import Image",
+            Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        byte[] imageData;
+        try
+        {
+            imageData = File.ReadAllBytes(dialog.FileName);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowError($"Could not read image file: {ex.Message}", "Import Failed");
+            return;
+        }
+
+        var size = ImageElementRenderer.MeasureNaturalSize(imageData);
+        var halfSize = size / 2.0;
+
+        Unit2D center;
+        var viewport = tab.Viewport;
+        if (viewport is not null)
+        {
+            center = viewport.Size / 2.0;
+        }
+        else
+        {
+            center = new Unit2D(Unit.FromMillimeters(75), Unit.FromMillimeters(105));
+        }
+
+        var element = new ImageElement(center - halfSize, center + halfSize, imageData);
+
+        _operationService.Push(new AddSheetElementOperation(tab.Sheet.Id, element));
+    }
+
     private void SetCurrentFilePath(string? path)
     {
         _currentFilePath = path;
         _viewModel.Title = path is not null
             ? $"{System.IO.Path.GetFileName(path)} - StencilPad"
             : "StencilPad";
-    }
-
-    private void ShowAbout()
-    {
-        MessageBox.Show("StencilPad\nA CAD tool for leathercraft templates.",
-            "About StencilPad", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

@@ -55,11 +55,13 @@ public class SheetTabController : IDisposable
                                                sheetCanvas,
                                                _modelPropertiesService);
 
+        _tabViewModel.Viewport = sheetCanvas.Viewport;
         _toolController.ActivateCurrentTool();
     }
 
     private void CanvasDetached()
     {
+        _tabViewModel.Viewport = null;
         _toolController?.DeactivateCurrentTool();
     }
 }

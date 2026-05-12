@@ -15,6 +15,11 @@ public static class SheetElementEditRendererFactory
         {
             return new TextElementEditRenderer(textElement);
         }
+
+        if (element is ImageElement imageElement)
+        {
+            return new ImageElementEditRenderer(imageElement);
+        }
         
         return null;
     }
