@@ -24,6 +24,10 @@ public static class SheetElementRendererFactory
         {
             renderer = new GroupRenderer(elementGroup);
         }
+        else if (element is TextElement textElement)
+        {
+            renderer = new TextElementRenderer(textElement);
+        }
 
         return renderer;
     }

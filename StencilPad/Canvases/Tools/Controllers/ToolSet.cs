@@ -12,14 +12,16 @@ public class ToolSet
                    EditHandleSetTool.Factory editHandleSetToolFactory,
                    ShapeTool.Factory shapeToolFactory,
                    MarkerPathTool.Factory markerPathToolFactory,
-                   RulerTool.Factory rulerToolFactory)
+                   RulerTool.Factory rulerToolFactory,
+                   TextTool.Factory textToolFactory)
     {
         _tools = [
             selectionToolFactory,
             editHandleSetToolFactory,
             shapeToolFactory,
             markerPathToolFactory,
-            rulerToolFactory
+            rulerToolFactory,
+            textToolFactory
             ];
     }
 
@@ -30,6 +32,7 @@ public class ToolSet
         services.AddSingleton<ShapeTool.Factory>();
         services.AddSingleton<MarkerPathTool.Factory>();
         services.AddSingleton<RulerTool.Factory>();
+        services.AddSingleton<TextTool.Factory>();
         services.AddSingleton<ToolSet>();
     }
 }

@@ -10,6 +10,11 @@ public static class SheetElementEditRendererFactory
         {
             return new ShapeEditRenderer(shape);
         }
+
+        if (element is TextElement textElement)
+        {
+            return new TextElementEditRenderer(textElement);
+        }
         
         return null;
     }

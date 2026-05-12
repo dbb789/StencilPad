@@ -8,6 +8,7 @@ namespace StencilPad.Schemas;
 [JsonDerivedType(typeof(ShapeSchema), "shape")]
 [JsonDerivedType(typeof(MarkerPathSchema), "markerpath")]
 [JsonDerivedType(typeof(RulerSchema), "ruler")]
+[JsonDerivedType(typeof(TextElementSchema), "text")]
 public abstract class SheetElementSchema
 {
     public abstract ISheetElement Unpack();
@@ -20,6 +21,7 @@ public abstract class SheetElementSchema
             Shape s => ShapeSchema.Pack(s),
             MarkerPath s => MarkerPathSchema.Pack(s),
             Ruler s => RulerSchema.Pack(s),
+            TextElement t => TextElementSchema.Pack(t),
             _ => null
         };
     }

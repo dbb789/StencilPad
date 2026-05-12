@@ -9,6 +9,7 @@
             <BitmapImage x:Key="EditShapeTool" UriSource="Resources/Icons/EditShapeTool.png"/>
             <BitmapImage x:Key="RulerTool" UriSource="Resources/Icons/RulerTool.png"/>
             <BitmapImage x:Key="EditHandleSetTool" UriSource="Resources/Icons/EditHandleSetTool.png"/>
+            <BitmapImage x:Key="TextTool" UriSource="Resources/Icons/TextTool.png"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
