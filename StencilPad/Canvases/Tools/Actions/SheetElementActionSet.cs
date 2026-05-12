@@ -265,6 +265,41 @@ public class SheetElementActionSet
 
                     operationService.Push(editContext.FlushOperation());
                 }
+            },
+            null,
+            new MultiSheetElementAction
+            {
+                Name = "Bring to Front",
+                Action = (context, sheet, elements) =>
+                {
+                    var operation = new BulkCommandOperation();
+
+                    foreach (var element in elements)
+                    {
+                        int index = sheet.Elements.IndexOf(element);
+                        
+                        operation.Add(new ReorderSheetElementOperation(sheet, index, sheet.Elements.Count - 1));
+                    }
+                    
+                    operationService.Push(operation);
+                }
+            },
+            new MultiSheetElementAction
+            {
+                Name = "Send to Back",
+                Action = (context, sheet, elements) =>
+                {
+                    var operation = new BulkCommandOperation();
+
+                    foreach (var element in elements)
+                    {
+                        int index = sheet.Elements.IndexOf(element);
+                        
+                        operation.Add(new ReorderSheetElementOperation(sheet, index, 0));
+                    }
+                    
+                    operationService.Push(operation);
+                }
             }
         ];
     }

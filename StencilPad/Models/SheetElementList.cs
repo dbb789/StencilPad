@@ -42,6 +42,9 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
         }
     }
 
+    public ISheetElement this[int index] => _elements[_keys[index]];
+    public int Count => _keys.Count;
+
     private readonly List<Guid> _keys;
     private readonly Dictionary<Guid, ISheetElement> _elements;
     private int _version;
@@ -83,6 +86,24 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
                                                                              _keys.Count - 1));
     }
 
+    public void Insert(int index, ISheetElement element)
+    {
+        var id = element.Id;
+        
+        if (_elements.ContainsKey(id))
+        {
+            throw new ArgumentException($"Element with Id {element.Id} already exists in the list.");
+        }
+        
+        _keys.Insert(index, id);
+        _elements[id] = element;
+        ++_version;
+        
+        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+                                                                             element,
+                                                                             index));
+    }
+    
     public void Remove(ISheetElement element)
     {
         var id = element.Id;
@@ -119,7 +140,37 @@ public class SheetElementList : IEnumerable<ISheetElement>, INotifyCollectionCha
         
         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
+
+    public int IndexOf(ISheetElement element)
+    {
+        return _keys.IndexOf(element.Id);
+    }
     
+    public void Move(int fromIndex, int toIndex)
+    {
+        if (fromIndex < 0 || fromIndex >= _keys.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fromIndex));
+        }
+        
+        if (toIndex < 0 || toIndex >= _keys.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(toIndex));
+        }
+        
+        var key = _keys[fromIndex];
+        
+        _keys.RemoveAt(fromIndex);
+        _keys.Insert(toIndex, key);
+        
+        ++_version;
+        
+        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move,
+                                                                             _elements[key],
+                                                                             toIndex,
+                                                                             fromIndex));
+    }
+
     public Enumerator GetEnumerator()
     {
         return new Enumerator(this);
