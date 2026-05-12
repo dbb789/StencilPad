@@ -14,7 +14,7 @@ public class EditHandleSetTool : ITool
     public class Factory(SheetElementEditActionSet SheetElementEditActions,
                          IOperationService OperationService) : IToolFactory
     {
-        public string IconResource => "EditHandleSetTool";
+        public string IconResource => "EditTool";
         public string Tooltip => "Edit Points";
 
         public ITool Create(IToolButton button, Sheet sheet, IToolContext context)

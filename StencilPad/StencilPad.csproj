@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Icons\EditHandleSetTool.png" />
-    <None Remove="Resources\Icons\EditShapeTool.png" />
+    <None Remove="Resources\Icons\MarkerPathTool.png" />
     <None Remove="Resources\Icons\RulerTool.png" />
     <None Remove="Resources\Icons\SelectionTool.png" />
     <None Remove="Resources\Icons\ShapeTool.png" />
+    <None Remove="Resources\Icons\StraightLineTool.png" />
     <None Remove="Resources\Icons\TextTool.png" />
     <None Remove="Resources\Icons\testicon.png" />
   </ItemGroup>
@@ -27,10 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Icons\EditHandleSetTool.png">
+    <Resource Include="Resources\Icons\EditTool.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\Icons\EditShapeTool.png">
+    <Resource Include="Resources\Icons\MarkerPathTool.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Icons\RulerTool.png">
@@ -39,7 +39,7 @@
     <Resource Include="Resources\Icons\SelectionTool.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\Icons\ShapeTool.png">
+    <Resource Include="Resources\Icons\StraightLineTool.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Icons\TextTool.png">

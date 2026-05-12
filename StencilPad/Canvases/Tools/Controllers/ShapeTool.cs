@@ -11,7 +11,7 @@ public class ShapeTool : ITool
 {
     public class Factory(IOperationService OperationService) : IToolFactory
     {
-        public string IconResource => "ShapeTool";
+        public string IconResource => "StraightLineTool";
         public string Tooltip => "Shape";
         
         public ITool Create(IToolButton _, Sheet sheet, IToolContext context)
