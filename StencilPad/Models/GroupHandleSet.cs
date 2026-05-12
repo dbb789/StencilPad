@@ -71,6 +71,19 @@ public class GroupHandleSet : IHandleSet
     {
         _selection.Clear();
         _selection.AddRange(handles);
+
+        // Propogate selection to children as we're using it for rendering etc.
+        for (int i = 0; i < _children.Count; ++i)
+        {
+            var child = _children[i];
+            
+            var selectedHandles = _selection
+                .Where(h => h.Key<GroupHandleKey>().Index == i)
+                .Select(h => new Handle(h.Key<GroupHandleKey>().ChildKey, h.Type));
+
+            child.SetSelectedHandles(selectedHandles);
+        }
+        
         SelectionChanged?.Invoke();
     }
 
