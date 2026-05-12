@@ -14,11 +14,11 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     public ShapeEditRenderer(Shape shape)
     {
         _shape = shape;
-        _shape.PolygonList.PolygonAdded += PolygonAdded;
-        _shape.PolygonList.PolygonRemoved += PolygonRemoved;
-        _shape.PolygonList.HandleSet.SelectionChanged += RebuildGeometry;
+        _shape.PolygonSet.PolygonAdded += PolygonAdded;
+        _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
+        _shape.PolygonSet.HandleSet.SelectionChanged += RebuildGeometry;
 
-        foreach (var polygon in _shape.PolygonList)
+        foreach (var polygon in _shape.PolygonSet)
         {
             polygon.PolygonChanged += RebuildGeometry;
         }
@@ -28,14 +28,14 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
     public override void Dispose()
     {
-        foreach (var polygon in _shape.PolygonList)
+        foreach (var polygon in _shape.PolygonSet)
         {
             polygon.PolygonChanged -= RebuildGeometry;
         }
         
-        _shape.PolygonList.PolygonAdded -= PolygonAdded;
-        _shape.PolygonList.PolygonRemoved -= PolygonRemoved;
-        _shape.PolygonList.HandleSet.SelectionChanged -= RebuildGeometry;
+        _shape.PolygonSet.PolygonAdded -= PolygonAdded;
+        _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
+        _shape.PolygonSet.HandleSet.SelectionChanged -= RebuildGeometry;
     }
 
     private void PolygonAdded(EditablePolygon polygon)
@@ -52,7 +52,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
     private void RebuildGeometry()
     {
-        var polygonList = _shape.PolygonList;
+        var polygonList = _shape.PolygonSet;
 
         _edgeOverlayGeometry = new StreamGeometry { FillRule = FillRule.EvenOdd };
 

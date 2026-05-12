@@ -10,7 +10,7 @@ public class PolygonSheetElementEditActionSet
 {
     private static Func<IPolygonSheetElement, bool> OneOrMoreVerticesSelected = e =>
     {
-        return e.PolygonList.Any(p => p.GetSelectedVertices().Count() > 0);
+        return e.PolygonSet.Any(p => p.GetSelectedVertices().Count() > 0);
     };
 
     // private static Func<IPolygonSheetElement, bool> OneEdgeSelected = e =>
@@ -20,7 +20,7 @@ public class PolygonSheetElementEditActionSet
 
     private static Func<IPolygonSheetElement, bool> OneOrMoreEdgesSelected = e =>
     {
-        return e.PolygonList.Any(p => p.GetSelectedEdges().Count() > 0);
+        return e.PolygonSet.Any(p => p.GetSelectedEdges().Count() > 0);
     };
 
     // private static Func<IPolygonSheetElement, bool> CanDeleteVertices = e =>
@@ -62,7 +62,7 @@ public class PolygonSheetElementEditActionSet
 
             foreach (var polygonSheetElement in polygonSheetElements)
             {
-                foreach (var polygon in polygonSheetElement.PolygonList)
+                foreach (var polygon in polygonSheetElement.PolygonSet)
                 {
                     if (polygon.GetSelectedVertices().Any())
                     {
@@ -81,7 +81,7 @@ public class PolygonSheetElementEditActionSet
 
             foreach (var element in polygonSheetElements)
             {
-                foreach (var polygon in element.PolygonList)
+                foreach (var polygon in element.PolygonSet)
                 {
                     foreach (var vertexIndex in polygon.GetSelectedVertices())
                     {
@@ -106,7 +106,7 @@ public class PolygonSheetElementEditActionSet
                 Enabled = OneOrMoreEdgesSelected,
                 Action = e =>
                 {
-                    foreach (var polygon in e.PolygonList)
+                    foreach (var polygon in e.PolygonSet)
                     {
                         foreach (var edgeIndex in polygon.GetSelectedEdges().OrderByDescending(x => x))
                         {
@@ -125,7 +125,7 @@ public class PolygonSheetElementEditActionSet
             //     Enabled = e => OneOrMoreVerticesSelected(e) && CanDeleteVertices(e),
             //     Action = e =>
             //     {
-            //         foreach (var polygon in e.PolygonList)
+            //         foreach (var polygon in e.PolygonSet)
             //         {
             //             // Vertex indices are reordered after each deletion, so we need
             //             // to loop until there are no selected vertices left.
@@ -167,7 +167,7 @@ public class PolygonSheetElementEditActionSet
                 Enabled = OneOrMoreEdgesSelected,
                 Action = e =>
                 {
-                    foreach (var polygon in e.PolygonList)
+                    foreach (var polygon in e.PolygonSet)
                     {
                         foreach (var edgeIndex in polygon.GetSelectedEdges())
                         {
@@ -182,7 +182,7 @@ public class PolygonSheetElementEditActionSet
                 Enabled = OneOrMoreEdgesSelected,
                 Action = e =>
                 {
-                    foreach (var polygon in e.PolygonList)
+                    foreach (var polygon in e.PolygonSet)
                     {
                         foreach (var edgeIndex in polygon.GetSelectedEdges())
                         {

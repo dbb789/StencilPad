@@ -31,11 +31,11 @@ public class ShapeRenderer : SheetElementRenderer
     public ShapeRenderer(Shape shape)
     {
         _shape = shape;
-        _shape.PolygonList.PolygonAdded += PolygonAdded;
-        _shape.PolygonList.PolygonRemoved += PolygonRemoved;
+        _shape.PolygonSet.PolygonAdded += PolygonAdded;
+        _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
         _shape.PropertyChanged += PropertyChanged;
 
-        foreach (var polygon in _shape.PolygonList)
+        foreach (var polygon in _shape.PolygonSet)
         {
             polygon.PolygonChanged += RebuildGeometry;
         }
@@ -45,13 +45,13 @@ public class ShapeRenderer : SheetElementRenderer
 
     public override void Dispose()
     {
-        foreach (var polygon in _shape.PolygonList)
+        foreach (var polygon in _shape.PolygonSet)
         {
             polygon.PolygonChanged -= RebuildGeometry;
         }
         
-        _shape.PolygonList.PolygonAdded -= PolygonAdded;
-        _shape.PolygonList.PolygonRemoved -= PolygonRemoved;
+        _shape.PolygonSet.PolygonAdded -= PolygonAdded;
+        _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
         _shape.PropertyChanged -= PropertyChanged;
     }
 
@@ -118,7 +118,7 @@ public class ShapeRenderer : SheetElementRenderer
 
         using (var ctx = _geometry.Open())
         {
-            foreach (var polygon in _shape.PolygonList)
+            foreach (var polygon in _shape.PolygonSet)
             {
                 RendererUtil.AddToGeometry(ctx, polygon);
             }

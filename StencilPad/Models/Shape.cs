@@ -5,7 +5,7 @@ namespace StencilPad.Models;
 
 public class Shape : SheetElement<Shape>, IPolygonSheetElement
 {
-    public IEditablePolygonSet PolygonList => _polygonList;
+    public IEditablePolygonSet PolygonSet => _polygonList;
     public override IHandleSet HandleSet => _polygonList.HandleSet;
 
     private EditablePolygonList _polygonList;

@@ -15,7 +15,7 @@ public class ShapeSchema : SheetElementSchema
     {
         return new ShapeSchema
         {
-            Polygons = shape.PolygonList.Select(p => PolygonSchema.Pack(p)).ToArray(),
+            Polygons = shape.PolygonSet.Select(p => PolygonSchema.Pack(p)).ToArray(),
             FillColor = shape.FillColor,
             LineColor = shape.LineColor,
             LineWidth = shape.LineWidth
