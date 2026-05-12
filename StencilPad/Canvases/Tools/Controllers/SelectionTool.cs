@@ -69,7 +69,6 @@ public class SelectionTool : ITool
         _overlay.ActionInvoked += ActionInvoked;
         _overlay.PointSelected += PointSelected;
         _overlay.SelectionDragged += SelectionDragged;
-        _overlay.ShowProperties += ShowProperties;
     }
 
     public void ToolEnd()
@@ -86,7 +85,6 @@ public class SelectionTool : ITool
             _overlay.ActionInvoked -= ActionInvoked;
             _overlay.PointSelected -= PointSelected;
             _overlay.SelectionDragged -= SelectionDragged;
-            _overlay.ShowProperties -= ShowProperties;
             _overlay.Dispose();
             _overlay = null;
         }
@@ -168,18 +166,6 @@ public class SelectionTool : ITool
     private void ClearSelection()
     {
         _sheet.Selection.Clear();
-    }
-
-    private void ShowProperties()
-    {
-        var markerPaths = _sheet.Selection
-            .OfType<MarkerPath>()
-            .ToList();
-
-        if (markerPaths.Count > 0)
-        {
-            _modelPropertiesService.ShowMarkerPathProperties(markerPaths);
-        }
     }
 
     private void ActionInvoked(ISheetElementAction action)

@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Widgets;
@@ -24,17 +23,6 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     
     public event Action<Unit2D>? SelectionDragged;
     public event Action<Unit2D>? PointSelected;
-    public event Action? Group;
-    public event Action? Ungroup;
-    public event Action? MirrorX;
-    public event Action? MirrorY;
-    public event Action? ShowProperties;
-    public event Action? JustifyTop;
-    public event Action? JustifyMiddle;
-    public event Action? JustifyBottom;
-    public event Action? JustifyLeft;
-    public event Action? JusifyCentre;
-    public event Action? JustifyRight;
     
     public event Action<ISheetElementAction>? ActionInvoked;
 
@@ -46,7 +34,14 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         _sheet = sheet;
         _sheet.Selection.CollectionChanged += SelectionChanged;
 
-        // InitializeContextMenu();
+        foreach (var selected in _sheet.Selection)
+        {
+            if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
+            {
+                renderer.InvalidateVisual += InvalidateVisual;
+            }
+        }
+        
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
     }
@@ -54,6 +49,14 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
     public void Dispose()
     {
         _sheet.Selection.CollectionChanged -= SelectionChanged;
+
+        foreach (var selected in _sheet.Selection)
+        {
+            if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
+            {
+                renderer.InvalidateVisual -= InvalidateVisual;
+            }
+        }
     }
     
     private void RebuildContextMenu(object sender,
@@ -70,77 +73,6 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             e.Handled = true;
         }
     }
-
-    private void InitializeContextMenu()
-    {
-        var contextMenu = new ContextMenu();
-        
-        var groupItem = new MenuItem { Header = "Group", IsEnabled = true };
-        groupItem.Click += (s, e) => Group?.Invoke();
-        contextMenu.Items.Add(groupItem);
-        
-        var ungroupItem = new MenuItem { Header = "Ungroup", IsEnabled = true };
-        ungroupItem.Click += (s, e) => Ungroup?.Invoke();
-        contextMenu.Items.Add(ungroupItem);
-
-        contextMenu.Items.Add(new Separator());
-
-        var mirrorXMenuItem = new MenuItem { Header = "Flip Horizontally", IsEnabled = false };
-        mirrorXMenuItem.Click += (s, e) => MirrorX?.Invoke();
-        contextMenu.Items.Add(mirrorXMenuItem);
-
-        var mirrorYMenuItem = new MenuItem { Header = "Flip Vertically", IsEnabled = false };
-        mirrorYMenuItem.Click += (s, e) => MirrorY?.Invoke();
-        contextMenu.Items.Add(mirrorYMenuItem);
-
-        contextMenu.Items.Add(new Separator());
-
-        var propertiesMenuItem = new MenuItem { Header = "Properties…", IsEnabled = false };
-        propertiesMenuItem.Click += (s, e) => ShowProperties?.Invoke();
-        contextMenu.Items.Add(propertiesMenuItem);
-
-        contextMenu.Items.Add(new Separator());
-
-        var justifyTopMenuItem    = new MenuItem { Header = "Justify Top",    IsEnabled = false };
-        var justifyMiddleMenuItem = new MenuItem { Header = "Justify Middle", IsEnabled = false };
-        var justifyBottomMenuItem = new MenuItem { Header = "Justify Bottom", IsEnabled = false };
-        justifyTopMenuItem.Click    += (s, e) => JustifyTop?.Invoke();
-        justifyMiddleMenuItem.Click += (s, e) => JustifyMiddle?.Invoke();
-        justifyBottomMenuItem.Click += (s, e) => JustifyBottom?.Invoke();
-        contextMenu.Items.Add(justifyTopMenuItem);
-        contextMenu.Items.Add(justifyMiddleMenuItem);
-        contextMenu.Items.Add(justifyBottomMenuItem);
-
-        contextMenu.Items.Add(new Separator());
-
-        var justifyLeftMenuItem   = new MenuItem { Header = "Justify Left",   IsEnabled = false };
-        var justifyCentreMenuItem = new MenuItem { Header = "Justify Centre", IsEnabled = false };
-        var justifyRightMenuItem  = new MenuItem { Header = "Justify Right",  IsEnabled = false };
-        justifyLeftMenuItem.Click   += (s, e) => JustifyLeft?.Invoke();
-        justifyCentreMenuItem.Click += (s, e) => JusifyCentre?.Invoke();
-        justifyRightMenuItem.Click  += (s, e) => JustifyRight?.Invoke();
-        contextMenu.Items.Add(justifyLeftMenuItem);
-        contextMenu.Items.Add(justifyCentreMenuItem);
-        contextMenu.Items.Add(justifyRightMenuItem);
-
-        contextMenu.Opened += (s, e) =>
-        {
-            var hasPolygons = _sheet.Selection.OfType<IPolygonSheetElement>().Any();
-            var multipleSelected = _sheet.Selection.Count >= 2;
-            mirrorXMenuItem.IsEnabled = hasPolygons;
-            mirrorYMenuItem.IsEnabled = hasPolygons;
-            propertiesMenuItem.IsEnabled = _sheet.Selection.OfType<MarkerPath>().Any();
-            justifyTopMenuItem.IsEnabled    = multipleSelected;
-            justifyMiddleMenuItem.IsEnabled = multipleSelected;
-            justifyBottomMenuItem.IsEnabled = multipleSelected;
-            justifyLeftMenuItem.IsEnabled   = multipleSelected;
-            justifyCentreMenuItem.IsEnabled = multipleSelected;
-            justifyRightMenuItem.IsEnabled  = multipleSelected;
-        };
-
-        ContextMenu = contextMenu;
-    }
-
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
