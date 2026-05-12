@@ -31,16 +31,40 @@ public class ShapeRenderer : SheetElementRenderer
     public ShapeRenderer(Shape shape)
     {
         _shape = shape;
-        _shape.EditablePolygon.PolygonChanged += RebuildGeometry;
+        _shape.PolygonList.PolygonAdded += PolygonAdded;
+        _shape.PolygonList.PolygonRemoved += PolygonRemoved;
         _shape.PropertyChanged += PropertyChanged;
+
+        foreach (var polygon in _shape.PolygonList)
+        {
+            polygon.PolygonChanged += RebuildGeometry;
+        }
         
         RebuildGeometry();
     }
 
     public override void Dispose()
     {
-        _shape.EditablePolygon.PolygonChanged -= RebuildGeometry;
+        foreach (var polygon in _shape.PolygonList)
+        {
+            polygon.PolygonChanged -= RebuildGeometry;
+        }
+        
+        _shape.PolygonList.PolygonAdded -= PolygonAdded;
+        _shape.PolygonList.PolygonRemoved -= PolygonRemoved;
         _shape.PropertyChanged -= PropertyChanged;
+    }
+
+    private void PolygonAdded(EditablePolygon polygon)
+    {
+        polygon.PolygonChanged += RebuildGeometry;
+        RebuildGeometry();
+    }
+
+    private void PolygonRemoved(EditablePolygon polygon)
+    {
+        polygon.PolygonChanged -= RebuildGeometry;
+        RebuildGeometry();
     }
 
     public override bool HitTest(Unit2D unit)
@@ -94,7 +118,10 @@ public class ShapeRenderer : SheetElementRenderer
 
         using (var ctx = _geometry.Open())
         {
-            RendererUtil.AddToGeometry(ctx, _shape.EditablePolygon);
+            foreach (var polygon in _shape.PolygonList)
+            {
+                RendererUtil.AddToGeometry(ctx, polygon);
+            }
         }
 
         _geometry.Freeze();

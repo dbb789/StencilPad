@@ -10,7 +10,6 @@ public class Polygon : IPolygon
     private readonly MutableAssignableList<Edge> _edges;
     private bool _closed;
 
-
     public event Action? PolygonChanged;
 
     public Polygon()

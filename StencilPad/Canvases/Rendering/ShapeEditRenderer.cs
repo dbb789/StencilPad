@@ -14,16 +14,92 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     public ShapeEditRenderer(Shape shape)
     {
         _shape = shape;
-        _shape.EditablePolygon.PolygonChanged += Rebuild;
-        _shape.EditablePolygon.SelectionChanged += Rebuild;
+        _shape.PolygonList.PolygonAdded += PolygonAdded;
+        _shape.PolygonList.PolygonRemoved += PolygonRemoved;
+        _shape.PolygonList.HandleSet.SelectionChanged += RebuildGeometry;
 
-        Rebuild();
+        foreach (var polygon in _shape.PolygonList)
+        {
+            polygon.PolygonChanged += RebuildGeometry;
+        }
+
+        RebuildGeometry();
     }
 
     public override void Dispose()
     {
-        _shape.EditablePolygon.PolygonChanged -= Rebuild;
-        _shape.EditablePolygon.SelectionChanged -= Rebuild;
+        foreach (var polygon in _shape.PolygonList)
+        {
+            polygon.PolygonChanged -= RebuildGeometry;
+        }
+        
+        _shape.PolygonList.PolygonAdded -= PolygonAdded;
+        _shape.PolygonList.PolygonRemoved -= PolygonRemoved;
+        _shape.PolygonList.HandleSet.SelectionChanged -= RebuildGeometry;
+    }
+
+    private void PolygonAdded(EditablePolygon polygon)
+    {
+        polygon.PolygonChanged += RebuildGeometry;
+        RebuildGeometry();
+    }
+
+    private void PolygonRemoved(EditablePolygon polygon)
+    {
+        polygon.PolygonChanged -= RebuildGeometry;
+        RebuildGeometry();
+    }
+
+    private void RebuildGeometry()
+    {
+        var polygonList = _shape.PolygonList;
+
+        _edgeOverlayGeometry = new StreamGeometry { FillRule = FillRule.EvenOdd };
+
+        using (var ctx = _edgeOverlayGeometry.Open())
+        {
+            foreach (var polygon in polygonList)
+            {
+                foreach (var edgeIndex in polygon.GetSelectedEdges())
+                {
+                    RendererUtil.AddEdgeToGeometry(ctx, polygon, edgeIndex);
+                }
+            }
+        }
+
+        _edgeOverlayGeometry.Freeze();
+
+        _controlStemGeometry = new StreamGeometry { FillRule = FillRule.EvenOdd };
+
+        using (var ctx = _controlStemGeometry.Open())
+        {
+            foreach (var polygon in polygonList)
+            {
+                for (int i = 0; i < polygon.Edges.Count; i++)
+                {
+                    var edge = polygon.Edges[i];
+
+                    if (edge.Type == EdgeType.Bezier)
+                    {
+                        var vertexBegin = polygon.Vertices[i].Position;
+                        var controlBegin = vertexBegin + edge.ControlBeginOffset;
+
+                        ctx.BeginFigure(vertexBegin.Millimeters, isFilled: false, isClosed: false);
+                        ctx.LineTo(controlBegin.Millimeters, isStroked: true, isSmoothJoin: false);
+
+                        var vertexEnd = polygon.Vertices.At(i + 1).Position;
+                        var controlEnd = vertexEnd + edge.ControlEndOffset;
+
+                        ctx.BeginFigure(vertexEnd.Millimeters, isFilled: false, isClosed: false);
+                        ctx.LineTo(controlEnd.Millimeters, isStroked: true, isSmoothJoin: false);
+                    }
+                }
+            }
+        }
+
+        _controlStemGeometry.Freeze();
+
+        InvokeInvalidateVisual();
     }
 
     public override void Render(DrawingContext dc)
@@ -41,51 +117,5 @@ public class ShapeEditRenderer : SheetElementEditRenderer
                             new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 200, 0)), 0.2),
                             _controlStemGeometry);
         }
-    }
-
-    private void Rebuild()
-    {
-        var polygon = _shape.EditablePolygon;
-
-        _edgeOverlayGeometry = new StreamGeometry { FillRule = FillRule.EvenOdd };
-
-        using (var ctx = _edgeOverlayGeometry.Open())
-        {
-            foreach (var edgeIndex in polygon.GetSelectedEdges())
-            {
-                RendererUtil.AddEdgeToGeometry(ctx, polygon, edgeIndex);
-            }
-        }
-
-        _edgeOverlayGeometry.Freeze();
-
-        _controlStemGeometry = new StreamGeometry { FillRule = FillRule.EvenOdd };
-
-        using (var ctx = _controlStemGeometry.Open())
-        {
-            for (int i = 0; i < polygon.Edges.Count; i++)
-            {
-                var edge = polygon.Edges[i];
-
-                if (edge.Type != EdgeType.Bezier)
-                    continue;
-
-                var vertexBegin = polygon.Vertices[i].Position;
-                var controlBegin = vertexBegin + edge.ControlBeginOffset;
-
-                ctx.BeginFigure(vertexBegin.Millimeters, isFilled: false, isClosed: false);
-                ctx.LineTo(controlBegin.Millimeters, isStroked: true, isSmoothJoin: false);
-
-                var vertexEnd = polygon.Vertices.At(i + 1).Position;
-                var controlEnd = vertexEnd + edge.ControlEndOffset;
-
-                ctx.BeginFigure(vertexEnd.Millimeters, isFilled: false, isClosed: false);
-                ctx.LineTo(controlEnd.Millimeters, isStroked: true, isSmoothJoin: false);
-            }
-        }
-
-        _controlStemGeometry.Freeze();
-
-        InvokeInvalidateVisual();
     }
 }

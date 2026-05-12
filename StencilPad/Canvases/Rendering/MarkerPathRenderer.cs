@@ -40,7 +40,7 @@ public class MarkerPathRenderer : SheetElementRenderer
     public MarkerPathRenderer(MarkerPath markerPath)
     {
         _markerPath = markerPath;
-        _markerPath.EditablePolygon.PolygonChanged += RebuildGeometry;
+        _markerPath.Polygon.PolygonChanged += RebuildGeometry;
         _markerPath.PropertyChanged += PropertyChanged;
         _markerCount = 0;
         
@@ -49,7 +49,7 @@ public class MarkerPathRenderer : SheetElementRenderer
 
     public override void Dispose()
     {
-        _markerPath.EditablePolygon.PolygonChanged -= RebuildGeometry;
+        _markerPath.Polygon.PolygonChanged -= RebuildGeometry;
         _markerPath.PropertyChanged -= PropertyChanged;
     }
 
@@ -85,11 +85,6 @@ public class MarkerPathRenderer : SheetElementRenderer
         var pen = new Pen(Brushes.Black, 0.2);
         var fill = Brushes.Transparent;
 
-        // if (_markerPath.EditablePolygon.Closed)
-        // {
-        //     fill = new SolidColorBrush(Color.FromArgb(128, 255, 255, 255));
-        // }
-        
         dc.DrawGeometry(fill, pen, _geometry);
 
         if (_markerGeometry is not null)
@@ -116,7 +111,7 @@ public class MarkerPathRenderer : SheetElementRenderer
 
         using (var ctx = _geometry.Open())
         {
-            RendererUtil.AddToGeometry(ctx, _markerPath.EditablePolygon);
+            RendererUtil.AddToGeometry(ctx, _markerPath.Polygon);
         }
 
         _geometry.Freeze();
@@ -152,7 +147,7 @@ public class MarkerPathRenderer : SheetElementRenderer
         var markerData = GenerateMarkerPoints(points, spacing, offset);
         bool balanced = false;
         
-        if (_markerPath.EditablePolygon.Closed)
+        if (_markerPath.Polygon.Closed)
         {
             balanced = BalanceClosingMarker(markerData, points);
         }

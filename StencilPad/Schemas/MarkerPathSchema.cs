@@ -13,7 +13,7 @@ public class MarkerPathSchema : SheetElementSchema
     {
         return new MarkerPathSchema
         {
-            Polygon = PolygonSchema.Pack(markerPath.EditablePolygon),
+            Polygon = PolygonSchema.Pack(markerPath.Polygon),
             Offset = markerPath.Offset,
             Spacing = markerPath.Spacing
         };

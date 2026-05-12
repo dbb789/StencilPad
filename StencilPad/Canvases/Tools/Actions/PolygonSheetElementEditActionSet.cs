@@ -10,33 +10,33 @@ public class PolygonSheetElementEditActionSet
 {
     private static Func<IPolygonSheetElement, bool> OneOrMoreVerticesSelected = e =>
     {
-        return e.EditablePolygon.GetSelectedVertices().Count() > 0;
+        return e.PolygonList.Any(p => p.GetSelectedVertices().Count() > 0);
     };
 
-    private static Func<IPolygonSheetElement, bool> OneEdgeSelected = e =>
-    {
-        return e.EditablePolygon.GetSelectedEdges().Count() == 1;
-    };
+    // private static Func<IPolygonSheetElement, bool> OneEdgeSelected = e =>
+    // {
+    //     return e.EditablePolygon.GetSelectedEdges().Count() == 1;
+    // };
 
     private static Func<IPolygonSheetElement, bool> OneOrMoreEdgesSelected = e =>
     {
-        return e.EditablePolygon.GetSelectedEdges().Count() > 0;
+        return e.PolygonList.Any(p => p.GetSelectedEdges().Count() > 0);
     };
 
-    private static Func<IPolygonSheetElement, bool> CanDeleteVertices = e =>
-    {
-        return (e.EditablePolygon.Vertices.Count - e.EditablePolygon.GetSelectedVertices().Count()) > 2;
-    };
+    // private static Func<IPolygonSheetElement, bool> CanDeleteVertices = e =>
+    // {
+    //     return (e.EditablePolygon.Vertices.Count - e.EditablePolygon.GetSelectedVertices().Count()) > 2;
+    // };
 
-    private static Func<IPolygonSheetElement, bool> PolygonOpen = e =>
-    {
-        return !e.EditablePolygon.Closed;
-    };
+    // private static Func<IPolygonSheetElement, bool> PolygonOpen = e =>
+    // {
+    //     return !e.EditablePolygon.Closed;
+    // };
 
-    private static Func<IPolygonSheetElement, bool> PolygonClosed = e =>
-    {
-        return e.EditablePolygon.Closed;
-    };
+    // private static Func<IPolygonSheetElement, bool> PolygonClosed = e =>
+    // {
+    //     return e.EditablePolygon.Closed;
+    // };
 
     public IEnumerable<ISheetElementAction?> Actions { get; }
 
@@ -62,11 +62,12 @@ public class PolygonSheetElementEditActionSet
 
             foreach (var polygonSheetElement in polygonSheetElements)
             {
-                var polygon = polygonSheetElement.EditablePolygon;
-
-                if (polygon.GetSelectedVertices().Any())
+                foreach (var polygon in polygonSheetElement.PolygonList)
                 {
-                    return true;
+                    if (polygon.GetSelectedVertices().Any())
+                    {
+                        return true;
+                    }
                 }
             }
             
@@ -78,13 +79,14 @@ public class PolygonSheetElementEditActionSet
             var polygonSheetElements = elements.OfType<IPolygonSheetElement>();
             var targets = new List<VertexCornerTarget>();
 
-            foreach (var polygonSheetElement in polygonSheetElements)
+            foreach (var element in polygonSheetElements)
             {
-                var polygon = polygonSheetElement.EditablePolygon;
-
-                foreach (var vertexIndex in polygon.GetSelectedVertices())
+                foreach (var polygon in element.PolygonList)
                 {
-                    targets.Add(new VertexCornerTarget(polygonSheetElement, vertexIndex));
+                    foreach (var vertexIndex in polygon.GetSelectedVertices())
+                    {
+                        targets.Add(new VertexCornerTarget(element, polygon, vertexIndex));
+                    }
                 }
             }
 
@@ -104,70 +106,73 @@ public class PolygonSheetElementEditActionSet
                 Enabled = OneOrMoreEdgesSelected,
                 Action = e =>
                 {
-                    var polygon = e.EditablePolygon;
-
-                    foreach (var edgeIndex in polygon.GetSelectedEdges().OrderByDescending(x => x))
+                    foreach (var polygon in e.PolygonList)
                     {
-                        var start = polygon.Vertices.At(edgeIndex).Position;
-                        var end = polygon.Vertices.At(edgeIndex + 1).Position;
-                        var vertex = new Vertex((start + end) / 2);
-
-                        polygon.InsertVertex(edgeIndex + 1, vertex);
-                    }
-                }
-            },
-            new SheetElementAction<IPolygonSheetElement>
-            {
-                Name = "Delete Points",
-                Enabled = e => OneOrMoreVerticesSelected(e) && CanDeleteVertices(e),
-                Action = e =>
-                {
-                    var polygon = e.EditablePolygon;
-                    
-                    // Vertex indices are reordered after each deletion, so we need
-                    // to loop until there are no selected vertices left.
-                    while (true)
-                    {
-                        var selectedVertices = polygon.GetSelectedVertices();
-
-                        if (!selectedVertices.Any())
+                        foreach (var edgeIndex in polygon.GetSelectedEdges().OrderByDescending(x => x))
                         {
-                            break;
-                        }
+                            var start = polygon.Vertices.At(edgeIndex).Position;
+                            var end = polygon.Vertices.At(edgeIndex + 1).Position;
+                            var vertex = new Vertex((start + end) / 2);
 
-                        polygon.DeleteVertex(selectedVertices.First());
+                            polygon.InsertVertex(edgeIndex + 1, vertex);
+                        }
                     }
                 }
             },
-            null,
-            new SheetElementAction<IPolygonSheetElement>
-            {
-                Name = "Open Path",
-                Enabled = e => OneEdgeSelected(e) && PolygonClosed(e),
-                Action = e =>
-                {
-                    var polygon = e.EditablePolygon;
+            // new SheetElementAction<IPolygonSheetElement>
+            // {
+            //     Name = "Delete Points",
+            //     Enabled = e => OneOrMoreVerticesSelected(e) && CanDeleteVertices(e),
+            //     Action = e =>
+            //     {
+            //         foreach (var polygon in e.PolygonList)
+            //         {
+            //             // Vertex indices are reordered after each deletion, so we need
+            //             // to loop until there are no selected vertices left.
+            //             while (true)
+            //             {
+            //                 var selectedVertices = polygon.GetSelectedVertices();
 
-                    polygon.Open(polygon.GetSelectedEdges().First());
-                }
-            },
-            new SheetElementAction<IPolygonSheetElement>
-            {
-                Name = "Close Path",
-                Enabled = PolygonOpen,
-                Action = e => e.EditablePolygon.Close()
-            },
+            //                 if (!selectedVertices.Any())
+            //                 {
+            //                     break;
+            //                 }
+
+            //                 polygon.DeleteVertex(selectedVertices.First());
+            //             }
+            //         }
+            //     }
+            // },
+            null,
+            // new SheetElementAction<IPolygonSheetElement>
+            // {
+            //     Name = "Open Path",
+            //     Enabled = e => OneEdgeSelected(e) && PolygonClosed(e),
+            //     Action = e =>
+            //     {
+            //         var polygon = e.EditablePolygon;
+
+            //         polygon.Open(polygon.GetSelectedEdges().First());
+            //     }
+            // },
+            // new SheetElementAction<IPolygonSheetElement>
+            // {
+            //     Name = "Close Path",
+            //     Enabled = PolygonOpen,
+            //     Action = e => e.EditablePolygon.Close()
+            // },
             new SheetElementAction<IPolygonSheetElement>
             {
                 Name = "Set As Straight",
                 Enabled = OneOrMoreEdgesSelected,
                 Action = e =>
                 {
-                    var polygon = e.EditablePolygon;
-
-                    foreach (var edgeIndex in polygon.GetSelectedEdges())
+                    foreach (var polygon in e.PolygonList)
                     {
-                        polygon.Edges[edgeIndex] = polygon.Edges[edgeIndex] with { Type = EdgeType.Straight };
+                        foreach (var edgeIndex in polygon.GetSelectedEdges())
+                        {
+                            polygon.Edges[edgeIndex] = polygon.Edges[edgeIndex] with { Type = EdgeType.Straight };
+                        }
                     }
                 }
             },
@@ -177,11 +182,12 @@ public class PolygonSheetElementEditActionSet
                 Enabled = OneOrMoreEdgesSelected,
                 Action = e =>
                 {
-                    var polygon = e.EditablePolygon;
-
-                    foreach (var edgeIndex in polygon.GetSelectedEdges())
+                    foreach (var polygon in e.PolygonList)
                     {
-                        polygon.Edges[edgeIndex] = polygon.Edges[edgeIndex] with { Type = EdgeType.Bezier };
+                        foreach (var edgeIndex in polygon.GetSelectedEdges())
+                        {
+                            polygon.Edges[edgeIndex] = polygon.Edges[edgeIndex] with { Type = EdgeType.Bezier };
+                        }
                     }
                 }
             } ];

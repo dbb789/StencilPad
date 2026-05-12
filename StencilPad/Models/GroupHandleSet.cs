@@ -62,6 +62,14 @@ public class GroupHandleSet : IHandleSet
         ChildHandlesChanged();
     }
 
+    public void Add(IHandleSet child)
+    {
+        _children.Add(child);
+        child.HandlesChanged += ChildHandlesChanged;
+
+        ChildHandlesChanged();
+    }
+
     public IEnumerable<Handle> GetSelectedHandles()
     {
         return _selection;

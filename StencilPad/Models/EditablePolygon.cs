@@ -169,7 +169,7 @@ public class EditablePolygon : Polygon, IHandleSet
         RebuildHandles();
     }
 
-    public void AssignFromPolygon(EditablePolygon other)
+    public void AssignFrom(EditablePolygon other)
     {
         base.AssignFromPolygon(other);
 

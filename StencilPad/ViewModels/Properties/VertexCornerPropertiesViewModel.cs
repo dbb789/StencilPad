@@ -37,7 +37,7 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
             
             foreach (var target in _targets)
             {
-                var polygon = target.Element.EditablePolygon;
+                var polygon = target.Polygon;
                 var vertex = polygon.Vertices[target.VertexIndex];
 
                 polygon.Vertices[target.VertexIndex] = vertex with { CornerType = value };
@@ -58,7 +58,7 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
 
             foreach (var target in _targets)
             {
-                var polygon = target.Element.EditablePolygon;
+                var polygon = target.Polygon;
                 var vertex = polygon.Vertices[target.VertexIndex];
 
                 polygon.Vertices[target.VertexIndex] = vertex with { CornerSize = value };
@@ -73,7 +73,7 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
                                            IOperationService operationService)
     {
         var first = targets.First();
-        var vertex = first.Element.EditablePolygon.Vertices[first.VertexIndex];
+        var vertex = first.Polygon.Vertices[first.VertexIndex];
         
         _cornerType = vertex.CornerType;
         _cornerSize = vertex.CornerSize;

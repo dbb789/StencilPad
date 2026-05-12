@@ -6,7 +6,7 @@ namespace StencilPad.Schemas;
 
 public class ShapeSchema : SheetElementSchema
 {
-    public PolygonSchema Polygon { get; set; } = new();
+    public PolygonSchema [] Polygons { get; set; } = [];
     public Color FillColor { get; set; } = new();
     public Color LineColor { get; set; } = new();
     public Unit LineWidth { get; set; } = new();
@@ -15,7 +15,7 @@ public class ShapeSchema : SheetElementSchema
     {
         return new ShapeSchema
         {
-            Polygon = PolygonSchema.Pack(shape.EditablePolygon),
+            Polygons = shape.PolygonList.Select(p => PolygonSchema.Pack(p)).ToArray(),
             FillColor = shape.FillColor,
             LineColor = shape.LineColor,
             LineWidth = shape.LineWidth
@@ -24,11 +24,21 @@ public class ShapeSchema : SheetElementSchema
 
     public override Shape Unpack()
     {
-        return new Shape(PolygonSchema.Unpack(Polygon))
+        var shape = new Shape()
         {
             FillColor = FillColor,
             LineColor = LineColor,
             LineWidth = LineWidth
         };
+
+        foreach (var schema in Polygons)
+        {
+            var editablePolygon = new EditablePolygon();
+
+            editablePolygon.AssignFrom(PolygonSchema.Unpack(schema));
+            shape.Add(editablePolygon);
+        }
+
+        return shape;
     }
 }

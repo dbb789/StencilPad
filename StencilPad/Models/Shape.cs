@@ -5,8 +5,10 @@ namespace StencilPad.Models;
 
 public class Shape : SheetElement<Shape>, IPolygonSheetElement
 {
-    public EditablePolygon EditablePolygon { get; }
-    public override IHandleSet HandleSet => EditablePolygon;
+    public IEditablePolygonSet PolygonList => _polygonList;
+    public override IHandleSet HandleSet => _polygonList.HandleSet;
+
+    private EditablePolygonList _polygonList;
 
     private Color _fillColor = Color.FromArgb(0, 255, 255, 255);
     public Color FillColor
@@ -52,38 +54,60 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     
     public Shape()
     {
-        EditablePolygon = new EditablePolygon();
+        _polygonList = new();
+        _polygonList.Add(new EditablePolygon());
     }
     
     public Shape(Polygon polygon)
     {
-        EditablePolygon = new();
-        EditablePolygon.AssignFrom(polygon);
+        _polygonList = new();
+
+        var editablePolygon = new EditablePolygon();
+        
+        editablePolygon.AssignFrom(polygon);
+
+        _polygonList.Add(editablePolygon);
     }
-    
-    private Shape(EditablePolygon editablePolygon)
+
+    public void Add(Polygon polygon)
     {
-        EditablePolygon = editablePolygon.DeepClone();
+        var editablePolygon = new EditablePolygon();
+        
+        editablePolygon.AssignFrom(polygon);
+
+        _polygonList.Add(editablePolygon);
     }
 
     public override void MirrorX(Unit centerY)
     {
-        EditablePolygon.MirrorX(centerY);
+        foreach (var polygon in _polygonList)
+        {
+            polygon.MirrorX(centerY);
+        }
     }
 
     public override void MirrorY(Unit centerX)
     {
-        EditablePolygon.MirrorY(centerX);
+        foreach (var polygon in _polygonList)
+        {
+            polygon.MirrorY(centerX);
+        }
     }
 
     public override void Translate(Unit2D delta)
     {
-        EditablePolygon.Translate(delta);
+        foreach (var polygon in _polygonList)
+        {
+            polygon.Translate(delta);
+        }
     }
 
     public override void AssignFrom(Shape other)
     {
-        EditablePolygon.AssignFrom(other.EditablePolygon);
+        _polygonList.AssignFrom(other._polygonList);
+        FillColor = other.FillColor;
+        LineColor = other.LineColor;
+        LineWidth = other.LineWidth;
     }
     
     public override Shape DeepClone()
