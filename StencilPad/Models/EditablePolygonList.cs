@@ -8,6 +8,9 @@ public class EditablePolygonList : IEditablePolygonSet
     
     private List<EditablePolygon> _polygons;
     private GroupHandleSet _handleSet;
+    
+    public EditablePolygon this[int index] => _polygons[index];
+    public int Count => _polygons.Count;
 
     public event Action<EditablePolygon>? PolygonAdded;
     public event Action<EditablePolygon>? PolygonRemoved;

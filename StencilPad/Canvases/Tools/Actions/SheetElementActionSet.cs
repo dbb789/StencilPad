@@ -31,6 +31,46 @@ public class SheetElementActionSet
                     modelPropertiesService.ShowMarkerPathProperties(elements);
                 }
             },
+            new MultiSheetElementAction<Shape>
+            {
+                Name = "Combine Shapes",
+                Enabled = elements => elements.Count() > 1,
+                Action = (context, sheet, elements) =>
+                {
+                    Shape? newShape = null;
+
+                    foreach (var element in elements)
+                    {
+                        if (newShape is null)
+                        {
+                            newShape = element.DeepClone();
+                        }
+                        else
+                        {
+                            foreach (var polygon in element.PolygonSet)
+                            {
+                                newShape.Add(polygon.DeepClone());
+                            }
+                        }
+                    }
+
+                    if (newShape is null)
+                    {
+                        return;
+                    }
+                    
+                    var operation = new BulkCommandOperation();
+
+                    foreach (var element in elements)
+                    {
+                        operation.Add(new RemoveSheetElementOperation(sheet, element));
+                    }
+
+                    operation.Add(new AddSheetElementOperation(sheet, newShape));
+
+                    operationService.Push(operation);
+                }
+            },
             null,
             new MultiSheetElementAction
             {
