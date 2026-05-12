@@ -60,12 +60,11 @@ public class TextElementRenderer : SheetElementRenderer
             return;
         }
 
-        var size = _textElement.Size;
-        var clipRect = new Rect(_textElement.Start.Millimeters,
-                                new Size(size.X.Millimeters, size.Y.Millimeters));
+        var bounds = UnitBounds.FromMinMax(_textElement.Start, _textElement.End);
+        var clipRect = bounds.Millimeters;
 
         dc.PushClip(new RectangleGeometry(clipRect));
-        dc.DrawText(_formattedText, _textElement.Start.Millimeters);
+        dc.DrawText(_formattedText, clipRect.TopLeft);
         dc.Pop();
     }
 
@@ -91,7 +90,7 @@ public class TextElementRenderer : SheetElementRenderer
             Trimming = TextTrimming.None
         };
 
-        var size = _textElement.Size;
+        var size = UnitBounds.FromMinMax(_textElement.Start, _textElement.End).Size;
         if (size.X.Millimeters > 0)
         {
             _formattedText.MaxTextWidth = size.X.Millimeters;

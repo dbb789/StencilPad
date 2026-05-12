@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Rendering;
 
@@ -21,15 +22,15 @@ public class TextElementEditRenderer : SheetElementEditRenderer
 
     public override void Render(DrawingContext dc)
     {
-        var start = _textElement.Start.Millimeters;
-        var size = _textElement.Size;
+        var bounds = UnitBounds.FromMinMax(_textElement.Start, _textElement.End);
+        var size = bounds.Size;
 
-        if (size == Spatial.Unit2D.Zero)
+        if (size == Unit2D.Zero)
         {
             return;
         }
 
-        var rect = new Rect(start, new Size(size.X.Millimeters, size.Y.Millimeters));
+        var rect = bounds.Millimeters;
 
         var pen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 0)), 0.2)
         {
