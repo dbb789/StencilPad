@@ -57,12 +57,13 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     
     public Shape(Polygon polygon)
     {
-        EditablePolygon = new EditablePolygon(polygon);
+        EditablePolygon = new();
+        EditablePolygon.AssignFrom(polygon);
     }
     
     private Shape(EditablePolygon editablePolygon)
     {
-        EditablePolygon = editablePolygon;
+        EditablePolygon = editablePolygon.DeepClone();
     }
 
     public override void MirrorX(Unit centerY)

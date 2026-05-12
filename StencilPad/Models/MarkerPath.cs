@@ -42,12 +42,13 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     
     public MarkerPath(Polygon polygon)
     {
-        EditablePolygon = new EditablePolygon(polygon);
+        EditablePolygon = new();
+        EditablePolygon.AssignFrom(polygon);
     }
     
     private MarkerPath(EditablePolygon editablePolygon)
     {
-        EditablePolygon = editablePolygon;
+        EditablePolygon = editablePolygon.DeepClone();
     }
     
     public override void MirrorX(Unit centerY)

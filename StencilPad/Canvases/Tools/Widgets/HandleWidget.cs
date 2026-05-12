@@ -6,8 +6,18 @@ namespace StencilPad.Canvases.Tools.Widgets;
 
 public class HandleWidget : SelectableDraggableWidget
 {
-    public Handle Handle;
-
+    public Handle Handle
+    {
+        get => _handle;
+        set
+        {
+            _handle = value;
+            InvalidateVisual();
+        }
+    }
+    
+    private Handle _handle;
+        
     public event Action<HandleWidget, bool>? ChangeSelection;
     public event Action<HandleWidget>? DragBegin;
     public event Action<HandleWidget, Point, Point>? Dragged;

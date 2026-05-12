@@ -10,12 +10,8 @@ public class Polygon : IPolygon
     private readonly MutableAssignableList<Edge> _edges;
     private bool _closed;
 
-    // NOTE: Strictly defined to be invoked before Changed so that (eg) selected
-    // indices can be corrected before the rest of the UI is forcibly redrawn.
-    public event Action<int>? VertexAdded;
-    public event Action<int>? VertexRemoved;
 
-    public event Action? Changed;
+    public event Action? PolygonChanged;
 
     public Polygon()
     {
@@ -54,10 +50,15 @@ public class Polygon : IPolygon
             _edges.Items.Insert(Math.Min(index, _edges.Count), new Edge());
         }
         
-        VertexAdded?.Invoke(index);
-        InvokeChanged();
+        OnVertexAdded(index);
+        InvokePolygonChanged();
     }
     
+    protected virtual void OnVertexAdded(int index)
+    {
+        // ...
+    }
+
     public void DeleteVertex(int index)
     {
         if (index < 0 || index >= _vertices.Count)
@@ -73,10 +74,15 @@ public class Polygon : IPolygon
         _vertices.Items.RemoveAt(index);
         _edges.Items.RemoveAt(index);
 
-        VertexRemoved?.Invoke(index);
-        InvokeChanged();
+        OnVertexRemoved(index);
+        InvokePolygonChanged();
     }
     
+    protected virtual void OnVertexRemoved(int index)
+    {
+        // ...
+    }
+
     public void Open(int index)
     {
         if (!_closed)
@@ -92,9 +98,16 @@ public class Polygon : IPolygon
         _edges.Items.RemoveAt(_edges.Count - 1);
         _closed = false;
 
-        InvokeChanged();
+        OnCycledVertices(index);
+        
+        InvokePolygonChanged();
     }
 
+    protected virtual void OnCycledVertices(int index)
+    {
+        // ...
+    }
+    
     public void Close()
     {
         if (_closed || _vertices.Count <= 2)
@@ -105,16 +118,21 @@ public class Polygon : IPolygon
         _edges.Items.Add(new Edge());
         _closed = true;
 
-        InvokeChanged();
+        InvokePolygonChanged();
     }
 
     public void Clear()
     {
+        for (int i = _vertices.Count - 1; i >= 0; --i)
+        {
+            OnVertexRemoved(i);
+        }
+        
         _vertices.Items.Clear();
         _edges.Items.Clear();
         _closed = false;
 
-        InvokeChanged();
+        InvokePolygonChanged();
     }
 
     public void Translate(Unit2D delta)
@@ -126,7 +144,7 @@ public class Polygon : IPolygon
             _vertices.Items[i] = vertex with { Position = vertex.Position + delta };
         }
 
-        InvokeChanged();
+        InvokePolygonChanged();
     }
 
     public void MirrorX(Unit centerY)
@@ -139,7 +157,7 @@ public class Polygon : IPolygon
             _vertices.Items[i] = vertex with { Position = mirrored };
         }
 
-        InvokeChanged();
+        InvokePolygonChanged();
     }
 
     public void MirrorY(Unit centerX)
@@ -152,10 +170,10 @@ public class Polygon : IPolygon
             _vertices.Items[i] = vertex with { Position = mirrored };
         }
 
-        InvokeChanged();
+        InvokePolygonChanged();
     }
 
-    public void AssignFromWithoutNotify(Polygon other)
+    protected void AssignFromPolygon(Polygon other)
     {
         _vertices.Items.Clear();
         _vertices.Items.AddRange(other._vertices.Items);
@@ -168,14 +186,14 @@ public class Polygon : IPolygon
     {
         var clone = new Polygon();
 
-        clone.AssignFromWithoutNotify(this);
+        clone.AssignFromPolygon(this);
 
         return clone;
     }
 
     private void VertexReassigned(int index, Vertex oldVertex, Vertex newVertex)
     {
-        InvokeChanged();
+        InvokePolygonChanged();
     }
 
     private void EdgeReassigned(int index, Edge oldEdge, Edge newEdge)
@@ -196,7 +214,7 @@ public class Polygon : IPolygon
             _edges.Items[nextIndex] = nextEdge with { ControlBeginOffset = -_edges.At(index).ControlEndOffset };
         }
         
-        InvokeChanged();
+        InvokePolygonChanged();
     }
 
     private static void Cycle<T>(List<T> list, int delta)
@@ -218,8 +236,14 @@ public class Polygon : IPolygon
         list.AddRange(newItems);
     }
     
-    private void InvokeChanged()
+    private void InvokePolygonChanged()
     {
-        Changed?.Invoke();
+        OnPolygonChanged();
+        PolygonChanged?.Invoke();
+    }
+
+    protected virtual void OnPolygonChanged()
+    {
+        // ...
     }
 }

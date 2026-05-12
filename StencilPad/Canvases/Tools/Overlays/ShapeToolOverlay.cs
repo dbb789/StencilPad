@@ -28,7 +28,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
         _polygon = new();
         _vertexWidgets = new(this);
 
-        _polygon.Changed += RepositionWidgets;
+        _polygon.PolygonChanged += RepositionWidgets;
         _viewport.ViewportChanged += RepositionWidgets;
 
         RepositionWidgets();
@@ -36,7 +36,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
     public void Dispose()
     {
-        _polygon.Changed -= RepositionWidgets;
+        _polygon.PolygonChanged -= RepositionWidgets;
         _viewport.ViewportChanged -= RepositionWidgets;
     }
 
