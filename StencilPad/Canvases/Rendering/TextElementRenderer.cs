@@ -86,7 +86,10 @@ public class TextElementRenderer : SheetElementRenderer
             new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
             _textElement.FontSize,
             new SolidColorBrush(_textElement.Color),
-            1.0);
+            1.0)
+        {
+            Trimming = TextTrimming.None
+        };
 
         var size = _textElement.Size;
         if (size.X.Millimeters > 0)
@@ -127,7 +130,7 @@ public class TextElementRenderer : SheetElementRenderer
             Brushes.Black,
             1.0);
 
-        return new Unit2D(Unit.FromMillimeters(ft.Width), Unit.FromMillimeters(ft.Height));
+        return new Unit2D(Unit.FromMillimeters(ft.Width + 0.5), Unit.FromMillimeters(ft.Height));
     }
 
     private void OnHandlesChanged()
