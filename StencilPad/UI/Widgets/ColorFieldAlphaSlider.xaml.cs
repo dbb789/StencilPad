@@ -8,16 +8,16 @@ namespace StencilPad.UI.Widgets;
 public partial class ColorFieldAlphaSlider : UserControl
 {
     public static readonly DependencyProperty ValueProperty =
-        DependencyProperty.Register(nameof(Value), typeof(byte), typeof(ColorFieldAlphaSlider),
-            new FrameworkPropertyMetadata((byte)255, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
+        DependencyProperty.Register(nameof(Value), typeof(double), typeof(ColorFieldAlphaSlider),
+            new FrameworkPropertyMetadata(1.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
     public static readonly DependencyProperty BaseColorProperty =
         DependencyProperty.Register(nameof(BaseColor), typeof(Color), typeof(ColorFieldAlphaSlider),
             new FrameworkPropertyMetadata(Colors.Black, OnBaseColorChanged));
 
-    public byte Value
+    public double Value
     {
-        get => (byte)GetValue(ValueProperty);
+        get => (double)GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
     }
 
@@ -98,7 +98,7 @@ public partial class ColorFieldAlphaSlider : UserControl
 
     private void SetValueFromPoint(Point p)
     {
-        Value = (byte)Math.Clamp(p.X / DragCanvas.ActualWidth * 255, 0, 255);
+        Value = Math.Clamp(p.X / DragCanvas.ActualWidth, 0, 1);
         ValueChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -118,7 +118,7 @@ public partial class ColorFieldAlphaSlider : UserControl
             return;
         }
         
-        var x = Value / 255.0 * DragCanvas.ActualWidth;
+        var x = Value * DragCanvas.ActualWidth;
 
         Canvas.SetLeft(Marker, x - Marker.Width / 2);
         Canvas.SetTop(Marker, (DragCanvas.ActualHeight - Marker.Height) / 2);

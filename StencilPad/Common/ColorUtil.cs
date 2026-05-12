@@ -80,13 +80,13 @@ public static class ColorUtil
         }
     }
 
-    public static Color HsvToRgb(double h, double s, double v, byte a)
+    public static Color HsvToRgb(double h, double s, double v, double a)
     {
         if (s == 0)
         {
             var grey = (byte)(v * 255);
             
-            return Color.FromArgb(a, grey, grey, grey);
+            return Color.FromArgb((byte)(a * 255), grey, grey, grey);
         }
 
         h /= 60;
@@ -111,6 +111,6 @@ public static class ColorUtil
         default: r = v; g = p; b = q; break;
         }
 
-        return Color.FromArgb(a, (byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
+        return Color.FromArgb((byte)(a * 255), (byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
     }
 }

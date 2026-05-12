@@ -20,6 +20,7 @@ public partial class ColorField : UserControl
     private double _hue;
     private double _saturation;
     private double _brightness;
+    private double _alpha;
     private Color _committedColor;
     private string _hexValue = "";
 
@@ -27,22 +28,32 @@ public partial class ColorField : UserControl
     {
         InitializeComponent();
 
+        HueSlider.ValueChanged += (_, _) =>
+        {
+            _hue = HueSlider.Value;
+            
+            CommitHsv();
+        };
+
         SvPicker.ValueChanged += (_, _) =>
         {
             _saturation = SvPicker.Saturation;
             _brightness = SvPicker.Brightness;
-            CommitHsv(Value.A);
+            
+            CommitHsv();
         };
 
-        HueSlider.ValueChanged += (_, _) =>
+        AlphaSlider.ValueChanged += (_, _) =>
         {
-            _hue = HueSlider.Value;
-            CommitHsv(Value.A);
+            _alpha = AlphaSlider.Value;
+            
+            CommitHsv();
         };
 
-        AlphaSlider.ValueChanged += (_, _) => CommitHsv(AlphaSlider.Value);
-
-        Loaded += (_, _) => UpdateFromValue(Value);
+        Loaded += (_, _) =>
+        {
+            UpdateFromValue(Value);
+        };
     }
 
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -65,7 +76,9 @@ public partial class ColorField : UserControl
     private void UpdateFromValue(Color color)
     {
         _committedColor = color;
+        
         ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+        
         UpdateSvPicker();
         UpdateHueSlider();
         UpdateAlphaSlider(color);
@@ -73,11 +86,14 @@ public partial class ColorField : UserControl
         UpdatePreview(color);
     }
 
-    private void CommitHsv(byte alpha)
+    private void CommitHsv()
     {
-        var color = ColorUtil.HsvToRgb(_hue, _saturation, _brightness, alpha);
+        var color = ColorUtil.HsvToRgb(_hue, _saturation, _brightness, _alpha);
+        
         _committedColor = color;
+        
         Value = color;
+        
         UpdateSvPicker();
         UpdateHueSlider();
         UpdateAlphaSlider(color);
@@ -102,6 +118,7 @@ public partial class ColorField : UserControl
         ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
         _committedColor = color;
         Value = color;
+        
         UpdateSvPicker();
         UpdateHueSlider();
         UpdateAlphaSlider(color);
@@ -110,7 +127,7 @@ public partial class ColorField : UserControl
 
     private void UpdateSvPicker()
     {
-        SvPicker.HueColor = ColorUtil.HsvToRgb(_hue, 1, 1, 255);
+        SvPicker.HueColor = ColorUtil.HsvToRgb(_hue, 1, 1, 1);
         SvPicker.Saturation = _saturation;
         SvPicker.Brightness = _brightness;
     }
