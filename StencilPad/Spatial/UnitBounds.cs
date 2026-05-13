@@ -73,4 +73,14 @@ public readonly record struct UnitBounds
                           new Unit2D(Unit.Max(max.X, point.X),
                                      Unit.Max(max.Y, point.Y)));
     }
+
+    public static UnitBounds operator +(UnitBounds bounds, Unit2D offset)
+    {
+        return new UnitBounds(bounds.Center + offset, bounds.Size);
+    }
+
+    public static UnitBounds operator -(UnitBounds bounds, Unit2D offset)
+    {
+        return new UnitBounds(bounds.Center - offset, bounds.Size);
+    }
 }

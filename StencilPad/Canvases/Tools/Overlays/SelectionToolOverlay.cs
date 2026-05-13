@@ -81,6 +81,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         if (PointIsOverSelection(_context.Viewport.FromPoint(mousePosition)))
         {
             var bounds = GetSelectionBounds();
+            
             if (bounds.HasValue)
             {
                 _dragPixelStart = mousePosition;

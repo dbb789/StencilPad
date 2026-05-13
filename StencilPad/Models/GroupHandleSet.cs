@@ -15,6 +15,8 @@ public class GroupHandleSet : IHandleSet
             ChildKey = childKey;
         }
     }
+
+    public Unit2D Position;
     
     public event Action? HandlesChanged;
     public event Action? SelectionChanged;
@@ -99,14 +101,14 @@ public class GroupHandleSet : IHandleSet
     {
         var key = handle.Key<GroupHandleKey>();
 
-        _children[key.Index].SetPoint(new Handle(key.ChildKey, handle.Type), position);
+        _children[key.Index].SetPoint(new Handle(key.ChildKey, handle.Type), position - Position);
     }
 
     public Unit2D GetPoint(Handle handle)
     {
         var key = handle.Key<GroupHandleKey>();
 
-        return _children[key.Index].GetPoint(new Handle(key.ChildKey, handle.Type));
+        return _children[key.Index].GetPoint(new Handle(key.ChildKey, handle.Type)) + Position;
     }
     
     private void ChildHandlesChanged()

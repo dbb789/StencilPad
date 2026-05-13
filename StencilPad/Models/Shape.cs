@@ -10,6 +10,21 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     private EditablePolygonList _polygonList;
 
+    public Unit2D _position = Unit2D.Zero;
+    public Unit2D Position
+    {
+        get => _position;
+        set
+        {
+            if (_position != value)
+            {
+                _position = value;
+                _polygonList.Position = value;                
+                OnPropertyChanged();
+            }
+        }
+    }
+    
     private Color _fillColor = Color.FromArgb(0, 255, 255, 255);
     public Color FillColor
     {
@@ -55,13 +70,16 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public Shape()
     {
         _polygonList = new();
+        _position = Unit2D.Zero;
+
         _polygonList.Add(new EditablePolygon());
     }
     
     public Shape(Polygon polygon)
     {
         _polygonList = new();
-
+        _position = Unit2D.Zero;
+        
         var editablePolygon = new EditablePolygon();
         
         editablePolygon.AssignFrom(polygon);
@@ -82,7 +100,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     {
         foreach (var polygon in _polygonList)
         {
-            polygon.MirrorX(centerY);
+            polygon.MirrorX(centerY - Position.Y);
         }
     }
 
@@ -90,21 +108,20 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     {
         foreach (var polygon in _polygonList)
         {
-            polygon.MirrorY(centerX);
+            polygon.MirrorY(centerX - Position.X);
         }
     }
 
     public override void Translate(Unit2D delta)
     {
-        foreach (var polygon in _polygonList)
-        {
-            polygon.Translate(delta);
-        }
+        Position += delta;
     }
 
     public override void AssignFrom(Shape other)
     {
         _polygonList.AssignFrom(other._polygonList);
+
+        Position = other.Position;
         FillColor = other.FillColor;
         LineColor = other.LineColor;
         LineWidth = other.LineWidth;

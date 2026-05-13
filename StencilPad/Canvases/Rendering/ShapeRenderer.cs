@@ -21,7 +21,7 @@ public class ShapeRenderer : SheetElementRenderer
                 new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Left),
                            Unit.FromMillimeters(_geometry.Bounds.Top)),
                 new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Right),
-                           Unit.FromMillimeters(_geometry.Bounds.Bottom)));
+                           Unit.FromMillimeters(_geometry.Bounds.Bottom))) + _shape.Position;
         }
     }
 
@@ -74,7 +74,7 @@ public class ShapeRenderer : SheetElementRenderer
             return false;
         }
 
-        return _geometry.FillContains(unit.Millimeters);
+        return _geometry.FillContains((unit -_shape.Position).Millimeters);
     }
 
     public override bool BoundsTest(UnitBounds bounds)
@@ -84,7 +84,7 @@ public class ShapeRenderer : SheetElementRenderer
             return false;
         }
 
-        var rect = new RectangleGeometry(bounds.Millimeters);
+        var rect = new RectangleGeometry((bounds -_shape.Position).Millimeters);
 
         return _geometry.FillContainsWithDetail(rect) != IntersectionDetail.Empty;
     }
@@ -99,7 +99,10 @@ public class ShapeRenderer : SheetElementRenderer
         var pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
         var fill = new SolidColorBrush(_shape.FillColor);
 
+        dc.PushTransform(new TranslateTransform(_shape.Position.X.Millimeters,
+                                                _shape.Position.Y.Millimeters));
         dc.DrawGeometry(fill, pen, _geometry);
+        dc.Pop();
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)

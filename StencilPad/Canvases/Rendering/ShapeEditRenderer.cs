@@ -104,6 +104,9 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
     public override void Render(DrawingContext dc)
     {
+        dc.PushTransform(new TranslateTransform(_shape.Position.X.Millimeters,
+                                                _shape.Position.Y.Millimeters));
+        
         if (_edgeOverlayGeometry is not null)
         {
             dc.DrawGeometry(Brushes.Transparent,
@@ -117,5 +120,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
                             new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 200, 0)), 0.2),
                             _controlStemGeometry);
         }
+
+        dc.Pop();
     }
 }

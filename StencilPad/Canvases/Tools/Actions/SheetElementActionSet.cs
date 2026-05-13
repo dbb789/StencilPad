@@ -49,7 +49,13 @@ public class SheetElementActionSet
                         {
                             foreach (var polygon in element.PolygonSet)
                             {
-                                newShape.Add(polygon.DeepClone());
+                                var newPolygon = polygon.DeepClone();
+
+                                // Normalise the polygon so that the vertices
+                                // are relative to the new shape's current
+                                // position.
+                                newPolygon.Translate(element.Position - newShape.Position);
+                                newShape.Add(newPolygon);
                             }
                         }
                     }

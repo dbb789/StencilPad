@@ -1,10 +1,17 @@
 using System.Collections;
+using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
 public class EditablePolygonList : IEditablePolygonSet
 {
     public IHandleSet HandleSet => _handleSet;
+
+    public Unit2D Position
+    {
+        get => _handleSet.Position;
+        set => _handleSet.Position = value;
+    }
     
     private List<EditablePolygon> _polygons;
     private GroupHandleSet _handleSet;
@@ -35,9 +42,21 @@ public class EditablePolygonList : IEditablePolygonSet
         {
             PolygonRemoved?.Invoke(polygon);
         }
+
+        int polygonCount = other._polygons.Count;
         
-        _polygons = new(other._polygons.Select(p => p.DeepClone()));
+        _polygons = new(polygonCount);
+
+        for (int i = 0; i < polygonCount; ++i)
+        {
+            var polygon = other._polygons[i].DeepClone();
+            
+            _polygons.Add(polygon);
+            PolygonAdded?.Invoke(polygon);
+        }
+
         _handleSet = new GroupHandleSet(_polygons);
+        _handleSet.Position = other._handleSet.Position;
         _handleSet.SetSelectedHandles(other.HandleSet.GetSelectedHandles());
     }
 
