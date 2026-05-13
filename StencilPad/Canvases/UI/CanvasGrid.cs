@@ -14,7 +14,7 @@ public class CanvasGrid : ContentControl, IUnitSnap
     
     public static readonly DependencyProperty MinorSpacingProperty =
         DependencyProperty.Register(nameof(MinorSpacing), typeof(Unit), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(Unit.FromMillimeters(2m), FrameworkPropertyMetadataOptions.AffectsRender));
+            new FrameworkPropertyMetadata(Unit.FromMillimeters(1m), FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty MajorSpacingProperty =
         DependencyProperty.Register(nameof(MajorSpacing), typeof(Unit), typeof(CanvasGrid),

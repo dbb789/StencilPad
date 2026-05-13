@@ -58,7 +58,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
                 _polygon.AddVertex(new Vertex(unitPosition));
             }
         }
-        else if (e.ClickCount == 2 && _polygon.Vertices.Count > 2)
+        else if (e.ClickCount == 2 && _polygon.Vertices.Count > 1)
         {
             if (MouseOverFirstVertex(_currentMousePosition))
             {

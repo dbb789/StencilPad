@@ -117,6 +117,8 @@ public class MarkerPathRenderer : SheetElementRenderer
         _geometry.Freeze();
 
         var points = GetGeometryPoints();
+        
+        System.Diagnostics.Debug.WriteLine($"Generated {points.Count} points.");
 
         if (points.Count <= 1)
         {
@@ -145,6 +147,9 @@ public class MarkerPathRenderer : SheetElementRenderer
         }
 
         var markerData = GenerateMarkerPoints(points, spacing, offset);
+
+        System.Diagnostics.Debug.WriteLine($"Generated {markerData.Count} markers for path with {points.Count} points.");
+        
         bool balanced = false;
         
         if (_markerPath.Polygon.Closed)
@@ -421,6 +426,10 @@ public class MarkerPathRenderer : SheetElementRenderer
         {
             return points;
         }
+
+        // GetFlattenedPathGeometry() does not seem to reliably generate start
+        // and end points so we'll add them manually.
+        points.Add(_markerPath.Polygon.Vertices[0].Position.Millimeters);
         
         var flattened = _geometry.GetFlattenedPathGeometry(0.001, ToleranceType.Absolute);
 
@@ -436,7 +445,9 @@ public class MarkerPathRenderer : SheetElementRenderer
                 }
             }
         }
-        
+
+        points.Add(_markerPath.Polygon.Vertices[^1].Position.Millimeters);
+
         return points;
     }
 }
