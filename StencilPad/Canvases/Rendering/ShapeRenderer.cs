@@ -42,9 +42,8 @@ public class ShapeRenderer : SheetElementRenderer
         }
 
         UpdateProperties();
-
-        _geometryDirty = true;
-        GetGeometry();
+        RebuildGeometry();
+        _geometryDirty = false;
     }
 
     public override void Dispose()
@@ -102,9 +101,14 @@ public class ShapeRenderer : SheetElementRenderer
     private void UpdateProperties()
     {
         _pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
+        _pen.Freeze();
+        
         _fill = new SolidColorBrush(_shape.FillColor);
+        _fill.Freeze();
+        
         _transform = new TranslateTransform(_shape.Position.X.Millimeters,
                                             _shape.Position.Y.Millimeters);
+        _transform.Freeze();
     }
 
     private Geometry GetGeometry()

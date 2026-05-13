@@ -197,7 +197,7 @@ public class Polygon : IPolygon
             var prevIndex = (index - 1 + _edges.Count) % _edges.Count;
             var prevEdge = _edges.Items[prevIndex];
 
-            _edges[prevIndex] = prevEdge with { ControlEndOffset = -_edges.At(index).ControlBeginOffset };
+            _edges.Items[prevIndex] = prevEdge with { ControlEndOffset = -_edges.At(index).ControlBeginOffset };
         }
         
         if ((index != _edges.Count - 1) || _closed)
@@ -205,7 +205,7 @@ public class Polygon : IPolygon
             var nextIndex = (index + 1) % _edges.Count;
             var nextEdge = _edges.Items[nextIndex];
 
-            _edges[nextIndex] = nextEdge with { ControlBeginOffset = -_edges.At(index).ControlEndOffset };
+            _edges.Items[nextIndex] = nextEdge with { ControlBeginOffset = -_edges.At(index).ControlEndOffset };
         }
 
         GeometryChanged?.Invoke();

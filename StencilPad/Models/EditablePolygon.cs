@@ -168,6 +168,26 @@ public class EditablePolygon : Polygon, IHandleSet
         {
             RebuildHandles();
         }
+        else if (next.Type == EdgeType.Bezier)
+        {
+            if (prev.ControlBeginOffset != next.ControlBeginOffset)
+            {
+                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlBegin(index)),
+                    Vertices[index].Position + next.ControlBeginOffset);
+
+                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlEnd((index - 1 + Edges.Count) % Edges.Count)),
+                    Vertices.At(index).Position - next.ControlBeginOffset);
+            }
+
+            if (prev.ControlEndOffset != next.ControlEndOffset)
+            {
+                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlEnd(index)),
+                    Vertices.At(index + 1).Position + next.ControlEndOffset);
+
+                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlBegin((index + 1) % Edges.Count)),
+                    Vertices.At(index + 1).Position - next.ControlEndOffset);
+            }
+        }
     }
     
     public void AssignFrom(Polygon other)

@@ -39,7 +39,7 @@ public class GroupHandleSet : IHandleSet
     {
         foreach (var child in _children)
         {
-            child.HandlesChanged -= ChildHandlesChanged;
+            child.HandlesChanged -= RebuildChildHandles;
             child.HandleMoved -= InvokeHandleMoved;
         }
         
@@ -51,20 +51,26 @@ public class GroupHandleSet : IHandleSet
         
         foreach (var child in _children)
         {
-            child.HandlesChanged += ChildHandlesChanged;
+            child.HandlesChanged += RebuildChildHandles;
             child.HandleMoved += InvokeHandleMoved;
         }
 
-        ChildHandlesChanged();
+        RebuildChildHandles();
     }
 
     public void Add(IHandleSet child)
     {
         _children.Add(child);
-        child.HandlesChanged += ChildHandlesChanged;
+        child.HandlesChanged += RebuildChildHandles;
         child.HandleMoved += InvokeHandleMoved;
-
-        ChildHandlesChanged();
+        
+        foreach (var handle in child.Handles)
+        {
+            _handles.Add(handle);
+            _routing[handle.HandleSetId] = child;
+        }
+        
+        HandlesChanged?.Invoke();
     }
 
     public IEnumerable<Handle> GetSelectedHandles()
@@ -100,7 +106,7 @@ public class GroupHandleSet : IHandleSet
         return _routing[handle.HandleSetId].GetPoint(handle) + Position;
     }
     
-    private void ChildHandlesChanged()
+    private void RebuildChildHandles()
     {
         _handles.Clear();
         _routing.Clear();

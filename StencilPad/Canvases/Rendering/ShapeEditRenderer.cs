@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
@@ -7,47 +8,79 @@ namespace StencilPad.Canvases.Rendering;
 public class ShapeEditRenderer : SheetElementEditRenderer
 {
     private readonly Shape _shape;
-    
+    private Pen? _edgeOverlayPen;
+    private Pen? _controlStemPen;
+    private Transform? _transform;
     private StreamGeometry? _edgeOverlayGeometry;
     private StreamGeometry? _controlStemGeometry;
+    private bool _geometryDirty;
 
     public ShapeEditRenderer(Shape shape)
     {
         _shape = shape;
         _shape.PolygonSet.PolygonAdded += PolygonAdded;
         _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
-        _shape.PolygonSet.HandleSet.SelectionChanged += RebuildGeometry;
+        _shape.PolygonSet.HandleSet.SelectionChanged += MarkGeometryDirty;
+        _shape.PropertyChanged += PropertyChanged;
 
+        _edgeOverlayPen = new Pen(Brushes.Blue, 0.3);
+        _edgeOverlayPen.Freeze();
+
+        _controlStemPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 200, 0)), 0.2);
+        _controlStemPen.Freeze();
+        
         foreach (var polygon in _shape.PolygonSet)
         {
-            polygon.GeometryChanged += RebuildGeometry;
+            polygon.GeometryChanged += MarkGeometryDirty;
         }
 
+        UpdateProperties();
         RebuildGeometry();
+        _geometryDirty = false;
     }
 
     public override void Dispose()
     {
         foreach (var polygon in _shape.PolygonSet)
         {
-            polygon.GeometryChanged -= RebuildGeometry;
+            polygon.GeometryChanged -= MarkGeometryDirty;
         }
         
         _shape.PolygonSet.PolygonAdded -= PolygonAdded;
         _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
-        _shape.PolygonSet.HandleSet.SelectionChanged -= RebuildGeometry;
+        _shape.PolygonSet.HandleSet.SelectionChanged -= MarkGeometryDirty;
     }
 
     private void PolygonAdded(EditablePolygon polygon)
     {
-        polygon.GeometryChanged += RebuildGeometry;
-        RebuildGeometry();
+        polygon.GeometryChanged += MarkGeometryDirty;
+        MarkGeometryDirty();
     }
 
     private void PolygonRemoved(EditablePolygon polygon)
     {
-        polygon.GeometryChanged += RebuildGeometry;
-        RebuildGeometry();
+        polygon.GeometryChanged -= MarkGeometryDirty;
+        MarkGeometryDirty();
+    }
+    
+    private void MarkGeometryDirty()
+    {
+        _geometryDirty = true;
+        
+        InvokeInvalidateVisual();
+    }
+    
+    private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        UpdateProperties();
+        InvokeInvalidateVisual();
+    }
+
+    private void UpdateProperties()
+    {
+        _transform = new TranslateTransform(_shape.Position.X.Millimeters,
+                                            _shape.Position.Y.Millimeters);
+        _transform.Freeze();
     }
 
     private void RebuildGeometry()
@@ -98,26 +131,34 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         }
 
         _controlStemGeometry.Freeze();
-
-        InvokeInvalidateVisual();
     }
 
     public override void Render(DrawingContext dc)
     {
-        dc.PushTransform(new TranslateTransform(_shape.Position.X.Millimeters,
-                                                _shape.Position.Y.Millimeters));
+        if (_geometryDirty)
+        {
+            _geometryDirty = false;
+            RebuildGeometry();
+        }
+
+        if (_transform is null)
+        {
+            return;
+        }
+        
+        dc.PushTransform(_transform);
         
         if (_edgeOverlayGeometry is not null)
         {
             dc.DrawGeometry(Brushes.Transparent,
-                            new Pen(Brushes.Blue, 0.3),
+                            _edgeOverlayPen,
                             _edgeOverlayGeometry);
         }
 
         if (_controlStemGeometry is not null)
         {
             dc.DrawGeometry(Brushes.Transparent,
-                            new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 200, 0)), 0.2),
+                            _controlStemPen,
                             _controlStemGeometry);
         }
 
