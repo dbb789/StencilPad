@@ -60,7 +60,7 @@ namespace StencilPad.Canvases.UI
         public CanvasGrid CanvasGrid => _canvasGrid;
         public SheetRenderPanel Renderer => _renderer;
         public ToolOverlay ToolOverlay => _toolOverlay;
-        public IUnitSnap UnitSnap => _canvasGrid;
+        public IUnitSnap UnitSnap => _unitSnap;
         
         private readonly VisualViewport _viewport;
         private readonly SheetRenderer _sheetRenderer;
@@ -70,7 +70,8 @@ namespace StencilPad.Canvases.UI
         private readonly SheetRenderPanel _renderer;
         private readonly ToolOverlay _toolOverlay;
         private readonly RubberBandRenderPanel _rubberBandRenderPanel;
-
+        private readonly CompositeUnitSnap _unitSnap;
+        
         public event Action? CanvasReady;
         public event Action? SelectAllRequested;
         public event Action? ClearSelectionRequested;
@@ -94,6 +95,8 @@ namespace StencilPad.Canvases.UI
 
             _rubberBandRenderPanel = new RubberBandRenderPanel();
             _rubberBandEventPanel.Updated += _rubberBandRenderPanel.Updated;
+
+            _unitSnap = new CompositeUnitSnap();
             
             InitializeComponent();
 
@@ -114,6 +117,8 @@ namespace StencilPad.Canvases.UI
             CanvasRoot.Children.Add(_rubberBandRenderPanel);
 
             _viewport.ViewportChanged += UpdateCanvasSize;
+            
+            _unitSnap.Add(_canvasGrid);
 
             Loaded += (s, e) =>
             {
@@ -160,7 +165,14 @@ namespace StencilPad.Canvases.UI
                 return;
             }
 
-            // TODO
+            if ((bool)e.NewValue)
+            {
+                sheetCanvas._unitSnap.Add(sheetCanvas._canvasGrid);
+            }
+            else
+            {
+                sheetCanvas._unitSnap.Clear();
+            }
         }
         
         private void UpdateCanvasSize()

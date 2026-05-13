@@ -49,6 +49,7 @@ public readonly record struct UnitBounds
 
     public Unit2D Center { get; private init; }
     public Unit2D Size { get; private init; }
+    public Unit Area => Size.X * Size.Y;
     public Unit2D Min => Center - Size / 2.0;
     public Unit2D Max => Center + Size / 2.0;
 
@@ -61,6 +62,32 @@ public readonly record struct UnitBounds
             point.X <= max.X &&
             point.Y >= min.Y &&
             point.Y <= max.Y;
+    }
+
+    public bool Contains(UnitBounds other)
+    {
+        var minA = Min;
+        var maxA = Max;
+        var minB = other.Min;
+        var maxB = other.Max;
+
+        return minB.X >= minA.X &&
+               maxB.X <= maxA.X &&
+               minB.Y >= minA.Y &&
+               maxB.Y <= maxA.Y;
+    }
+
+    public bool Intersects(UnitBounds other)
+    {
+        var minA = Min;
+        var maxA = Max;
+        var minB = other.Min;
+        var maxB = other.Max;
+
+        return minA.X <= maxB.X &&
+               maxA.X >= minB.X &&
+               minA.Y <= maxB.Y &&
+               maxA.Y >= minB.Y;
     }
 
     public UnitBounds Extend(Unit2D point)
