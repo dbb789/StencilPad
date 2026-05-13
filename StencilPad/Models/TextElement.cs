@@ -77,14 +77,18 @@ public class TextElement : SheetElement<TextElement>
         }
     }
 
+    public event Action? GeometryChanged;
+    
     public TextElement()
     {
         HandleSet = new StartEndHandleSet(Unit2D.Zero, Unit2D.Zero);
+        HandleSet.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
     }
 
     public TextElement(Unit2D start, string text)
     {
         HandleSet = new StartEndHandleSet(start, start);
+        HandleSet.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
         _text = text;
     }
 

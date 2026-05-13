@@ -20,12 +20,12 @@ public class RulerRenderer : SheetElementRenderer
     public RulerRenderer(Ruler ruler)
     {
         _ruler = ruler;
-        _ruler.HandleSet.HandlesChanged += OnHandlesChanged;
+        _ruler.GeometryChanged += GeometryChanged;
     }
 
     public override void Dispose()
     {
-        _ruler.HandleSet.HandlesChanged -= OnHandlesChanged;
+        _ruler.GeometryChanged -= GeometryChanged;
     }
 
     public override bool HitTest(Unit2D unit)
@@ -122,7 +122,7 @@ public class RulerRenderer : SheetElementRenderer
         dc.DrawGeometry(Brushes.Black, null, geometry);
     }
 
-    private void OnHandlesChanged()
+    private void GeometryChanged()
     {
         InvokeInvalidateVisual();
     }

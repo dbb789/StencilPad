@@ -118,8 +118,6 @@ public class MarkerPathRenderer : SheetElementRenderer
 
         var points = GetGeometryPoints();
         
-        System.Diagnostics.Debug.WriteLine($"Generated {points.Count} points.");
-
         if (points.Count <= 1)
         {
             _markerGeometry = null;
@@ -146,10 +144,7 @@ public class MarkerPathRenderer : SheetElementRenderer
             return null;
         }
 
-        var markerData = GenerateMarkerPoints(points, spacing, offset);
-
-        System.Diagnostics.Debug.WriteLine($"Generated {markerData.Count} markers for path with {points.Count} points.");
-        
+        var markerData = GenerateMarkerPoints(points, spacing, offset);        
         bool balanced = false;
         
         if (_markerPath.Polygon.Closed)

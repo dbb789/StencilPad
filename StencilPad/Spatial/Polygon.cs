@@ -135,8 +135,6 @@ public class Polygon : IPolygon
             
             _vertices[i] = vertex with { Position = vertex.Position + delta };
         }
-
-        GeometryChanged?.Invoke();
     }
 
     public void MirrorX(Unit centerY)
@@ -148,8 +146,6 @@ public class Polygon : IPolygon
 
             _vertices[i] = vertex with { Position = mirrored };
         }
-
-        GeometryChanged?.Invoke();
     }
 
     public void MirrorY(Unit centerX)
@@ -161,8 +157,6 @@ public class Polygon : IPolygon
 
             _vertices[i] = vertex with { Position = mirrored };
         }
-
-        GeometryChanged?.Invoke();
     }
 
     protected void AssignFromPolygon(Polygon other)

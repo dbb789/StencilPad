@@ -81,6 +81,9 @@ public class StartEndHandleSet : IHandleSet
         _end = other._end;
         _selection.Clear();
         _selection.AddRange(other._selection);
+
+        HandleMoved?.Invoke(Handles.ElementAt(0), _start);
+        HandleMoved?.Invoke(Handles.ElementAt(1), _end);
     }
 
     public StartEndHandleSet DeepClone()

@@ -1,4 +1,3 @@
-using System.Windows;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
@@ -12,12 +11,12 @@ public class TextElementEditRenderer : SheetElementEditRenderer
     public TextElementEditRenderer(TextElement textElement)
     {
         _textElement = textElement;
-        _textElement.HandleSet.HandlesChanged += OnChanged;
+        _textElement.GeometryChanged += GeometryChanged;
     }
 
     public override void Dispose()
     {
-        _textElement.HandleSet.HandlesChanged -= OnChanged;
+        _textElement.GeometryChanged -= GeometryChanged;
     }
 
     public override void Render(DrawingContext dc)
@@ -40,7 +39,7 @@ public class TextElementEditRenderer : SheetElementEditRenderer
         dc.DrawRectangle(Brushes.Transparent, pen, rect);
     }
 
-    private void OnChanged()
+    private void GeometryChanged()
     {
         InvokeInvalidateVisual();
     }

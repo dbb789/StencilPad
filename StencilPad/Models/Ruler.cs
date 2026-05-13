@@ -20,9 +20,12 @@ public class Ruler : SheetElement<Ruler>
 
     public Unit Length => (End - Start).Magnitude;
 
+    public event Action? GeometryChanged;
+    
     public Ruler()
     {
         HandleSet = new StartEndHandleSet(Unit2D.Zero, Unit2D.Zero);
+        HandleSet.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
     }
     
     public Ruler(Unit2D start, Unit2D end)

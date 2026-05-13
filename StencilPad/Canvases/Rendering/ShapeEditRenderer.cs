@@ -8,6 +8,8 @@ namespace StencilPad.Canvases.Rendering;
 public class ShapeEditRenderer : SheetElementEditRenderer
 {
     private readonly Shape _shape;
+    private readonly List<int> _selectedEdgeIndices;
+
     private Pen? _edgeOverlayPen;
     private Pen? _controlStemPen;
     private Transform? _transform;
@@ -23,6 +25,8 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         _shape.PolygonSet.HandleSet.SelectionChanged += MarkGeometryDirty;
         _shape.PropertyChanged += PropertyChanged;
 
+        _selectedEdgeIndices = [];
+        
         _edgeOverlayPen = new Pen(Brushes.Blue, 0.3);
         _edgeOverlayPen.Freeze();
 
@@ -93,7 +97,10 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         {
             foreach (var polygon in polygonList)
             {
-                foreach (var edgeIndex in polygon.GetSelectedEdges())
+                _selectedEdgeIndices.Clear();
+                polygon.GetSelectedEdges(_selectedEdgeIndices);
+                
+                foreach (var edgeIndex in _selectedEdgeIndices)
                 {
                     RendererUtil.AddEdgeToGeometry(ctx, polygon, edgeIndex);
                 }

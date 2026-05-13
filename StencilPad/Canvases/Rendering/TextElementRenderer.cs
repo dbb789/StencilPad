@@ -32,14 +32,14 @@ public class TextElementRenderer : SheetElementRenderer
     public TextElementRenderer(TextElement textElement)
     {
         _textElement = textElement;
-        _textElement.HandleSet.HandlesChanged += OnHandlesChanged;
+        _textElement.GeometryChanged += GeometryChanged;
         _textElement.PropertyChanged += OnPropertyChanged;
         RebuildFormattedText();
     }
 
     public override void Dispose()
     {
-        _textElement.HandleSet.HandlesChanged -= OnHandlesChanged;
+        _textElement.GeometryChanged -= GeometryChanged;
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -132,7 +132,7 @@ public class TextElementRenderer : SheetElementRenderer
         return new Unit2D(Unit.FromMillimeters(ft.Width + 0.5), Unit.FromMillimeters(ft.Height));
     }
 
-    private void OnHandlesChanged()
+    private void GeometryChanged()
     {
         RebuildFormattedText();
         InvokeInvalidateVisual();

@@ -80,6 +80,13 @@ public class EditablePolygon : Polygon, IHandleSet
     {
         var edges = new List<int>(Edges.Count);
 
+        GetSelectedEdges(edges);
+        
+        return edges;
+    }
+
+    public void GetSelectedEdges(List<int> edges)
+    {
         for (int i = 0; i < Edges.Count; i++)
         {
             if (_selection.Contains(Handle.Move(_id, PolygonHandleKey.Vertex(i))) &&
@@ -88,10 +95,8 @@ public class EditablePolygon : Polygon, IHandleSet
                 edges.Add(i);
             }
         }
-
-        return edges;
     }
-
+    
     public void ClearSelection()
     {
         _selection.Clear();
