@@ -50,8 +50,7 @@ public class Ruler : SheetElement<Ruler>
     
     public override void AssignFrom(Ruler other)
     {
-        Start = other.Start;
-        End = other.End;
+        HandleSet.AssignFrom(other.HandleSet);
     }
 
     public override Ruler DeepClone()

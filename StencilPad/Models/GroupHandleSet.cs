@@ -4,20 +4,9 @@ namespace StencilPad.Models;
 
 public class GroupHandleSet : IHandleSet
 {
-    private readonly record struct GroupHandleKey : IHandleKey
-    {
-        public int Index { get; init; }
-        public IHandleKey ChildKey { get; init; }
-
-        public GroupHandleKey(int index, IHandleKey childKey)
-        {
-            Index = index;
-            ChildKey = childKey;
-        }
-    }
-
     public Unit2D Position;
-    
+
+    public event Action<Handle, Unit2D>? HandleMoved;
     public event Action? HandlesChanged;
     public event Action? SelectionChanged;
 
@@ -26,12 +15,14 @@ public class GroupHandleSet : IHandleSet
     private readonly List<IHandleSet> _children;
     private readonly List<Handle> _handles;
     private readonly List<Handle> _selection;
+    private readonly Dictionary<HandleSetId, IHandleSet> _routing;
 
     public GroupHandleSet()
     {
         _children = [];
         _handles = [];
         _selection = [];
+        _routing = [];
     }
 
     public GroupHandleSet(IEnumerable<IHandleSet> children)
@@ -39,6 +30,7 @@ public class GroupHandleSet : IHandleSet
         _children = [];
         _handles = [];
         _selection = [];
+        _routing = [];
 
         SetChildren(children);
     }
@@ -48,6 +40,7 @@ public class GroupHandleSet : IHandleSet
         foreach (var child in _children)
         {
             child.HandlesChanged -= ChildHandlesChanged;
+            child.HandleMoved -= InvokeHandleMoved;
         }
         
         _children.Clear();
@@ -59,6 +52,7 @@ public class GroupHandleSet : IHandleSet
         foreach (var child in _children)
         {
             child.HandlesChanged += ChildHandlesChanged;
+            child.HandleMoved += InvokeHandleMoved;
         }
 
         ChildHandlesChanged();
@@ -68,6 +62,7 @@ public class GroupHandleSet : IHandleSet
     {
         _children.Add(child);
         child.HandlesChanged += ChildHandlesChanged;
+        child.HandleMoved += InvokeHandleMoved;
 
         ChildHandlesChanged();
     }
@@ -82,16 +77,14 @@ public class GroupHandleSet : IHandleSet
         _selection.Clear();
         _selection.AddRange(handles);
 
-        // Propogate selection to children as we're using it for rendering etc.
-        for (int i = 0; i < _children.Count; ++i)
+        foreach (var child in _children)
         {
-            var child = _children[i];
-            
-            var selectedHandles = _selection
-                .Where(h => h.Key<GroupHandleKey>().Index == i)
-                .Select(h => new Handle(h.Key<GroupHandleKey>().ChildKey, h.Type));
+            child.SetSelectedHandles([]);
+        }
 
-            child.SetSelectedHandles(selectedHandles);
+        foreach (var group in _selection.GroupBy(h => _routing[h.HandleSetId]))
+        {
+            group.Key.SetSelectedHandles(group);
         }
         
         SelectionChanged?.Invoke();
@@ -99,32 +92,33 @@ public class GroupHandleSet : IHandleSet
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        var key = handle.Key<GroupHandleKey>();
-
-        _children[key.Index].SetPoint(new Handle(key.ChildKey, handle.Type), position - Position);
+        _routing[handle.HandleSetId].SetPoint(handle, position - Position);
     }
 
     public Unit2D GetPoint(Handle handle)
     {
-        var key = handle.Key<GroupHandleKey>();
-
-        return _children[key.Index].GetPoint(new Handle(key.ChildKey, handle.Type)) + Position;
+        return _routing[handle.HandleSetId].GetPoint(handle) + Position;
     }
     
     private void ChildHandlesChanged()
     {
         _handles.Clear();
+        _routing.Clear();
 
-        for (int i = 0; i < _children.Count; ++i)
+        foreach (var child in _children)
         {
-            var child = _children[i];
-            
             foreach (var handle in child.Handles)
             {
-                _handles.Add(new Handle(new GroupHandleKey(i, handle.Key<IHandleKey>()), handle.Type));
+                _handles.Add(handle);
+                _routing[handle.HandleSetId] = child;
             }
         }
         
         HandlesChanged?.Invoke();
+    }
+
+    private void InvokeHandleMoved(Handle handle, Unit2D position)
+    {
+        HandleMoved?.Invoke(handle, position + Position);
     }
 }

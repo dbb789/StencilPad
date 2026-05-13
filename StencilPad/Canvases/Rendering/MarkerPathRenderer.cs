@@ -40,7 +40,7 @@ public class MarkerPathRenderer : SheetElementRenderer
     public MarkerPathRenderer(MarkerPath markerPath)
     {
         _markerPath = markerPath;
-        _markerPath.Polygon.PolygonChanged += RebuildGeometry;
+        _markerPath.Polygon.GeometryChanged += RebuildGeometry;
         _markerPath.PropertyChanged += PropertyChanged;
         _markerCount = 0;
         
@@ -49,7 +49,7 @@ public class MarkerPathRenderer : SheetElementRenderer
 
     public override void Dispose()
     {
-        _markerPath.Polygon.PolygonChanged -= RebuildGeometry;
+        _markerPath.Polygon.GeometryChanged -= RebuildGeometry;
         _markerPath.PropertyChanged -= PropertyChanged;
     }
 

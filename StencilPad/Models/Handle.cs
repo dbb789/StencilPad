@@ -1,28 +1,55 @@
 namespace StencilPad.Models;
 
-public readonly record struct Handle
+public readonly struct Handle : IEquatable<Handle>
 {
-    public static Handle Move(IHandleKey Key) => new(Key, HandleType.Move);
-    public static Handle Adjust(IHandleKey Key) => new(Key, HandleType.Adjust);
+    public static readonly Handle DisplayOnly = new(default, HandleType.Move, HandleKey.None);
 
+    public HandleSetId HandleSetId { get; init; }
+    public HandleType Type { get; init; }
+    public HandleKey Key { get; init; }
+    
     public bool CanGroupMove => Type == HandleType.Move;
 
-    private readonly IHandleKey _key;
-    public HandleType Type { get; init; }
-    
-    public Handle(IHandleKey key, HandleType type)
+    public static Handle Move(HandleSetId handleSetId, PolygonHandleKey key) =>
+        new(handleSetId, HandleType.Move, new HandleKey(key));
+
+    public static Handle Adjust(HandleSetId handleSetId, PolygonHandleKey key) =>
+        new(handleSetId, HandleType.Adjust, new HandleKey(key));
+
+    public static Handle Move(HandleSetId handleSetId, StartEndHandleKey key) =>
+        new(handleSetId, HandleType.Move, new HandleKey(key));
+
+    private Handle(HandleSetId handleSetId, HandleType type, HandleKey key)
     {
-        _key = key;
+        HandleSetId = handleSetId;
         Type = type;
+        Key = key;
     }
 
-    public TKey Key<TKey>() where TKey : IHandleKey
+    public bool Equals(Handle other)
     {
-        if (_key is not TKey)
-        {
-            throw new InvalidOperationException($"Handle key is of type {_key.GetType().Name}, not {typeof(TKey).Name}");
-        }
-        
-        return (TKey)_key;
+        return HandleSetId == other.HandleSetId &&
+            Type == other.Type &&
+            Key == other.Key;
+    }
+    
+    public override bool Equals(object? obj)
+    {
+        return obj is Handle h && Equals(h);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(HandleSetId, Type, Key);
+    }
+
+    public static bool operator==(Handle lhs, Handle rhs)
+    {
+        return lhs.Equals(rhs);
+    }
+
+    public static bool operator!=(Handle lhs, Handle rhs)
+    {
+        return !(lhs == rhs);
     }
 }

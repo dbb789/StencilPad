@@ -12,22 +12,23 @@ public class ShapeRenderer : SheetElementRenderer
     {
         get
         {
-            if (_geometry is null)
-            {
-                return UnitBounds.Empty;
-            }
+            var geometry = GetGeometry();
 
             return UnitBounds.FromMinMax(
-                new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Left),
-                           Unit.FromMillimeters(_geometry.Bounds.Top)),
-                new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Right),
-                           Unit.FromMillimeters(_geometry.Bounds.Bottom))) + _shape.Position;
+                new Unit2D(Unit.FromMillimeters(geometry.Bounds.Left),
+                           Unit.FromMillimeters(geometry.Bounds.Top)),
+                new Unit2D(Unit.FromMillimeters(geometry.Bounds.Right),
+                           Unit.FromMillimeters(geometry.Bounds.Bottom))) + _shape.Position;
         }
     }
 
-    private Shape _shape;
+    private readonly Shape _shape;
+    private Pen? _pen;
+    private Brush? _fill;
+    private Transform? _transform;
     private StreamGeometry? _geometry;
-
+    private bool _geometryDirty;
+    
     public ShapeRenderer(Shape shape)
     {
         _shape = shape;
@@ -37,17 +38,20 @@ public class ShapeRenderer : SheetElementRenderer
 
         foreach (var polygon in _shape.PolygonSet)
         {
-            polygon.PolygonChanged += RebuildGeometry;
+            polygon.GeometryChanged += MarkGeometryDirty;
         }
-        
-        RebuildGeometry();
+
+        UpdateProperties();
+
+        _geometryDirty = true;
+        GetGeometry();
     }
 
     public override void Dispose()
     {
         foreach (var polygon in _shape.PolygonSet)
         {
-            polygon.PolygonChanged -= RebuildGeometry;
+            polygon.GeometryChanged -= MarkGeometryDirty;
         }
         
         _shape.PolygonSet.PolygonAdded -= PolygonAdded;
@@ -57,59 +61,61 @@ public class ShapeRenderer : SheetElementRenderer
 
     private void PolygonAdded(EditablePolygon polygon)
     {
-        polygon.PolygonChanged += RebuildGeometry;
-        RebuildGeometry();
+        polygon.GeometryChanged += MarkGeometryDirty;
+        MarkGeometryDirty();
     }
 
     private void PolygonRemoved(EditablePolygon polygon)
     {
-        polygon.PolygonChanged -= RebuildGeometry;
-        RebuildGeometry();
+        polygon.GeometryChanged -= MarkGeometryDirty;
+        MarkGeometryDirty();
     }
 
     public override bool HitTest(Unit2D unit)
     {
-        if (_geometry is null)
-        {
-            return false;
-        }
+        var geometry = GetGeometry();
 
-        return _geometry.FillContains((unit -_shape.Position).Millimeters);
+        return geometry.FillContains((unit -_shape.Position).Millimeters);
     }
 
     public override bool BoundsTest(UnitBounds bounds)
     {
-        if (_geometry is null)
-        {
-            return false;
-        }
-
+        var geometry = GetGeometry();
         var rect = new RectangleGeometry((bounds -_shape.Position).Millimeters);
 
-        return _geometry.FillContainsWithDetail(rect) != IntersectionDetail.Empty;
-    }
-
-    public override void Render(DrawingContext dc)
-    {
-        if (_geometry is null)
-        {
-            return;
-        }
-
-        var pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
-        var fill = new SolidColorBrush(_shape.FillColor);
-
-        dc.PushTransform(new TranslateTransform(_shape.Position.X.Millimeters,
-                                                _shape.Position.Y.Millimeters));
-        dc.DrawGeometry(fill, pen, _geometry);
-        dc.Pop();
+        return geometry.FillContainsWithDetail(rect) != IntersectionDetail.Empty;
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // Any change here is going to affect the rendering, so we can just
-        // invalidate the visual.
+        UpdateProperties();
         InvokeInvalidateVisual();
+    }
+
+    private void MarkGeometryDirty()
+    {
+        _geometryDirty = true;
+        
+        InvokeInvalidateVisual();
+    }
+
+    private void UpdateProperties()
+    {
+        _pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
+        _fill = new SolidColorBrush(_shape.FillColor);
+        _transform = new TranslateTransform(_shape.Position.X.Millimeters,
+                                            _shape.Position.Y.Millimeters);
+    }
+
+    private Geometry GetGeometry()
+    {
+        if (_geometryDirty)
+        {
+            _geometryDirty = false;
+            RebuildGeometry();
+        }
+
+        return _geometry!;
     }
     
     private void RebuildGeometry()
@@ -128,7 +134,20 @@ public class ShapeRenderer : SheetElementRenderer
         }
 
         _geometry.Freeze();
+    }
 
-        InvokeInvalidateVisual();
+    public override void Render(DrawingContext dc)
+    {
+
+        if (_pen is null || _fill is null || _transform is null)
+        {
+            return;
+        }
+
+        var geometry = GetGeometry();
+        
+        dc.PushTransform(_transform);
+        dc.DrawGeometry(_fill, _pen, geometry);
+        dc.Pop();
     }
 }

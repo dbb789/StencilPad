@@ -5,7 +5,8 @@ namespace StencilPad.Models;
 public interface IHandleSet
 {
     IEnumerable<Handle> Handles { get; }
-    
+
+    event Action<Handle, Unit2D>? HandleMoved;
     event Action? HandlesChanged;
     event Action? SelectionChanged;
 

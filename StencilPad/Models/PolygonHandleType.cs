@@ -1,6 +1,6 @@
 namespace StencilPad.Models;
 
-public enum PolygonHandleType
+public enum PolygonHandleType : byte
 {
     Vertex,
     ControlBegin,

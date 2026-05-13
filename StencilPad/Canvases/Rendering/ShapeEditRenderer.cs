@@ -20,7 +20,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
         foreach (var polygon in _shape.PolygonSet)
         {
-            polygon.PolygonChanged += RebuildGeometry;
+            polygon.GeometryChanged += RebuildGeometry;
         }
 
         RebuildGeometry();
@@ -30,7 +30,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     {
         foreach (var polygon in _shape.PolygonSet)
         {
-            polygon.PolygonChanged -= RebuildGeometry;
+            polygon.GeometryChanged -= RebuildGeometry;
         }
         
         _shape.PolygonSet.PolygonAdded -= PolygonAdded;
@@ -40,13 +40,13 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
     private void PolygonAdded(EditablePolygon polygon)
     {
-        polygon.PolygonChanged += RebuildGeometry;
+        polygon.GeometryChanged += RebuildGeometry;
         RebuildGeometry();
     }
 
     private void PolygonRemoved(EditablePolygon polygon)
     {
-        polygon.PolygonChanged -= RebuildGeometry;
+        polygon.GeometryChanged += RebuildGeometry;
         RebuildGeometry();
     }
 

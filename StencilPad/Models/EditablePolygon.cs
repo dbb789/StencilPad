@@ -6,30 +6,35 @@ public class EditablePolygon : Polygon, IHandleSet
 {
     public IEnumerable<Handle> Handles => _handles;
     
+    private HandleSetId _id = HandleFactory.NewId();
     private List<Handle> _handles;
     private List<Handle> _selection;
-    
-    public event Action? SelectionChanged;
+
+    public event Action<Handle, Unit2D>? HandleMoved;
     public event Action? HandlesChanged;
+    public event Action? SelectionChanged;
 
     public EditablePolygon()
     {
         _handles = new();
         _selection = new();
 
+        VertexAdded += OnVertexAdded;
+        VertexRemoved += OnVertexRemoved;
+        Vertices.ItemReassigned += VertexReassigned;
         Edges.ItemReassigned += EdgeReassigned;
     }
 
-    protected override void OnVertexAdded(int index)
+    private void OnVertexAdded(int index)
     {
         for (int i = 0; i < _selection.Count; ++i)
         {
             var handle = _selection[i];
-            var key = handle.Key<PolygonHandleKey>();
+            var key = handle.Key.Polygon;
             
             if (key.Index >= index)
             {
-                _selection[i] = Handle.Move(PolygonHandleKey.Vertex(key.Index + 1));
+                _selection[i] = Handle.Move(_id, PolygonHandleKey.Vertex(key.Index + 1));
             }
         }
 
@@ -37,12 +42,12 @@ public class EditablePolygon : Polygon, IHandleSet
         SelectionChanged?.Invoke();
     }
 
-    protected override void OnVertexRemoved(int index)
+    private void OnVertexRemoved(int index)
     {
         for (int i = _selection.Count - 1; i >= 0; --i)
         {
             var handle = _selection[i];
-            var key = handle.Key<PolygonHandleKey>();
+            var key = handle.Key.Polygon;
 
             if (key.Index == index)
             {
@@ -50,7 +55,7 @@ public class EditablePolygon : Polygon, IHandleSet
             }
             else if (key.Index > index)
             {
-                _selection[i] = Handle.Move(PolygonHandleKey.Vertex(key.Index - 1));
+                _selection[i] = Handle.Move(_id, PolygonHandleKey.Vertex(key.Index - 1));
             }
         }
 
@@ -67,8 +72,8 @@ public class EditablePolygon : Polygon, IHandleSet
 
     public IEnumerable<int> GetSelectedVertices()
     {
-        return _selection.Where(x => x.Key<PolygonHandleKey>().Type == PolygonHandleType.Vertex)
-            .Select(x => x.Key<PolygonHandleKey>().Index);
+        return _selection.Where(x => x.Key.Polygon.Type == PolygonHandleType.Vertex)
+            .Select(x => x.Key.Polygon.Index);
     }
 
     public IEnumerable<int> GetSelectedEdges()
@@ -77,8 +82,8 @@ public class EditablePolygon : Polygon, IHandleSet
 
         for (int i = 0; i < Edges.Count; i++)
         {
-            if (_selection.Contains(Handle.Move(PolygonHandleKey.Vertex(i))) &&
-                _selection.Contains(Handle.Move(PolygonHandleKey.Vertex((i + 1) % Vertices.Count))))
+            if (_selection.Contains(Handle.Move(_id, PolygonHandleKey.Vertex(i))) &&
+                _selection.Contains(Handle.Move(_id, PolygonHandleKey.Vertex((i + 1) % Vertices.Count))))
             {
                 edges.Add(i);
             }
@@ -94,7 +99,7 @@ public class EditablePolygon : Polygon, IHandleSet
 
     public Unit2D GetPoint(Handle handle)
     {
-        var key = handle.Key<PolygonHandleKey>();
+        var key = handle.Key.Polygon;
 
         switch (key.Type)
         {
@@ -113,7 +118,7 @@ public class EditablePolygon : Polygon, IHandleSet
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        var key = handle.Key<PolygonHandleKey>();
+        var key = handle.Key.Polygon;
 
         switch (key.Type)
         {
@@ -149,9 +154,12 @@ public class EditablePolygon : Polygon, IHandleSet
         SelectionChanged?.Invoke();
     }
 
-    protected override void OnPolygonChanged()
+    private void VertexReassigned(int index, Vertex prev, Vertex next)
     {
-        HandlesChanged?.Invoke();
+        if (prev.Position != next.Position)
+        {
+            HandleMoved?.Invoke(Handle.Move(_id, PolygonHandleKey.Vertex(index)), next.Position);
+        }
     }
 
     private void EdgeReassigned(int index, Edge prev, Edge next)
@@ -172,6 +180,8 @@ public class EditablePolygon : Polygon, IHandleSet
     public void AssignFrom(EditablePolygon other)
     {
         base.AssignFromPolygon(other);
+        
+        _id = other._id;
 
         _handles.Clear();
         _handles.AddRange(other._handles);
@@ -197,10 +207,10 @@ public class EditablePolygon : Polygon, IHandleSet
         for (int i = 0; i < _selection.Count; ++i)
         {
             var handle = _selection[i];
-            var key = handle.Key<PolygonHandleKey>();
-            
-            _selection[i] = new Handle(new PolygonHandleKey(key.Type, (key.Index - delta + vertexCount) % vertexCount),
-                                       handle.Type);
+            var key = handle.Key.Polygon;
+            int newIndex = (key.Index - delta + vertexCount) % vertexCount;
+
+            _selection[i] = handle with { Key = new HandleKey(handle.Key.Polygon with { Index = newIndex }) };
         }
         
         SelectionChanged?.Invoke();
@@ -212,15 +222,15 @@ public class EditablePolygon : Polygon, IHandleSet
 
         for (int i = 0; i < Vertices.Count; i++)
         {
-            _handles.Add(Handle.Move(PolygonHandleKey.Vertex(i)));
+            _handles.Add(Handle.Move(_id, PolygonHandleKey.Vertex(i)));
         }
 
         for (int i = 0; i < Edges.Count; i++)
         {
             if (Edges[i].Type == EdgeType.Bezier)
             {
-                _handles.Add(Handle.Adjust(PolygonHandleKey.ControlBegin(i)));
-                _handles.Add(Handle.Adjust(PolygonHandleKey.ControlEnd(i)));
+                _handles.Add(Handle.Adjust(_id, PolygonHandleKey.ControlBegin(i)));
+                _handles.Add(Handle.Adjust(_id, PolygonHandleKey.ControlEnd(i)));
             }
         }
 

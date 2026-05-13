@@ -13,7 +13,8 @@ namespace StencilPad.Canvases.Tools.Overlays;
 public class EditHandleSetToolOverlay : Canvas, IDisposable
 {
     private record struct HandleEntry(ISheetElement Element, Handle Handle);
-
+    private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
+    
     public IEnumerable<ISheetElement> Selection
     {
         get => _selection;
@@ -24,6 +25,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
                 var handleSet = element.HandleSet;
 
                 handleSet.HandlesChanged -= Rebuild;
+                handleSet.HandleMoved -= Reposition;
                 handleSet.SelectionChanged -= UpdateSelection;
             }
 
@@ -35,6 +37,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
                 var handleSet = element.HandleSet;
 
                 handleSet.HandlesChanged += Rebuild;
+                handleSet.HandleMoved += Reposition;
                 handleSet.SelectionChanged += UpdateSelection;
             }
 
@@ -54,8 +57,8 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     private readonly List<ISheetElement> _selection;
     private readonly EditOverlayRenderer _editOverlayRenderer;
 
-    private readonly WidgetContainer<HandleWidget> _widgets;
-    private List<HandleEntry> _handleMap = [];
+    private Dictionary<Handle, WidgetEntry> _widgetMap = [];
+    private readonly WidgetContainer<HandleWidget> _widgetContainer;
 
     public EditHandleSetToolOverlay(IToolContext context,
                                     Sheet sheet,
@@ -66,19 +69,21 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         _selection = [];
         _editOverlayRenderer = context.EditOverlayRenderer;
 
-        _widgets = new WidgetContainer<HandleWidget>(this);
-        _widgets.WidgetAdded += OnWidgetAdded;
+        _widgetMap = new();
+        _widgetContainer = new(this);
+        _widgetContainer.WidgetAdded += WidgetAdded;
 
         foreach (var element in _selection)
         {
             var handleSet = element.HandleSet;
             
             handleSet.HandlesChanged += Rebuild;
+            handleSet.HandleMoved += Reposition;
             handleSet.SelectionChanged += UpdateSelection;
         }
 
         _editOverlayRenderer.InvalidateVisual += InvalidateVisual;
-        _context.Viewport.ViewportChanged += Reposition;
+        _context.Viewport.ViewportChanged += RepositionAll;
 
         Rebuild();
 
@@ -93,12 +98,14 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
             var handleSet = element.HandleSet;
             
             handleSet.HandlesChanged -= Rebuild;
+            handleSet.HandleMoved -= Reposition;
             handleSet.SelectionChanged -= UpdateSelection;
         }
 
+        _widgetContainer.WidgetAdded -= WidgetAdded;
+
         _editOverlayRenderer.InvalidateVisual -= InvalidateVisual;
-        _context.Viewport.ViewportChanged -= Reposition;
-        _widgets.WidgetAdded -= OnWidgetAdded;
+        _context.Viewport.ViewportChanged -= RepositionAll;
     }
 
     private void RebuildContextMenu(object sender,
@@ -129,7 +136,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         dc.Pop();
     }
 
-    private void OnWidgetAdded(HandleWidget widget)
+    private void WidgetAdded(HandleWidget widget)
     {
         widget.Dragged += OnWidgetDragged;
         widget.ChangeSelection += OnWidgetSelectionChanged;
@@ -139,40 +146,61 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
     private void Rebuild()
     {
-        _handleMap = _selection
-            .SelectMany(s => s.HandleSet.Handles.Select(h => new HandleEntry(s, h)))
+        var entries = _selection.SelectMany(e => e.HandleSet.Handles.Select(
+                                                h => new HandleEntry(Element: e, Handle: h)))
             .ToList();
 
-        _widgets.Resize(_handleMap.Count);
+        _widgetContainer.Resize(entries.Count);
+        _widgetMap.Clear();
 
-        for (int i = 0; i < _handleMap.Count; ++i)
+        for (int i = 0; i < entries.Count; ++i)
         {
-            _widgets[i].Handle = _handleMap[i].Handle;
+            var (element, handle) = entries[i];
+            var widget = _widgetContainer[i];
+
+            widget.Handle = handle;
+            _widgetMap.Add(handle, new WidgetEntry(element, widget));
         }
-        
-        Reposition();
+
+        RepositionAll();
         UpdateSelection();
     }
 
-    private void Reposition()
+    private void Reposition(Handle handle, Unit2D position)
     {
-        for (int i = 0; i < _handleMap.Count; ++i)
+        if (_widgetMap.TryGetValue(handle, out var entry))
         {
-            var entry = _handleMap[i];
-            var point = _context.Viewport.ToPoint(entry.Element.HandleSet.GetPoint(entry.Handle));
+            var point = _context.Viewport.ToPoint(position);
 
-            SetLeft(_widgets[i], point.X);
-            SetTop(_widgets[i], point.Y);
+            SetLeft(entry.Widget, point.X);
+            SetTop(entry.Widget, point.Y);
+        }
+    }
+    
+    private void RepositionAll()
+    {
+        foreach (var (handle, entry) in _widgetMap)
+        {
+            var point = _context.Viewport.ToPoint(entry.Element.HandleSet.GetPoint(handle));
+
+            SetLeft(entry.Widget, point.X);
+            SetTop(entry.Widget, point.Y);
         }
     }
 
     private void UpdateSelection()
     {
-        for (int i = 0; i < _handleMap.Count; ++i)
+        foreach (var element in _selection)
         {
-            var entry = _handleMap[i];
-            
-            _widgets[i].IsSelected = entry.Element.HandleSet.GetSelectedHandles().Contains(entry.Handle);
+            var handleSet = element.HandleSet;
+
+            foreach (var handle in handleSet.Handles)
+            {
+                if (_widgetMap.TryGetValue(handle, out var entry))
+                {
+                    entry.Widget.IsSelected = handleSet.GetSelectedHandles().Contains(handle);
+                }
+            }
         }
     }
 
@@ -183,16 +211,15 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     
     private void OnWidgetDragged(HandleWidget widget, Point start, Point position)
     {
-        var index = GetWidgetIndex(widget);
-
-        if (index < 0)
+        var handle = widget.Handle;
+        
+        if (!_widgetMap.TryGetValue(handle, out var entry))
         {
             return;
         }
         
-        var entry = _handleMap[index];
         var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(position));
-        var delta = newPosition - entry.Element.HandleSet.GetPoint(entry.Handle);
+        var delta = newPosition - entry.Element.HandleSet.GetPoint(handle);
 
         if (delta == Unit2D.Zero)
         {
@@ -200,7 +227,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
         
         HandleDragged?.Invoke(entry.Element,
-                              entry.Handle,
+                              handle,
                               delta);
     }
 
@@ -211,30 +238,15 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
     private void OnWidgetSelectionChanged(HandleWidget widget, bool selected)
     {
-        var index = GetWidgetIndex(widget);
-
-        if (index < 0)
+        var handle = widget.Handle;
+        
+        if (!_widgetMap.TryGetValue(handle, out var entry))
         {
             return;
         }
-        
-        var entry = _handleMap[index];
-        
-        HandleSelectionChanged?.Invoke(entry.Element,
-                                       entry.Handle,
-                                       selected);
-    }
 
-    private int GetWidgetIndex(HandleWidget widget)
-    {
-        for (int i = 0; i < _widgets.Count; ++i)
-        {
-            if (_widgets[i] == widget)
-            {
-                return i;
-            }
-        }
-        
-        return -1;
+        HandleSelectionChanged?.Invoke(entry.Element,
+                                       handle,
+                                       selected);
     }
 }
