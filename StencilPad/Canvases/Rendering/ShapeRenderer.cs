@@ -12,13 +12,7 @@ public class ShapeRenderer : SheetElementRenderer
     {
         get
         {
-            var geometry = GetGeometry();
-
-            return UnitBounds.FromMinMax(
-                new Unit2D(Unit.FromMillimeters(geometry.Bounds.Left),
-                           Unit.FromMillimeters(geometry.Bounds.Top)),
-                new Unit2D(Unit.FromMillimeters(geometry.Bounds.Right),
-                           Unit.FromMillimeters(geometry.Bounds.Bottom))) + _shape.Position;
+            return GetGeometryBounds() + _shape.Position;
         }
     }
 
@@ -27,6 +21,7 @@ public class ShapeRenderer : SheetElementRenderer
     private Brush? _fill;
     private Transform? _transform;
     private StreamGeometry? _geometry;
+    private UnitBounds _geometryBounds;
     private bool _geometryDirty;
     
     public ShapeRenderer(Shape shape)
@@ -121,6 +116,17 @@ public class ShapeRenderer : SheetElementRenderer
 
         return _geometry!;
     }
+
+    private UnitBounds GetGeometryBounds()
+    {
+        if (_geometryDirty)
+        {
+            _geometryDirty = false;
+            RebuildGeometry();
+        }
+
+        return _geometryBounds;
+    }
     
     private void RebuildGeometry()
     {
@@ -138,6 +144,12 @@ public class ShapeRenderer : SheetElementRenderer
         }
 
         _geometry.Freeze();
+        
+        _geometryBounds = UnitBounds.FromMinMax(
+            new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Left),
+                       Unit.FromMillimeters(_geometry.Bounds.Top)),
+            new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Right),
+                       Unit.FromMillimeters(_geometry.Bounds.Bottom)));
     }
 
     public override void Render(DrawingContext dc)
