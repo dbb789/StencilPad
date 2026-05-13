@@ -80,12 +80,6 @@ public class ShapeRenderer : SheetElementRenderer
         return geometry.FillContainsWithDetail(rect) != IntersectionDetail.Empty;
     }
 
-    private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        UpdateProperties();
-        InvokeInvalidateVisual();
-    }
-
     private void MarkGeometryDirty()
     {
         _geometryDirty = true;
@@ -104,6 +98,26 @@ public class ShapeRenderer : SheetElementRenderer
         _transform = new TranslateTransform(_shape.Position.X.Millimeters,
                                             _shape.Position.Y.Millimeters);
         _transform.Freeze();
+    }
+    
+    private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Shape.Position))
+        {
+            _transform = new TranslateTransform(_shape.Position.X.Millimeters,
+                                                _shape.Position.Y.Millimeters);
+            _transform.Freeze();
+        }
+        else
+        {
+            _pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
+            _pen.Freeze();
+            
+            _fill = new SolidColorBrush(_shape.FillColor);
+            _fill.Freeze();
+        }
+        
+        InvokeInvalidateVisual();
     }
 
     private Geometry GetGeometry()
@@ -154,7 +168,6 @@ public class ShapeRenderer : SheetElementRenderer
 
     public override void Render(DrawingContext dc)
     {
-
         if (_pen is null || _fill is null || _transform is null)
         {
             return;
