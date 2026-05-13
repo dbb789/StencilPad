@@ -9,6 +9,8 @@ public class EditablePolygon : Polygon, IHandleSet
     private HandleSetId _id = HandleFactory.NewId();
     private List<Handle> _handles;
     private List<Handle> _selection;
+    private List<int> _selectedEdges;
+    private List<int> _selectedVertices;
 
     public event Action<Handle, Unit2D>? HandleMoved;
     public event Action? HandlesChanged;
@@ -18,7 +20,9 @@ public class EditablePolygon : Polygon, IHandleSet
     {
         _handles = new();
         _selection = new();
-
+        _selectedEdges = new();
+        _selectedVertices = new();
+        
         VertexAdded += OnVertexAdded;
         VertexRemoved += OnVertexRemoved;
         Vertices.ItemReassigned += VertexReassigned;
@@ -38,8 +42,8 @@ public class EditablePolygon : Polygon, IHandleSet
             }
         }
 
+        InvokeSelectionChanged();
         RebuildHandles();
-        SelectionChanged?.Invoke();
     }
 
     private void OnVertexRemoved(int index)
@@ -59,8 +63,8 @@ public class EditablePolygon : Polygon, IHandleSet
             }
         }
 
+        InvokeSelectionChanged();
         RebuildHandles();
-        SelectionChanged?.Invoke();
     }
     
     protected override void OnCycledVertices(int index)
@@ -72,27 +76,28 @@ public class EditablePolygon : Polygon, IHandleSet
 
     public IEnumerable<int> GetSelectedVertices()
     {
-        return _selection.Where(x => x.Key.Polygon.Type == PolygonHandleType.Vertex)
-            .Select(x => x.Key.Polygon.Index);
+        return _selectedVertices;
     }
 
     public IEnumerable<int> GetSelectedEdges()
     {
-        var edges = new List<int>(Edges.Count);
-
-        GetSelectedEdges(edges);
-        
-        return edges;
+        return _selectedEdges;
+    }
+    
+    private void CalculateSelectedVertices(List<int> indices)
+    {
+        indices.AddRange(_selection.Where(x => x.Key.Polygon.Type == PolygonHandleType.Vertex)
+                         .Select(x => x.Key.Polygon.Index));
     }
 
-    public void GetSelectedEdges(List<int> edges)
+    private void CalculateSelectedEdges(List<int> indices)
     {
         for (int i = 0; i < Edges.Count; i++)
         {
             if (_selection.Contains(Handle.Move(_id, PolygonHandleKey.Vertex(i))) &&
                 _selection.Contains(Handle.Move(_id, PolygonHandleKey.Vertex((i + 1) % Vertices.Count))))
             {
-                edges.Add(i);
+                indices.Add(i);
             }
         }
     }
@@ -100,6 +105,7 @@ public class EditablePolygon : Polygon, IHandleSet
     public void ClearSelection()
     {
         _selection.Clear();
+        InvokeSelectionChanged();
     }
 
     public Unit2D GetPoint(Handle handle)
@@ -155,8 +161,8 @@ public class EditablePolygon : Polygon, IHandleSet
     {
         _selection.Clear();
         _selection.AddRange(handles);
-        
-        SelectionChanged?.Invoke();
+
+        InvokeSelectionChanged();
     }
 
     private void VertexReassigned(int index, Vertex prev, Vertex next)
@@ -214,7 +220,7 @@ public class EditablePolygon : Polygon, IHandleSet
         _selection.Clear();
         _selection.AddRange(other._selection);
 
-        SelectionChanged?.Invoke();
+        InvokeSelectionChanged();
         HandlesChanged?.Invoke();
     }
 
@@ -237,8 +243,8 @@ public class EditablePolygon : Polygon, IHandleSet
 
             _selection[i] = handle with { Key = new HandleKey(handle.Key.Polygon with { Index = newIndex }) };
         }
-        
-        SelectionChanged?.Invoke();
+
+        InvokeSelectionChanged();
     }
 
     private void RebuildHandles()
@@ -260,5 +266,16 @@ public class EditablePolygon : Polygon, IHandleSet
         }
 
         HandlesChanged?.Invoke();
+    }
+
+    private void InvokeSelectionChanged()
+    {
+        _selectedVertices.Clear();
+        CalculateSelectedVertices(_selectedVertices);
+
+        _selectedEdges.Clear();
+        CalculateSelectedEdges(_selectedEdges);
+        
+        SelectionChanged?.Invoke();
     }
 }
