@@ -32,6 +32,7 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D Abs(Unit2D u)
     {
         return new(Unit.Abs(u.X), Unit.Abs(u.Y));

@@ -5,10 +5,11 @@ public class QuadTreeNode<T>
     public bool IsLeaf => _children == null;
     public bool IsEmpty => IsLeaf && _values.Count == 0;
     public UnitBounds Bounds => _bounds;
-
+    
     private readonly IObjectPool<QuadTreeNode<T>> _nodePool;
     private readonly int _nodeCapacity;
     private readonly List<(T, Unit2D)> _values;
+    private QuadTreeNode<T>? _parent;
     private UnitBounds _bounds;
     private QuadTreeNodeSet<T>? _children;
     private int _maxDepth;
@@ -20,12 +21,16 @@ public class QuadTreeNode<T>
         _bounds = UnitBounds.Empty;
         _nodeCapacity = nodeCapacity;
         _values = new(nodeCapacity + 1);
+        _parent = null;
         _children = null;
         _maxDepth = 0;
     }
 
-    public void Initialize(UnitBounds bounds, int maxDepth)
+    public void Initialize(QuadTreeNode<T>? parent,
+                           UnitBounds bounds,
+                           int maxDepth)
     {
+        _parent = parent;
         _bounds = bounds;
         _maxDepth = maxDepth;
         
@@ -60,16 +65,16 @@ public class QuadTreeNode<T>
         }
     }
 
-    public bool Remove(UnitBounds bounds, T value)
+    public QuadTreeNode<T>? Remove(UnitBounds bounds, T value)
     {
         if (!Bounds.Intersects(bounds))
         {
-            return false;
+            return null;
         }
 
         if (_children is not null)
         {
-            bool removed = _children.Value.Remove(bounds, value);
+            var node = _children.Value.Remove(bounds, value);
 
             if (_children.Value.Empty())
             {
@@ -77,7 +82,7 @@ public class QuadTreeNode<T>
                 _children = null;
             }
 
-            return removed;
+            return node;
         }
         else
         {
@@ -87,12 +92,13 @@ public class QuadTreeNode<T>
                     bounds.Contains(_values[i].Item2))
                 {
                     _values.RemoveAt(i);
-                    return true;
+                    
+                    return this;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
     public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
@@ -140,7 +146,8 @@ public class QuadTreeNode<T>
     
     private void Subdivide()
     {
-        _children = new QuadTreeNodeSet<T>(_nodePool,
+        _children = new QuadTreeNodeSet<T>(this,
+                                           _nodePool,
                                            _nodeCapacity,
                                            _bounds,
                                            _maxDepth - 1);

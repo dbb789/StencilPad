@@ -6,7 +6,7 @@ public class QuadTree<T>
     // for example if a point is sitting on the edge of a node or is otherwise
     // offset by a small margin. Note that Remove() only ever removes up to one
     // element, so this shouldn't cause any real issues with inconsistency.
-    private static readonly Unit2D RemoveRegion = new(Unit.FromMillimeters(0.0001),
+    private static readonly Unit2D SearchRegion = new(Unit.FromMillimeters(0.0001),
                                                       Unit.FromMillimeters(0.0001));
 
     private readonly QuadTreeNode<T> _root;
@@ -18,7 +18,7 @@ public class QuadTree<T>
         _root = new QuadTreeNode<T>(new ObjectPool<QuadTreeNode<T>>(256),
                                     nodeCapacity);
         
-        _root.Initialize(bounds, maxDepth);
+        _root.Initialize(null, bounds, maxDepth);
     }
 
     public void Insert(Unit2D point, T value)
@@ -28,21 +28,30 @@ public class QuadTree<T>
 
     public bool Remove(Unit2D point, T value)
     {
-        return _root.Remove(UnitBounds.FromCenterSize(point, RemoveRegion), value);
+        return _root.Remove(UnitBounds.FromCenterSize(point, SearchRegion), value) is not null;
     }
 
     public bool Move(Unit2D oldPoint, Unit2D newPoint, T value)
     {
-        if (Remove(oldPoint, value))
-        {
-            Insert(newPoint, value);
+        var node = _root.Remove(UnitBounds.FromCenterSize(oldPoint, SearchRegion), value);
 
-            return true;
+        if (node is null)
+        {
+            return false;
         }
 
-        return false;
+        if (node.Bounds.Contains(newPoint))
+        {
+            node.Insert(newPoint, value);
+        }
+        else
+        {
+            Insert(newPoint, value);
+        }
+
+        return true;
     }
-    
+
     public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
     {
         _root.Query(bounds, results);
