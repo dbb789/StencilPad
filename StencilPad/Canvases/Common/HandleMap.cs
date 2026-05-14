@@ -14,8 +14,12 @@ public class HandleMap : IHandleMap, IUnitSnap
     
     private Sheet? _sheet;
     private Dictionary<Handle, Unit2D> _byHandle;
-    private QuadTree<Handle> _byPosition;
-    private List<(Handle, Unit2D)> _queryResults;
+    private QuadTree<HandleMapEntry> _byPosition;
+    private List<(HandleMapEntry, Unit2D)> _queryResults;
+
+    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    public event Action<IHandleSource, Handle>? HandleRemoved;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     
     public HandleMap()
     {
@@ -23,13 +27,13 @@ public class HandleMap : IHandleMap, IUnitSnap
 
         _sheet = null;
         _byHandle = new();
-        _byPosition = new QuadTree<Handle>(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize),
-                                           nodeCapacity: 16,
-                                           maxDepth: 10);
+        _byPosition = new QuadTree<HandleMapEntry>(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize),
+                                                   nodeCapacity: 64,
+                                                   maxDepth: 64);
         _queryResults = [];
     }
 
-    public void QueryHandles(UnitBounds bounds, List<(Handle, Unit2D)> results)
+    public void QueryHandles(UnitBounds bounds, List<(HandleMapEntry, Unit2D)> results)
     {
         _byPosition.Query(bounds, results);
     }
@@ -106,9 +110,9 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         foreach (var handle in element.HandleSource.Handles)
         {
-            Add(handle, element.HandleSource.GetPoint(handle));
+            Add(element, handle, element.HandleSource.GetPoint(handle));
             
-            element.HandleSource.HandleMoved += HandleMoved;
+            element.HandleSource.HandleMoved += OnHandleMoved;
         }
     }
 
@@ -116,35 +120,41 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         foreach (var handle in element.HandleSource.Handles)
         {
-            element.HandleSource.HandleMoved -= HandleMoved;
+            element.HandleSource.HandleMoved -= OnHandleMoved;
 
-            Remove(handle);
+            Remove(element, handle);
         }
     }
 
-    private void Add(Handle handle, Unit2D position)
+    private void Add(ISheetElement element, Handle handle, Unit2D position)
     {
         _byHandle[handle] = position;
-        _byPosition.Insert(position, handle);
+        _byPosition.Insert(position, new HandleMapEntry(element.HandleSource, handle));
+        HandleAdded?.Invoke(element.HandleSource, handle, position);
     }
 
-    private void Remove(Handle handle)
+    private void Remove(ISheetElement element, Handle handle)
     {
         if (_byHandle.TryGetValue(handle, out var position))
         {
-            _byPosition.Remove(position, handle);
+            _byPosition.Remove(position, new HandleMapEntry(element.HandleSource, handle));
             _byHandle.Remove(handle);
+            HandleRemoved?.Invoke(element.HandleSource, handle);
         }
     }
 
-    private void HandleMoved(Handle handle, Unit2D position)
+    private void OnHandleMoved(IHandleSource handleSource, Handle handle, Unit2D position)
     {
         if (_byHandle.TryGetValue(handle, out var oldPosition))
         {
-            if (_byPosition.Remove(oldPosition, handle))
+            var entry = new HandleMapEntry(handleSource, handle);
+            
+            if (_byPosition.Remove(oldPosition, entry))
             {
                 _byHandle[handle] = position;
-                _byPosition.Insert(position, handle);
+                _byPosition.Insert(position, entry);
+
+                HandleMoved?.Invoke(handleSource, handle, position);
             }
         }
     }

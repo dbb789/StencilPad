@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
@@ -73,7 +74,6 @@ public class EditHandleSetTool : ITool
         _context.ToolOverlay.ActiveOverlay = _overlay;
         _context.EditOverlayRenderer.IsEnabled = true;
 
-        _overlay.Selection = _selection;
         _overlay.HandleDragBegin += OnHandleDragBegin;
         _overlay.HandleDragged += OnHandleDragged;
         _overlay.HandleDragEnd += OnHandleDragEnd;
@@ -151,7 +151,7 @@ public class EditHandleSetTool : ITool
                                           Handle handle,
                                           bool selected)
     {
-        var list = element.HandleSource.GetSelectedHandles().ToList();
+        var list = new MutableHandleSet(element.HandleSource.GetSelectedHandles());
 
         if (IsModifyingSelection())
         {
@@ -193,18 +193,24 @@ public class EditHandleSetTool : ITool
         }
 
         var modifyingSelection = IsModifyingSelection();
+
+        var selected = new List<(HandleMapEntry, Unit2D)>();
         
+        _context.HandleMap.QueryHandles(bounds, selected);
+
+        var selectedHandleSet = new MutableHandleSet(selected.Count);
+        
+        for (int i = 0; i < selected.Count; i++)
+        {
+            selectedHandleSet.Add(selected[i].Item1.Handle);
+        }
+
         foreach (var element in _selection)
         {
-            var handles = element.HandleSource.Handles
-                .Where(h => bounds.Contains(element.HandleSource.GetPoint(h)));
-
-            if (modifyingSelection)
-            {
-                handles = handles.Union(element.HandleSource.GetSelectedHandles());
-            }
+            var byElement = HandleSet.Intersection(element.HandleSource.Handles,
+                                                   selectedHandleSet);
             
-            element.HandleSource.SetSelectedHandles(handles);
+            element.HandleSource.SetSelectedHandles(byElement);
         }
     }
 
@@ -227,11 +233,6 @@ public class EditHandleSetTool : ITool
         _selection.AddRange(GetEditableSelection());
         
         _button.IsEnabled = _selection.Count > 0;
-
-        if (_overlay is not null)
-        {
-            _overlay.Selection = _selection;
-        }
     }
 
     private bool IsModifyingSelection()

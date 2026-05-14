@@ -82,13 +82,13 @@ public class TextElement : SheetElement<TextElement>
     public TextElement()
     {
         HandleSource = new StartEndHandleSource(Unit2D.Zero, Unit2D.Zero);
-        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
     }
 
     public TextElement(Unit2D start, string text)
     {
         HandleSource = new StartEndHandleSource(start, start);
-        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
         _text = text;
     }
 

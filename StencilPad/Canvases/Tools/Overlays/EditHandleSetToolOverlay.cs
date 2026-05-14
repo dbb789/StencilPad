@@ -16,38 +16,6 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     private record struct HandleEntry(ISheetElement Element, Handle Handle);
     private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
     
-    public IEnumerable<ISheetElement> Selection
-    {
-        get => _selection;
-        set
-        {
-            foreach (var element in _selection)
-            {
-                var handleSet = element.HandleSource;
-
-                handleSet.HandleAdded += HandleAdded;
-                handleSet.HandleRemoved += HandleRemoved;
-                handleSet.HandleMoved -= Reposition;
-                handleSet.SelectionChanged -= UpdateSelection;
-            }
-
-            _selection.Clear();
-            _selection.AddRange(value);
-
-            foreach (var element in _selection)
-            {
-                var handleSet = element.HandleSource;
-
-                handleSet.HandleAdded += HandleAdded;
-                handleSet.HandleRemoved += HandleRemoved;
-                handleSet.HandleMoved += Reposition;
-                handleSet.SelectionChanged += UpdateSelection;
-            }
-
-            Rebuild();
-        }
-    }
-
     public event Action? HandleDragBegin;
     public event Action<ISheetElement, Handle, Unit2D>? HandleDragged;
     public event Action? HandleDragEnd;
@@ -60,9 +28,6 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     private readonly List<ISheetElement> _selection;
     private readonly EditOverlayRenderer _editOverlayRenderer;
 
-    private Dictionary<Handle, WidgetEntry> _widgetMap = [];
-    private readonly WidgetContainer<HandleWidget> _widgetContainer;
-
     public EditHandleSetToolOverlay(IToolContext context,
                                     Sheet sheet,
                                     IEnumerable<ISheetElementAction?> editActions)
@@ -72,22 +37,12 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         _selection = [];
         _editOverlayRenderer = context.EditOverlayRenderer;
 
-        _widgetMap = new();
-        _widgetContainer = new(this);
-        _widgetContainer.WidgetAdded += WidgetAdded;
-
-        foreach (var element in _selection)
-        {
-            var handleSet = element.HandleSource;
-            
-            handleSet.HandleAdded += HandleAdded;
-            handleSet.HandleRemoved += HandleRemoved;
-            handleSet.HandleMoved += Reposition;
-            handleSet.SelectionChanged += UpdateSelection;
-        }
-
+        _context.HandleMap.HandleAdded += HandleAdded;
+        _context.HandleMap.HandleRemoved += HandleRemoved;
+        _context.HandleMap.HandleMoved += HandleMoved;
+        
         _editOverlayRenderer.InvalidateVisual += InvalidateVisual;
-        _context.Viewport.ViewportChanged += RepositionAll;
+        _context.Viewport.ViewportChanged += InvalidateVisual;
 
         Rebuild();
 
@@ -97,20 +52,12 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
     public void Dispose()
     {
-        foreach (var element in _selection)
-        {
-            var handleSet = element.HandleSource;
-
-            handleSet.HandleAdded -= HandleAdded;
-            handleSet.HandleRemoved -= HandleRemoved;
-            handleSet.HandleMoved -= Reposition;
-            handleSet.SelectionChanged -= UpdateSelection;
-        }
-
-        _widgetContainer.WidgetAdded -= WidgetAdded;
+        _context.HandleMap.HandleAdded -= HandleAdded;
+        _context.HandleMap.HandleRemoved -= HandleRemoved;
+        _context.HandleMap.HandleMoved -= HandleMoved;
 
         _editOverlayRenderer.InvalidateVisual -= InvalidateVisual;
-        _context.Viewport.ViewportChanged -= RepositionAll;
+        _context.Viewport.ViewportChanged -= InvalidateVisual;
     }
 
     private void RebuildContextMenu(object sender,
@@ -142,27 +89,43 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
         dc.Pop();
         
-        var handleList = new List<(Handle, Unit2D)>();
+        var handleList = new List<(HandleMapEntry, Unit2D)>();
 
         var pageSize = new Unit2D(Unit.FromMillimeters(1000), Unit.FromMillimeters(1000));
 
         _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize), handleList);
-
-        foreach (var (handle, position) in handleList)
+        
+        var moveGeometry = new RectangleGeometry(new Rect(-6, -6, 12, 12));
+        var moveBrush = new SolidColorBrush(Color.FromArgb(128, 255, 128, 0));
+        var adjustGeometry = new EllipseGeometry(new Point(0, 0), 6, 6);
+        var adjustBrush = new SolidColorBrush(Color.FromArgb(128, 0, 128, 0));
+        var selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 1);
+        
+        moveGeometry.Freeze();
+        moveBrush.Freeze();
+        adjustGeometry.Freeze();
+        adjustBrush.Freeze();
+        
+        foreach (var (entry, position) in handleList)
         {
             var point = _context.Viewport.ToPoint(position);
 
-            dc.DrawEllipse(Brushes.Red, new Pen(Brushes.Red, 0.5), point, 10, 10);
+            dc.PushTransform(new TranslateTransform(point.X, point.Y));
+
+            var pen = entry.Source.GetSelectedHandles().Contains(entry.Handle) ? selectedPen : null;
+            
+            if (entry.Handle.Type == HandleType.Move)
+            {
+                dc.DrawGeometry(moveBrush, pen, moveGeometry);
+            }
+            else
+            {
+                dc.DrawGeometry(adjustBrush, pen, adjustGeometry);
+            }
+            
+            dc.Pop();
         }
         
-    }
-
-    private void WidgetAdded(HandleWidget widget)
-    {
-        widget.Dragged += OnWidgetDragged;
-        widget.ChangeSelection += OnWidgetSelectionChanged;
-        widget.DragBegin += OnWidgetDragBegin;
-        widget.DragEnd += OnWidgetDragEnd;
     }
 
     private void HandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)
@@ -175,109 +138,62 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         Rebuild();
     }
     
+    private void HandleMoved(IHandleSource handleSet, Handle handle, Unit2D position)
+    {
+        Rebuild();
+    }
+
     private void Rebuild()
     {
-        var entries = _selection.SelectMany(e => e.HandleSource.Handles.Select(
-                                                h => new HandleEntry(Element: e, Handle: h)))
-            .ToList();
+        // var entries = _selection.SelectMany(e => e.HandleSource.Handles.Select(
+        //                                         h => new HandleEntry(Element: e, Handle: h)))
+        //     .ToList();
 
-        _widgetContainer.Resize(entries.Count);
-        _widgetMap.Clear();
+        // _widgetContainer.Resize(entries.Count);
+        // _widgetMap.Clear();
 
-        for (int i = 0; i < entries.Count; ++i)
-        {
-            var (element, handle) = entries[i];
-            var widget = _widgetContainer[i];
+        // for (int i = 0; i < entries.Count; ++i)
+        // {
+        //     var (element, handle) = entries[i];
+        //     var widget = _widgetContainer[i];
 
-            widget.Handle = handle;
-            _widgetMap.Add(handle, new WidgetEntry(element, widget));
-        }
+        //     widget.Handle = handle;
+        //     _widgetMap.Add(handle, new WidgetEntry(element, widget));
+        // }
 
-        RepositionAll();
-        UpdateSelection();
-    }
-
-    private void Reposition(Handle handle, Unit2D position)
-    {
-        if (_widgetMap.TryGetValue(handle, out var entry))
-        {
-            var point = _context.Viewport.ToPoint(position);
-
-            SetLeft(entry.Widget, point.X);
-            SetTop(entry.Widget, point.Y);
-        }
-    }
-    
-    private void RepositionAll()
-    {
-        foreach (var (handle, entry) in _widgetMap)
-        {
-            var point = _context.Viewport.ToPoint(entry.Element.HandleSource.GetPoint(handle));
-
-            SetLeft(entry.Widget, point.X);
-            SetTop(entry.Widget, point.Y);
-        }
-    }
-
-    private void UpdateSelection()
-    {
-        foreach (var element in _selection)
-        {
-            var handleSet = element.HandleSource;
-
-            foreach (var handle in handleSet.Handles)
-            {
-                if (_widgetMap.TryGetValue(handle, out var entry))
-                {
-                    entry.Widget.IsSelected = handleSet.GetSelectedHandles().Contains(handle);
-                }
-            }
-        }
+        // RepositionAll();
+        // UpdateSelection();
     }
 
     private void OnWidgetDragBegin(HandleWidget widget)
     {
-        HandleDragBegin?.Invoke();
+        // HandleDragBegin?.Invoke();
     }
     
     private void OnWidgetDragged(HandleWidget widget, Point start, Point position)
     {
-        var handle = widget.Handle;
+        // var handle = widget.Handle;
         
-        if (!_widgetMap.TryGetValue(handle, out var entry))
-        {
-            return;
-        }
+        // if (!_widgetMap.TryGetValue(handle, out var entry))
+        // {
+        //     return;
+        // }
         
-        var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(position));
-        var delta = newPosition - entry.Element.HandleSource.GetPoint(handle);
+        // var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(position));
+        // var delta = newPosition - entry.Element.HandleSource.GetPoint(handle);
 
-        if (delta == Unit2D.Zero)
-        {
-            return;
-        }
+        // if (delta == Unit2D.Zero)
+        // {
+        //     return;
+        // }
         
-        HandleDragged?.Invoke(entry.Element,
-                              handle,
-                              delta);
+        // HandleDragged?.Invoke(entry.Element,
+        //                       handle,
+        //                       delta);
     }
 
     private void OnWidgetDragEnd(HandleWidget widget)
     {
-        HandleDragEnd?.Invoke();
-    }
-
-    private void OnWidgetSelectionChanged(HandleWidget widget, bool selected)
-    {
-        var handle = widget.Handle;
-        
-        if (!_widgetMap.TryGetValue(handle, out var entry))
-        {
-            return;
-        }
-
-        HandleSelectionChanged?.Invoke(entry.Element,
-                                       handle,
-                                       selected);
+        // HandleDragEnd?.Invoke();
     }
 }

@@ -4,23 +4,23 @@ namespace StencilPad.Models;
 
 public class EditablePolygon : Polygon, IHandleSource
 {
-    public IEnumerable<Handle> Handles => _handles;
+    public HandleSet Handles => _handles;
     
     private HandleSourceId _id = HandleFactory.NewId();
-    private List<Handle> _handles;
-    private List<Handle> _selection;
+    private MutableHandleSet _handles;
+    private MutableHandleSet _selection;
     private List<int> _selectedEdges;
     private List<int> _selectedVertices;
 
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
-    public event Action<Handle, Unit2D>? HandleMoved;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     public event Action? SelectionChanged;
 
     public EditablePolygon()
     {
-        _handles = new();
-        _selection = new();
+        _handles = new(4);
+        _selection = new(4);
         _selectedEdges = new();
         _selectedVertices = new();
         
@@ -153,12 +153,12 @@ public class EditablePolygon : Polygon, IHandleSource
         }
     }
 
-    public IEnumerable<Handle> GetSelectedHandles()
+    public HandleSet GetSelectedHandles()
     {
         return _selection;
     }
 
-    public void SetSelectedHandles(IEnumerable<Handle> handles)
+    public void SetSelectedHandles(HandleSet handles)
     {
         _selection.Clear();
         _selection.AddRange(handles);
@@ -170,7 +170,7 @@ public class EditablePolygon : Polygon, IHandleSource
     {
         if (prev.Position != next.Position)
         {
-            HandleMoved?.Invoke(Handle.Move(_id, PolygonHandleKey.Vertex(index)), next.Position);
+            HandleMoved?.Invoke(this, Handle.Move(_id, PolygonHandleKey.Vertex(index)), next.Position);
         }
     }
 
@@ -184,19 +184,19 @@ public class EditablePolygon : Polygon, IHandleSource
         {
             if (prev.ControlBeginOffset != next.ControlBeginOffset)
             {
-                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlBegin(index)),
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(index)),
                     Vertices[index].Position + next.ControlBeginOffset);
 
-                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlEnd((index - 1 + Edges.Count) % Edges.Count)),
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd((index - 1 + Edges.Count) % Edges.Count)),
                     Vertices.At(index).Position - next.ControlBeginOffset);
             }
 
             if (prev.ControlEndOffset != next.ControlEndOffset)
             {
-                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlEnd(index)),
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(index)),
                     Vertices.At(index + 1).Position + next.ControlEndOffset);
 
-                HandleMoved?.Invoke(Handle.Adjust(_id, PolygonHandleKey.ControlBegin((index + 1) % Edges.Count)),
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin((index + 1) % Edges.Count)),
                     Vertices.At(index + 1).Position - next.ControlEndOffset);
             }
         }

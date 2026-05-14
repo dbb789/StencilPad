@@ -4,15 +4,15 @@ namespace StencilPad.Models;
 
 public interface IHandleSource
 {
-    IEnumerable<Handle> Handles { get; }
+    HandleSet Handles { get; }
 
     event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     event Action<IHandleSource, Handle>? HandleRemoved;
-    event Action<Handle, Unit2D>? HandleMoved;
+    event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     event Action? SelectionChanged;
 
-    IEnumerable<Handle> GetSelectedHandles();
-    void SetSelectedHandles(IEnumerable<Handle> handles);
+    HandleSet GetSelectedHandles();
+    void SetSelectedHandles(HandleSet handles);
 
     Unit2D GetPoint(Handle handle);
     void SetPoint(Handle handle, Unit2D position);

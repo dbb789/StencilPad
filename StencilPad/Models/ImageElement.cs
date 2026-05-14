@@ -34,13 +34,13 @@ public class ImageElement : SheetElement<ImageElement>
     public ImageElement()
     {
         HandleSource = new StartEndHandleSource(Unit2D.Zero, Unit2D.Zero);
-        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
     }
 
     public ImageElement(Unit2D start, Unit2D end, byte[] imageData)
     {
         HandleSource = new StartEndHandleSource(start, end);
-        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
 
         _imageData = imageData;
     }

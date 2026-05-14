@@ -6,17 +6,15 @@ public class StartEndHandleSource : IHandleSource
 {
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded { add { } remove { } }
     public event Action<IHandleSource, Handle>? HandleRemoved { add { } remove { } }
-    public event Action<Handle, Unit2D>? HandleMoved;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     public event Action? SelectionChanged;
 
-    public IEnumerable<Handle> Handles => [
-        Handle.Move(_id, new StartEndHandleKey(StartEndHandleKey.EndType.Start)),
-        Handle.Move(_id, new StartEndHandleKey(StartEndHandleKey.EndType.End))
-    ];
+    public HandleSet Handles => _handles;
 
+    private MutableHandleSet _handles;
     private Unit2D _start;
     private Unit2D _end;
-    private List<Handle> _selection = [];
+    private MutableHandleSet _selection;
     private HandleSourceId _id = HandleFactory.NewId();
 
     public Unit2D Start
@@ -25,7 +23,7 @@ public class StartEndHandleSource : IHandleSource
         set
         {
             _start = value;
-            HandleMoved?.Invoke(Handles.ElementAt(0), _start);
+            HandleMoved?.Invoke(this, _handles[0], _start);
         }
     }
 
@@ -35,12 +33,18 @@ public class StartEndHandleSource : IHandleSource
         set
         {
             _end = value;
-            HandleMoved?.Invoke(Handles.ElementAt(1), _end);
+            HandleMoved?.Invoke(this, _handles[1], _end);
         }
     }
 
     public StartEndHandleSource(Unit2D start, Unit2D end)
     {
+        _handles = new(2);
+        _handles.Add(Handle.Move(_id, new StartEndHandleKey(StartEndHandleKey.EndType.Start)));
+        _handles.Add(Handle.Move(_id, new StartEndHandleKey(StartEndHandleKey.EndType.End)));
+
+        _selection = new(2);
+
         _start = start;
         _end = end;
     }
@@ -62,12 +66,12 @@ public class StartEndHandleSource : IHandleSource
         }
     }
 
-    public IEnumerable<Handle> GetSelectedHandles()
+    public HandleSet GetSelectedHandles()
     {
         return _selection;
     }
 
-    public void SetSelectedHandles(IEnumerable<Handle> handles)
+    public void SetSelectedHandles(HandleSet handles)
     {
         _selection.Clear();
         _selection.AddRange(handles);
@@ -83,8 +87,8 @@ public class StartEndHandleSource : IHandleSource
         _selection.Clear();
         _selection.AddRange(other._selection);
 
-        HandleMoved?.Invoke(Handles.ElementAt(0), _start);
-        HandleMoved?.Invoke(Handles.ElementAt(1), _end);
+        HandleMoved?.Invoke(this, _handles[0], _start);
+        HandleMoved?.Invoke(this, _handles[1], _end);
     }
 
     public StartEndHandleSource DeepClone()
