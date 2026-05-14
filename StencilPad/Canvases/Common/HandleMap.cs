@@ -6,6 +6,12 @@ namespace StencilPad.Canvases.Common;
 
 public class HandleMap : IUnitSnap
 {
+    public Sheet? Sheet
+    {
+        get => _sheet;
+        set => SetSheet(value);
+    }
+    
     private Sheet? _sheet;
     private Dictionary<Handle, Unit2D> _byHandle;
     private QuadTree<Handle> _byPosition;
@@ -23,8 +29,13 @@ public class HandleMap : IUnitSnap
         _queryResults = [];
     }
 
-    public void SetSheet(Sheet? sheet)
+    private void SetSheet(Sheet? sheet)
     {
+        if (_sheet == sheet)
+        {
+            return;
+        }
+        
         if (_sheet is not null)
         {
             _sheet.Elements.CollectionChanged -= SheetElementsChanged;

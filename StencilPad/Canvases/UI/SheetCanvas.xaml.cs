@@ -63,6 +63,7 @@ namespace StencilPad.Canvases.UI
         public IUnitSnap UnitSnap => _unitSnap;
         
         private readonly VisualViewport _viewport;
+        private readonly HandleMap _handleMap;
         private readonly SheetRenderer _sheetRenderer;
         private readonly EditOverlayRenderer _editOverlayRenderer;
         private readonly CanvasGrid _canvasGrid;
@@ -79,6 +80,7 @@ namespace StencilPad.Canvases.UI
         public SheetCanvas()
         {   
             _viewport = new VisualViewport();
+            _handleMap = new HandleMap();
             _sheetRenderer = new SheetRenderer();
             _editOverlayRenderer = new EditOverlayRenderer();
 
@@ -118,7 +120,8 @@ namespace StencilPad.Canvases.UI
 
             _viewport.ViewportChanged += UpdateCanvasSize;
             
-            _unitSnap.Add(_canvasGrid);
+            // _unitSnap.Add(_canvasGrid);
+            _unitSnap.Add(_handleMap);
 
             Loaded += (s, e) =>
             {
@@ -136,6 +139,7 @@ namespace StencilPad.Canvases.UI
 
             sheetCanvas._sheetRenderer.Sheet = e.NewValue as Sheet;
             sheetCanvas._editOverlayRenderer.Sheet = e.NewValue as Sheet;
+            sheetCanvas._handleMap.Sheet = e.NewValue as Sheet;
         }
 
         private static void OnZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -167,7 +171,8 @@ namespace StencilPad.Canvases.UI
 
             if ((bool)e.NewValue)
             {
-                sheetCanvas._unitSnap.Add(sheetCanvas._canvasGrid);
+                // sheetCanvas._unitSnap.Add(sheetCanvas._canvasGrid);
+                sheetCanvas._unitSnap.Add(sheetCanvas._handleMap);
             }
             else
             {
