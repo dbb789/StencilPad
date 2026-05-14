@@ -5,16 +5,16 @@ namespace StencilPad.Models;
 
 public class EditablePolygonList : IEditablePolygonSet
 {
-    public IHandleSet HandleSet => _handleSet;
+    public IHandleSource HandleSource => _handleSource;
 
     public Unit2D Position
     {
-        get => _handleSet.Position;
-        set => _handleSet.Position = value;
+        get => _handleSource.Position;
+        set => _handleSource.Position = value;
     }
     
     private List<EditablePolygon> _polygons;
-    private GroupHandleSet _handleSet;
+    private GroupHandleSource _handleSource;
     
     public EditablePolygon this[int index] => _polygons[index];
     public int Count => _polygons.Count;
@@ -25,13 +25,13 @@ public class EditablePolygonList : IEditablePolygonSet
     public EditablePolygonList()
     {
         _polygons = [];
-        _handleSet = new GroupHandleSet();
+        _handleSource = new GroupHandleSource();
     }
 
     public void Add(EditablePolygon polygon)
     {
         _polygons.Add(polygon);
-        _handleSet.Add(polygon);
+        _handleSource.Add(polygon);
 
         PolygonAdded?.Invoke(polygon);
     }
@@ -55,9 +55,9 @@ public class EditablePolygonList : IEditablePolygonSet
             PolygonAdded?.Invoke(polygon);
         }
 
-        _handleSet = new GroupHandleSet(_polygons);
-        _handleSet.Position = other._handleSet.Position;
-        _handleSet.SetSelectedHandles(other.HandleSet.GetSelectedHandles());
+        _handleSource = new GroupHandleSource(_polygons);
+        _handleSource.Position = other._handleSource.Position;
+        _handleSource.SetSelectedHandles(other.HandleSource.GetSelectedHandles());
     }
 
     public List<EditablePolygon>.Enumerator GetEnumerator()

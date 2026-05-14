@@ -5,7 +5,7 @@ namespace StencilPad.Models;
 public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 {
     public IEditablePolygonSet PolygonSet => _singlePolygon;
-    public override IHandleSet HandleSet => _singlePolygon.HandleSet;
+    public override IHandleSource HandleSource => _singlePolygon.HandleSource;
 
     public EditablePolygon Polygon => _singlePolygon.Polygon;
     private SingleEditablePolygon _singlePolygon;

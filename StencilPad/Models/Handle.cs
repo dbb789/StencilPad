@@ -4,22 +4,22 @@ public readonly struct Handle : IEquatable<Handle>
 {
     public static readonly Handle DisplayOnly = new(default, HandleType.Move, HandleKey.None);
 
-    public HandleSetId HandleSetId { get; init; }
+    public HandleSourceId HandleSetId { get; init; }
     public HandleType Type { get; init; }
     public HandleKey Key { get; init; }
     
     public bool CanGroupMove => Type == HandleType.Move;
 
-    public static Handle Move(HandleSetId handleSetId, PolygonHandleKey key) =>
+    public static Handle Move(HandleSourceId handleSetId, PolygonHandleKey key) =>
         new(handleSetId, HandleType.Move, new HandleKey(key));
 
-    public static Handle Adjust(HandleSetId handleSetId, PolygonHandleKey key) =>
+    public static Handle Adjust(HandleSourceId handleSetId, PolygonHandleKey key) =>
         new(handleSetId, HandleType.Adjust, new HandleKey(key));
 
-    public static Handle Move(HandleSetId handleSetId, StartEndHandleKey key) =>
+    public static Handle Move(HandleSourceId handleSetId, StartEndHandleKey key) =>
         new(handleSetId, HandleType.Move, new HandleKey(key));
 
-    private Handle(HandleSetId handleSetId, HandleType type, HandleKey key)
+    private Handle(HandleSourceId handleSetId, HandleType type, HandleKey key)
     {
         HandleSetId = handleSetId;
         Type = type;

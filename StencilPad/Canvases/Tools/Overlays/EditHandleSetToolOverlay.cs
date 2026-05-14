@@ -23,7 +23,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         {
             foreach (var element in _selection)
             {
-                var handleSet = element.HandleSet;
+                var handleSet = element.HandleSource;
 
                 handleSet.HandleAdded += HandleAdded;
                 handleSet.HandleRemoved += HandleRemoved;
@@ -36,7 +36,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
             foreach (var element in _selection)
             {
-                var handleSet = element.HandleSet;
+                var handleSet = element.HandleSource;
 
                 handleSet.HandleAdded += HandleAdded;
                 handleSet.HandleRemoved += HandleRemoved;
@@ -78,7 +78,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
         foreach (var element in _selection)
         {
-            var handleSet = element.HandleSet;
+            var handleSet = element.HandleSource;
             
             handleSet.HandleAdded += HandleAdded;
             handleSet.HandleRemoved += HandleRemoved;
@@ -99,7 +99,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         foreach (var element in _selection)
         {
-            var handleSet = element.HandleSet;
+            var handleSet = element.HandleSource;
 
             handleSet.HandleAdded -= HandleAdded;
             handleSet.HandleRemoved -= HandleRemoved;
@@ -117,7 +117,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
                                     ContextMenuEventArgs e,
                                     IEnumerable<ISheetElementAction?> actions)
     {
-        var subSelection = _selection.Where(e => e.HandleSet.GetSelectedHandles().Any());
+        var subSelection = _selection.Where(e => e.HandleSource.GetSelectedHandles().Any());
 
         if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
                                                 _context,
@@ -165,19 +165,19 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         widget.DragEnd += OnWidgetDragEnd;
     }
 
-    private void HandleAdded(IHandleSet handleSet, Handle handle, Unit2D position)
+    private void HandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)
     {
         Rebuild();
     }
 
-    private void HandleRemoved(IHandleSet handleSet, Handle handle)
+    private void HandleRemoved(IHandleSource handleSet, Handle handle)
     {
         Rebuild();
     }
     
     private void Rebuild()
     {
-        var entries = _selection.SelectMany(e => e.HandleSet.Handles.Select(
+        var entries = _selection.SelectMany(e => e.HandleSource.Handles.Select(
                                                 h => new HandleEntry(Element: e, Handle: h)))
             .ToList();
 
@@ -212,7 +212,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         foreach (var (handle, entry) in _widgetMap)
         {
-            var point = _context.Viewport.ToPoint(entry.Element.HandleSet.GetPoint(handle));
+            var point = _context.Viewport.ToPoint(entry.Element.HandleSource.GetPoint(handle));
 
             SetLeft(entry.Widget, point.X);
             SetTop(entry.Widget, point.Y);
@@ -223,7 +223,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         foreach (var element in _selection)
         {
-            var handleSet = element.HandleSet;
+            var handleSet = element.HandleSource;
 
             foreach (var handle in handleSet.Handles)
             {
@@ -250,7 +250,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
         
         var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(position));
-        var delta = newPosition - entry.Element.HandleSet.GetPoint(handle);
+        var delta = newPosition - entry.Element.HandleSource.GetPoint(handle);
 
         if (delta == Unit2D.Zero)
         {

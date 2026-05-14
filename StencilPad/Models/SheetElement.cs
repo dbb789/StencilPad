@@ -19,7 +19,7 @@ public abstract class SheetElement<TSelf> : SheetElement where TSelf : SheetElem
 
 public abstract class SheetElement : ModelBase, ISheetElement
 {
-    public abstract IHandleSet HandleSet { get; }
+    public abstract IHandleSource HandleSource { get; }
     public abstract void MirrorX(Unit centerY);
     public abstract void MirrorY(Unit centerX);
     public abstract void Translate(Unit2D delta);

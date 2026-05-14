@@ -2,12 +2,12 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public interface IHandleSet
+public interface IHandleSource
 {
     IEnumerable<Handle> Handles { get; }
 
-    event Action<IHandleSet, Handle, Unit2D>? HandleAdded;
-    event Action<IHandleSet, Handle>? HandleRemoved;
+    event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    event Action<IHandleSource, Handle>? HandleRemoved;
     event Action<Handle, Unit2D>? HandleMoved;
     event Action? SelectionChanged;
 

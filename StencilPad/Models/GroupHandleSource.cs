@@ -2,24 +2,24 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class GroupHandleSet : IHandleSet
+public class GroupHandleSource : IHandleSource
 {
     public Unit2D Position;
 
-    public event Action<IHandleSet, Handle, Unit2D>? HandleAdded;
-    public event Action<IHandleSet, Handle>? HandleRemoved;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<Handle, Unit2D>? HandleMoved;
     
     public event Action? SelectionChanged;
 
     public IEnumerable<Handle> Handles => _handles;
     
-    private readonly List<IHandleSet> _children;
+    private readonly List<IHandleSource> _children;
     private readonly List<Handle> _handles;
     private readonly List<Handle> _selection;
-    private readonly Dictionary<HandleSetId, IHandleSet> _routing;
+    private readonly Dictionary<HandleSourceId, IHandleSource> _routing;
 
-    public GroupHandleSet()
+    public GroupHandleSource()
     {
         _children = [];
         _handles = [];
@@ -27,7 +27,7 @@ public class GroupHandleSet : IHandleSet
         _routing = [];
     }
 
-    public GroupHandleSet(IEnumerable<IHandleSet> children)
+    public GroupHandleSource(IEnumerable<IHandleSource> children)
     {
         _children = [];
         _handles = [];
@@ -37,7 +37,7 @@ public class GroupHandleSet : IHandleSet
         SetChildren(children);
     }
 
-    public void SetChildren(IEnumerable<IHandleSet> children)
+    public void SetChildren(IEnumerable<IHandleSource> children)
     {
         foreach (var child in _children.ToList())
         {
@@ -54,7 +54,7 @@ public class GroupHandleSet : IHandleSet
         }
     }
 
-    public void Add(IHandleSet child)
+    public void Add(IHandleSource child)
     {
         _children.Add(child);
         
@@ -68,7 +68,7 @@ public class GroupHandleSet : IHandleSet
         }
     }
 
-    public void Remove(IHandleSet child)
+    public void Remove(IHandleSource child)
     {
         _children.Remove(child);
         
@@ -115,14 +115,14 @@ public class GroupHandleSet : IHandleSet
         return _routing[handle.HandleSetId].GetPoint(handle) + Position;
     }
     
-    private void OnHandleAdded(IHandleSet handleSet, Handle handle, Unit2D position)
+    private void OnHandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)
     {
         _handles.Add(handle);
         _routing[handle.HandleSetId] = handleSet;        
         HandleAdded?.Invoke(this, handle, position + Position);
     }
 
-    private void OnHandleRemoved(IHandleSet handleSet, Handle handle)
+    private void OnHandleRemoved(IHandleSource handleSet, Handle handle)
     {
         _handles.Remove(handle);
         HandleRemoved?.Invoke(this, handle);

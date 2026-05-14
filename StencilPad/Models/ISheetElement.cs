@@ -5,7 +5,7 @@ namespace StencilPad.Models;
 public interface ISheetElement
 {
     Guid Id { get; }
-    IHandleSet HandleSet { get; }
+    IHandleSource HandleSource { get; }
 
     void MirrorX(Unit centerY);
     void MirrorY(Unit centerX);

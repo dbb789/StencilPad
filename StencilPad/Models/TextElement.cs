@@ -5,18 +5,18 @@ namespace StencilPad.Models;
 
 public class TextElement : SheetElement<TextElement>
 {
-    public override StartEndHandleSet HandleSet { get; }
+    public override StartEndHandleSource HandleSource { get; }
 
     public Unit2D Start
     {
-        get => HandleSet.Start;
-        set => HandleSet.Start = value;
+        get => HandleSource.Start;
+        set => HandleSource.Start = value;
     }
 
     public Unit2D End
     {
-        get => HandleSet.End;
-        set => HandleSet.End = value;
+        get => HandleSource.End;
+        set => HandleSource.End = value;
     }
 
     public Unit2D Size => End - Start;
@@ -81,14 +81,14 @@ public class TextElement : SheetElement<TextElement>
     
     public TextElement()
     {
-        HandleSet = new StartEndHandleSet(Unit2D.Zero, Unit2D.Zero);
-        HandleSet.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource = new StartEndHandleSource(Unit2D.Zero, Unit2D.Zero);
+        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
     }
 
     public TextElement(Unit2D start, string text)
     {
-        HandleSet = new StartEndHandleSet(start, start);
-        HandleSet.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource = new StartEndHandleSource(start, start);
+        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
         _text = text;
     }
 
@@ -106,8 +106,8 @@ public class TextElement : SheetElement<TextElement>
 
     public override void Translate(Unit2D delta)
     {
-        HandleSet.Start += delta;
-        HandleSet.End += delta;
+        HandleSource.Start += delta;
+        HandleSource.End += delta;
     }
 
     public override void AssignFrom(TextElement other)

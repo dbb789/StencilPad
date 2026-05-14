@@ -5,7 +5,7 @@ namespace StencilPad.Models;
 public class ElementGroup : SheetElement<ElementGroup>
 {
     public IEnumerable<ISheetElement> Children => _children;
-    public override GroupHandleSet HandleSet { get; }
+    public override GroupHandleSource HandleSource { get; }
 
     private List<ISheetElement> _children;
 
@@ -14,13 +14,13 @@ public class ElementGroup : SheetElement<ElementGroup>
     public ElementGroup()
     {
         _children = new();
-        HandleSet = new();
+        HandleSource = new();
     }
     
     public ElementGroup(IEnumerable<ISheetElement> children)
     {
         _children = new(children.Select(c => c.DeepClone()));
-        HandleSet = new(_children.Select(child => child.HandleSet));
+        HandleSource = new(_children.Select(child => child.HandleSource));
     }
 
     public override void MirrorX(Unit centerY)
@@ -50,8 +50,8 @@ public class ElementGroup : SheetElement<ElementGroup>
     public override void AssignFrom(ElementGroup other)
     {
         _children = new(other.Children.Select(child => child.DeepClone()));
-        HandleSet.SetChildren(_children.Select(child => child.HandleSet));
-        HandleSet.SetSelectedHandles(other.HandleSet.GetSelectedHandles());
+        HandleSource.SetChildren(_children.Select(child => child.HandleSource));
+        HandleSource.SetSelectedHandles(other.HandleSource.GetSelectedHandles());
 
         ChildrenChanged?.Invoke();
     }

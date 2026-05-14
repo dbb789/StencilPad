@@ -1,10 +1,10 @@
 namespace StencilPad.Models;
 
-public readonly record struct HandleSetId
+public readonly record struct HandleSourceId
 {
     private readonly ulong _value;
 
-    internal HandleSetId(ulong value)
+    public HandleSourceId(ulong value)
     {
         _value = value;
     }

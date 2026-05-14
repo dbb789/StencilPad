@@ -7,7 +7,7 @@ namespace StencilPad.Models;
 public class SingleEditablePolygon : IEditablePolygonSet
 {
     public EditablePolygon Polygon { get; }
-    public IHandleSet HandleSet => Polygon;
+    public IHandleSource HandleSource => Polygon;
 
     public EditablePolygon this[int index] => Polygon;
     public int Count => 1;

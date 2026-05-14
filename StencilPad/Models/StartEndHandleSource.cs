@@ -2,10 +2,10 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class StartEndHandleSet : IHandleSet
+public class StartEndHandleSource : IHandleSource
 {
-    public event Action<IHandleSet, Handle, Unit2D>? HandleAdded { add { } remove { } }
-    public event Action<IHandleSet, Handle>? HandleRemoved { add { } remove { } }
+    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded { add { } remove { } }
+    public event Action<IHandleSource, Handle>? HandleRemoved { add { } remove { } }
     public event Action<Handle, Unit2D>? HandleMoved;
     public event Action? SelectionChanged;
 
@@ -17,7 +17,7 @@ public class StartEndHandleSet : IHandleSet
     private Unit2D _start;
     private Unit2D _end;
     private List<Handle> _selection = [];
-    private HandleSetId _id = HandleFactory.NewId();
+    private HandleSourceId _id = HandleFactory.NewId();
 
     public Unit2D Start
     {
@@ -39,7 +39,7 @@ public class StartEndHandleSet : IHandleSet
         }
     }
 
-    public StartEndHandleSet(Unit2D start, Unit2D end)
+    public StartEndHandleSource(Unit2D start, Unit2D end)
     {
         _start = start;
         _end = end;
@@ -75,7 +75,7 @@ public class StartEndHandleSet : IHandleSet
         SelectionChanged?.Invoke();
     }
 
-    public void AssignFrom(StartEndHandleSet other)
+    public void AssignFrom(StartEndHandleSource other)
     {
         _id = other._id;
         _start = other._start;
@@ -87,9 +87,9 @@ public class StartEndHandleSet : IHandleSet
         HandleMoved?.Invoke(Handles.ElementAt(1), _end);
     }
 
-    public StartEndHandleSet DeepClone()
+    public StartEndHandleSource DeepClone()
     {
-        var clone = new StartEndHandleSet(_start, _end);
+        var clone = new StartEndHandleSource(_start, _end);
 
         clone._id = _id;
         clone._selection.Clear();

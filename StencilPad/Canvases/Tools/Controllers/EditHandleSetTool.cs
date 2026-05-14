@@ -120,17 +120,17 @@ public class EditHandleSetTool : ITool
     {
         if (!handle.CanGroupMove)
         {
-            element.HandleSet.SetPoint(handle, element.HandleSet.GetPoint(handle) + delta);
+            element.HandleSource.SetPoint(handle, element.HandleSource.GetPoint(handle) + delta);
             return;
         }
         
         foreach (var e in _selection)
         {
-            foreach (var selected in e.HandleSet.GetSelectedHandles())
+            foreach (var selected in e.HandleSource.GetSelectedHandles())
             {
                 if (selected.CanGroupMove)
                 {
-                    e.HandleSet.SetPoint(selected, e.HandleSet.GetPoint(selected) + delta);
+                    e.HandleSource.SetPoint(selected, e.HandleSource.GetPoint(selected) + delta);
                 }
             }
         }
@@ -151,7 +151,7 @@ public class EditHandleSetTool : ITool
                                           Handle handle,
                                           bool selected)
     {
-        var list = element.HandleSet.GetSelectedHandles().ToList();
+        var list = element.HandleSource.GetSelectedHandles().ToList();
 
         if (IsModifyingSelection())
         {
@@ -170,7 +170,7 @@ public class EditHandleSetTool : ITool
             {
                 if (otherElement != element)
                 {
-                    otherElement.HandleSet.SetSelectedHandles([]);
+                    otherElement.HandleSource.SetSelectedHandles([]);
                 }
             }
             
@@ -182,7 +182,7 @@ public class EditHandleSetTool : ITool
             }
         }
 
-        element.HandleSet.SetSelectedHandles(list);
+        element.HandleSource.SetSelectedHandles(list);
     }
 
     private void OnBoundsSelected(UnitBounds bounds)
@@ -196,15 +196,15 @@ public class EditHandleSetTool : ITool
         
         foreach (var element in _selection)
         {
-            var handles = element.HandleSet.Handles
-                .Where(h => bounds.Contains(element.HandleSet.GetPoint(h)));
+            var handles = element.HandleSource.Handles
+                .Where(h => bounds.Contains(element.HandleSource.GetPoint(h)));
 
             if (modifyingSelection)
             {
-                handles = handles.Union(element.HandleSet.GetSelectedHandles());
+                handles = handles.Union(element.HandleSource.GetSelectedHandles());
             }
             
-            element.HandleSet.SetSelectedHandles(handles);
+            element.HandleSource.SetSelectedHandles(handles);
         }
     }
 
@@ -217,7 +217,7 @@ public class EditHandleSetTool : ITool
         
         foreach (var element in _selection)
         {
-            element.HandleSet.SetSelectedHandles([]);
+            element.HandleSource.SetSelectedHandles([]);
         }
     }
     
@@ -251,7 +251,7 @@ public class EditHandleSetTool : ITool
     private IEnumerable<ISheetElement> GetEditableSelection()
     {
         return _sheet.Selection
-            .Where(e => e.HandleSet.Handles.Any());
+            .Where(e => e.HandleSource.Handles.Any());
     }
 }
 

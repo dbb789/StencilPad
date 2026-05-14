@@ -104,19 +104,19 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     private void Add(ISheetElement element)
     {
-        foreach (var handle in element.HandleSet.Handles)
+        foreach (var handle in element.HandleSource.Handles)
         {
-            Add(handle, element.HandleSet.GetPoint(handle));
+            Add(handle, element.HandleSource.GetPoint(handle));
             
-            element.HandleSet.HandleMoved += HandleMoved;
+            element.HandleSource.HandleMoved += HandleMoved;
         }
     }
 
     private void Remove(ISheetElement element)
     {
-        foreach (var handle in element.HandleSet.Handles)
+        foreach (var handle in element.HandleSource.Handles)
         {
-            element.HandleSet.HandleMoved -= HandleMoved;
+            element.HandleSource.HandleMoved -= HandleMoved;
 
             Remove(handle);
         }

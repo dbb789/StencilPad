@@ -2,18 +2,18 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class EditablePolygon : Polygon, IHandleSet
+public class EditablePolygon : Polygon, IHandleSource
 {
     public IEnumerable<Handle> Handles => _handles;
     
-    private HandleSetId _id = HandleFactory.NewId();
+    private HandleSourceId _id = HandleFactory.NewId();
     private List<Handle> _handles;
     private List<Handle> _selection;
     private List<int> _selectedEdges;
     private List<int> _selectedVertices;
 
-    public event Action<IHandleSet, Handle, Unit2D>? HandleAdded;
-    public event Action<IHandleSet, Handle>? HandleRemoved;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<Handle, Unit2D>? HandleMoved;
     public event Action? SelectionChanged;
 

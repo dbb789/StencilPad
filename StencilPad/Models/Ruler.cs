@@ -4,18 +4,18 @@ namespace StencilPad.Models;
 
 public class Ruler : SheetElement<Ruler>
 {
-    public override StartEndHandleSet HandleSet { get; }
+    public override StartEndHandleSource HandleSource { get; }
 
     public Unit2D Start
     {
-        get => HandleSet.Start;
-        set => HandleSet.Start = value;
+        get => HandleSource.Start;
+        set => HandleSource.Start = value;
     }
     
     public Unit2D End
     {
-        get => HandleSet.End;
-        set => HandleSet.End = value;
+        get => HandleSource.End;
+        set => HandleSource.End = value;
     }
 
     public Unit Length => (End - Start).Magnitude;
@@ -24,13 +24,13 @@ public class Ruler : SheetElement<Ruler>
     
     public Ruler()
     {
-        HandleSet = new StartEndHandleSet(Unit2D.Zero, Unit2D.Zero);
-        HandleSet.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource = new StartEndHandleSource(Unit2D.Zero, Unit2D.Zero);
+        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
     }
     
     public Ruler(Unit2D start, Unit2D end)
     {
-        HandleSet = new StartEndHandleSet(start, end);
+        HandleSource = new StartEndHandleSource(start, end);
     }
     
     public override void MirrorX(Unit centerY)
@@ -47,13 +47,13 @@ public class Ruler : SheetElement<Ruler>
 
     public override void Translate(Unit2D delta)
     {
-        HandleSet.Start += delta;
-        HandleSet.End += delta;
+        HandleSource.Start += delta;
+        HandleSource.End += delta;
     }
     
     public override void AssignFrom(Ruler other)
     {
-        HandleSet.AssignFrom(other.HandleSet);
+        HandleSource.AssignFrom(other.HandleSource);
     }
 
     public override Ruler DeepClone()
