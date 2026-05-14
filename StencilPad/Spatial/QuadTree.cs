@@ -31,6 +31,18 @@ public class QuadTree<T>
         return _root.Remove(UnitBounds.FromCenterSize(point, RemoveRegion), value);
     }
 
+    public bool Move(Unit2D oldPoint, Unit2D newPoint, T value)
+    {
+        if (Remove(oldPoint, value))
+        {
+            Insert(newPoint, value);
+
+            return true;
+        }
+
+        return false;
+    }
+    
     public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
     {
         _root.Query(bounds, results);

@@ -17,9 +17,11 @@ public class GroupHandleSource : IHandleSource
             }
 
             _position = value;
-            
-            foreach (var handle in _handles)
+
+            for (int i = 0; i < _handles.Count; i++)
             {
+                var handle = _handles[i];
+                
                 HandleMoved?.Invoke(this, handle, GetPoint(handle));
             }
         }

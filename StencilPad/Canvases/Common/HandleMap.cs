@@ -110,20 +110,20 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         foreach (var handle in element.HandleSource.Handles)
         {
-            Add(element, handle, element.HandleSource.GetPoint(handle));
-            
-            element.HandleSource.HandleMoved += OnHandleMoved;
+            Add(element, handle, element.HandleSource.GetPoint(handle));    
         }
+        
+        element.HandleSource.HandleMoved += OnHandleMoved;
     }
 
     private void Remove(ISheetElement element)
     {
         foreach (var handle in element.HandleSource.Handles)
         {
-            element.HandleSource.HandleMoved -= OnHandleMoved;
-
             Remove(element, handle);
         }
+        
+        element.HandleSource.HandleMoved -= OnHandleMoved;
     }
 
     private void Add(ISheetElement element, Handle handle, Unit2D position)
@@ -148,11 +148,10 @@ public class HandleMap : IHandleMap, IUnitSnap
         if (_byHandle.TryGetValue(handle, out var oldPosition))
         {
             var entry = new HandleMapEntry(handleSource, handle);
-            
-            if (_byPosition.Remove(oldPosition, entry))
+
+            if (_byPosition.Move(oldPosition, position, entry))
             {
                 _byHandle[handle] = position;
-                _byPosition.Insert(position, entry);
 
                 HandleMoved?.Invoke(handleSource, handle, position);
             }

@@ -118,12 +118,18 @@ public class FlatSet<T> : IEnumerable<T> where T : struct
 
     public void AddRange(IEnumerable<T> elements)
     {
-        // NOTE: There's an optimisation here where we can just put these on the
-        // end of the array and do a full resort, but this is simpler for now.
+        if (_data.Length < _dataLength + elements.Count())
+        {
+            _data = new T[_dataLength + elements.Count()];
+            Array.Copy(_data, _data, _dataLength);
+        }
+
         foreach (var element in elements)
         {
-            Add(element);
+            _data[_dataLength++] = element;
         }
+
+        Array.Sort(_data, 0, _dataLength);
     }
 
     public static FlatSet<T> Intersection(FlatSet<T> a, FlatSet<T> b)

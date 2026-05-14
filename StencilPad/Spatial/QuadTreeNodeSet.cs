@@ -90,7 +90,15 @@ public struct QuadTreeNodeSet<T>
         _sw.Query(bounds, results);
         _se.Query(bounds, results);
     }
-
+    
+    public void GetAllValues(List<(T, Unit2D)> results)
+    {
+        _nw.GetAllValues(results);
+        _ne.GetAllValues(results);
+        _sw.GetAllValues(results);
+        _se.GetAllValues(results);
+    }
+    
     public bool Empty()
     {
         return _nw.IsEmpty && _ne.IsEmpty && _sw.IsEmpty && _se.IsEmpty;

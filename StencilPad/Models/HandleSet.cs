@@ -25,11 +25,11 @@ public class HandleSet : IEnumerable<Handle>
         Handles = handles;
     }
 
-    public static HandleSet Intersection(HandleSet a, HandleSet b)
+    public bool Contains(Handle handle)
     {
-        return new HandleSet(FlatSet<Handle>.Intersection(a.Handles, b.Handles));
+        return Handles.Contains(handle);
     }
-
+    
     public FlatSet<Handle>.Enumerator GetEnumerator()
     {
         return Handles.GetEnumerator();
@@ -43,5 +43,10 @@ public class HandleSet : IEnumerable<Handle>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return Handles.GetEnumerator();
+    }
+
+    public static HandleSet Intersection(HandleSet a, HandleSet b)
+    {
+        return new HandleSet(FlatSet<Handle>.Intersection(a.Handles, b.Handles));
     }
 }

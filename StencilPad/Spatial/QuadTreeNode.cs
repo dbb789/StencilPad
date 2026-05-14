@@ -101,6 +101,14 @@ public class QuadTreeNode<T>
         {
             return;
         }
+
+        // If this node is completely within the query bounds, we can add all of
+        // its values without further checks.
+        if (bounds.Contains(Bounds))
+        {
+            GetAllValues(results);
+            return;
+        }
         
         if (_children is not null)
         {
@@ -118,6 +126,18 @@ public class QuadTreeNode<T>
         }
     }
 
+    public void GetAllValues(List<(T, Unit2D)> results)
+    {
+        if (_children is not null)
+        {
+            _children.Value.GetAllValues(results);
+        }
+        else
+        {
+            results.AddRange(_values);
+        }
+    }
+    
     private void Subdivide()
     {
         _children = new QuadTreeNodeSet<T>(_nodePool,
