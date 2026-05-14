@@ -60,22 +60,24 @@ public class QuadTreeNode<T>
         }
     }
 
-    public void Remove(UnitBounds bounds, T value)
+    public bool Remove(UnitBounds bounds, T value)
     {
         if (!Bounds.Intersects(bounds))
         {
-            return;
+            return false;
         }
 
         if (_children is not null)
         {
-            _children.Value.Remove(bounds, value);
+            bool removed = _children.Value.Remove(bounds, value);
 
             if (_children.Value.Empty())
             {
                 _children.Value.Recycle();
                 _children = null;
             }
+
+            return removed;
         }
         else
         {
@@ -85,10 +87,12 @@ public class QuadTreeNode<T>
                     bounds.Contains(_values[i].Item2))
                 {
                     _values.RemoveAt(i);
-                    return;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     public void Query(UnitBounds bounds, List<(T, Unit2D)> results)

@@ -75,12 +75,12 @@ public struct QuadTreeNodeSet<T>
         }
     }
 
-    public void Remove(UnitBounds bounds, T value)
+    public bool Remove(UnitBounds bounds, T value)
     {
-        _nw.Remove(bounds, value);
-        _ne.Remove(bounds, value);
-        _sw.Remove(bounds, value);
-        _se.Remove(bounds, value);
+        return _nw.Remove(bounds, value)
+            || _ne.Remove(bounds, value)
+            || _sw.Remove(bounds, value)
+            || _se.Remove(bounds, value);
     }
     
     public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
