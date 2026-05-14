@@ -3,8 +3,8 @@ namespace StencilPad.Spatial;
 public class QuadTreeNode<T>
 {
     public QuadTreeNode<T>? Parent => _parent;
-    public bool IsLeaf => _children == null;
-    public bool IsEmpty => IsLeaf && _values.Count == 0;
+    public bool IsLeaf => !_hasChildren;
+    public bool IsEmpty => !_hasChildren && _values.Count == 0;
     public UnitBounds Bounds => _bounds;
     
     private readonly IObjectPool<QuadTreeNode<T>> _nodePool;
@@ -12,7 +12,8 @@ public class QuadTreeNode<T>
     private readonly List<(T, Unit2D)> _values;
     private QuadTreeNode<T>? _parent;
     private UnitBounds _bounds;
-    private QuadTreeNodeSet<T>? _children;
+    private bool _hasChildren;
+    private QuadTreeNodeSet<T> _children;
     private int _maxDepth;
     
     public QuadTreeNode(IObjectPool<QuadTreeNode<T>> nodePool,
@@ -23,7 +24,7 @@ public class QuadTreeNode<T>
         _nodeCapacity = nodeCapacity;
         _values = new(nodeCapacity + 1);
         _parent = null;
-        _children = null;
+        _hasChildren = false;
         _maxDepth = 0;
     }
 
@@ -43,18 +44,18 @@ public class QuadTreeNode<T>
         _parent = null;
         _values.Clear();
         
-        if (_children is not null)
+        if (_hasChildren)
         {
-            _children.Value.Recycle();
-            _children = null;
+            _children.Recycle();
+            _hasChildren = false;
         }
     }
 
     public void Insert(Unit2D point, T value)
     {
-        if (_children is not null)
+        if (_hasChildren)
         {
-            _children.Value.Insert(point, value);
+            _children.Insert(point, value);
         }
         else
         {
@@ -74,9 +75,9 @@ public class QuadTreeNode<T>
             return null;
         }
 
-        if (_children is not null)
+        if (_hasChildren)
         {
-            return _children.Value.Remove(bounds, value);
+            return _children.Remove(bounds, value);
         }
         else
         {
@@ -97,10 +98,10 @@ public class QuadTreeNode<T>
 
     public void Prune()
     {
-        if (_children is not null && _children.Value.Empty())
+        if (_hasChildren && _children.Empty())
         {
-            _children.Value.Recycle();
-            _children = null;
+            _children.Recycle();
+            _hasChildren = false;
         }
     }
 
@@ -119,9 +120,9 @@ public class QuadTreeNode<T>
             return;
         }
         
-        if (_children is not null)
+        if (_hasChildren)
         {
-            _children.Value.Query(bounds, results);
+            _children.Query(bounds, results);
         }
         else
         {
@@ -137,9 +138,9 @@ public class QuadTreeNode<T>
 
     public void GetAllValues(List<(T, Unit2D)> results)
     {
-        if (_children is not null)
+        if (_hasChildren)
         {
-            _children.Value.GetAllValues(results);
+            _children.GetAllValues(results);
         }
         else
         {
@@ -149,15 +150,17 @@ public class QuadTreeNode<T>
     
     private void Subdivide()
     {
-        _children = new QuadTreeNodeSet<T>(this,
-                                           _nodePool,
-                                           _nodeCapacity,
-                                           _bounds,
-                                           _maxDepth - 1);
+        _children.Initialize(this,
+                             _nodePool,
+                             _nodeCapacity,
+                             _bounds,
+                             _maxDepth - 1);
         
+        _hasChildren = true;
+
         foreach (var (value, valuePoint) in _values)
         {
-            _children.Value.Insert(valuePoint, value);
+            _children.Insert(valuePoint, value);
         }
 
         _values.Clear();

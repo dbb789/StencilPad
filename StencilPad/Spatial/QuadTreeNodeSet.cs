@@ -10,7 +10,7 @@ public struct QuadTreeNodeSet<T>
     private QuadTreeNode<T> _se;
 
 
-    public QuadTreeNodeSet(QuadTreeNode<T> parent,
+    public void Initialize(QuadTreeNode<T> parent,
                            IObjectPool<QuadTreeNode<T>> nodePool,
                            int nodeCapacity,
                            UnitBounds bounds,
