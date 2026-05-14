@@ -26,7 +26,7 @@ public class QuadTree<T>
         _root.Remove(UnitBounds.FromCenterSize(point, RemoveRegion), value);
     }
 
-    public void Query(UnitBounds bounds, List<T> results)
+    public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
     {
         _root.Query(bounds, results);
     }

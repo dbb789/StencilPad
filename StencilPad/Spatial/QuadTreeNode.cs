@@ -70,7 +70,7 @@ public class QuadTreeNode<T>
         }
     }
 
-    public void Query(UnitBounds bounds, List<T> results)
+    public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
     {
         if (!Bounds.Intersects(bounds))
         {
@@ -87,7 +87,7 @@ public class QuadTreeNode<T>
             {
                 if (bounds.Contains(valuePoint))
                 {
-                    results.Add(value);
+                    results.Add((value, valuePoint));
                 }
             }
         }

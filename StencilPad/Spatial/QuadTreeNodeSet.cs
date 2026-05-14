@@ -55,7 +55,7 @@ public struct QuadTreeNodeSet<T>
         _se.Remove(bounds, value);
     }
     
-    public void Query(UnitBounds bounds, List<T> results)
+    public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
     {
         _nw.Query(bounds, results);
         _ne.Query(bounds, results);
