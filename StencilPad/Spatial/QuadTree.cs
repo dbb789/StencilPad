@@ -44,15 +44,16 @@ public class QuadTree<T>
             return false;
         }
 
-        if (node.Bounds.Contains(newPoint))
+        var insertNode = node;
+
+        while (insertNode.Parent is not null &&
+               !insertNode.Bounds.Contains(newPoint))
         {
-            node.Insert(newPoint, value);
+            insertNode = insertNode.Parent;
         }
-        else
-        {
-            Insert(newPoint, value);
-            node.Parent?.Prune();
-        }
+
+        insertNode.Insert(newPoint, value);
+        node.Parent?.Prune();
 
         return true;
     }

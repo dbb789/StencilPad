@@ -31,11 +31,11 @@ public class QuadTreeNode<T>
                            UnitBounds bounds,
                            int maxDepth)
     {
+        Clear();
+        
         _parent = parent;
         _bounds = bounds;
         _maxDepth = maxDepth;
-        
-        Clear();
     }
 
     public void Clear()
