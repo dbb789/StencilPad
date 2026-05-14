@@ -2,25 +2,53 @@ namespace StencilPad.Spatial;
 
 public struct QuadTreeNodeSet<T>
 {
+    private IObjectPool<QuadTreeNode<T>> _nodePool;
+    private UnitBounds _bounds;
     private QuadTreeNode<T> _nw;
     private QuadTreeNode<T> _ne;
     private QuadTreeNode<T> _sw;
     private QuadTreeNode<T> _se;
 
-    private UnitBounds _bounds;
 
-    public QuadTreeNodeSet(UnitBounds bounds,
+    public QuadTreeNodeSet(IObjectPool<QuadTreeNode<T>> nodePool,
                            int nodeCapacity,
+                           UnitBounds bounds,
                            int maxDepth)
     {
+        _nodePool = nodePool;
         _bounds = bounds;
+        _nw = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
+        _nw.Initialize(NWBounds(), maxDepth);
         
-        _nw = new QuadTreeNode<T>(NWBounds(), nodeCapacity, maxDepth);
-        _ne = new QuadTreeNode<T>(NEBounds(), nodeCapacity, maxDepth);
-        _sw = new QuadTreeNode<T>(SWBounds(), nodeCapacity, maxDepth);
-        _se = new QuadTreeNode<T>(SEBounds(), nodeCapacity, maxDepth);
+        _ne = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
+        _ne.Initialize(NEBounds(), maxDepth);
+        
+        _sw = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
+        _sw.Initialize(SWBounds(), maxDepth);
+        
+        _se = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
+        _se.Initialize(SEBounds(), maxDepth);
     }
 
+    public void Recycle()
+    {
+        _nw.Clear();
+        _nodePool.Recycle(_nw);
+        _nw = null!;
+
+        _ne.Clear();
+        _nodePool.Recycle(_ne);
+        _ne = null!;
+
+        _sw.Clear();
+        _nodePool.Recycle(_sw);
+        _sw = null!;
+
+        _se.Clear();
+        _nodePool.Recycle(_se);
+        _se = null!;
+    }
+    
     public void Insert(Unit2D point, T value)
     {
         if (point.X < _bounds.Center.X)

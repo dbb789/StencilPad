@@ -5,22 +5,42 @@ public class QuadTreeNode<T>
     public bool IsLeaf => _children == null;
     public bool IsEmpty => IsLeaf && _values.Count == 0;
     public UnitBounds Bounds => _bounds;
-    
+
+    private readonly IObjectPool<QuadTreeNode<T>> _nodePool;
+    private readonly int _nodeCapacity;
+    private readonly List<(T, Unit2D)> _values;
     private UnitBounds _bounds;
-    private int _nodeCapacity;
-    private List<(T, Unit2D)> _values;
     private QuadTreeNodeSet<T>? _children;
     private int _maxDepth;
     
-    public QuadTreeNode(UnitBounds bounds,
-                        int nodeCapacity,
-                        int maxDepth)
+    public QuadTreeNode(IObjectPool<QuadTreeNode<T>> nodePool,
+                        int nodeCapacity)
     {
-        _bounds = bounds;
+        _nodePool = nodePool;
+        _bounds = UnitBounds.Empty;
         _nodeCapacity = nodeCapacity;
         _values = new(nodeCapacity + 1);
         _children = null;
+        _maxDepth = 0;
+    }
+
+    public void Initialize(UnitBounds bounds, int maxDepth)
+    {
+        _bounds = bounds;
         _maxDepth = maxDepth;
+        
+        Clear();
+    }
+
+    public void Clear()
+    {
+        _values.Clear();
+        
+        if (_children is not null)
+        {
+            _children.Value.Recycle();
+            _children = null;
+        }
     }
 
     public void Insert(Unit2D point, T value)
@@ -53,6 +73,7 @@ public class QuadTreeNode<T>
 
             if (_children.Value.Empty())
             {
+                _children.Value.Recycle();
                 _children = null;
             }
         }
@@ -95,7 +116,10 @@ public class QuadTreeNode<T>
 
     private void Subdivide()
     {
-        _children = new QuadTreeNodeSet<T>(_bounds, _nodeCapacity, _maxDepth - 1);
+        _children = new QuadTreeNodeSet<T>(_nodePool,
+                                           _nodeCapacity,
+                                           _bounds,
+                                           _maxDepth - 1);
         
         foreach (var (value, valuePoint) in _values)
         {
