@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
@@ -136,8 +137,24 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
         dc.PushTransform(_context.Viewport.GetMillimetersToPixelsTransform());
+
         _editOverlayRenderer.Render(dc);
+
         dc.Pop();
+        
+        var handleList = new List<(Handle, Unit2D)>();
+
+        var pageSize = new Unit2D(Unit.FromMillimeters(1000), Unit.FromMillimeters(1000));
+
+        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize), handleList);
+
+        foreach (var (handle, position) in handleList)
+        {
+            var point = _context.Viewport.ToPoint(position);
+
+            dc.DrawEllipse(Brushes.Red, new Pen(Brushes.Red, 0.5), point, 10, 10);
+        }
+        
     }
 
     private void WidgetAdded(HandleWidget widget)

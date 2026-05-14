@@ -55,6 +55,7 @@ namespace StencilPad.Canvases.UI
         
         public IViewport Viewport => _viewport;
         public IRubberBand RubberBand => _rubberBandEventPanel;
+        public IHandleMap HandleMap => _handleMap;
         public SheetRenderer SheetRenderer => _sheetRenderer;
         public EditOverlayRenderer EditOverlayRenderer => _editOverlayRenderer;
         public CanvasGrid CanvasGrid => _canvasGrid;

@@ -13,6 +13,7 @@ public interface IToolContext
     SheetRenderer SheetRenderer { get; }
     EditOverlayRenderer EditOverlayRenderer { get; }
     IViewport Viewport { get; }
+    IHandleMap HandleMap { get; }
     IRubberBand RubberBand { get; }
     IUnitSnap UnitSnap { get; }
     event Action? SelectAllRequested;

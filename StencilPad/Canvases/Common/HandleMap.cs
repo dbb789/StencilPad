@@ -4,7 +4,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
 
-public class HandleMap : IUnitSnap
+public class HandleMap : IHandleMap, IUnitSnap
 {
     public Sheet? Sheet
     {
@@ -29,6 +29,11 @@ public class HandleMap : IUnitSnap
         _queryResults = [];
     }
 
+    public void QueryHandles(UnitBounds bounds, List<(Handle, Unit2D)> results)
+    {
+        _byPosition.Query(bounds, results);
+    }
+    
     private void SetSheet(Sheet? sheet)
     {
         if (_sheet == sheet)
@@ -102,6 +107,8 @@ public class HandleMap : IUnitSnap
         foreach (var handle in element.HandleSet.Handles)
         {
             Add(handle, element.HandleSet.GetPoint(handle));
+            
+            element.HandleSet.HandleMoved += HandleMoved;
         }
     }
 
@@ -109,6 +116,8 @@ public class HandleMap : IUnitSnap
     {
         foreach (var handle in element.HandleSet.Handles)
         {
+            element.HandleSet.HandleMoved -= HandleMoved;
+
             Remove(handle);
         }
     }
@@ -125,6 +134,18 @@ public class HandleMap : IUnitSnap
         {
             _byPosition.Remove(position, handle);
             _byHandle.Remove(handle);
+        }
+    }
+
+    private void HandleMoved(Handle handle, Unit2D position)
+    {
+        if (_byHandle.TryGetValue(handle, out var oldPosition))
+        {
+            if (_byPosition.Remove(oldPosition, handle))
+            {
+                _byHandle[handle] = position;
+                _byPosition.Insert(position, handle);
+            }
         }
     }
 }
