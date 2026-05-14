@@ -29,7 +29,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         _byHandle = new();
         _byPosition = new QuadTree<HandleMapEntry>(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize),
                                                    nodeCapacity: 64,
-                                                   maxDepth: 64);
+                                                   maxDepth: 16);
         _queryResults = [];
     }
 

@@ -2,6 +2,7 @@ namespace StencilPad.Spatial;
 
 public class QuadTreeNode<T>
 {
+    public QuadTreeNode<T>? Parent => _parent;
     public bool IsLeaf => _children == null;
     public bool IsEmpty => IsLeaf && _values.Count == 0;
     public UnitBounds Bounds => _bounds;
@@ -39,6 +40,7 @@ public class QuadTreeNode<T>
 
     public void Clear()
     {
+        _parent = null;
         _values.Clear();
         
         if (_children is not null)
@@ -74,15 +76,7 @@ public class QuadTreeNode<T>
 
         if (_children is not null)
         {
-            var node = _children.Value.Remove(bounds, value);
-
-            if (_children.Value.Empty())
-            {
-                _children.Value.Recycle();
-                _children = null;
-            }
-
-            return node;
+            return _children.Value.Remove(bounds, value);
         }
         else
         {
@@ -99,6 +93,15 @@ public class QuadTreeNode<T>
         }
 
         return null;
+    }
+
+    public void Prune()
+    {
+        if (_children is not null && _children.Value.Empty())
+        {
+            _children.Value.Recycle();
+            _children = null;
+        }
     }
 
     public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
