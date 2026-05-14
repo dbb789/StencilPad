@@ -49,9 +49,9 @@ public readonly record struct UnitBounds
 
     public Unit2D Center { get; private init; }
     public Unit2D Size { get; private init; }
-    public Unit Area => Size.X * Size.Y;
     public Unit2D Min => Center - Size / 2.0;
     public Unit2D Max => Center + Size / 2.0;
+    public Unit Area => Size.X * Size.Y;
 
     public bool Contains(Unit2D point)
     {
