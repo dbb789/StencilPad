@@ -24,7 +24,8 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
             {
                 var handleSet = element.HandleSet;
 
-                handleSet.HandlesChanged -= Rebuild;
+                handleSet.HandleAdded += HandleAdded;
+                handleSet.HandleRemoved += HandleRemoved;
                 handleSet.HandleMoved -= Reposition;
                 handleSet.SelectionChanged -= UpdateSelection;
             }
@@ -36,7 +37,8 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
             {
                 var handleSet = element.HandleSet;
 
-                handleSet.HandlesChanged += Rebuild;
+                handleSet.HandleAdded += HandleAdded;
+                handleSet.HandleRemoved += HandleRemoved;
                 handleSet.HandleMoved += Reposition;
                 handleSet.SelectionChanged += UpdateSelection;
             }
@@ -77,7 +79,8 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         {
             var handleSet = element.HandleSet;
             
-            handleSet.HandlesChanged += Rebuild;
+            handleSet.HandleAdded += HandleAdded;
+            handleSet.HandleRemoved += HandleRemoved;
             handleSet.HandleMoved += Reposition;
             handleSet.SelectionChanged += UpdateSelection;
         }
@@ -96,8 +99,9 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         foreach (var element in _selection)
         {
             var handleSet = element.HandleSet;
-            
-            handleSet.HandlesChanged -= Rebuild;
+
+            handleSet.HandleAdded -= HandleAdded;
+            handleSet.HandleRemoved -= HandleRemoved;
             handleSet.HandleMoved -= Reposition;
             handleSet.SelectionChanged -= UpdateSelection;
         }
@@ -144,6 +148,16 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         widget.DragEnd += OnWidgetDragEnd;
     }
 
+    private void HandleAdded(IHandleSet handleSet, Handle handle, Unit2D position)
+    {
+        Rebuild();
+    }
+
+    private void HandleRemoved(IHandleSet handleSet, Handle handle)
+    {
+        Rebuild();
+    }
+    
     private void Rebuild()
     {
         var entries = _selection.SelectMany(e => e.HandleSet.Handles.Select(

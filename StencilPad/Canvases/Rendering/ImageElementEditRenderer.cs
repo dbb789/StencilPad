@@ -11,12 +11,12 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
     public ImageElementEditRenderer(ImageElement imageElement)
     {
         _imageElement = imageElement;
-        _imageElement.HandleSet.HandlesChanged += OnChanged;
+        _imageElement.GeometryChanged += InvokeInvalidateVisual;
     }
 
     public override void Dispose()
     {
-        _imageElement.HandleSet.HandlesChanged -= OnChanged;
+        _imageElement.GeometryChanged -= InvokeInvalidateVisual;
     }
 
     public override void Render(DrawingContext dc)
@@ -34,6 +34,4 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
 
         dc.DrawRectangle(Brushes.Transparent, pen, bounds.Millimeters);
     }
-
-    private void OnChanged() => InvokeInvalidateVisual();
 }

@@ -4,8 +4,9 @@ namespace StencilPad.Models;
 
 public class StartEndHandleSet : IHandleSet
 {
+    public event Action<IHandleSet, Handle, Unit2D>? HandleAdded { add { } remove { } }
+    public event Action<IHandleSet, Handle>? HandleRemoved { add { } remove { } }
     public event Action<Handle, Unit2D>? HandleMoved;
-    public event Action? HandlesChanged { add { } remove { } }
     public event Action? SelectionChanged;
 
     public IEnumerable<Handle> Handles => [

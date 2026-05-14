@@ -22,21 +22,28 @@ public class ImageElementRenderer : SheetElementRenderer
     public ImageElementRenderer(ImageElement imageElement)
     {
         _imageElement = imageElement;
-        _imageElement.HandleSet.HandlesChanged += OnHandlesChanged;
+        _imageElement.GeometryChanged += InvokeInvalidateVisual;
         _imageElement.PropertyChanged += OnPropertyChanged;
+        
         RebuildBitmap();
     }
 
     public override void Dispose()
     {
-        _imageElement.HandleSet.HandlesChanged -= OnHandlesChanged;
+        _imageElement.GeometryChanged -= InvokeInvalidateVisual;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
-    public override bool HitTest(Unit2D unit) => SelectionBounds.Contains(unit);
+    public override bool HitTest(Unit2D unit)
+    {
+        return SelectionBounds.Contains(unit);
+    }
 
-    public override bool BoundsTest(UnitBounds bounds) => bounds.Contains(_imageElement.Start);
-
+    public override bool BoundsTest(UnitBounds bounds)
+    {
+        return bounds.Contains(_imageElement.Start);
+    }
+    
     public override void Render(DrawingContext dc)
     {
         if (_bitmap is null || _imageElement.ImageData.Length == 0)

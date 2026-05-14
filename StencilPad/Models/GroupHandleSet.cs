@@ -6,8 +6,10 @@ public class GroupHandleSet : IHandleSet
 {
     public Unit2D Position;
 
+    public event Action<IHandleSet, Handle, Unit2D>? HandleAdded;
+    public event Action<IHandleSet, Handle>? HandleRemoved;
     public event Action<Handle, Unit2D>? HandleMoved;
-    public event Action? HandlesChanged;
+    
     public event Action? SelectionChanged;
 
     public IEnumerable<Handle> Handles => _handles;
@@ -37,40 +39,47 @@ public class GroupHandleSet : IHandleSet
 
     public void SetChildren(IEnumerable<IHandleSet> children)
     {
-        foreach (var child in _children)
+        foreach (var child in _children.ToList())
         {
-            child.HandlesChanged -= RebuildChildHandles;
-            child.HandleMoved -= InvokeHandleMoved;
+            Remove(child);
         }
-        
-        _children.Clear();
+
+        _routing.Clear();
         _selection.Clear();
         SelectionChanged?.Invoke();
         
-        _children.AddRange(children);
-        
-        foreach (var child in _children)
+        foreach (var child in children)
         {
-            child.HandlesChanged += RebuildChildHandles;
-            child.HandleMoved += InvokeHandleMoved;
+            Add(child);
         }
-
-        RebuildChildHandles();
     }
 
     public void Add(IHandleSet child)
     {
         _children.Add(child);
-        child.HandlesChanged += RebuildChildHandles;
-        child.HandleMoved += InvokeHandleMoved;
+        
+        child.HandleAdded += OnHandleAdded;
+        child.HandleRemoved += OnHandleRemoved;
+        child.HandleMoved += OnHandleMoved;
         
         foreach (var handle in child.Handles)
         {
-            _handles.Add(handle);
-            _routing[handle.HandleSetId] = child;
+            OnHandleAdded(child, handle, child.GetPoint(handle));
         }
+    }
+
+    public void Remove(IHandleSet child)
+    {
+        _children.Remove(child);
         
-        HandlesChanged?.Invoke();
+        child.HandleAdded -= OnHandleAdded;
+        child.HandleRemoved -= OnHandleRemoved;
+        child.HandleMoved -= OnHandleMoved;
+        
+        foreach (var handle in child.Handles)
+        {
+            OnHandleRemoved(child, handle);
+        }
     }
 
     public IEnumerable<Handle> GetSelectedHandles()
@@ -106,24 +115,20 @@ public class GroupHandleSet : IHandleSet
         return _routing[handle.HandleSetId].GetPoint(handle) + Position;
     }
     
-    private void RebuildChildHandles()
+    private void OnHandleAdded(IHandleSet handleSet, Handle handle, Unit2D position)
     {
-        _handles.Clear();
-        _routing.Clear();
-
-        foreach (var child in _children)
-        {
-            foreach (var handle in child.Handles)
-            {
-                _handles.Add(handle);
-                _routing[handle.HandleSetId] = child;
-            }
-        }
-        
-        HandlesChanged?.Invoke();
+        _handles.Add(handle);
+        _routing[handle.HandleSetId] = handleSet;        
+        HandleAdded?.Invoke(this, handle, position + Position);
     }
 
-    private void InvokeHandleMoved(Handle handle, Unit2D position)
+    private void OnHandleRemoved(IHandleSet handleSet, Handle handle)
+    {
+        _handles.Remove(handle);
+        HandleRemoved?.Invoke(this, handle);
+    }
+    
+    private void OnHandleMoved(Handle handle, Unit2D position)
     {
         HandleMoved?.Invoke(handle, position + Position);
     }

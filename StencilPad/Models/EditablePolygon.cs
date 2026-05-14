@@ -12,8 +12,9 @@ public class EditablePolygon : Polygon, IHandleSet
     private List<int> _selectedEdges;
     private List<int> _selectedVertices;
 
+    public event Action<IHandleSet, Handle, Unit2D>? HandleAdded;
+    public event Action<IHandleSet, Handle>? HandleRemoved;
     public event Action<Handle, Unit2D>? HandleMoved;
-    public event Action? HandlesChanged;
     public event Action? SelectionChanged;
 
     public EditablePolygon()
@@ -214,14 +215,23 @@ public class EditablePolygon : Polygon, IHandleSet
         
         _id = other._id;
 
+        foreach (var handle in _handles)
+        {
+            HandleRemoved?.Invoke(this, handle);
+        }
+        
         _handles.Clear();
         _handles.AddRange(other._handles);
+
+        foreach (var handle in _handles)
+        {
+            HandleAdded?.Invoke(this, handle, GetPoint(handle));
+        }
         
         _selection.Clear();
         _selection.AddRange(other._selection);
 
         InvokeSelectionChanged();
-        HandlesChanged?.Invoke();
     }
 
     public new EditablePolygon DeepClone()
@@ -249,25 +259,37 @@ public class EditablePolygon : Polygon, IHandleSet
 
     private void RebuildHandles()
     {
+        // FIXME: This needs to be optimized to avoid unnecessary handle
+        // removals and additions when only a few vertices or edges are changed.
+        
+        foreach (var handle in _handles)
+        {
+            HandleRemoved?.Invoke(this, handle);
+        }
+        
         _handles.Clear();
 
         for (int i = 0; i < Vertices.Count; i++)
         {
-            _handles.Add(Handle.Move(_id, PolygonHandleKey.Vertex(i)));
+            AddHandle(Handle.Move(_id, PolygonHandleKey.Vertex(i)));
         }
 
         for (int i = 0; i < Edges.Count; i++)
         {
             if (Edges[i].Type == EdgeType.Bezier)
             {
-                _handles.Add(Handle.Adjust(_id, PolygonHandleKey.ControlBegin(i)));
-                _handles.Add(Handle.Adjust(_id, PolygonHandleKey.ControlEnd(i)));
+                AddHandle(Handle.Adjust(_id, PolygonHandleKey.ControlBegin(i)));
+                AddHandle(Handle.Adjust(_id, PolygonHandleKey.ControlEnd(i)));
             }
         }
-
-        HandlesChanged?.Invoke();
     }
 
+    private void AddHandle(Handle handle)
+    {
+        _handles.Add(handle);
+        HandleAdded?.Invoke(this, handle, GetPoint(handle));
+    }
+    
     private void InvokeSelectionChanged()
     {
         _selectedVertices.Clear();

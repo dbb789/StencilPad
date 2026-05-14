@@ -6,8 +6,9 @@ public interface IHandleSet
 {
     IEnumerable<Handle> Handles { get; }
 
+    event Action<IHandleSet, Handle, Unit2D>? HandleAdded;
+    event Action<IHandleSet, Handle>? HandleRemoved;
     event Action<Handle, Unit2D>? HandleMoved;
-    event Action? HandlesChanged;
     event Action? SelectionChanged;
 
     IEnumerable<Handle> GetSelectedHandles();
