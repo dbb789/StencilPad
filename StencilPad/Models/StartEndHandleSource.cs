@@ -7,7 +7,7 @@ public class StartEndHandleSource : IHandleSource
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded { add { } remove { } }
     public event Action<IHandleSource, Handle>? HandleRemoved { add { } remove { } }
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    public event Action? SelectionChanged;
+    public event Action<IHandleSource>? SelectionChanged;
 
     public HandleSet Handles => _handles;
 
@@ -76,7 +76,7 @@ public class StartEndHandleSource : IHandleSource
         _selection.Clear();
         _selection.AddRange(handles);
         
-        SelectionChanged?.Invoke();
+        SelectionChanged?.Invoke(this);
     }
 
     public void AssignFrom(StartEndHandleSource other)

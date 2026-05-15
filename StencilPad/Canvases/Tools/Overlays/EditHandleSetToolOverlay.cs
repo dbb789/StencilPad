@@ -43,6 +43,8 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         _queryResults = new(128);
         
         _context.Viewport.ViewportChanged += InvalidateVisual;
+        
+        _context.HandleMap.SheetSelectionChanged += InvalidateVisual;
         _context.HandleMap.HandleAdded += OnHandleAdded;
         _context.HandleMap.HandleRemoved += OnHandleRemoved;
         _context.HandleMap.HandleMoved += OnHandleMoved;
@@ -67,6 +69,8 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         _context.EditOverlayRenderer.IsEnabled = false;
         _context.Viewport.ViewportChanged -= InvalidateVisual;
+
+        _context.HandleMap.SheetSelectionChanged -= InvalidateVisual;
         _context.HandleMap.HandleAdded -= OnHandleAdded;
         _context.HandleMap.HandleRemoved -= OnHandleRemoved;
         _context.HandleMap.HandleMoved -= OnHandleMoved;
@@ -191,16 +195,19 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
         _queryResults.Clear();
-        _context.HandleMap.QuerySelectedElementHandles(UnitBounds.FromCenterSize(Unit2D.Zero,
-                                                                                 _context.Viewport.Size),
-                                                       _queryResults);
+        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero,
+                                                                  _context.Viewport.Size),
+                                        _queryResults);
         
         foreach (var entry in _queryResults)
         {
+            if (!entry.ElementSelected)
+            {
+                continue;
+            }
+            
             var point = _context.Viewport.ToPoint(entry.Position);
-
-            bool selected = entry.Source.GetSelectedHandles().Contains(entry.Handle);
-            var pen = selected ? _selectedPen : null;
+            var pen = entry.HandleSelected ? _selectedPen : null;
            
             if (entry.Handle.Type == HandleType.Move)
             {

@@ -15,7 +15,7 @@ public class EditablePolygon : Polygon, IHandleSource
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    public event Action? SelectionChanged;
+    public event Action<IHandleSource>? SelectionChanged;
 
     public EditablePolygon()
     {
@@ -298,6 +298,6 @@ public class EditablePolygon : Polygon, IHandleSource
         _selectedEdges.Clear();
         CalculateSelectedEdges(_selectedEdges);
         
-        SelectionChanged?.Invoke();
+        SelectionChanged?.Invoke(this);
     }
 }

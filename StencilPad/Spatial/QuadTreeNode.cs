@@ -105,7 +105,7 @@ public class QuadTreeNode<T>
         }
     }
 
-    public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
+    public void Query(UnitBounds bounds, List<T> results)
     {
         if (!Bounds.Intersects(bounds))
         {
@@ -130,13 +130,13 @@ public class QuadTreeNode<T>
             {
                 if (bounds.Contains(valuePoint))
                 {
-                    results.Add((value, valuePoint));
+                    results.Add(value);
                 }
             }
         }
     }
 
-    public void GetAllValues(List<(T, Unit2D)> results)
+    public void GetAllValues(List<T> results)
     {
         if (_hasChildren)
         {
@@ -144,7 +144,10 @@ public class QuadTreeNode<T>
         }
         else
         {
-            results.AddRange(_values);
+            foreach (var (value, valuePoint) in _values)
+            {
+                results.Add(value);
+            }
         }
     }
     

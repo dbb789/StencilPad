@@ -30,8 +30,7 @@ public class GroupHandleSource : IHandleSource
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    
-    public event Action? SelectionChanged;
+    public event Action<IHandleSource>? SelectionChanged;
 
     public HandleSet Handles => _handles;
     
@@ -67,7 +66,7 @@ public class GroupHandleSource : IHandleSource
 
         _routing.Clear();
         _selection.Clear();
-        SelectionChanged?.Invoke();
+        SelectionChanged?.Invoke(this);
         
         foreach (var child in children)
         {
@@ -128,7 +127,7 @@ public class GroupHandleSource : IHandleSource
             group.Key.SetSelectedHandles(subHandleSet);
         }
         
-        SelectionChanged?.Invoke();
+        SelectionChanged?.Invoke(this);
     }
 
     public void SetPoint(Handle handle, Unit2D position)

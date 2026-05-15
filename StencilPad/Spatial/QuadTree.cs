@@ -58,7 +58,7 @@ public class QuadTree<T>
         return true;
     }
 
-    public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
+    public void Query(UnitBounds bounds, List<T> results)
     {
         _root.Query(bounds, results);
     }

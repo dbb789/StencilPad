@@ -3,9 +3,12 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
 
-public readonly record struct HandleMapEntry(ISheetElement Element,
-                                             Handle Handle,
-                                             Unit2D Position)
+public class HandleMapEntry
 {
+    public ISheetElement Element = null!;
     public IHandleSource Source => Element.HandleSource;
+    public Handle Handle;
+    public Unit2D Position;
+    public bool ElementSelected;
+    public bool HandleSelected;
 }

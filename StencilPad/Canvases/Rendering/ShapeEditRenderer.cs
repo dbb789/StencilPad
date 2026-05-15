@@ -21,7 +21,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         _shape = shape;
         _shape.PolygonSet.PolygonAdded += PolygonAdded;
         _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
-        _shape.PolygonSet.HandleSource.SelectionChanged += MarkGeometryDirty;
+        _shape.PolygonSet.HandleSource.SelectionChanged += SelectionChanged;
         _shape.PropertyChanged += PropertyChanged;
 
         _edgeOverlayPen = new Pen(Brushes.Blue, 0.3);
@@ -49,7 +49,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         
         _shape.PolygonSet.PolygonAdded -= PolygonAdded;
         _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
-        _shape.PolygonSet.HandleSource.SelectionChanged -= MarkGeometryDirty;
+        _shape.PolygonSet.HandleSource.SelectionChanged -= SelectionChanged;
     }
 
     private void PolygonAdded(EditablePolygon polygon)
@@ -61,6 +61,11 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     private void PolygonRemoved(EditablePolygon polygon)
     {
         polygon.GeometryChanged -= MarkGeometryDirty;
+        MarkGeometryDirty();
+    }
+
+    private void SelectionChanged(IHandleSource source)
+    {
         MarkGeometryDirty();
     }
     

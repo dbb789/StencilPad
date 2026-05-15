@@ -9,7 +9,7 @@ public interface IHandleSource
     event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     event Action<IHandleSource, Handle>? HandleRemoved;
     event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    event Action? SelectionChanged;
+    event Action<IHandleSource>? SelectionChanged;
 
     HandleSet GetSelectedHandles();
     void SetSelectedHandles(HandleSet handles);
