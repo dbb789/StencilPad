@@ -25,6 +25,21 @@ public class VisualViewport() : IViewport
         }
     }
 
+    public Unit2D SheetSize
+    {
+        get => _sheetSize;
+        set
+        {
+            if (_sheetSize == value)
+            {
+                return;
+            }
+
+            _sheetSize = value;
+            ViewportChanged?.Invoke();
+        }
+    }
+
     public Unit2D Size
     {
         get => _size;
@@ -68,8 +83,11 @@ public class VisualViewport() : IViewport
         }
     }
 
-    private Unit2D _size = new Unit2D(Unit.FromMillimeters(210.0),
-                                      Unit.FromMillimeters(297.0));
+    private Unit2D _sheetSize = new Unit2D(Unit.FromMillimeters(210.0),
+                                           Unit.FromMillimeters(297.0));
+
+    private Unit2D _size = new Unit2D(Unit.FromMillimeters(410.0),
+                                      Unit.FromMillimeters(497.0));
 
     private double _zoom = 1.0;
 

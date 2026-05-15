@@ -140,6 +140,11 @@ namespace StencilPad.Canvases.UI
             {
                 return;
             }
+            
+            if (e.OldValue is Sheet oldSheet)
+            {
+                oldSheet.PropertyChanged -= sheetCanvas.Sheet_PropertyChanged;
+            }
 
             var sheet = e.NewValue as Sheet;
 
@@ -151,7 +156,31 @@ namespace StencilPad.Canvases.UI
             sheetCanvas._sheetRenderer.Sheet = sheet;
             sheetCanvas._editOverlayRenderer.Sheet = sheet;
             sheetCanvas._handleMap.Sheet = sheet;
-            sheetCanvas._viewport.Size = sheet.Format.Size;
+            
+            sheet.PropertyChanged += sheetCanvas.Sheet_PropertyChanged;
+            sheetCanvas.UpdateViewportSize(sheet.Format);
+        }
+
+        private void Sheet_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Sheet.Format) && Sheet is not null)
+            {
+                UpdateViewportSize(Sheet.Format);
+            }
+        }
+
+        private void UpdateViewportSize(SheetFormat format)
+        {
+            var sheetSize = format.Size;
+            
+            // Calculate 10% of the largest dimension, rounded up to the nearest 10mm
+            double maxDim = Math.Max(sheetSize.X.Millimeters, sheetSize.Y.Millimeters);
+            double marginMm = Math.Ceiling((maxDim * 0.1) / 10.0) * 10.0;
+            var margin = Unit.FromMillimeters(marginMm);
+            
+            _viewport.SheetSize = sheetSize;
+            _viewport.Size = new Unit2D(sheetSize.X + margin * 2,
+                                        sheetSize.Y + margin * 2);
         }
 
         private static void OnZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

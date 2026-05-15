@@ -6,6 +6,7 @@ namespace StencilPad.Spatial;
 
 public interface IViewport
 {
+    Unit2D SheetSize { get; }
     Unit2D Size { get; }
     double Zoom { get; }
 

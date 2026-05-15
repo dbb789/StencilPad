@@ -111,26 +111,27 @@ public class CanvasGrid : ContentControl, IUnitSnap
         double w = ActualWidth;
         double h = ActualHeight;
         
-        var xExtentsPixels = _viewport.ToPixels(_viewport.Size.X / 2);
-        var yExtentsPixels = _viewport.ToPixels(_viewport.Size.Y / 2);
-        var xGridMinPixels = Math.Max(0, (w / 2) - xExtentsPixels);
-        var yGridMinPixels = Math.Max(0, (h / 2) - yExtentsPixels);
-        var xGridMaxPixels = w - xGridMinPixels;
-        var yGridMaxPixels = h - yGridMinPixels;
+        var xExtentsPixels = _viewport.ToPixels(_viewport.SheetSize.X / 2);
+        var yExtentsPixels = _viewport.ToPixels(_viewport.SheetSize.Y / 2);
+        
+        var origin = _viewport.ToPoint(Unit2D.Zero);
 
-        var pageRect = new Rect(xGridMinPixels,
-                                yGridMinPixels,
-                                xGridMaxPixels - xGridMinPixels,
-                                yGridMaxPixels - yGridMinPixels);
+        var pageRect = new Rect(origin.X - xExtentsPixels,
+                                origin.Y - yExtentsPixels,
+                                xExtentsPixels * 2,
+                                yExtentsPixels * 2);
 
-        dc.DrawRectangle(Brushes.Transparent, _pageOutlinePen, pageRect);
+        // Draw the physical paper background
+        dc.DrawRectangle(Brushes.White, _pageOutlinePen, pageRect);
         
         if (!ShowGrid)
         {
             return;
         }
+
+        // Clip everything else (grid/axes) to the paper boundary
+        dc.PushClip(new RectangleGeometry(pageRect));
         
-        var origin = _viewport.ToPoint(Unit2D.Zero);
         var minorSpacingPixels = _viewport.ToPixels(MinorSpacing);
         var majorSpacingPixels = _viewport.ToPixels(MajorSpacing);
 
@@ -138,31 +139,33 @@ public class CanvasGrid : ContentControl, IUnitSnap
         {
             for (double x = 0; x <= xExtentsPixels; x += minorSpacingPixels)
             {
-                dc.DrawLine(_minorPen, new Point(origin.X + x, yGridMinPixels), new Point(origin.X + x, yGridMaxPixels));
-                dc.DrawLine(_minorPen, new Point(origin.X - x, yGridMinPixels), new Point(origin.X - x, yGridMaxPixels));
+                dc.DrawLine(_minorPen, new Point(origin.X + x, pageRect.Top), new Point(origin.X + x, pageRect.Bottom));
+                dc.DrawLine(_minorPen, new Point(origin.X - x, pageRect.Top), new Point(origin.X - x, pageRect.Bottom));
             }
 
             for (double y = 0; y <= yExtentsPixels; y += minorSpacingPixels)
             {
-                dc.DrawLine(_minorPen, new Point(xGridMinPixels, origin.Y + y), new Point(xGridMaxPixels, origin.Y + y));
-                dc.DrawLine(_minorPen, new Point(xGridMinPixels, origin.Y - y), new Point(xGridMaxPixels, origin.Y - y));
+                dc.DrawLine(_minorPen, new Point(pageRect.Left, origin.Y + y), new Point(pageRect.Right, origin.Y + y));
+                dc.DrawLine(_minorPen, new Point(pageRect.Left, origin.Y - y), new Point(pageRect.Right, origin.Y - y));
             }
         }
 
         for (double x = 0; x <= xExtentsPixels; x += majorSpacingPixels)
         {
-            dc.DrawLine(_majorPen, new Point(origin.X + x, yGridMinPixels), new Point(origin.X + x, yGridMaxPixels));
-            dc.DrawLine(_majorPen, new Point(origin.X - x, yGridMinPixels), new Point(origin.X - x, yGridMaxPixels));
+            dc.DrawLine(_majorPen, new Point(origin.X + x, pageRect.Top), new Point(origin.X + x, pageRect.Bottom));
+            dc.DrawLine(_majorPen, new Point(origin.X - x, pageRect.Top), new Point(origin.X - x, pageRect.Bottom));
         }
 
         for (double y = 0; y <= yExtentsPixels; y += majorSpacingPixels)
         {
-            dc.DrawLine(_majorPen, new Point(xGridMinPixels, origin.Y + y), new Point(xGridMaxPixels, origin.Y + y));
-            dc.DrawLine(_majorPen, new Point(xGridMinPixels, origin.Y - y), new Point(xGridMaxPixels, origin.Y - y));
+            dc.DrawLine(_majorPen, new Point(pageRect.Left, origin.Y + y), new Point(pageRect.Right, origin.Y + y));
+            dc.DrawLine(_majorPen, new Point(pageRect.Left, origin.Y - y), new Point(pageRect.Right, origin.Y - y));
         }
 
-        dc.DrawLine(_axisPen, new Point(origin.X, yGridMinPixels), new Point(origin.X, yGridMaxPixels));
-        dc.DrawLine(_axisPen, new Point(xGridMinPixels, origin.Y), new Point(xGridMaxPixels, origin.Y));
+        dc.DrawLine(_axisPen, new Point(origin.X, pageRect.Top), new Point(origin.X, pageRect.Bottom));
+        dc.DrawLine(_axisPen, new Point(pageRect.Left, origin.Y), new Point(pageRect.Right, origin.Y));
+
+        dc.Pop();
     }
 
     public Unit2D UnitSnap(Unit2D point, Handle? selfHandle = null)
