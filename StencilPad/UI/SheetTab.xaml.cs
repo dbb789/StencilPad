@@ -67,9 +67,11 @@ public partial class SheetTab : UserControl
 
         SheetCanvas.Viewport.ViewportChanged += () =>
         {
-            Scroll.MaxWidth = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.X);
-            Scroll.MaxHeight = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.Y);
+            Scroll.MaxWidth = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.X) + 32;
+            Scroll.MaxHeight = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.Y) + 32;
         };
+
+        Dispatcher.BeginInvoke(CentreScroll);
     }
 
     private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
