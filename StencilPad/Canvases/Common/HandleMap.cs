@@ -72,7 +72,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
-    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle)
+    public bool TryUnitSnap(Unit2D point, Handle? selfHandle, out Unit2D snappedPoint)
     {
         _queryResults.Clear();
         _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(5),
@@ -98,7 +98,15 @@ public class HandleMap : IHandleMap, IUnitSnap
             }
         }
 
-        return closestSnap ?? point;
+        if (closestSnap is not null)
+        {
+            snappedPoint = closestSnap.Value;
+            return true;
+        }
+
+        snappedPoint = default;
+
+        return false;
     }
     
     private void OnSheetElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)

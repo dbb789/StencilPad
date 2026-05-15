@@ -33,8 +33,13 @@ public class RulerToolOverlay : Canvas, IDisposable
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         _currentMousePosition = e.GetPosition(this);
-        
-        var unitPosition = _unitSnap.UnitSnap(_viewport.FromPoint(_currentMousePosition));
+
+        var unitPosition = _viewport.FromPoint(_currentMousePosition);
+
+        if (_unitSnap.TryUnitSnap(unitPosition, null, out var snappedPosition))
+        {
+            unitPosition = snappedPosition;
+        }
 
         if (_start is null)
         {
@@ -74,8 +79,16 @@ public class RulerToolOverlay : Canvas, IDisposable
 
         var pen = new Pen(Brushes.Gray, 0.2) { DashStyle = DashStyles.Dash };
         var startPoint = _start.Value.Millimeters;
-        var endPoint = _unitSnap.UnitSnap(_viewport.FromPoint(_currentMousePosition)).Millimeters;
 
+        var unitPosition = _viewport.FromPoint(_currentMousePosition);
+        
+        if (_unitSnap.TryUnitSnap(unitPosition, null, out var snappedPosition))
+        {
+            unitPosition = snappedPosition;
+        }
+
+        var endPoint = unitPosition.Millimeters;
+        
         dc.DrawLine(pen, startPoint, endPoint);
 
         dc.Pop();

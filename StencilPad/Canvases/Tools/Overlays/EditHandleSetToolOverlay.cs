@@ -168,7 +168,13 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
         if (_isDragging && _dragHandle is not null)
         {
-            var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(mousePosition), _dragHandle.Handle);
+            var newPosition = _context.Viewport.FromPoint(mousePosition);
+            
+            if (_context.UnitSnap.TryUnitSnap(newPosition, _dragHandle.Handle, out var snappedPosition))
+            {
+                newPosition = snappedPosition;
+            }
+
             var delta = newPosition - _dragHandle.Source.GetPoint(_dragHandle.Handle);
             
             HandleDragged?.Invoke(_dragHandle.Source,

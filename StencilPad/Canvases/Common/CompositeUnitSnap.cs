@@ -27,13 +27,18 @@ public class CompositeUnitSnap : IUnitSnap
         _snaps.Clear();
     }
     
-    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle = null)
+    public bool TryUnitSnap(Unit2D point, Handle? selfHandle, out Unit2D snappedPoint)
     {
         foreach (var snap in _snaps)
         {
-            point = snap.UnitSnap(point, selfHandle);
+            if (snap.TryUnitSnap(point, selfHandle, out snappedPoint))
+            {
+                return true;
+            }
         }
 
-        return point;
+        snappedPoint = default;
+
+        return false;
     }
 }

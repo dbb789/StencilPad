@@ -168,7 +168,7 @@ public class CanvasGrid : ContentControl, IUnitSnap
         dc.Pop();
     }
 
-    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle = null)
+    public bool TryUnitSnap(Unit2D point, Handle? selfHandle, out Unit2D snappedPoint)
     {
         var majorSnapX = Unit.FromMillimeters(Math.Round(point.X.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);
         var majorSnapY = Unit.FromMillimeters(Math.Round(point.Y.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);
@@ -200,6 +200,8 @@ public class CanvasGrid : ContentControl, IUnitSnap
             snapY = minorSnapY;
         }
         
-        return new Unit2D(snapX, snapY);
+        snappedPoint = new Unit2D(snapX, snapY);
+
+        return true;
     }
 }

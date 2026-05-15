@@ -160,22 +160,24 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             currentBounds.Max,
         ];
 
-        int bestIndex = 0;
         double bestError = double.MaxValue;
-
+        Unit2D bestDelta = Unit2D.Zero;
+        
         for (int i = 0; i < desiredCorners.Length; i++)
         {
-            var snapped = _context.UnitSnap.UnitSnap(desiredCorners[i]);
-            var error = (snapped - desiredCorners[i]).Magnitude.Millimeters;
-
-            if (error < bestError)
+            if (_context.UnitSnap.TryUnitSnap(desiredCorners[i], null, out var snapped))
             {
-                bestError = error;
-                bestIndex = i;
+                var error = (snapped - desiredCorners[i]).Magnitude.Millimeters;
+
+                if (error < bestError)
+                {
+                    bestDelta = snapped - desiredCorners[i];
+                    bestError = error;
+                }
             }
         }
 
-        return _context.UnitSnap.UnitSnap(desiredCorners[bestIndex]) - currentCorners[bestIndex];
+        return bestDelta;
     }
 
     private bool PointIsOverSelection(Unit2D point)
