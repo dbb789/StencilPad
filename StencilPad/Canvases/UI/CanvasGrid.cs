@@ -122,7 +122,7 @@ public class CanvasGrid : ContentControl, IUnitSnap
                                 xGridMaxPixels - xGridMinPixels,
                                 yGridMaxPixels - yGridMinPixels);
 
-        dc.DrawRectangle(Brushes.White, _pageOutlinePen, pageRect);
+        dc.DrawRectangle(Brushes.Transparent, _pageOutlinePen, pageRect);
         
         if (!ShowGrid)
         {

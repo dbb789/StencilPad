@@ -58,11 +58,17 @@ public partial class SheetTab : UserControl
             {
                 oldVm.DetachCanvas();
             }
-            
+
             if (e.NewValue is SheetTabViewModel newVm)
             {
                 newVm.AttachCanvas(SheetCanvas);
             }
+        };
+
+        SheetCanvas.Viewport.ViewportChanged += () =>
+        {
+            Scroll.MaxWidth = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.X);
+            Scroll.MaxHeight = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.Y);
         };
     }
 
