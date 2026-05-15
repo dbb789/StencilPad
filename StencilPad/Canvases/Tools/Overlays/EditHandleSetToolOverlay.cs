@@ -37,7 +37,11 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         _sheet = sheet;
 
         _context.Viewport.ViewportChanged += InvalidateVisual;
-
+        _context.HandleMap.HandleAdded += OnHandleAdded;
+        _context.HandleMap.HandleRemoved += OnHandleRemoved;
+        _context.HandleMap.HandleMoved += OnHandleMoved;
+        _context.HandleMap.HandleSelectionChanged += InvalidateVisual;
+        
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
         
@@ -48,6 +52,10 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         _context.EditOverlayRenderer.IsEnabled = false;
         _context.Viewport.ViewportChanged -= InvalidateVisual;
+        _context.HandleMap.HandleAdded -= OnHandleAdded;
+        _context.HandleMap.HandleRemoved -= OnHandleRemoved;
+        _context.HandleMap.HandleMoved -= OnHandleMoved;
+        _context.HandleMap.HandleSelectionChanged += InvalidateVisual;
     }
 
     private void RebuildContextMenu(object sender,
@@ -146,6 +154,21 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         e.Handled = true;
     }
 
+    private void OnHandleAdded(IHandleSource source, Handle handle, Unit2D position)
+    {
+        InvalidateVisual();
+    }
+
+    private void OnHandleRemoved(IHandleSource source, Handle handle)
+    {
+        InvalidateVisual();
+    }
+
+    private void OnHandleMoved(IHandleSource source, Handle handle, Unit2D position)
+    {
+        InvalidateVisual();
+    }
+    
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);

@@ -20,7 +20,8 @@ public class HandleMap : IHandleMap, IUnitSnap
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    
+    public event Action? HandleSelectionChanged;
+
     public HandleMap()
     {
         var pageSize = new Unit2D(Unit.FromMillimeters(1000), Unit.FromMillimeters(1000));
@@ -112,8 +113,9 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             Add(element, handle, element.HandleSource.GetPoint(handle));    
         }
-        
+
         element.HandleSource.HandleMoved += OnHandleMoved;
+        element.HandleSource.SelectionChanged += OnSelectionChanged;
     }
 
     private void Remove(ISheetElement element)
@@ -124,6 +126,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
         
         element.HandleSource.HandleMoved -= OnHandleMoved;
+        element.HandleSource.SelectionChanged -= OnSelectionChanged;
     }
 
     private void Add(ISheetElement element, Handle handle, Unit2D position)
@@ -156,6 +159,11 @@ public class HandleMap : IHandleMap, IUnitSnap
                 HandleMoved?.Invoke(handleSource, handle, position);
             }
         }
+    }
+
+    private void OnSelectionChanged()
+    {
+        HandleSelectionChanged?.Invoke();
     }
 }
 
