@@ -95,37 +95,30 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
         _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize), handleList);
         
-        var moveGeometry = new RectangleGeometry(new Rect(-6, -6, 12, 12));
         var moveBrush = new SolidColorBrush(Color.FromArgb(128, 255, 128, 0));
-        var adjustGeometry = new EllipseGeometry(new Point(0, 0), 6, 6);
         var adjustBrush = new SolidColorBrush(Color.FromArgb(128, 0, 128, 0));
         var selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 1);
-        
-        moveGeometry.Freeze();
+
         moveBrush.Freeze();
-        adjustGeometry.Freeze();
         adjustBrush.Freeze();
+        selectedPen.Freeze();
         
         foreach (var (entry, position) in handleList)
         {
             var point = _context.Viewport.ToPoint(position);
 
-            dc.PushTransform(new TranslateTransform(point.X, point.Y));
-
-            var pen = entry.Source.GetSelectedHandles().Contains(entry.Handle) ? selectedPen : null;
-            
+            bool selected = entry.Source.GetSelectedHandles().Contains(entry.Handle);
+            var pen = selected ? selectedPen : null;
+           
             if (entry.Handle.Type == HandleType.Move)
             {
-                dc.DrawGeometry(moveBrush, pen, moveGeometry);
+                dc.DrawRectangle(moveBrush, pen, new Rect(point.X - 6, point.Y - 6, 12, 12));
             }
             else
             {
-                dc.DrawGeometry(adjustBrush, pen, adjustGeometry);
+                dc.DrawEllipse(adjustBrush, pen, point, 6, 6);
             }
-            
-            dc.Pop();
         }
-        
     }
 
     private void HandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)

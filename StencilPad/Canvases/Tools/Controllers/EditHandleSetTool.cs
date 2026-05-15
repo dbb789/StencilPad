@@ -198,19 +198,28 @@ public class EditHandleSetTool : ITool
         
         _context.HandleMap.QueryHandles(bounds, selected);
 
-        var selectedHandleSet = new MutableHandleSet(selected.Count);
-        
-        for (int i = 0; i < selected.Count; i++)
+        var bySource = new Dictionary<IHandleSource, List<Handle>>();
+
+        foreach (var (entry, point) in selected)
         {
-            selectedHandleSet.Add(selected[i].Item1.Handle);
+            List<Handle> list;
+
+            if (!bySource.TryGetValue(entry.Source, out list))
+            {
+                list = new List<Handle>(128);
+                bySource[entry.Source] = list;
+            }
+
+            list.Add(entry.Handle);
         }
 
-        foreach (var element in _selection)
+        foreach (var (source, list) in bySource)
         {
-            var byElement = HandleSet.Intersection(element.HandleSource.Handles,
-                                                   selectedHandleSet);
+            var handleSet = new MutableHandleSet(list.Count);
+
+            handleSet.AddRange(list);
             
-            element.HandleSource.SetSelectedHandles(byElement);
+            source.SetSelectedHandles(handleSet);
         }
     }
 
