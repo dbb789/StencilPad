@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
@@ -17,8 +18,9 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
     
     public event Action? HandleDragBegin;
-    public event Action<ISheetElement, Handle, Unit2D>? HandleDragged;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleDragged;
     public event Action? HandleDragEnd;
+    public event Action<IHandleSource, Handle>? HandleSelected;
     
     public event Action<ISheetElement, Handle, bool>? HandleSelectionChanged;
     public event Action<ISheetElementAction>? ActionInvoked;
@@ -27,7 +29,11 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     private readonly Sheet _sheet;
     private readonly List<ISheetElement> _selection;
     private readonly EditOverlayRenderer _editOverlayRenderer;
-
+    
+    private Point? _dragStart;
+    private bool _isDragging;
+    private HandleMapEntry _dragHandle;
+    
     public EditHandleSetToolOverlay(IToolContext context,
                                     Sheet sheet,
                                     IEnumerable<ISheetElementAction?> editActions)
@@ -77,6 +83,104 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
     }
     
+    private void HandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)
+    {
+        Rebuild();
+    }
+
+    private void HandleRemoved(IHandleSource handleSet, Handle handle)
+    {
+        Rebuild();
+    }
+    
+    private void HandleMoved(IHandleSource handleSet, Handle handle, Unit2D position)
+    {
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+    }
+
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
+
+        var clickPosition = _context.Viewport.FromPoint(mousePosition);
+        var clickSize = new Unit2D(Unit.FromMillimeters(1), Unit.FromMillimeters(1));
+        var queryResults = new List<(HandleMapEntry, Unit2D)>(4);
+        
+        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(clickPosition, clickSize), queryResults);
+
+        if (queryResults.Count == 0)
+        {
+            return;
+        }
+        
+        _dragStart = mousePosition;
+        _dragHandle = queryResults[0].Item1;
+
+        CaptureMouse();
+        e.Handled = true;
+    }
+
+    protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+    {
+        if (_dragStart is null)
+        {
+            return;
+        }
+
+        if (_isDragging)
+        {
+            _isDragging = false;
+            HandleDragEnd?.Invoke();
+        }
+        else
+        {
+            HandleSelected?.Invoke(_dragHandle.Source, _dragHandle.Handle);
+        }
+
+        _dragStart = null;
+
+        ReleaseMouseCapture();
+        e.Handled = true;
+    }
+    
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        if (_dragStart is null)
+        {
+            return;
+        }
+
+        var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
+
+        if (!_isDragging)
+        {
+            var delta = mousePosition - _dragStart.Value;
+
+            if (Math.Abs(delta.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(delta.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                _isDragging = true;
+                HandleDragBegin?.Invoke();
+            }
+        }
+
+        if (_isDragging)
+        {
+            var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(mousePosition));
+            var delta = newPosition - _dragHandle.Source.GetPoint(_dragHandle.Handle);
+            
+            HandleDragged?.Invoke(_dragHandle.Source,
+                                  _dragHandle.Handle,
+                                  delta);
+        }
+
+        e.Handled = true;
+    }
+
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
@@ -119,74 +223,5 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
                 dc.DrawEllipse(adjustBrush, pen, point, 6, 6);
             }
         }
-    }
-
-    private void HandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)
-    {
-        Rebuild();
-    }
-
-    private void HandleRemoved(IHandleSource handleSet, Handle handle)
-    {
-        Rebuild();
-    }
-    
-    private void HandleMoved(IHandleSource handleSet, Handle handle, Unit2D position)
-    {
-        Rebuild();
-    }
-
-    private void Rebuild()
-    {
-        // var entries = _selection.SelectMany(e => e.HandleSource.Handles.Select(
-        //                                         h => new HandleEntry(Element: e, Handle: h)))
-        //     .ToList();
-
-        // _widgetContainer.Resize(entries.Count);
-        // _widgetMap.Clear();
-
-        // for (int i = 0; i < entries.Count; ++i)
-        // {
-        //     var (element, handle) = entries[i];
-        //     var widget = _widgetContainer[i];
-
-        //     widget.Handle = handle;
-        //     _widgetMap.Add(handle, new WidgetEntry(element, widget));
-        // }
-
-        // RepositionAll();
-        // UpdateSelection();
-    }
-
-    private void OnWidgetDragBegin(HandleWidget widget)
-    {
-        // HandleDragBegin?.Invoke();
-    }
-    
-    private void OnWidgetDragged(HandleWidget widget, Point start, Point position)
-    {
-        // var handle = widget.Handle;
-        
-        // if (!_widgetMap.TryGetValue(handle, out var entry))
-        // {
-        //     return;
-        // }
-        
-        // var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(position));
-        // var delta = newPosition - entry.Element.HandleSource.GetPoint(handle);
-
-        // if (delta == Unit2D.Zero)
-        // {
-        //     return;
-        // }
-        
-        // HandleDragged?.Invoke(entry.Element,
-        //                       handle,
-        //                       delta);
-    }
-
-    private void OnWidgetDragEnd(HandleWidget widget)
-    {
-        // HandleDragEnd?.Invoke();
     }
 }

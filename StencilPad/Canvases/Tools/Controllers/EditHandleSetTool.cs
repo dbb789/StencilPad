@@ -77,6 +77,7 @@ public class EditHandleSetTool : ITool
         _overlay.HandleDragBegin += OnHandleDragBegin;
         _overlay.HandleDragged += OnHandleDragged;
         _overlay.HandleDragEnd += OnHandleDragEnd;
+        _overlay.HandleSelected += OnHandleSelected;
         _overlay.HandleSelectionChanged += OnHandleSelectionChanged;
         _overlay.ActionInvoked += ActionInvoked;
         
@@ -94,6 +95,7 @@ public class EditHandleSetTool : ITool
             _overlay.HandleDragBegin -= OnHandleDragBegin;
             _overlay.HandleDragged -= OnHandleDragged;
             _overlay.HandleDragEnd -= OnHandleDragEnd;
+            _overlay.HandleSelected -= OnHandleSelected;
             _overlay.HandleSelectionChanged -= OnHandleSelectionChanged;
             _overlay.ActionInvoked -= ActionInvoked;
             _overlay.Dispose();
@@ -114,13 +116,13 @@ public class EditHandleSetTool : ITool
         _editContext = new EditSheetElementContext(_sheet, _selection);
     }
 
-    private void OnHandleDragged(ISheetElement element,
+    private void OnHandleDragged(IHandleSource source,
                                  Handle handle,
                                  Unit2D delta)
     {
         if (!handle.CanGroupMove)
         {
-            element.HandleSource.SetPoint(handle, element.HandleSource.GetPoint(handle) + delta);
+            source.SetPoint(handle, source.GetPoint(handle) + delta);
             return;
         }
         
@@ -234,6 +236,41 @@ public class EditHandleSetTool : ITool
         {
             element.HandleSource.SetSelectedHandles([]);
         }
+    }
+
+    private void OnHandleSelected(IHandleSource source,
+                                  Handle handle)
+    {
+        var modifyingSelection = IsModifyingSelection();
+
+        var selectedHandles = new MutableHandleSet(source.GetSelectedHandles());
+
+        if (modifyingSelection)
+        {
+            if (selectedHandles.Contains(handle))
+            {
+                selectedHandles.Remove(handle);
+            }
+            else
+            {
+                selectedHandles.Add(handle);
+            }
+        }
+        else
+        {
+            foreach (var element in _selection)
+            {
+                if (element.HandleSource != source)
+                {
+                    element.HandleSource.SetSelectedHandles([]);
+                }
+            }
+
+            selectedHandles.Clear();
+            selectedHandles.Add(handle);
+        }
+
+        source.SetSelectedHandles(selectedHandles);
     }
     
     private void OnSelectionChanged(object? sender, EventArgs e)
