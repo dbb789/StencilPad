@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.UI;
@@ -164,7 +165,7 @@ public class CanvasGrid : ContentControl, IUnitSnap
         dc.DrawLine(_axisPen, new Point(xGridMinPixels, origin.Y), new Point(xGridMaxPixels, origin.Y));
     }
 
-    public Unit2D UnitSnap(Unit2D point)
+    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle = null)
     {
         var majorSnapX = Unit.FromMillimeters(Math.Round(point.X.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);
         var majorSnapY = Unit.FromMillimeters(Math.Round(point.Y.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);

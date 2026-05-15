@@ -1,3 +1,4 @@
+using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
@@ -26,11 +27,11 @@ public class CompositeUnitSnap : IUnitSnap
         _snaps.Clear();
     }
     
-    public Unit2D UnitSnap(Unit2D point)
+    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle = null)
     {
         foreach (var snap in _snaps)
         {
-            point = snap.UnitSnap(point);
+            point = snap.UnitSnap(point, selfHandle);
         }
 
         return point;

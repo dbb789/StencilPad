@@ -32,7 +32,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     
     private Point? _dragStart;
     private bool _isDragging;
-    private HandleMapEntry _dragHandle;
+    private HandleMapEntry? _dragHandle;
     
     public EditHandleSetToolOverlay(IToolContext context,
                                     Sheet sheet,
@@ -130,11 +130,15 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
         else
         {
-            HandleSelected?.Invoke(_dragHandle.Source, _dragHandle.Handle);
+            if (_dragHandle is not null)
+            {
+                HandleSelected?.Invoke(_dragHandle.Source, _dragHandle.Handle);
+            }
         }
 
         _dragStart = null;
-
+        _dragHandle = null;
+        
         ReleaseMouseCapture();
         e.Handled = true;
     }
@@ -160,9 +164,9 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
             }
         }
 
-        if (_isDragging)
+        if (_isDragging && _dragHandle is not null)
         {
-            var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(mousePosition));
+            var newPosition = _context.UnitSnap.UnitSnap(_context.Viewport.FromPoint(mousePosition), _dragHandle.Handle);
             var delta = newPosition - _dragHandle.Source.GetPoint(_dragHandle.Handle);
             
             HandleDragged?.Invoke(_dragHandle.Source,

@@ -72,7 +72,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
-    public Unit2D UnitSnap(Unit2D point)
+    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle)
     {
         _queryResults.Clear();
         _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(5),
@@ -84,6 +84,11 @@ public class HandleMap : IHandleMap, IUnitSnap
         
         foreach (var entry in _queryResults)
         {
+            if (selfHandle is not null && entry.Handle == selfHandle)
+            {
+                continue;
+            }
+            
             var distance = (point - entry.Position).Magnitude;
             
             if (closestSnap is null || distance < closestDistance)
