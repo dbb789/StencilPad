@@ -24,6 +24,11 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
     private readonly IToolContext _context;
     private readonly Sheet _sheet;
+
+    private List<HandleMapEntry> _queryResults;
+    private Brush _moveBrush;
+    private Brush _adjustBrush;
+    private Pen _selectedPen;
     
     private Point? _dragStart;
     private bool _isDragging;
@@ -35,12 +40,22 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         _context = context;
         _sheet = sheet;
-
+        _queryResults = new(128);
+        
         _context.Viewport.ViewportChanged += InvalidateVisual;
         _context.HandleMap.HandleAdded += OnHandleAdded;
         _context.HandleMap.HandleRemoved += OnHandleRemoved;
         _context.HandleMap.HandleMoved += OnHandleMoved;
         _context.HandleMap.HandleSelectionChanged += InvalidateVisual;
+
+        _moveBrush = new SolidColorBrush(Color.FromArgb(128, 255, 128, 0));
+        _moveBrush.Freeze();
+
+        _adjustBrush = new SolidColorBrush(Color.FromArgb(128, 0, 128, 0));
+        _adjustBrush.Freeze();
+
+        _selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 1);
+        _selectedPen.Freeze();
         
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
@@ -81,7 +96,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
 
         var clickPosition = _context.Viewport.FromPoint(mousePosition);
         var clickSize = new Unit2D(Unit.FromMillimeters(1), Unit.FromMillimeters(1));
-        var queryResults = new List<(HandleMapEntry, Unit2D)>(4);
+        var queryResults = new List<HandleMapEntry>(4);
         
         _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(clickPosition, clickSize), queryResults);
 
@@ -91,7 +106,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
         
         _dragStart = mousePosition;
-        _dragHandle = queryResults[0].Item1;
+        _dragHandle = queryResults[0];
 
         CaptureMouse();
         e.Handled = true;
@@ -175,33 +190,25 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
-        var handleList = new List<(HandleMapEntry, Unit2D)>();
-        var pageSize = new Unit2D(Unit.FromMillimeters(1000), Unit.FromMillimeters(1000));
-
-        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize), handleList);
+        _queryResults.Clear();
+        _context.HandleMap.QuerySelectedElementHandles(UnitBounds.FromCenterSize(Unit2D.Zero,
+                                                                                 _context.Viewport.Size),
+                                                       _queryResults);
         
-        var moveBrush = new SolidColorBrush(Color.FromArgb(128, 255, 128, 0));
-        var adjustBrush = new SolidColorBrush(Color.FromArgb(128, 0, 128, 0));
-        var selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 1);
-
-        moveBrush.Freeze();
-        adjustBrush.Freeze();
-        selectedPen.Freeze();
-        
-        foreach (var (entry, position) in handleList)
+        foreach (var entry in _queryResults)
         {
-            var point = _context.Viewport.ToPoint(position);
+            var point = _context.Viewport.ToPoint(entry.Position);
 
             bool selected = entry.Source.GetSelectedHandles().Contains(entry.Handle);
-            var pen = selected ? selectedPen : null;
+            var pen = selected ? _selectedPen : null;
            
             if (entry.Handle.Type == HandleType.Move)
             {
-                dc.DrawRectangle(moveBrush, pen, new Rect(point.X - 6, point.Y - 6, 12, 12));
+                dc.DrawRectangle(_moveBrush, pen, new Rect(point.X - 6, point.Y - 6, 12, 12));
             }
             else
             {
-                dc.DrawEllipse(adjustBrush, pen, point, 6, 6);
+                dc.DrawEllipse(_adjustBrush, pen, point, 6, 6);
             }
         }
     }

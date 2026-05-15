@@ -194,13 +194,13 @@ public class EditHandleSetTool : ITool
 
         var modifyingSelection = IsModifyingSelection();
 
-        var selected = new List<(HandleMapEntry, Unit2D)>();
+        var selected = new List<HandleMapEntry>();
         
         _context.HandleMap.QueryHandles(bounds, selected);
 
         var bySource = new Dictionary<IHandleSource, List<Handle>>();
 
-        foreach (var (entry, point) in selected)
+        foreach (var entry in selected)
         {
             List<Handle> list;
 

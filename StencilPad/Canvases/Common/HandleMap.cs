@@ -13,9 +13,9 @@ public class HandleMap : IHandleMap, IUnitSnap
     }
     
     private Sheet? _sheet;
-    private Dictionary<Handle, Unit2D> _byHandle;
-    private QuadTree<HandleMapEntry> _byPosition;
-    private List<(HandleMapEntry, Unit2D)> _queryResults;
+    private Dictionary<Handle, HandleMapEntry> _byHandle;
+    private QuadTree<Handle> _byPosition;
+    private List<(Handle, Unit2D)> _queryResults;
 
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
@@ -28,17 +28,47 @@ public class HandleMap : IHandleMap, IUnitSnap
 
         _sheet = null;
         _byHandle = new();
-        _byPosition = new QuadTree<HandleMapEntry>(treeBounds,
-                                                   nodeCapacity: 64,
-                                                   maxDepth: 16);
-        _queryResults = [];
+        _byPosition = new QuadTree<Handle>(treeBounds,
+                                           nodeCapacity: 64,
+                                           maxDepth: 16);
+        _queryResults = new(128);
     }
 
-    public void QueryHandles(UnitBounds bounds, List<(HandleMapEntry, Unit2D)> results)
+    public void QueryHandles(UnitBounds bounds, List<HandleMapEntry> results)
     {
-        _byPosition.Query(bounds, results);
+        _queryResults.Clear();
+        _byPosition.Query(bounds, _queryResults);
+
+        foreach (var (handle, _) in _queryResults)
+        {
+            if (_byHandle.TryGetValue(handle, out var entry))
+            {
+                results.Add(entry);
+            }
+        }
     }
     
+    public void QuerySelectedElementHandles(UnitBounds bounds, List<HandleMapEntry> results)
+    {
+        _queryResults.Clear();
+
+        if (_sheet is null)
+        {
+            return;
+        }
+        
+        _byPosition.Query(bounds, _queryResults);
+
+        foreach (var (handle, _) in _queryResults)
+        {
+            if (_byHandle.TryGetValue(handle, out var entry)
+                && _sheet.Selection.Contains(entry.Element))
+            {
+                results.Add(entry);
+            }
+        }
+    }
+
     private void SetSheet(Sheet? sheet)
     {
         if (_sheet == sheet)
@@ -131,16 +161,16 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     private void Add(ISheetElement element, Handle handle, Unit2D position)
     {
-        _byHandle[handle] = position;
-        _byPosition.Insert(position, new HandleMapEntry(element.HandleSource, handle));
+        _byHandle[handle] = new HandleMapEntry(element, handle, position);
+        _byPosition.Insert(position, handle);
         HandleAdded?.Invoke(element.HandleSource, handle, position);
     }
 
     private void Remove(ISheetElement element, Handle handle)
     {
-        if (_byHandle.TryGetValue(handle, out var position))
+        if (_byHandle.TryGetValue(handle, out var entry))
         {
-            _byPosition.Remove(position, new HandleMapEntry(element.HandleSource, handle));
+            _byPosition.Remove(entry.Position, handle);
             _byHandle.Remove(handle);
             HandleRemoved?.Invoke(element.HandleSource, handle);
         }
@@ -148,13 +178,11 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     private void OnHandleMoved(IHandleSource handleSource, Handle handle, Unit2D position)
     {
-        if (_byHandle.TryGetValue(handle, out var oldPosition))
+        if (_byHandle.TryGetValue(handle, out var entry))
         {
-            var entry = new HandleMapEntry(handleSource, handle);
-
-            if (_byPosition.Move(oldPosition, position, entry))
+            if (_byPosition.Move(entry.Position, position, handle))
             {
-                _byHandle[handle] = position;
+                _byHandle[handle] = entry with { Position = position };
 
                 HandleMoved?.Invoke(handleSource, handle, position);
             }

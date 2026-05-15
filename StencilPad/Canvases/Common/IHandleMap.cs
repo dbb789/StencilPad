@@ -10,5 +10,6 @@ public interface IHandleMap
     event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     event Action? HandleSelectionChanged;
 
-    void QueryHandles(UnitBounds bounds, List<(HandleMapEntry, Unit2D)> results);
+    void QueryHandles(UnitBounds bounds, List<HandleMapEntry> results);
+    void QuerySelectedElementHandles(UnitBounds bounds, List<HandleMapEntry> results);
 }

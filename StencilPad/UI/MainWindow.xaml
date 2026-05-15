@@ -67,6 +67,7 @@
                 <MenuItem Header="_Rename Sheet…" Command="{Binding RenameSheetCommand}"/>
                 <MenuItem Header="_Delete Sheet"  Command="{Binding DeleteSheetCommand}"/>
             </MenuItem>
+
         </Menu>
 
         <StatusBar DockPanel.Dock="Bottom">
