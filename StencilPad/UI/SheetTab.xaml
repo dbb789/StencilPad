@@ -10,7 +10,7 @@
         <ScrollViewer x:Name="Scroll"
                       HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto"
-                      Background="#FFFFFF">
+                      Background="#EEEEEE">
             <c:SheetCanvas x:Name="SheetCanvas"
                            Sheet="{Binding Sheet}"
                            Zoom="{Binding Zoom}"

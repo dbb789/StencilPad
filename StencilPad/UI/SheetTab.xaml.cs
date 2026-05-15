@@ -42,7 +42,7 @@ public partial class SheetTab : UserControl
         InitializeComponent();
 
         SheetCanvas.CanvasReady += SheetCanvasReady;
-
+        
         Scroll.PreviewMouseWheel += OnPreviewMouseWheel;
         Scroll.PreviewMouseDown += OnPreviewMouseDown;
         Scroll.PreviewMouseMove += OnPreviewMouseMove;

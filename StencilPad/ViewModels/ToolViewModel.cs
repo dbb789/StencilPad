@@ -1,3 +1,4 @@
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using StencilPad.Canvases.Tools.Overlays;
 

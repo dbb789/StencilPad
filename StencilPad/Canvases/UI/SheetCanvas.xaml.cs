@@ -8,6 +8,7 @@ using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
+using System.Windows.Media;
 
 namespace StencilPad.Canvases.UI
 {
@@ -198,8 +199,9 @@ namespace StencilPad.Canvases.UI
                 return;
             }
             
-            CanvasRoot.Width = _viewport.ToPixels(_viewport.Size.X);
-            CanvasRoot.Height = _viewport.ToPixels(_viewport.Size.Y);
+            Width = _viewport.ToPixels(_viewport.Size.X);
+            Height = _viewport.ToPixels(_viewport.Size.Y);
+
             _canvasGrid.InvalidateVisual();
             Renderer.InvalidateVisual();
         }

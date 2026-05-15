@@ -83,67 +83,85 @@ public class CanvasGrid : ContentControl, IUnitSnap
 
     private readonly IViewport _viewport;
 
+    private Pen _pageOutlinePen = null!;
+    private Pen _minorPen = null!;
+    private Pen _majorPen = null!;
+    private Pen _axisPen = null!;
+    
     public CanvasGrid(IViewport viewport)
     {
         _viewport = viewport;
+
+        _pageOutlinePen = new Pen(Brushes.LightGray, 1) { DashStyle = DashStyles.Solid };
+        _pageOutlinePen.Freeze();
+        
+        _minorPen = new Pen(MinorBrush, 0.5) { DashStyle = DashStyles.Solid };
+        _minorPen.Freeze();
+        
+        _majorPen = new Pen(MajorBrush, 0.5) { DashStyle = DashStyles.Solid };
+        _majorPen.Freeze();
+        
+        _axisPen  = new Pen(AxisBrush, 1) { DashStyle = DashStyles.Solid };
+        _axisPen.Freeze();
     }
     
     protected override void OnRender(DrawingContext dc)
     {
+        double w = ActualWidth;
+        double h = ActualHeight;
+        
+        var xExtentsPixels = _viewport.ToPixels(_viewport.Size.X / 2);
+        var yExtentsPixels = _viewport.ToPixels(_viewport.Size.Y / 2);
+        var xGridMinPixels = Math.Max(0, (w / 2) - xExtentsPixels);
+        var yGridMinPixels = Math.Max(0, (h / 2) - yExtentsPixels);
+        var xGridMaxPixels = w - xGridMinPixels;
+        var yGridMaxPixels = h - yGridMinPixels;
+
+        var pageRect = new Rect(xGridMinPixels,
+                                yGridMinPixels,
+                                xGridMaxPixels - xGridMinPixels,
+                                yGridMaxPixels - yGridMinPixels);
+
+        dc.DrawRectangle(Brushes.White, _pageOutlinePen, pageRect);
+        
         if (!ShowGrid)
         {
             return;
         }
         
-        var minorPen = new Pen(MinorBrush, 0.5) { DashStyle = DashStyles.Solid };
-        var majorPen = new Pen(MajorBrush, 0.5) { DashStyle = DashStyles.Solid };
-        var axisPen  = new Pen(AxisBrush,  1) { DashStyle = DashStyles.Solid };
-
-        minorPen.Freeze();
-        majorPen.Freeze();
-        axisPen.Freeze();
-
-        double w = ActualWidth;
-        double h = ActualHeight;
         var origin = _viewport.ToPoint(Unit2D.Zero);
+        var minorSpacingPixels = _viewport.ToPixels(MinorSpacing);
+        var majorSpacingPixels = _viewport.ToPixels(MajorSpacing);
 
         if (_viewport.ToPixels(MinorSpacing) > MinimumSpacingPixels)
         {
-            for (var x = Unit.Zero; x.Millimeters <= _viewport.Size.X.Millimeters / 2.0; x += MinorSpacing)
+            for (double x = 0; x <= xExtentsPixels; x += minorSpacingPixels)
             {
-                double px = _viewport.ToPixels(x);
-
-                dc.DrawLine(minorPen, new Point(origin.X + px, 0), new Point(origin.X + px, h));
-                dc.DrawLine(minorPen, new Point(origin.X - px, 0), new Point(origin.X - px, h));
+                dc.DrawLine(_minorPen, new Point(origin.X + x, yGridMinPixels), new Point(origin.X + x, yGridMaxPixels));
+                dc.DrawLine(_minorPen, new Point(origin.X - x, yGridMinPixels), new Point(origin.X - x, yGridMaxPixels));
             }
 
-            for (var y = Unit.Zero; y.Millimeters <= _viewport.Size.Y.Millimeters / 2.0; y += MinorSpacing)
+            for (double y = 0; y <= yExtentsPixels; y += minorSpacingPixels)
             {
-                double py = _viewport.ToPixels(y);
-
-                dc.DrawLine(minorPen, new Point(0, origin.Y + py), new Point(w, origin.Y + py));
-                dc.DrawLine(minorPen, new Point(0, origin.Y - py), new Point(w, origin.Y - py));
+                dc.DrawLine(_minorPen, new Point(xGridMinPixels, origin.Y + y), new Point(xGridMaxPixels, origin.Y + y));
+                dc.DrawLine(_minorPen, new Point(xGridMinPixels, origin.Y - y), new Point(xGridMaxPixels, origin.Y - y));
             }
         }
 
-        for (var x = Unit.Zero; x.Millimeters <= _viewport.Size.X.Millimeters / 2.0; x += MajorSpacing)
+        for (double x = 0; x <= xExtentsPixels; x += majorSpacingPixels)
         {
-            double px = _viewport.ToPixels(x);
-
-            dc.DrawLine(majorPen, new Point(origin.X + px, 0), new Point(origin.X + px, h));
-            dc.DrawLine(majorPen, new Point(origin.X - px, 0), new Point(origin.X - px, h));
+            dc.DrawLine(_majorPen, new Point(origin.X + x, yGridMinPixels), new Point(origin.X + x, yGridMaxPixels));
+            dc.DrawLine(_majorPen, new Point(origin.X - x, yGridMinPixels), new Point(origin.X - x, yGridMaxPixels));
         }
 
-        for (var y = Unit.Zero; y.Millimeters <= _viewport.Size.Y.Millimeters / 2.0; y += MajorSpacing)
+        for (double y = 0; y <= yExtentsPixels; y += majorSpacingPixels)
         {
-            double py = _viewport.ToPixels(y);
-
-            dc.DrawLine(majorPen, new Point(0, origin.Y + py), new Point(w, origin.Y + py));
-            dc.DrawLine(majorPen, new Point(0, origin.Y - py), new Point(w, origin.Y - py));
+            dc.DrawLine(_majorPen, new Point(xGridMinPixels, origin.Y + y), new Point(xGridMaxPixels, origin.Y + y));
+            dc.DrawLine(_majorPen, new Point(xGridMinPixels, origin.Y - y), new Point(xGridMaxPixels, origin.Y - y));
         }
 
-        dc.DrawLine(axisPen, new Point(origin.X, 0), new Point(origin.X, h));
-        dc.DrawLine(axisPen, new Point(0, origin.Y), new Point(w, origin.Y));
+        dc.DrawLine(_axisPen, new Point(origin.X, yGridMinPixels), new Point(origin.X, yGridMaxPixels));
+        dc.DrawLine(_axisPen, new Point(xGridMinPixels, origin.Y), new Point(xGridMaxPixels, origin.Y));
     }
 
     public Unit2D UnitSnap(Unit2D point)
