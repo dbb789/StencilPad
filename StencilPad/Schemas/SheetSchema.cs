@@ -5,6 +5,8 @@ namespace StencilPad.Schemas;
 public class SheetSchema
 {
     public string Name { get; set; } = string.Empty;
+    public SheetFormat Format { get; set; } = new SheetFormat(SheetSizeType.A4,
+                                                              SheetOrientation.Portrait);
     public SheetElementSchema[] Elements { get; set; } = [];
 
     public static SheetSchema Pack(Sheet sheet)
@@ -18,13 +20,18 @@ public class SheetSchema
         return new SheetSchema
         {
             Name = sheet.Name,
+            Format = sheet.Format,
             Elements = elements
         };
     }
 
     public static Sheet Unpack(SheetSchema data)
     {
-        var sheet = new Sheet { Name = data.Name };
+        var sheet = new Sheet 
+        { 
+            Name = data.Name,
+            Format = data.Format
+        };
 
         foreach (var element in data.Elements)
         {

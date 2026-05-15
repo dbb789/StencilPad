@@ -140,9 +140,17 @@ namespace StencilPad.Canvases.UI
                 return;
             }
 
-            sheetCanvas._sheetRenderer.Sheet = e.NewValue as Sheet;
-            sheetCanvas._editOverlayRenderer.Sheet = e.NewValue as Sheet;
-            sheetCanvas._handleMap.Sheet = e.NewValue as Sheet;
+            var sheet = e.NewValue as Sheet;
+
+            if (sheet is null)
+            {
+                return;
+            }
+            
+            sheetCanvas._sheetRenderer.Sheet = sheet;
+            sheetCanvas._editOverlayRenderer.Sheet = sheet;
+            sheetCanvas._handleMap.Sheet = sheet;
+            sheetCanvas._viewport.Size = sheet.Format.Size;
         }
 
         private static void OnZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

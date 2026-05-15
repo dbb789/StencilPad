@@ -29,6 +29,11 @@ public readonly record struct Unit
         return new Unit((decimal)inches * InchesToMillimeters);
     }
     
+    public static Unit FromInches(int inches)
+    {
+        return new Unit((decimal)inches * InchesToMillimeters);
+    }
+
     public static Unit FromInches(decimal inches)
     {
         return new Unit(inches * InchesToMillimeters);
