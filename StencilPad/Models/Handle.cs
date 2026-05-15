@@ -1,6 +1,6 @@
 namespace StencilPad.Models;
 
-public readonly struct Handle : IEquatable<Handle>
+public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 {
     public static readonly Handle DisplayOnly = new(default, HandleType.Move, HandleKey.None);
 
@@ -43,6 +43,25 @@ public readonly struct Handle : IEquatable<Handle>
         return HashCode.Combine(HandleSetId, Type, Key);
     }
 
+    public int CompareTo(Handle other)
+    {
+        int cmp = HandleSetId.CompareTo(other.HandleSetId);
+        
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        cmp = Type.CompareTo(other.Type);
+        
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        return Key.CompareTo(other.Key);
+    }
+    
     public static bool operator==(Handle lhs, Handle rhs)
     {
         return lhs.Equals(rhs);

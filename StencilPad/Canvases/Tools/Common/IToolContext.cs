@@ -11,7 +11,7 @@ public interface IToolContext
     ToolOverlay ToolOverlay { get; }
     CanvasGrid CanvasGrid { get; }
     SheetRenderer SheetRenderer { get; }
-    EditOverlayRenderer EditOverlayRenderer { get; }
+    IEditOverlayRenderer EditOverlayRenderer { get; }
     IViewport Viewport { get; }
     IHandleMap HandleMap { get; }
     IRubberBand RubberBand { get; }

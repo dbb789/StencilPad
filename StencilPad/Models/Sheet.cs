@@ -15,6 +15,21 @@ public class Sheet : ModelBase
             }
         }
     }
+
+    private SheetFormat _format = new SheetFormat(SheetSizeType.A4,
+                                                  SheetOrientation.Portrait);
+    public SheetFormat Format
+    {
+        get => _format;
+        set
+        {
+            if (_format != value)
+            {
+                _format = value;
+                OnPropertyChanged();
+            }
+        }
+    }
     
     public SheetElementList Elements { get; }
     public SheetSelection Selection { get; }

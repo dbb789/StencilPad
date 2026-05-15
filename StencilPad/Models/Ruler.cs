@@ -25,12 +25,13 @@ public class Ruler : SheetElement<Ruler>
     public Ruler()
     {
         HandleSource = new StartEndHandleSource(Unit2D.Zero, Unit2D.Zero);
-        HandleSource.HandleMoved += (handle, position) => GeometryChanged?.Invoke();
+        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
     }
     
     public Ruler(Unit2D start, Unit2D end)
     {
         HandleSource = new StartEndHandleSource(start, end);
+        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
     }
     
     public override void MirrorX(Unit centerY)

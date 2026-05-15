@@ -42,7 +42,7 @@ public partial class SheetTab : UserControl
         InitializeComponent();
 
         SheetCanvas.CanvasReady += SheetCanvasReady;
-
+        
         Scroll.PreviewMouseWheel += OnPreviewMouseWheel;
         Scroll.PreviewMouseDown += OnPreviewMouseDown;
         Scroll.PreviewMouseMove += OnPreviewMouseMove;
@@ -58,12 +58,20 @@ public partial class SheetTab : UserControl
             {
                 oldVm.DetachCanvas();
             }
-            
+
             if (e.NewValue is SheetTabViewModel newVm)
             {
                 newVm.AttachCanvas(SheetCanvas);
             }
         };
+
+        SheetCanvas.Viewport.ViewportChanged += () =>
+        {
+            Scroll.MaxWidth = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.X) + 32;
+            Scroll.MaxHeight = SheetCanvas.Viewport.ToPixels(SheetCanvas.Viewport.Size.Y) + 32;
+        };
+
+        Dispatcher.BeginInvoke(CentreScroll);
     }
 
     private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)

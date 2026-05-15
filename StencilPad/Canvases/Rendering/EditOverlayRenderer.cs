@@ -4,7 +4,7 @@ using StencilPad.Models;
 
 namespace StencilPad.Canvases.Rendering;
 
-public class EditOverlayRenderer : IDisposable
+public class EditOverlayRenderer : IEditOverlayRenderer
 {
     public Sheet? Sheet
     {

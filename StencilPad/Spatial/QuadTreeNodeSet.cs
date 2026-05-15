@@ -10,7 +10,8 @@ public struct QuadTreeNodeSet<T>
     private QuadTreeNode<T> _se;
 
 
-    public QuadTreeNodeSet(IObjectPool<QuadTreeNode<T>> nodePool,
+    public void Initialize(QuadTreeNode<T> parent,
+                           IObjectPool<QuadTreeNode<T>> nodePool,
                            int nodeCapacity,
                            UnitBounds bounds,
                            int maxDepth)
@@ -18,16 +19,16 @@ public struct QuadTreeNodeSet<T>
         _nodePool = nodePool;
         _bounds = bounds;
         _nw = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
-        _nw.Initialize(NWBounds(), maxDepth);
+        _nw.Initialize(parent, NWBounds(), maxDepth);
         
         _ne = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
-        _ne.Initialize(NEBounds(), maxDepth);
+        _ne.Initialize(parent, NEBounds(), maxDepth);
         
         _sw = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
-        _sw.Initialize(SWBounds(), maxDepth);
+        _sw.Initialize(parent, SWBounds(), maxDepth);
         
         _se = nodePool.TryGet() ?? new QuadTreeNode<T>(nodePool, nodeCapacity);
-        _se.Initialize(SEBounds(), maxDepth);
+        _se.Initialize(parent, SEBounds(), maxDepth);
     }
 
     public void Recycle()
@@ -75,20 +76,36 @@ public struct QuadTreeNodeSet<T>
         }
     }
 
-    public bool Remove(UnitBounds bounds, T value)
+    public QuadTreeNode<T>? Remove(UnitBounds bounds, T value)
     {
         return _nw.Remove(bounds, value)
-            || _ne.Remove(bounds, value)
-            || _sw.Remove(bounds, value)
-            || _se.Remove(bounds, value);
+            ?? _ne.Remove(bounds, value)
+            ?? _sw.Remove(bounds, value)
+            ?? _se.Remove(bounds, value);
     }
     
-    public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
+    public void Query(UnitBounds bounds, List<T> results)
     {
         _nw.Query(bounds, results);
         _ne.Query(bounds, results);
         _sw.Query(bounds, results);
         _se.Query(bounds, results);
+    }
+    
+    public void GetAllValues(List<T> results)
+    {
+        _nw.GetAllValues(results);
+        _ne.GetAllValues(results);
+        _sw.GetAllValues(results);
+        _se.GetAllValues(results);
+    }
+    
+    public void VisitAllValues(Action<Unit2D, T> func)
+    {
+        _nw.VisitAllValues(func);
+        _ne.VisitAllValues(func);
+        _sw.VisitAllValues(func);
+        _se.VisitAllValues(func);
     }
 
     public bool Empty()

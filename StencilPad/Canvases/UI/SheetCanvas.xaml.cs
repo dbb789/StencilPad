@@ -8,6 +8,7 @@ using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
+using System.Windows.Media;
 
 namespace StencilPad.Canvases.UI
 {
@@ -57,7 +58,7 @@ namespace StencilPad.Canvases.UI
         public IRubberBand RubberBand => _rubberBandEventPanel;
         public IHandleMap HandleMap => _handleMap;
         public SheetRenderer SheetRenderer => _sheetRenderer;
-        public EditOverlayRenderer EditOverlayRenderer => _editOverlayRenderer;
+        public IEditOverlayRenderer EditOverlayRenderer => _editOverlayRenderer;
         public CanvasGrid CanvasGrid => _canvasGrid;
         public SheetRenderPanel Renderer => _renderer;
         public ToolOverlay ToolOverlay => _toolOverlay;
@@ -87,7 +88,9 @@ namespace StencilPad.Canvases.UI
 
             _canvasGrid = new CanvasGrid(_viewport);
 
-            _renderer = new SheetRenderPanel(_sheetRenderer, _viewport);
+            _renderer = new SheetRenderPanel(_sheetRenderer,
+                                             _editOverlayRenderer,
+                                             _viewport);
             _canvasGrid.Content = _renderer;
 
             _rubberBandEventPanel = new RubberBandEventPanel(_viewport);
@@ -137,10 +140,47 @@ namespace StencilPad.Canvases.UI
             {
                 return;
             }
+            
+            if (e.OldValue is Sheet oldSheet)
+            {
+                oldSheet.PropertyChanged -= sheetCanvas.Sheet_PropertyChanged;
+            }
 
-            sheetCanvas._sheetRenderer.Sheet = e.NewValue as Sheet;
-            sheetCanvas._editOverlayRenderer.Sheet = e.NewValue as Sheet;
-            sheetCanvas._handleMap.Sheet = e.NewValue as Sheet;
+            var sheet = e.NewValue as Sheet;
+
+            if (sheet is null)
+            {
+                return;
+            }
+            
+            sheetCanvas._sheetRenderer.Sheet = sheet;
+            sheetCanvas._editOverlayRenderer.Sheet = sheet;
+            sheetCanvas._handleMap.Sheet = sheet;
+            
+            sheet.PropertyChanged += sheetCanvas.Sheet_PropertyChanged;
+            sheetCanvas.UpdateViewportSize(sheet.Format);
+        }
+
+        private void Sheet_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Sheet.Format) && Sheet is not null)
+            {
+                UpdateViewportSize(Sheet.Format);
+            }
+        }
+
+        private void UpdateViewportSize(SheetFormat format)
+        {
+            var sheetSize = format.Size;
+            
+            // Calculate 10% of the largest dimension, rounded up to the nearest 10mm
+            double maxDim = Math.Max(sheetSize.X.Millimeters, sheetSize.Y.Millimeters);
+            double marginMm = Math.Ceiling((maxDim * 0.1) / 10.0) * 10.0;
+            var margin = Unit.FromMillimeters(marginMm);
+            
+            _viewport.SheetSize = sheetSize;
+            _viewport.Size = new Unit2D(sheetSize.X + margin * 2,
+                                        sheetSize.Y + margin * 2);
         }
 
         private static void OnZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -188,8 +228,9 @@ namespace StencilPad.Canvases.UI
                 return;
             }
             
-            CanvasRoot.Width = _viewport.ToPixels(_viewport.Size.X);
-            CanvasRoot.Height = _viewport.ToPixels(_viewport.Size.Y);
+            Width = _viewport.ToPixels(_viewport.Size.X);
+            Height = _viewport.ToPixels(_viewport.Size.Y);
+
             _canvasGrid.InvalidateVisual();
             Renderer.InvalidateVisual();
         }

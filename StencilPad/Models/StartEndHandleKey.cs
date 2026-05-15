@@ -1,6 +1,6 @@
 namespace StencilPad.Models;
 
-public readonly record struct StartEndHandleKey : IHandleKey
+public readonly record struct StartEndHandleKey : IComparable<StartEndHandleKey>
 {
     public enum EndType : byte
     {
@@ -13,5 +13,10 @@ public readonly record struct StartEndHandleKey : IHandleKey
     public StartEndHandleKey(EndType type)
     {
         Type = type;
+    }
+
+    public int CompareTo(StartEndHandleKey other)
+    {
+        return Type.CompareTo(other.Type);
     }
 }

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Windows;
 
 namespace StencilPad.Spatial;
@@ -7,18 +8,23 @@ public readonly record struct UnitBounds
     public static readonly UnitBounds Empty = new UnitBounds(Unit2D.Zero, Unit2D.Zero);
 
     public Rect Millimeters => new Rect(Min.Millimeters, Max.Millimeters);
-    
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UnitBounds FromCenterSize(Unit2D center, Unit2D size)
     {
-        return new UnitBounds(center, Unit2D.Abs(size));
+        size = Unit2D.Abs(size);
+        
+        var min = center - (size / 2);
+        var max = center + (size / 2);
+        
+        return new UnitBounds(min, max);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UnitBounds FromMinMax(Unit2D min, Unit2D max)
     {
-        var center = (min + max) / 2;
-        var size = max - min;
-        
-        return FromCenterSize(center, size);
+        return new UnitBounds(new Unit2D(Unit.Min(min.X, max.X), Unit.Min(min.Y, max.Y)),
+                              new Unit2D(Unit.Max(min.X, max.X), Unit.Max(min.Y, max.Y)));
     }
 
     // Allow a null value for the first parameter to simplify union operations
@@ -41,35 +47,37 @@ public readonly record struct UnitBounds
                                      Unit.Max(maxA.Y, maxB.Y)));
     }
 
-    private UnitBounds(Unit2D center, Unit2D size)
+    public Unit2D Center => (Min + Max) / 2;
+    public Unit2D Size => Max - Min;
+    public Unit2D Min => _min;
+    public Unit2D Max => _max;
+
+    private readonly Unit2D _min;
+    private readonly Unit2D _max;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private UnitBounds(Unit2D min, Unit2D max)
     {
-        Center = center;
-        Size = size;
+        _min = min;
+        _max = max;
     }
 
-    public Unit2D Center { get; private init; }
-    public Unit2D Size { get; private init; }
-    public Unit2D Min => Center - Size / 2.0;
-    public Unit2D Max => Center + Size / 2.0;
-    public Unit Area => Size.X * Size.Y;
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(Unit2D point)
     {
-        var min = Min;
-        var max = Max;
-        
-        return point.X >= min.X &&
-            point.X <= max.X &&
-            point.Y >= min.Y &&
-            point.Y <= max.Y;
+        return point.X >= _min.X &&
+            point.X <= _max.X &&
+            point.Y >= _min.Y &&
+            point.Y <= _max.Y;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(UnitBounds other)
     {
-        var minA = Min;
-        var maxA = Max;
-        var minB = other.Min;
-        var maxB = other.Max;
+        var minA = _min;
+        var maxA = _max;
+        var minB = other._min;
+        var maxB = other._max;
 
         return minB.X >= minA.X &&
                maxB.X <= maxA.X &&
@@ -77,23 +85,25 @@ public readonly record struct UnitBounds
                maxB.Y <= maxA.Y;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Intersects(UnitBounds other)
     {
-        var minA = Min;
-        var maxA = Max;
-        var minB = other.Min;
-        var maxB = other.Max;
+        var minA = _min;
+        var maxA = _max;
+        var minB = other._min;
+        var maxB = other._max;
 
         return minA.X <= maxB.X &&
                maxA.X >= minB.X &&
                minA.Y <= maxB.Y &&
                maxA.Y >= minB.Y;
     }
-
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public UnitBounds Extend(Unit2D point)
     {
-        var min = Min;
-        var max = Max;
+        var min = _min;
+        var max = _max;
 
         return FromMinMax(new Unit2D(Unit.Min(min.X, point.X),
                                      Unit.Min(min.Y, point.Y)),
@@ -101,13 +111,15 @@ public readonly record struct UnitBounds
                                      Unit.Max(max.Y, point.Y)));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UnitBounds operator +(UnitBounds bounds, Unit2D offset)
     {
-        return new UnitBounds(bounds.Center + offset, bounds.Size);
+        return new UnitBounds(bounds._min + offset, bounds._max + offset);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UnitBounds operator -(UnitBounds bounds, Unit2D offset)
     {
-        return new UnitBounds(bounds.Center - offset, bounds.Size);
+        return new UnitBounds(bounds._min - offset, bounds._max - offset);
     }
 }

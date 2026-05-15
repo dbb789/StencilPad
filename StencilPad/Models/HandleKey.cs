@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace StencilPad.Models;
 
-public readonly struct HandleKey : IEquatable<HandleKey>
+public readonly struct HandleKey : IEquatable<HandleKey>, IComparable<HandleKey>
 {
     public static readonly HandleKey None = new HandleKey(Type.None, new Value());
     
@@ -102,6 +102,24 @@ public readonly struct HandleKey : IEquatable<HandleKey>
         };
     }
 
+    public int CompareTo(HandleKey other)
+    {
+        int cmp = _type.CompareTo(other._type);
+        
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        return _type switch
+        {
+            Type.None => 0,
+            Type.Polygon => Polygon.CompareTo(other.Polygon),
+            Type.StartEnd => StartEnd.CompareTo(other.StartEnd),
+            _ => throw new InvalidOperationException("Invalid HandleKey type.")
+        };
+    }
+    
     public static bool operator==(HandleKey lhs, HandleKey rhs)
     {
         return lhs.Equals(rhs);

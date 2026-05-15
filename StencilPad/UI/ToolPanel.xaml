@@ -1,14 +1,20 @@
 ﻿<UserControl x:Class="StencilPad.UI.ToolPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
     <UserControl.Resources>
-        <Style x:Key="ToolButtonStyle" TargetType="Image">
-            <Setter Property="Width" Value="36"/>
-            <Setter Property="Height" Value="36"/>
+        <Style x:Key="ToolButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
                     <Setter Property="Opacity" Value="0.25" />
                 </Trigger>
+                
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                    <Setter Property="Background" Value="#FFFFFF" />
+                </DataTrigger>
+
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
@@ -16,17 +22,28 @@
     <Border BorderBrush="#CCCCCC" Background="#F5F5F5">
         <ListBox ItemsSource="{Binding Tools}"
                  SelectedItem="{Binding SelectedTool}"
-                 SelectionMode="Single"
-                 FocusManager.IsFocusScope="True">
+                 Focusable="False">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="Margin" Value="2"/>
+                    <Setter Property="Focusable" Value="False"/>
                     <Setter Property="IsEnabled" Value="{Binding IsEnabled}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Image Style="{StaticResource ToolButtonStyle}"
-                           Source="{Binding Icon}"/>
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding DataContext.SelectToolCommand, ElementName=Root}"
+                            CommandParameter="{Binding}">
+                        <Image Source="{Binding Icon}"/>
+                    </Button>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

@@ -46,6 +46,13 @@ public class AppController
     private List<(SheetTabController Controller, SheetTabViewModel ViewModel)> _sheetTabs = new();
     private string? _currentFilePath;
 
+    private Unit2D _pasteMajorOffset = new Unit2D(Unit.FromMillimeters(-5),
+                                                  Unit.FromMillimeters(5));
+    
+    private Unit2D _pasteMinorOffset = new Unit2D(Unit.FromMillimeters(5),
+                                                  Unit.FromMillimeters(5));
+    private int _pasteCounter;
+
     private AppController(Project project,
                           MainWindowViewModel viewModel,
                           IOperationService operationService,
@@ -321,6 +328,7 @@ public class AppController
             return;
         }
 
+        _pasteCounter = 0;
         _clipboardService.Copy(sheet.Selection);
     }
 
@@ -333,6 +341,7 @@ public class AppController
             return;
         }
 
+        _pasteCounter = 0;
         _clipboardService.Copy(tab.Sheet.Selection);
 
         var operations = tab.Sheet.Selection
@@ -355,6 +364,17 @@ public class AppController
         if (elements.Count == 0)
         {
             return;
+        }
+
+        ++_pasteCounter;
+        
+        var pasteOffset = _pasteMajorOffset * (_pasteCounter / 10);
+        
+        pasteOffset += _pasteMinorOffset * (_pasteCounter % 10);
+        
+        foreach (var element in elements)
+        {
+            element.Translate(pasteOffset);
         }
 
         var operations = elements

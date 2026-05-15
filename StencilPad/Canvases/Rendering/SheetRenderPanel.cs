@@ -7,11 +7,15 @@ namespace StencilPad.Canvases.Rendering;
 public class SheetRenderPanel : ContentControl
 {
     private SheetRenderer _sheetRenderer;
+    private EditOverlayRenderer _editOverlayRenderer;
     private IViewport _viewport;
 
-    public SheetRenderPanel(SheetRenderer sheetRenderer, IViewport viewport)
+    public SheetRenderPanel(SheetRenderer sheetRenderer,
+                            EditOverlayRenderer editOverlayRenderer,
+                            IViewport viewport)
     {
         _sheetRenderer = sheetRenderer;
+        _editOverlayRenderer = editOverlayRenderer;
         _viewport = viewport;
 
         _sheetRenderer.InvalidateVisual += InvalidateVisual;
@@ -21,11 +25,9 @@ public class SheetRenderPanel : ContentControl
     {
         dc.PushTransform(_viewport.GetMillimetersToPixelsTransform());
 
-        for (int i = 0; i < _sheetRenderer.Count; ++i)
-        {
-            _sheetRenderer[i].Render(dc);
-        }
-
+        _sheetRenderer.Render(dc);
+        _editOverlayRenderer.Render(dc);
+        
         dc.Pop();
     }
 }

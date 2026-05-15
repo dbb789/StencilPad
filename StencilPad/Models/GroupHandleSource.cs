@@ -4,19 +4,39 @@ namespace StencilPad.Models;
 
 public class GroupHandleSource : IHandleSource
 {
-    public Unit2D Position;
+    private Unit2D _position;
+    
+    public Unit2D Position
+    {
+        get => _position;
+        set
+        {
+            if (_position == value)
+            {
+                return;
+            }
+
+            _position = value;
+
+            for (int i = 0; i < _handles.Count; i++)
+            {
+                var handle = _handles[i];
+                
+                HandleMoved?.Invoke(this, handle, GetPoint(handle));
+            }
+        }
+    }
 
     public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
-    public event Action<Handle, Unit2D>? HandleMoved;
-    
-    public event Action? SelectionChanged;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
+    public event Action<IHandleSource>? SelectionChanged;
 
-    public IEnumerable<Handle> Handles => _handles;
+    public HandleSet Handles => _handles;
     
     private readonly List<IHandleSource> _children;
-    private readonly List<Handle> _handles;
-    private readonly List<Handle> _selection;
+    private readonly MutableHandleSet _handles;
+    private readonly MutableHandleSet _selection;
     private readonly Dictionary<HandleSourceId, IHandleSource> _routing;
 
     public GroupHandleSource()
@@ -46,7 +66,7 @@ public class GroupHandleSource : IHandleSource
 
         _routing.Clear();
         _selection.Clear();
-        SelectionChanged?.Invoke();
+        SelectionChanged?.Invoke(this);
         
         foreach (var child in children)
         {
@@ -82,12 +102,12 @@ public class GroupHandleSource : IHandleSource
         }
     }
 
-    public IEnumerable<Handle> GetSelectedHandles()
+    public HandleSet GetSelectedHandles()
     {
         return _selection;
     }
 
-    public void SetSelectedHandles(IEnumerable<Handle> handles)
+    public void SetSelectedHandles(HandleSet handles)
     {
         _selection.Clear();
         _selection.AddRange(handles);
@@ -99,10 +119,15 @@ public class GroupHandleSource : IHandleSource
 
         foreach (var group in _selection.GroupBy(h => _routing[h.HandleSetId]))
         {
-            group.Key.SetSelectedHandles(group);
+            var subSelection = group.Select(h => h).ToList();
+            var subHandleSet = new MutableHandleSet(subSelection.Count());
+
+            subHandleSet.AddRange(subSelection);
+            
+            group.Key.SetSelectedHandles(subHandleSet);
         }
         
-        SelectionChanged?.Invoke();
+        SelectionChanged?.Invoke(this);
     }
 
     public void SetPoint(Handle handle, Unit2D position)
@@ -115,21 +140,21 @@ public class GroupHandleSource : IHandleSource
         return _routing[handle.HandleSetId].GetPoint(handle) + Position;
     }
     
-    private void OnHandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)
+    private void OnHandleAdded(IHandleSource handleSource, Handle handle, Unit2D position)
     {
         _handles.Add(handle);
-        _routing[handle.HandleSetId] = handleSet;        
+        _routing[handle.HandleSetId] = handleSource;        
         HandleAdded?.Invoke(this, handle, position + Position);
     }
 
-    private void OnHandleRemoved(IHandleSource handleSet, Handle handle)
+    private void OnHandleRemoved(IHandleSource handleSource, Handle handle)
     {
         _handles.Remove(handle);
         HandleRemoved?.Invoke(this, handle);
     }
     
-    private void OnHandleMoved(Handle handle, Unit2D position)
+    private void OnHandleMoved(IHandleSource handleSource, Handle handle, Unit2D position)
     {
-        HandleMoved?.Invoke(handle, position + Position);
+        HandleMoved?.Invoke(this, handle, position + Position);
     }
 }

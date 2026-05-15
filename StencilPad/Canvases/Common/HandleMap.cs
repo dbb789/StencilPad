@@ -13,23 +13,34 @@ public class HandleMap : IHandleMap, IUnitSnap
     }
     
     private Sheet? _sheet;
-    private Dictionary<Handle, Unit2D> _byHandle;
-    private QuadTree<Handle> _byPosition;
-    private List<(Handle, Unit2D)> _queryResults;
-    
+    private Dictionary<Handle, HandleMapEntry> _byHandle;
+    private DynamicQuadTree<HandleMapEntry> _byPosition;
+    private List<HandleMapEntry> _queryResults;
+
+    public event Action? SheetSelectionChanged;
+
+    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    public event Action<IHandleSource, Handle>? HandleRemoved;
+    public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
+    public event Action? HandleSelectionChanged;
+
     public HandleMap()
     {
-        var pageSize = new Unit2D(Unit.FromMillimeters(1000), Unit.FromMillimeters(1000));
+        var maxBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
+        var initialBounds = UnitBounds.FromCenterSize(Unit2D.Zero,
+                                                      new Unit2D(Unit.FromMillimeters(400),
+                                                                 Unit.FromMillimeters(400)));
 
         _sheet = null;
         _byHandle = new();
-        _byPosition = new QuadTree<Handle>(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize),
-                                           nodeCapacity: 16,
-                                           maxDepth: 10);
-        _queryResults = [];
+        _byPosition = new DynamicQuadTree<HandleMapEntry>(maxBounds,
+                                                          initialBounds,
+                                                          nodeCapacity: 64,
+                                                          maxDepth: 32);
+        _queryResults = new(128);
     }
 
-    public void QueryHandles(UnitBounds bounds, List<(Handle, Unit2D)> results)
+    public void QueryHandles(UnitBounds bounds, List<HandleMapEntry> results)
     {
         _byPosition.Query(bounds, results);
     }
@@ -43,7 +54,8 @@ public class HandleMap : IHandleMap, IUnitSnap
         
         if (_sheet is not null)
         {
-            _sheet.Elements.CollectionChanged -= SheetElementsChanged;
+            _sheet.Elements.CollectionChanged -= OnSheetElementsChanged;
+            _sheet.Selection.CollectionChanged -= OnSheetSelectionChanged;
         }
         
         _sheet = sheet;
@@ -55,11 +67,12 @@ public class HandleMap : IHandleMap, IUnitSnap
                 Add(element);
             }
             
-            _sheet.Elements.CollectionChanged += SheetElementsChanged;
+            _sheet.Elements.CollectionChanged += OnSheetElementsChanged;
+            _sheet.Selection.CollectionChanged += OnSheetSelectionChanged;
         }
     }
 
-    public Unit2D UnitSnap(Unit2D point)
+    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle)
     {
         _queryResults.Clear();
         _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(5),
@@ -69,21 +82,26 @@ public class HandleMap : IHandleMap, IUnitSnap
         Unit2D? closestSnap = null;
         Unit closestDistance = Unit.FromMillimeters(5);
         
-        foreach (var (handle, handlePosition) in _queryResults)
+        foreach (var entry in _queryResults)
         {
-            var distance = (point - handlePosition).Magnitude;
+            if (selfHandle is not null && entry.Handle == selfHandle)
+            {
+                continue;
+            }
+            
+            var distance = (point - entry.Position).Magnitude;
             
             if (closestSnap is null || distance < closestDistance)
             {
-                closestSnap = handlePosition;
+                closestSnap = entry.Position;
                 closestDistance = distance;
             }
         }
 
         return closestSnap ?? point;
     }
-
-    private void SheetElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    
+    private void OnSheetElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems is not null)
         {
@@ -102,51 +120,113 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
+    private void OnSheetSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems is not null)
+        {
+            foreach (SheetElement element in e.NewItems)
+            {
+                foreach (var handle in element.HandleSource.Handles)
+                {
+                    if (_byHandle.TryGetValue(handle, out var entry))
+                    {
+                        entry.ElementSelected = true;
+                    }
+                }
+            }
+        }
+
+        if (e.OldItems is not null)
+        {
+            foreach (SheetElement element in e.OldItems)
+            {
+                foreach (var handle in element.HandleSource.Handles)
+                {
+                    if (_byHandle.TryGetValue(handle, out var entry))
+                    {
+                        entry.ElementSelected = false;
+                    }
+                }
+            }
+        }
+        
+        SheetSelectionChanged?.Invoke();
+    }
+
     private void Add(ISheetElement element)
     {
         foreach (var handle in element.HandleSource.Handles)
         {
-            Add(handle, element.HandleSource.GetPoint(handle));
-            
-            element.HandleSource.HandleMoved += HandleMoved;
+            Add(element, handle, element.HandleSource.GetPoint(handle));    
         }
+
+        element.HandleSource.HandleMoved += OnHandleMoved;
+        element.HandleSource.SelectionChanged += OnHandleSelectionChanged;
     }
 
     private void Remove(ISheetElement element)
     {
         foreach (var handle in element.HandleSource.Handles)
         {
-            element.HandleSource.HandleMoved -= HandleMoved;
-
-            Remove(handle);
+            Remove(element, handle);
         }
+        
+        element.HandleSource.HandleMoved -= OnHandleMoved;
+        element.HandleSource.SelectionChanged -= OnHandleSelectionChanged;
     }
 
-    private void Add(Handle handle, Unit2D position)
+    private void Add(ISheetElement element, Handle handle, Unit2D position)
     {
-        _byHandle[handle] = position;
-        _byPosition.Insert(position, handle);
-    }
-
-    private void Remove(Handle handle)
-    {
-        if (_byHandle.TryGetValue(handle, out var position))
+        var entry = new HandleMapEntry
         {
-            _byPosition.Remove(position, handle);
+            Element = element,
+            Handle = handle,
+            Position = position,
+            ElementSelected = _sheet?.Selection.Contains(element) ?? false,
+        };
+
+        _byHandle[handle] = entry;
+        _byPosition.Insert(position, entry);
+        HandleAdded?.Invoke(element.HandleSource, handle, position);
+    }
+
+    private void Remove(ISheetElement element, Handle handle)
+    {
+        if (_byHandle.TryGetValue(handle, out var entry))
+        {
+            _byPosition.Remove(entry.Position, entry);
             _byHandle.Remove(handle);
+            
+            HandleRemoved?.Invoke(element.HandleSource, handle);
         }
     }
 
-    private void HandleMoved(Handle handle, Unit2D position)
+    private void OnHandleMoved(IHandleSource handleSource, Handle handle, Unit2D position)
     {
-        if (_byHandle.TryGetValue(handle, out var oldPosition))
+        if (_byHandle.TryGetValue(handle, out var entry))
         {
-            if (_byPosition.Remove(oldPosition, handle))
+            if (_byPosition.Move(entry.Position, position, entry))
             {
-                _byHandle[handle] = position;
-                _byPosition.Insert(position, handle);
+                entry.Position = position;
+                
+                HandleMoved?.Invoke(handleSource, handle, position);
             }
         }
+    }
+
+    private void OnHandleSelectionChanged(IHandleSource handleSource)
+    {
+        var selected = handleSource.GetSelectedHandles();
+        
+        foreach (var handle in handleSource.Handles)
+        {
+            if (_byHandle.TryGetValue(handle, out var entry))
+            {
+                entry.HandleSelected = selected.Contains(handle);
+            }
+        }
+
+        HandleSelectionChanged?.Invoke();
     }
 }
 

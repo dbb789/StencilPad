@@ -5,5 +5,11 @@ namespace StencilPad.Canvases.Common;
 
 public interface IHandleMap
 {
-    void QueryHandles(UnitBounds bounds, List<(Handle, Unit2D)> results);
+    event Action? SheetSelectionChanged;
+    event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    event Action<IHandleSource, Handle>? HandleRemoved;
+    event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
+    event Action? HandleSelectionChanged;
+
+    void QueryHandles(UnitBounds bounds, List<HandleMapEntry> results);
 }

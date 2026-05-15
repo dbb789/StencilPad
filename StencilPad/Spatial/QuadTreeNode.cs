@@ -2,15 +2,18 @@ namespace StencilPad.Spatial;
 
 public class QuadTreeNode<T>
 {
-    public bool IsLeaf => _children == null;
-    public bool IsEmpty => IsLeaf && _values.Count == 0;
+    public QuadTreeNode<T>? Parent => _parent;
+    public bool IsLeaf => !_hasChildren;
+    public bool IsEmpty => !_hasChildren && _values.Count == 0;
     public UnitBounds Bounds => _bounds;
-
+    
     private readonly IObjectPool<QuadTreeNode<T>> _nodePool;
     private readonly int _nodeCapacity;
     private readonly List<(T, Unit2D)> _values;
+    private QuadTreeNode<T>? _parent;
     private UnitBounds _bounds;
-    private QuadTreeNodeSet<T>? _children;
+    private bool _hasChildren;
+    private QuadTreeNodeSet<T> _children;
     private int _maxDepth;
     
     public QuadTreeNode(IObjectPool<QuadTreeNode<T>> nodePool,
@@ -20,34 +23,39 @@ public class QuadTreeNode<T>
         _bounds = UnitBounds.Empty;
         _nodeCapacity = nodeCapacity;
         _values = new(nodeCapacity + 1);
-        _children = null;
+        _parent = null;
+        _hasChildren = false;
         _maxDepth = 0;
     }
 
-    public void Initialize(UnitBounds bounds, int maxDepth)
+    public void Initialize(QuadTreeNode<T>? parent,
+                           UnitBounds bounds,
+                           int maxDepth)
     {
+        Clear();
+        
+        _parent = parent;
         _bounds = bounds;
         _maxDepth = maxDepth;
-        
-        Clear();
     }
 
     public void Clear()
     {
+        _parent = null;
         _values.Clear();
         
-        if (_children is not null)
+        if (_hasChildren)
         {
-            _children.Value.Recycle();
-            _children = null;
+            _children.Recycle();
+            _hasChildren = false;
         }
     }
 
     public void Insert(Unit2D point, T value)
     {
-        if (_children is not null)
+        if (_hasChildren)
         {
-            _children.Value.Insert(point, value);
+            _children.Insert(point, value);
         }
         else
         {
@@ -60,24 +68,16 @@ public class QuadTreeNode<T>
         }
     }
 
-    public bool Remove(UnitBounds bounds, T value)
+    public QuadTreeNode<T>? Remove(UnitBounds bounds, T value)
     {
         if (!Bounds.Intersects(bounds))
         {
-            return false;
+            return null;
         }
 
-        if (_children is not null)
+        if (_hasChildren)
         {
-            bool removed = _children.Value.Remove(bounds, value);
-
-            if (_children.Value.Empty())
-            {
-                _children.Value.Recycle();
-                _children = null;
-            }
-
-            return removed;
+            return _children.Remove(bounds, value);
         }
         else
         {
@@ -87,24 +87,42 @@ public class QuadTreeNode<T>
                     bounds.Contains(_values[i].Item2))
                 {
                     _values.RemoveAt(i);
-                    return true;
+                    
+                    return this;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
-    public void Query(UnitBounds bounds, List<(T, Unit2D)> results)
+    public void Prune()
+    {
+        if (_hasChildren && _children.Empty())
+        {
+            _children.Recycle();
+            _hasChildren = false;
+        }
+    }
+
+    public void Query(UnitBounds bounds, List<T> results)
     {
         if (!Bounds.Intersects(bounds))
         {
             return;
         }
-        
-        if (_children is not null)
+
+        // If this node is completely within the query bounds, we can add all of
+        // its values without further checks.
+        if (bounds.Contains(Bounds))
         {
-            _children.Value.Query(bounds, results);
+            GetAllValues(results);
+            return;
+        }
+        
+        if (_hasChildren)
+        {
+            _children.Query(bounds, results);
         }
         else
         {
@@ -112,22 +130,55 @@ public class QuadTreeNode<T>
             {
                 if (bounds.Contains(valuePoint))
                 {
-                    results.Add((value, valuePoint));
+                    results.Add(value);
                 }
+            }
+        }
+    }
+
+    public void GetAllValues(List<T> results)
+    {
+        if (_hasChildren)
+        {
+            _children.GetAllValues(results);
+        }
+        else
+        {
+            foreach (var (value, valuePoint) in _values)
+            {
+                results.Add(value);
+            }
+        }
+    }
+    
+    public void VisitAllValues(Action<Unit2D, T> func)
+    {
+        if (_hasChildren)
+        {
+            _children.VisitAllValues(func);
+        }
+        else
+        {
+            foreach (var entry in _values)
+            {
+                func(entry.Item2, entry.Item1);
             }
         }
     }
 
     private void Subdivide()
     {
-        _children = new QuadTreeNodeSet<T>(_nodePool,
-                                           _nodeCapacity,
-                                           _bounds,
-                                           _maxDepth - 1);
+        _children.Initialize(this,
+                             _nodePool,
+                             _nodeCapacity,
+                             _bounds,
+                             _maxDepth - 1);
         
+        _hasChildren = true;
+
         foreach (var (value, valuePoint) in _values)
         {
-            _children.Value.Insert(valuePoint, value);
+            _children.Insert(valuePoint, value);
         }
 
         _values.Clear();

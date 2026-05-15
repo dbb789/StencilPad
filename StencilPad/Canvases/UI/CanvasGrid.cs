@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.UI;
@@ -83,70 +84,91 @@ public class CanvasGrid : ContentControl, IUnitSnap
 
     private readonly IViewport _viewport;
 
+    private Pen _pageOutlinePen = null!;
+    private Pen _minorPen = null!;
+    private Pen _majorPen = null!;
+    private Pen _axisPen = null!;
+    
     public CanvasGrid(IViewport viewport)
     {
         _viewport = viewport;
+
+        _pageOutlinePen = new Pen(Brushes.LightGray, 1) { DashStyle = DashStyles.Solid };
+        _pageOutlinePen.Freeze();
+        
+        _minorPen = new Pen(MinorBrush, 0.5) { DashStyle = DashStyles.Solid };
+        _minorPen.Freeze();
+        
+        _majorPen = new Pen(MajorBrush, 0.5) { DashStyle = DashStyles.Solid };
+        _majorPen.Freeze();
+        
+        _axisPen  = new Pen(AxisBrush, 1) { DashStyle = DashStyles.Solid };
+        _axisPen.Freeze();
     }
     
     protected override void OnRender(DrawingContext dc)
     {
+        double w = ActualWidth;
+        double h = ActualHeight;
+        
+        var xExtentsPixels = _viewport.ToPixels(_viewport.SheetSize.X / 2);
+        var yExtentsPixels = _viewport.ToPixels(_viewport.SheetSize.Y / 2);
+        
+        var origin = _viewport.ToPoint(Unit2D.Zero);
+
+        var pageRect = new Rect(origin.X - xExtentsPixels,
+                                origin.Y - yExtentsPixels,
+                                xExtentsPixels * 2,
+                                yExtentsPixels * 2);
+
+        // Draw the physical paper background
+        dc.DrawRectangle(Brushes.White, _pageOutlinePen, pageRect);
+        
         if (!ShowGrid)
         {
             return;
         }
+
+        // Clip everything else (grid/axes) to the paper boundary
+        dc.PushClip(new RectangleGeometry(pageRect));
         
-        var minorPen = new Pen(MinorBrush, 0.5) { DashStyle = DashStyles.Solid };
-        var majorPen = new Pen(MajorBrush, 0.5) { DashStyle = DashStyles.Solid };
-        var axisPen  = new Pen(AxisBrush,  1) { DashStyle = DashStyles.Solid };
-
-        minorPen.Freeze();
-        majorPen.Freeze();
-        axisPen.Freeze();
-
-        double w = ActualWidth;
-        double h = ActualHeight;
-        var origin = _viewport.ToPoint(Unit2D.Zero);
+        var minorSpacingPixels = _viewport.ToPixels(MinorSpacing);
+        var majorSpacingPixels = _viewport.ToPixels(MajorSpacing);
 
         if (_viewport.ToPixels(MinorSpacing) > MinimumSpacingPixels)
         {
-            for (var x = Unit.Zero; x.Millimeters <= _viewport.Size.X.Millimeters / 2.0; x += MinorSpacing)
+            for (double x = 0; x <= xExtentsPixels; x += minorSpacingPixels)
             {
-                double px = _viewport.ToPixels(x);
-
-                dc.DrawLine(minorPen, new Point(origin.X + px, 0), new Point(origin.X + px, h));
-                dc.DrawLine(minorPen, new Point(origin.X - px, 0), new Point(origin.X - px, h));
+                dc.DrawLine(_minorPen, new Point(origin.X + x, pageRect.Top), new Point(origin.X + x, pageRect.Bottom));
+                dc.DrawLine(_minorPen, new Point(origin.X - x, pageRect.Top), new Point(origin.X - x, pageRect.Bottom));
             }
 
-            for (var y = Unit.Zero; y.Millimeters <= _viewport.Size.Y.Millimeters / 2.0; y += MinorSpacing)
+            for (double y = 0; y <= yExtentsPixels; y += minorSpacingPixels)
             {
-                double py = _viewport.ToPixels(y);
-
-                dc.DrawLine(minorPen, new Point(0, origin.Y + py), new Point(w, origin.Y + py));
-                dc.DrawLine(minorPen, new Point(0, origin.Y - py), new Point(w, origin.Y - py));
+                dc.DrawLine(_minorPen, new Point(pageRect.Left, origin.Y + y), new Point(pageRect.Right, origin.Y + y));
+                dc.DrawLine(_minorPen, new Point(pageRect.Left, origin.Y - y), new Point(pageRect.Right, origin.Y - y));
             }
         }
 
-        for (var x = Unit.Zero; x.Millimeters <= _viewport.Size.X.Millimeters / 2.0; x += MajorSpacing)
+        for (double x = 0; x <= xExtentsPixels; x += majorSpacingPixels)
         {
-            double px = _viewport.ToPixels(x);
-
-            dc.DrawLine(majorPen, new Point(origin.X + px, 0), new Point(origin.X + px, h));
-            dc.DrawLine(majorPen, new Point(origin.X - px, 0), new Point(origin.X - px, h));
+            dc.DrawLine(_majorPen, new Point(origin.X + x, pageRect.Top), new Point(origin.X + x, pageRect.Bottom));
+            dc.DrawLine(_majorPen, new Point(origin.X - x, pageRect.Top), new Point(origin.X - x, pageRect.Bottom));
         }
 
-        for (var y = Unit.Zero; y.Millimeters <= _viewport.Size.Y.Millimeters / 2.0; y += MajorSpacing)
+        for (double y = 0; y <= yExtentsPixels; y += majorSpacingPixels)
         {
-            double py = _viewport.ToPixels(y);
-
-            dc.DrawLine(majorPen, new Point(0, origin.Y + py), new Point(w, origin.Y + py));
-            dc.DrawLine(majorPen, new Point(0, origin.Y - py), new Point(w, origin.Y - py));
+            dc.DrawLine(_majorPen, new Point(pageRect.Left, origin.Y + y), new Point(pageRect.Right, origin.Y + y));
+            dc.DrawLine(_majorPen, new Point(pageRect.Left, origin.Y - y), new Point(pageRect.Right, origin.Y - y));
         }
 
-        dc.DrawLine(axisPen, new Point(origin.X, 0), new Point(origin.X, h));
-        dc.DrawLine(axisPen, new Point(0, origin.Y), new Point(w, origin.Y));
+        dc.DrawLine(_axisPen, new Point(origin.X, pageRect.Top), new Point(origin.X, pageRect.Bottom));
+        dc.DrawLine(_axisPen, new Point(pageRect.Left, origin.Y), new Point(pageRect.Right, origin.Y));
+
+        dc.Pop();
     }
 
-    public Unit2D UnitSnap(Unit2D point)
+    public Unit2D UnitSnap(Unit2D point, Handle? selfHandle = null)
     {
         var majorSnapX = Unit.FromMillimeters(Math.Round(point.X.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);
         var majorSnapY = Unit.FromMillimeters(Math.Round(point.Y.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);

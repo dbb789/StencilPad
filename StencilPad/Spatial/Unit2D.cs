@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace StencilPad.Spatial;
 
@@ -31,6 +32,7 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D Abs(Unit2D u)
     {
         return new(Unit.Abs(u.X), Unit.Abs(u.Y));
@@ -50,13 +52,26 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     {
         return Math.Atan2(Determinant(a, b).Millimeters, Dot(a, b).Millimeters);
     }
-    
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator +(Unit2D a, Unit2D b) => new(a.X + b.X, a.Y + b.Y);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator -(Unit2D a, Unit2D b) => new(a.X - b.X, a.Y - b.Y);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator -(Unit2D u)  => new(-u.X, -u.Y);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator *(Unit2D u, Unit scalar) => new(u.X * scalar, u.Y * scalar);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator *(Unit2D u, double scalar) => new(u.X * scalar, u.Y * scalar);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator /(Unit2D u, Unit scalar) => new(u.X / scalar, u.Y / scalar);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator /(Unit2D u, double scalar) => new(u.X / scalar, u.Y / scalar);
 
     public override string ToString() => $"({X}, {Y})";
