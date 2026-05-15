@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public class QuadTree<T>
+public class QuadTree<T> : IDisposable
 {
     // Allows for numerical instability when removing points from the quadtree,
     // for example if a point is sitting on the edge of a node or is otherwise
@@ -9,16 +9,24 @@ public class QuadTree<T>
     private static readonly Unit2D SearchRegion = new(Unit.FromMillimeters(0.0001),
                                                       Unit.FromMillimeters(0.0001));
 
+    private readonly IObjectPool<QuadTreeNode<T>> _nodePool;
     private readonly QuadTreeNode<T> _root;
+
+    public UnitBounds Bounds => _root.Bounds;
     
-    public QuadTree(UnitBounds bounds,
+    public QuadTree(IObjectPool<QuadTreeNode<T>> nodePool,
+                    UnitBounds bounds,
                     int nodeCapacity,
                     int maxDepth)
     {
-        _root = new QuadTreeNode<T>(new ObjectPool<QuadTreeNode<T>>(256),
-                                    nodeCapacity);
-        
+        _nodePool = nodePool;
+        _root = new QuadTreeNode<T>(nodePool, nodeCapacity);
         _root.Initialize(null, bounds, maxDepth);
+    }
+
+    public void Dispose()
+    {
+        _root.Clear();
     }
 
     public void Insert(Unit2D point, T value)
@@ -61,5 +69,10 @@ public class QuadTree<T>
     public void Query(UnitBounds bounds, List<T> results)
     {
         _root.Query(bounds, results);
+    }
+
+    public void VisitAllValues(Action<Unit2D, T> func)
+    {
+        _root.VisitAllValues(func);
     }
 }

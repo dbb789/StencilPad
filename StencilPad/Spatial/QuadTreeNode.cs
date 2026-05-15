@@ -151,6 +151,21 @@ public class QuadTreeNode<T>
         }
     }
     
+    public void VisitAllValues(Action<Unit2D, T> func)
+    {
+        if (_hasChildren)
+        {
+            _children.VisitAllValues(func);
+        }
+        else
+        {
+            foreach (var entry in _values)
+            {
+                func(entry.Item2, entry.Item1);
+            }
+        }
+    }
+
     private void Subdivide()
     {
         _children.Initialize(this,

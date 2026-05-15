@@ -14,7 +14,7 @@ public class HandleMap : IHandleMap, IUnitSnap
     
     private Sheet? _sheet;
     private Dictionary<Handle, HandleMapEntry> _byHandle;
-    private QuadTree<HandleMapEntry> _byPosition;
+    private DynamicQuadTree<HandleMapEntry> _byPosition;
     private List<HandleMapEntry> _queryResults;
 
     public event Action? SheetSelectionChanged;
@@ -26,13 +26,17 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     public HandleMap()
     {
-        var treeBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
+        var maxBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
+        var initialBounds = UnitBounds.FromCenterSize(Unit2D.Zero,
+                                                      new Unit2D(Unit.FromMillimeters(400),
+                                                                 Unit.FromMillimeters(400)));
 
         _sheet = null;
         _byHandle = new();
-        _byPosition = new QuadTree<HandleMapEntry>(treeBounds,
-                                                   nodeCapacity: 64,
-                                                   maxDepth: 16);
+        _byPosition = new DynamicQuadTree<HandleMapEntry>(maxBounds,
+                                                          initialBounds,
+                                                          nodeCapacity: 64,
+                                                          maxDepth: 32);
         _queryResults = new(128);
     }
 
@@ -91,7 +95,7 @@ public class HandleMap : IHandleMap, IUnitSnap
 
         return closestSnap ?? point;
     }
-
+    
     private void OnSheetElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems is not null)

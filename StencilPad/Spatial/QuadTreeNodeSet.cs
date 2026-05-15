@@ -100,6 +100,14 @@ public struct QuadTreeNodeSet<T>
         _se.GetAllValues(results);
     }
     
+    public void VisitAllValues(Action<Unit2D, T> func)
+    {
+        _nw.VisitAllValues(func);
+        _ne.VisitAllValues(func);
+        _sw.VisitAllValues(func);
+        _se.VisitAllValues(func);
+    }
+
     public bool Empty()
     {
         return _nw.IsEmpty && _ne.IsEmpty && _sw.IsEmpty && _se.IsEmpty;
