@@ -101,17 +101,18 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         var clickPosition = _context.Viewport.FromPoint(mousePosition);
         var clickSizeUnit = _context.Viewport.FromPixels(12);
         var clickSize = new Unit2D(clickSizeUnit, clickSizeUnit);
-        var queryResults = new List<HandleMapEntry>(4);
-        
-        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(clickPosition, clickSize), queryResults);
 
-        if (queryResults.Count == 0)
+        _queryResults.Clear();
+        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(clickPosition, clickSize),
+                                        _queryResults);
+
+        if (_queryResults.Count == 0)
         {
             return;
         }
         
         _dragStart = mousePosition;
-        _dragHandle = queryResults[0];
+        _dragHandle = _queryResults[0];
 
         CaptureMouse();
         e.Handled = true;
