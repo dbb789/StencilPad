@@ -26,7 +26,7 @@ public record SheetFormat
     {
         SizeType = sizeType;
         Orientation = orientation;
-        CustomSize = new Unit2D(Unit.FromMillimeters(210), Unit.FromMillimeters(297));
+        CustomSize = GetSize(sizeType, orientation);
     }
 
     public SheetFormat(Unit2D customSize)
