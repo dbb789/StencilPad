@@ -32,6 +32,13 @@ public partial class SheetTab : UserControl
         get => _snapToGrid;
         set => _snapToGrid = value;
     }
+
+    private bool _snapToPoint = false;
+    public bool SnapToPoint
+    {
+        get => _snapToPoint;
+        set => _snapToPoint = value;
+    }
     
     private Point _lastMousePosition;
     private double _lastHorizontalOffset;

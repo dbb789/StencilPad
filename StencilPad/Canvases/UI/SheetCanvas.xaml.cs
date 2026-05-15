@@ -28,8 +28,12 @@ namespace StencilPad.Canvases.UI
 
         public static readonly DependencyProperty SnapToGridProperty =
             DependencyProperty.Register(nameof(SnapToGrid), typeof(bool), typeof(SheetCanvas),
-                new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSnapToGridChanged));
+                new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSnapChanged));
         
+        public static readonly DependencyProperty SnapToPointProperty =
+            DependencyProperty.Register(nameof(SnapToPoint), typeof(bool), typeof(SheetCanvas),
+                new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSnapChanged));
+
         public Sheet Sheet
         {
             get => (Sheet)GetValue(SheetProperty)!;
@@ -54,6 +58,12 @@ namespace StencilPad.Canvases.UI
             set => SetValue(SnapToGridProperty, value);
         }
         
+        public bool SnapToPoint
+        {
+            get => (bool)GetValue(SnapToPointProperty);
+            set => SetValue(SnapToPointProperty, value);
+        }
+
         public IViewport Viewport => _viewport;
         public IRubberBand RubberBand => _rubberBandEventPanel;
         public IHandleMap HandleMap => _handleMap;
@@ -203,21 +213,23 @@ namespace StencilPad.Canvases.UI
             sheetCanvas._canvasGrid.ShowGrid = (bool)e.NewValue;
         }
 
-        private static void OnSnapToGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnSnapChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not SheetCanvas sheetCanvas)
             {
                 return;
             }
+            
+            sheetCanvas._unitSnap.Clear();
 
-            if ((bool)e.NewValue)
+            if (sheetCanvas.SnapToPoint)
             {
-                // sheetCanvas._unitSnap.Add(sheetCanvas._canvasGrid);
                 sheetCanvas._unitSnap.Add(sheetCanvas._handleMap);
             }
-            else
+
+            if (sheetCanvas.SnapToGrid)
             {
-                sheetCanvas._unitSnap.Clear();
+                sheetCanvas._unitSnap.Add(sheetCanvas._canvasGrid);
             }
         }
         

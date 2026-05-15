@@ -110,10 +110,21 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
                 var displacement = currentUnit - _dragUnitStart;
 
                 var currentBounds = GetSelectionBounds();
+                
                 if (currentBounds.HasValue)
                 {
-                    var delta = SnapDelta(_dragSelectionBounds, displacement, currentBounds.Value);
-                    SelectionDragged?.Invoke(delta);
+                    // var delta = SnapDelta(_dragSelectionBounds, displacement, currentBounds.Value);
+
+                    // if (delta.HasValue)
+                    // {
+                    //     SelectionDragged?.Invoke(delta.Value);
+                    // }
+                    // else
+                    // {
+                    // }
+
+                    SelectionDragged?.Invoke(currentUnit - _dragUnitStart);
+                    _dragUnitStart = currentUnit;
                 }
 
                 e.Handled = true;
@@ -140,7 +151,7 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         _draggingSelection = false;
     }
     
-    private Unit2D SnapDelta(UnitBounds dragBounds, Unit2D displacement, UnitBounds currentBounds)
+    private Unit2D? SnapDelta(UnitBounds dragBounds, Unit2D displacement, UnitBounds currentBounds)
     {
         // The 4 corners of the selection as they would be after applying the raw displacement.
         // Each desired corner has a corresponding current corner (same index).
@@ -160,8 +171,8 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
             currentBounds.Max,
         ];
 
+        int bestIndex = 0;
         double bestError = double.MaxValue;
-        Unit2D bestDelta = Unit2D.Zero;
         
         for (int i = 0; i < desiredCorners.Length; i++)
         {
@@ -171,13 +182,18 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
 
                 if (error < bestError)
                 {
-                    bestDelta = snapped - desiredCorners[i];
                     bestError = error;
+                    bestIndex = i;
                 }
             }
         }
 
-        return bestDelta;
+        if (_context.UnitSnap.TryUnitSnap(desiredCorners[bestIndex], null, out var bestSnapped))
+        {
+            return bestSnapped - currentCorners[bestIndex];
+        }
+
+        return null;
     }
 
     private bool PointIsOverSelection(Unit2D point)

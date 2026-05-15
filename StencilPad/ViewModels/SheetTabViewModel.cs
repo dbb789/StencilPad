@@ -32,6 +32,13 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
         set => SetProperty(ref _snapToGrid, value);
     }
 
+    private bool _snapToPoint;
+    public bool SnapToPoint
+    {
+        get => _snapToPoint;
+        set => SetProperty(ref _snapToPoint, value);
+    }
+    
     public ToolPanelViewModel ToolPanelViewModel { get; }
 
     public IViewport? Viewport { get; set; }
@@ -47,6 +54,7 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
         _zoom = 1.0;
         _showGrid = true;
         _snapToGrid = true;
+        _snapToPoint = false;
         ToolPanelViewModel = new();
     }
 

@@ -77,6 +77,9 @@
             <StatusBarItem>
                 <CheckBox Content="Snap to Grid" IsChecked="{Binding SelectedTab.SnapToGrid}"/>
             </StatusBarItem>
+            <StatusBarItem>
+                <CheckBox Content="Snap to Point" IsChecked="{Binding SelectedTab.SnapToPoint}"/>
+            </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
                     <Slider Name="RectangleHeight" 
