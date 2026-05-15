@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.Windows.Media;
 using StencilPad.Models;
 
 namespace StencilPad.Canvases.Rendering;
@@ -27,6 +28,19 @@ public class SheetRenderer : IDisposable
     public void Dispose()
     {
         AssignSheet(null);
+    }
+
+    public void Render(DrawingContext dc)
+    {
+        if (_sheet is null)
+        {
+            return;
+        }
+
+        foreach (var (_, renderer) in _renderers)
+        {
+            renderer.Render(dc);
+        }
     }
     
     public bool TryGetElementRenderer(ISheetElement element, out SheetElementRenderer renderer)

@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
@@ -21,14 +20,10 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     public event Action<IHandleSource, Handle, Unit2D>? HandleDragged;
     public event Action? HandleDragEnd;
     public event Action<IHandleSource, Handle>? HandleSelected;
-    
-    public event Action<ISheetElement, Handle, bool>? HandleSelectionChanged;
     public event Action<ISheetElementAction>? ActionInvoked;
 
     private readonly IToolContext _context;
     private readonly Sheet _sheet;
-    private readonly List<ISheetElement> _selection;
-    private readonly EditOverlayRenderer _editOverlayRenderer;
     
     private Point? _dragStart;
     private bool _isDragging;
@@ -40,29 +35,18 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         _context = context;
         _sheet = sheet;
-        _selection = [];
-        _editOverlayRenderer = context.EditOverlayRenderer;
 
-        _context.HandleMap.HandleAdded += HandleAdded;
-        _context.HandleMap.HandleRemoved += HandleRemoved;
-        _context.HandleMap.HandleMoved += HandleMoved;
-        
-        _editOverlayRenderer.InvalidateVisual += InvalidateVisual;
         _context.Viewport.ViewportChanged += InvalidateVisual;
-
-        Rebuild();
 
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
+        
+        _context.EditOverlayRenderer.IsEnabled = true;
     }
 
     public void Dispose()
     {
-        _context.HandleMap.HandleAdded -= HandleAdded;
-        _context.HandleMap.HandleRemoved -= HandleRemoved;
-        _context.HandleMap.HandleMoved -= HandleMoved;
-
-        _editOverlayRenderer.InvalidateVisual -= InvalidateVisual;
+        _context.EditOverlayRenderer.IsEnabled = false;
         _context.Viewport.ViewportChanged -= InvalidateVisual;
     }
 
@@ -70,7 +54,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
                                     ContextMenuEventArgs e,
                                     IEnumerable<ISheetElementAction?> actions)
     {
-        var subSelection = _selection.Where(e => e.HandleSource.GetSelectedHandles().Any());
+        var subSelection = _sheet.Selection.Where(e => e.HandleSource.GetSelectedHandles().Any());
 
         if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
                                                 _context,
@@ -83,25 +67,6 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         }
     }
     
-    private void HandleAdded(IHandleSource handleSet, Handle handle, Unit2D position)
-    {
-        Rebuild();
-    }
-
-    private void HandleRemoved(IHandleSource handleSet, Handle handle)
-    {
-        Rebuild();
-    }
-    
-    private void HandleMoved(IHandleSource handleSet, Handle handle, Unit2D position)
-    {
-        Rebuild();
-    }
-
-    private void Rebuild()
-    {
-    }
-
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
@@ -187,14 +152,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
-        dc.PushTransform(_context.Viewport.GetMillimetersToPixelsTransform());
-
-        _editOverlayRenderer.Render(dc);
-
-        dc.Pop();
-        
         var handleList = new List<(HandleMapEntry, Unit2D)>();
-
         var pageSize = new Unit2D(Unit.FromMillimeters(1000), Unit.FromMillimeters(1000));
 
         _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize), handleList);

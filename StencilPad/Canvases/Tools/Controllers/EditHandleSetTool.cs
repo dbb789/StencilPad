@@ -78,7 +78,6 @@ public class EditHandleSetTool : ITool
         _overlay.HandleDragged += OnHandleDragged;
         _overlay.HandleDragEnd += OnHandleDragEnd;
         _overlay.HandleSelected += OnHandleSelected;
-        _overlay.HandleSelectionChanged += OnHandleSelectionChanged;
         _overlay.ActionInvoked += ActionInvoked;
         
         _context.RubberBand.BoundsSelected += OnBoundsSelected;
@@ -96,7 +95,6 @@ public class EditHandleSetTool : ITool
             _overlay.HandleDragged -= OnHandleDragged;
             _overlay.HandleDragEnd -= OnHandleDragEnd;
             _overlay.HandleSelected -= OnHandleSelected;
-            _overlay.HandleSelectionChanged -= OnHandleSelectionChanged;
             _overlay.ActionInvoked -= ActionInvoked;
             _overlay.Dispose();
             _overlay = null;
@@ -206,7 +204,7 @@ public class EditHandleSetTool : ITool
         {
             List<Handle> list;
 
-            if (!bySource.TryGetValue(entry.Source, out list))
+            if (!bySource.TryGetValue(entry.Source, out list!))
             {
                 list = new List<Handle>(128);
                 bySource[entry.Source] = list;

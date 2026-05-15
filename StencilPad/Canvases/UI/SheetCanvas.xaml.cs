@@ -57,7 +57,7 @@ namespace StencilPad.Canvases.UI
         public IRubberBand RubberBand => _rubberBandEventPanel;
         public IHandleMap HandleMap => _handleMap;
         public SheetRenderer SheetRenderer => _sheetRenderer;
-        public EditOverlayRenderer EditOverlayRenderer => _editOverlayRenderer;
+        public IEditOverlayRenderer EditOverlayRenderer => _editOverlayRenderer;
         public CanvasGrid CanvasGrid => _canvasGrid;
         public SheetRenderPanel Renderer => _renderer;
         public ToolOverlay ToolOverlay => _toolOverlay;
@@ -87,7 +87,9 @@ namespace StencilPad.Canvases.UI
 
             _canvasGrid = new CanvasGrid(_viewport);
 
-            _renderer = new SheetRenderPanel(_sheetRenderer, _viewport);
+            _renderer = new SheetRenderPanel(_sheetRenderer,
+                                             _editOverlayRenderer,
+                                             _viewport);
             _canvasGrid.Content = _renderer;
 
             _rubberBandEventPanel = new RubberBandEventPanel(_viewport);
