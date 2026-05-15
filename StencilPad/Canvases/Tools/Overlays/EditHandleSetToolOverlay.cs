@@ -99,7 +99,8 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
 
         var clickPosition = _context.Viewport.FromPoint(mousePosition);
-        var clickSize = new Unit2D(Unit.FromMillimeters(1), Unit.FromMillimeters(1));
+        var clickSizeUnit = _context.Viewport.FromPixels(12);
+        var clickSize = new Unit2D(clickSizeUnit, clickSizeUnit);
         var queryResults = new List<HandleMapEntry>(4);
         
         _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(clickPosition, clickSize), queryResults);
