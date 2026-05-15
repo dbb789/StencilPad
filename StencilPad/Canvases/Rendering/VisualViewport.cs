@@ -8,7 +8,22 @@ public class VisualViewport() : IViewport
 {
     private const double MmPerInch = 25.4;
 
-    public Visual? Visual { get; set; }
+    public Visual? Visual
+    {
+        get => _visual;
+        set
+        {
+            if (_visual == value)
+            {
+                return;
+            }
+
+            _visual = value;
+            _dpi = (_visual != null) ? VisualTreeHelper.GetDpi(_visual).PixelsPerInchX : 96.0;
+            
+            ViewportChanged?.Invoke();
+        }
+    }
 
     public Unit2D Size
     {
@@ -58,13 +73,14 @@ public class VisualViewport() : IViewport
 
     private double _zoom = 1.0;
 
+    private Visual? _visual = null;
+    private double _dpi = 96.0;
+    
     public event Action? ViewportChanged;
 
     public double ToPixels(Unit unit)
     {
-        double dpi = (Visual != null) ? VisualTreeHelper.GetDpi(Visual).PixelsPerInchX : 96.0;
-
-        return unit.Millimeters / MmPerInch * dpi * Zoom;
+        return unit.Millimeters / MmPerInch * _dpi * Zoom;
     }
 
     public Point ToPoint(Unit2D position)
@@ -75,9 +91,7 @@ public class VisualViewport() : IViewport
 
     public Unit FromPixels(double pixels)
     {
-        double dpi = (Visual != null) ? VisualTreeHelper.GetDpi(Visual).PixelsPerInchX : 96.0;
-
-        return Unit.FromMillimeters(pixels * MmPerInch / dpi / Zoom);
+        return Unit.FromMillimeters(pixels * MmPerInch / _dpi / Zoom);
     }
 
     public Unit2D FromPixels(double pixelsX, double pixelsY)
