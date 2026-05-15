@@ -4,6 +4,12 @@ namespace StencilPad.Models;
 
 public record SheetFormat
 {
+    public static Unit2D MaxSize => new Unit2D(Unit.FromMillimeters(1200),
+                                               Unit.FromMillimeters(1200));
+    
+    public static Unit2D MinSize => new Unit2D(Unit.FromMillimeters(100),
+                                               Unit.FromMillimeters(100));
+
     public SheetSizeType SizeType { get; init; }
     public SheetOrientation Orientation { get; init; }
     public Unit2D CustomSize { get; init; }
@@ -33,7 +39,8 @@ public record SheetFormat
     {
         SizeType = SheetSizeType.Custom;
         Orientation = SheetOrientation.Portrait;
-        CustomSize = customSize;
+        CustomSize = new Unit2D(Unit.Clamp(MinSize.X, customSize.X, MaxSize.X),
+                                Unit.Clamp(MinSize.Y, customSize.Y, MaxSize.Y));
     }
     
     private static Unit2D GetSize(SheetSizeType sizeType, SheetOrientation orientation)

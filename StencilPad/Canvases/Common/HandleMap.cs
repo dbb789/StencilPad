@@ -24,11 +24,11 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     public HandleMap()
     {
-        var pageSize = new Unit2D(Unit.FromMillimeters(1000), Unit.FromMillimeters(1000));
+        var treeBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
 
         _sheet = null;
         _byHandle = new();
-        _byPosition = new QuadTree<HandleMapEntry>(UnitBounds.FromCenterSize(Unit2D.Zero, pageSize),
+        _byPosition = new QuadTree<HandleMapEntry>(treeBounds,
                                                    nodeCapacity: 64,
                                                    maxDepth: 16);
         _queryResults = [];
