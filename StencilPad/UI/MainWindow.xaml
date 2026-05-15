@@ -21,6 +21,8 @@
         <KeyBinding Command="{Binding SaveProjectCommand}" Key="S" Modifiers="Ctrl"/>
         <KeyBinding Command="{Binding SaveProjectAsCommand}" Key="S" Modifiers="Ctrl+Shift"/>
         <KeyBinding Command="{Binding PrintCommand}" Key="P" Modifiers="Ctrl"/>
+        <KeyBinding Command="{Binding UndoCommand}" Key="Z" Modifiers="Ctrl"/>
+        <KeyBinding Command="{Binding RedoCommand}" Key="Z" Modifiers="Ctrl"/>
     </Window.InputBindings>
 
     <DockPanel>
