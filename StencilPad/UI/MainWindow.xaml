@@ -22,7 +22,7 @@
         <KeyBinding Command="{Binding SaveProjectAsCommand}" Key="S" Modifiers="Ctrl+Shift"/>
         <KeyBinding Command="{Binding PrintCommand}" Key="P" Modifiers="Ctrl"/>
         <KeyBinding Command="{Binding UndoCommand}" Key="Z" Modifiers="Ctrl"/>
-        <KeyBinding Command="{Binding RedoCommand}" Key="Z" Modifiers="Ctrl"/>
+        <KeyBinding Command="{Binding RedoCommand}" Key="Y" Modifiers="Ctrl"/>
     </Window.InputBindings>
 
     <DockPanel>
