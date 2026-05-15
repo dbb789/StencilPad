@@ -81,17 +81,23 @@ public class DynamicQuadTree<T>
     
     private void GrowTree(UnitBounds newBounds)
     {
-        var newTree = new QuadTree<T>(_nodePool,
-                                      newBounds,
-                                      _nodeCapacity,
-                                      _maxDepth);
+        var valueList = new List<(Unit2D, T)>(128);
 
         _tree.VisitAllValues((point, value) =>
         {
-            newTree.Insert(point, value);
+            valueList.Add((point, value));
         });
 
         _tree.Dispose();
-        _tree = newTree;
+        
+        _tree = new QuadTree<T>(_nodePool,
+                                newBounds,
+                                _nodeCapacity,
+                                _maxDepth);
+
+        foreach (var (point, value) in valueList)
+        {
+            _tree.Insert(point, value);
+        }
     }
 }
