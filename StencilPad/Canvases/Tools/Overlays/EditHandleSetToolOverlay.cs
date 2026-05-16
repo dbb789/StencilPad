@@ -16,7 +16,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
     private record struct HandleEntry(ISheetElement Element, Handle Handle);
     private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
     
-    public event Action? HandleDragBegin;
+    public event Action<IHandleSource, Handle>? HandleDragBegin;
     public event Action<IHandleSource, Handle, Unit2D>? HandleDragged;
     public event Action? HandleDragEnd;
     public event Action<IHandleSource, Handle>? HandleSelected;
@@ -110,6 +110,8 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
             return;
         }
 
+        var handle = _queryResults[0];
+
         _dragState.OnDragStart(mousePosition,
                                _queryResults[0],
                                _queryResults[0].Position);
@@ -158,7 +160,8 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
         if (dragResult.Value.IsDragBeginning)
         {
-            HandleDragBegin?.Invoke();
+            HandleDragBegin?.Invoke(_dragState.DraggedElement.Source,
+                                    _dragState.DraggedElement.Handle);
         }
 
         HandleDragged?.Invoke(_dragState.DraggedElement.Source,

@@ -28,14 +28,14 @@ public class MutableHandleSet : HandleSet
         // ...
     }
 
-    public void Add(Handle handle)
+    public bool Add(Handle handle)
     {
-        Handles.Add(handle);
+        return Handles.Add(handle);
     }
 
-    public void Remove(Handle handle)
+    public bool Remove(Handle handle)
     {
-        Handles.Remove(handle);
+        return Handles.Remove(handle);
     }
 
     public void RemoveAt(int index)

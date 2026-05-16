@@ -104,11 +104,15 @@ public class EditHandleSetTool : ITool
         _context.RubberBand.PointSelected -= OnPointSelected;
     }
 
-    private void OnHandleDragBegin()
+    private void OnHandleDragBegin(IHandleSource source,
+                                   Handle handle)
     {
-        if (_selection.Count == 0)
+        
+        var selectedHandles = new MutableHandleSet(source.GetSelectedHandles());
+
+        if (selectedHandles.Add(handle))
         {
-            return;
+            source.SetSelectedHandles(selectedHandles);
         }
         
         _editContext = new EditSheetElementContext(_sheet, _selection);
@@ -147,44 +151,6 @@ public class EditHandleSetTool : ITool
         _editContext = null;
     }
     
-    private void OnHandleSelectionChanged(ISheetElement element,
-                                          Handle handle,
-                                          bool selected)
-    {
-        var list = new MutableHandleSet(element.HandleSource.GetSelectedHandles());
-
-        if (IsModifyingSelection())
-        {
-            if (selected && !list.Contains(handle))
-            {
-                list.Add(handle);
-            }
-            else
-            {
-                list.Remove(handle);
-            }
-        }
-        else
-        {
-            foreach (var otherElement in _selection)
-            {
-                if (otherElement != element)
-                {
-                    otherElement.HandleSource.SetSelectedHandles([]);
-                }
-            }
-            
-            list.Clear();
-            
-            if (selected)
-            {
-                list.Add(handle);
-            }
-        }
-
-        element.HandleSource.SetSelectedHandles(list);
-    }
-
     private void OnBoundsSelected(UnitBounds bounds)
     {
         if (_selection.Count == 0)
@@ -241,10 +207,10 @@ public class EditHandleSetTool : ITool
     {
         var modifyingSelection = IsModifyingSelection();
 
-        var selectedHandles = new MutableHandleSet(source.GetSelectedHandles());
-
         if (modifyingSelection)
         {
+            var selectedHandles = new MutableHandleSet(source.GetSelectedHandles());
+            
             if (selectedHandles.Contains(handle))
             {
                 selectedHandles.Remove(handle);
@@ -253,6 +219,8 @@ public class EditHandleSetTool : ITool
             {
                 selectedHandles.Add(handle);
             }
+            
+            source.SetSelectedHandles(selectedHandles);
         }
         else
         {
@@ -263,12 +231,13 @@ public class EditHandleSetTool : ITool
                     element.HandleSource.SetSelectedHandles([]);
                 }
             }
+            
+            var singleHandle = new MutableHandleSet(1);
+            
+            singleHandle.Add(handle);
 
-            selectedHandles.Clear();
-            selectedHandles.Add(handle);
+            source.SetSelectedHandles(singleHandle);
         }
-
-        source.SetSelectedHandles(selectedHandles);
     }
     
     private void OnSelectionChanged(object? sender, EventArgs e)
