@@ -8,6 +8,7 @@ public readonly record struct Unit
     private const decimal InchesToMillimeters = 25.4m;
     
     public static readonly Unit Zero = new(0);
+    public static readonly Unit Epsilon = new(0.0000001m);
 
     public static Unit FromMillimeters(double millimeters)
     {

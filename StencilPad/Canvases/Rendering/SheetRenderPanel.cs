@@ -19,6 +19,7 @@ public class SheetRenderPanel : ContentControl
         _viewport = viewport;
 
         _sheetRenderer.InvalidateVisual += InvalidateVisual;
+        _editOverlayRenderer.InvalidateVisual += InvalidateVisual;
     }
 
     protected override void OnRender(DrawingContext dc)

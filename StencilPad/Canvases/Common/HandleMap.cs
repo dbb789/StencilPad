@@ -57,7 +57,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             var distance = (result.Position - bounds.Center).Magnitude;
 
-            if (closest is null || distance < closestDistance)
+            if (closest is null || distance <= closestDistance - Unit.Epsilon)
             {
                 closest = result;
                 closestDistance = distance;

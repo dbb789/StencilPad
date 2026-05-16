@@ -9,7 +9,7 @@ public class HandleSet : IEnumerable<Handle>
     public Handle this[int index] => Handles[index];
     
     protected readonly FlatSet<Handle> Handles;
-    
+
     public HandleSet(int initialCapacity = 0)
     {
         Handles = new FlatSet<Handle>(initialCapacity);
