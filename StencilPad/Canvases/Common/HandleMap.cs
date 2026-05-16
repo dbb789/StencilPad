@@ -80,12 +80,12 @@ public class HandleMap : IHandleMap, IUnitSnap
     public Unit2D? UnitSnap(Unit2D point, IUnitSnapContext context)
     {
         _queryResults.Clear();
-        _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(50),
-                                                                      Unit.FromMillimeters(50))),
+        _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(5),
+                                                                      Unit.FromMillimeters(5))),
                           _queryResults);
 
         Unit2D? closestSnap = null;
-        Unit closestDistance = Unit.FromMillimeters(50);
+        Unit closestDistance = Unit.FromMillimeters(5);
         
         foreach (var entry in _queryResults)
         {

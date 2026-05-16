@@ -192,7 +192,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
     {
         if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
         {
-            return !entry.ElementSelected;
+            return !entry.HandleSelected;
         }
 
         return true;
