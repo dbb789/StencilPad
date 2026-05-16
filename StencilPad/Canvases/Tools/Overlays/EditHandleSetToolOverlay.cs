@@ -101,36 +101,13 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         var clickSizeUnit = _context.Viewport.FromPixels(16);
         var clickSize = new Unit2D(clickSizeUnit, clickSizeUnit);
 
-        _queryResults.Clear();
-        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(clickPosition, clickSize),
-                                        _queryResults);
+        var handle = _context.HandleMap.GetClosestHandle(UnitBounds.FromCenterSize(clickPosition, clickSize));
 
-        if (_queryResults.Count == 0)
+        if (handle is null)
         {
             return;
         }
         
-        HandleMapEntry? closest = null;
-        var closestDistance = Unit.FromMillimeters(50);
-
-        foreach (var result in _queryResults)
-        {
-            var distance = (result.Position - clickPosition).Magnitude;
-
-            if (closest is null || distance < closestDistance)
-            {
-                closest = result;
-                closestDistance = distance;
-            }
-        }
-
-        if (closest is null)
-        {
-            return;
-        }
-        
-        var handle = closest;
-
         _dragState.OnDragStart(mousePosition,
                                handle,
                                handle.Position);

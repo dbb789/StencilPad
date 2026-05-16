@@ -108,13 +108,23 @@ public class EditHandleSetTool : ITool
                                    Handle handle)
     {
         
-        var selectedHandles = new MutableHandleSet(source.GetSelectedHandles());
-
-        if (selectedHandles.Add(handle))
+        if (!source.GetSelectedHandles().Contains(handle))
         {
-            source.SetSelectedHandles(selectedHandles);
+            foreach (var element in _selection)
+            {
+                if (element.HandleSource != source)
+                {
+                    element.HandleSource.SetSelectedHandles([]);
+                }
+            }
+            
+            var singleHandle = new MutableHandleSet(1);
+            
+            singleHandle.Add(handle);
+
+            source.SetSelectedHandles(singleHandle);
         }
-        
+
         _editContext = new EditSheetElementContext(_sheet, _selection);
     }
 

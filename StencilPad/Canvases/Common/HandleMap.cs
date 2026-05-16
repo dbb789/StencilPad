@@ -45,6 +45,28 @@ public class HandleMap : IHandleMap, IUnitSnap
         _byPosition.Query(bounds, results);
     }
 
+    public HandleMapEntry? GetClosestHandle(UnitBounds bounds)
+    {
+        _queryResults.Clear();
+        _byPosition.Query(bounds, _queryResults);
+
+        HandleMapEntry? closest = null;
+        var closestDistance = bounds.Size.Magnitude * 2;
+
+        foreach (var result in _queryResults)
+        {
+            var distance = (result.Position - bounds.Center).Magnitude;
+
+            if (closest is null || distance < closestDistance)
+            {
+                closest = result;
+                closestDistance = distance;
+            }
+        }
+
+        return closest;
+    }
+
     public bool TryGetHandleEntry(Handle handle, out HandleMapEntry entry)
     {
         return _byHandle.TryGetValue(handle, out entry!);
