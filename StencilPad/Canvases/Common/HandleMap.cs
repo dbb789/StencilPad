@@ -85,7 +85,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                           _queryResults);
 
         Unit2D? closestSnap = null;
-        Unit closestDistance = Unit.FromMillimeters(5);
+        Unit closestDistance = Unit.FromMillimeters(50);
         
         foreach (var entry in _queryResults)
         {
