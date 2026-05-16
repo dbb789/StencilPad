@@ -98,7 +98,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
 
         var clickPosition = _context.Viewport.FromPoint(mousePosition);
-        var clickSizeUnit = _context.Viewport.FromPixels(12);
+        var clickSizeUnit = _context.Viewport.FromPixels(16);
         var clickSize = new Unit2D(clickSizeUnit, clickSizeUnit);
 
         _queryResults.Clear();
@@ -109,12 +109,31 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         {
             return;
         }
+        
+        HandleMapEntry? closest = null;
+        var closestDistance = Unit.FromMillimeters(50);
 
-        var handle = _queryResults[0];
+        foreach (var result in _queryResults)
+        {
+            var distance = (result.Position - clickPosition).Magnitude;
+
+            if (closest is null || distance < closestDistance)
+            {
+                closest = result;
+                closestDistance = distance;
+            }
+        }
+
+        if (closest is null)
+        {
+            return;
+        }
+        
+        var handle = closest;
 
         _dragState.OnDragStart(mousePosition,
-                               _queryResults[0],
-                               _queryResults[0].Position);
+                               handle,
+                               handle.Position);
         
         CaptureMouse();
         e.Handled = true;
