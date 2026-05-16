@@ -11,7 +11,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class EditHandleSetToolOverlay : Canvas, IDisposable
+public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 {
     private record struct HandleEntry(ISheetElement Element, Handle Handle);
     private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
@@ -26,13 +26,11 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     private readonly Sheet _sheet;
 
     private List<HandleMapEntry> _queryResults;
+    private DragState<HandleMapEntry> _dragState;
+    
     private Brush _moveBrush;
     private Brush _adjustBrush;
     private Pen _selectedPen;
-    
-    private Point? _dragStart;
-    private bool _isDragging;
-    private HandleMapEntry? _dragHandle;
     
     public EditHandleSetToolOverlay(IToolContext context,
                                     Sheet sheet,
@@ -41,6 +39,7 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         _context = context;
         _sheet = sheet;
         _queryResults = new(128);
+        _dragState = new();
         
         _context.Viewport.ViewportChanged += InvalidateVisual;
         
@@ -110,36 +109,28 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
         {
             return;
         }
-        
-        _dragStart = mousePosition;
-        _dragHandle = _queryResults[0];
 
+        _dragState.OnDragStart(mousePosition,
+                               _queryResults[0],
+                               _queryResults[0].Position);
+        
         CaptureMouse();
         e.Handled = true;
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
-        if (_dragStart is null)
+        if (_dragState.IsDragging)
         {
-            return;
-        }
-
-        if (_isDragging)
-        {
-            _isDragging = false;
             HandleDragEnd?.Invoke();
         }
         else
         {
-            if (_dragHandle is not null)
-            {
-                HandleSelected?.Invoke(_dragHandle.Source, _dragHandle.Handle);
-            }
+            HandleSelected?.Invoke(_dragState.DraggedElement.Source,
+                                   _dragState.DraggedElement.Handle);
         }
 
-        _dragStart = null;
-        _dragHandle = null;
+        _dragState.OnDragEnd();
         
         ReleaseMouseCapture();
         e.Handled = true;
@@ -147,40 +138,32 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        if (_dragStart is null)
+        var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
+
+        if (!_dragState.DragStarted)
+        {
+            return;
+        }
+        
+        var dragResult = _dragState.OnDragMove(_context.Viewport,
+                                               _context.UnitSnap,
+                                               this,
+                                               mousePosition,
+                                               _dragState.DraggedElement.Position);
+
+        if (dragResult is null)
         {
             return;
         }
 
-        var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
-
-        if (!_isDragging)
+        if (dragResult.Value.IsDragBeginning)
         {
-            var delta = mousePosition - _dragStart.Value;
-
-            if (Math.Abs(delta.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                Math.Abs(delta.Y) > SystemParameters.MinimumVerticalDragDistance)
-            {
-                _isDragging = true;
-                HandleDragBegin?.Invoke();
-            }
+            HandleDragBegin?.Invoke();
         }
 
-        if (_isDragging && _dragHandle is not null)
-        {
-            var newPosition = _context.Viewport.FromPoint(mousePosition);
-            
-            if (_context.UnitSnap.TryUnitSnap(newPosition, _dragHandle.Handle, out var snappedPosition))
-            {
-                newPosition = snappedPosition;
-            }
-
-            var delta = newPosition - _dragHandle.Source.GetPoint(_dragHandle.Handle);
-            
-            HandleDragged?.Invoke(_dragHandle.Source,
-                                  _dragHandle.Handle,
-                                  delta);
-        }
+        HandleDragged?.Invoke(_dragState.DraggedElement.Source,
+                              _dragState.DraggedElement.Handle,
+                              dragResult.Value.ElementPositionDelta);
 
         e.Handled = true;
     }
@@ -199,7 +182,22 @@ public class EditHandleSetToolOverlay : Canvas, IDisposable
     {
         InvalidateVisual();
     }
+
+    public bool CanUnitSnapTo(ISheetElement element)
+    {
+        return true;
+    }
     
+    public bool CanUnitSnapTo(Handle handle)
+    {
+        if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+        {
+            return !entry.ElementSelected;
+        }
+
+        return true;
+    }
+
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Widgets;
@@ -11,7 +12,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class SelectionToolOverlay : FrameworkElement, IDisposable
+public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposable
 {
     private IToolContext _context;
     private Sheet _sheet;
@@ -166,14 +167,15 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         for (int i = 0; i < desiredCorners.Length; i++)
         {
             var snapped = desiredCorners[i];
-            
-            if (_context.UnitSnap.TryUnitSnap(desiredCorners[i], null, out var snappedPosition))
+            var snapPosition = _context.UnitSnap.UnitSnap(desiredCorners[i], this);
+
+            if (snapPosition.HasValue)
             {
-                snapped = snappedPosition;
+                snapped = snapPosition.Value;
             }
             
             var error = (snapped - desiredCorners[i]).Magnitude.Millimeters;
-
+            
             if (error < bestError)
             {
                 bestError = error;
@@ -182,10 +184,11 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         }
 
         var desiredCorner = desiredCorners[bestIndex];
-
-        if (_context.UnitSnap.TryUnitSnap(desiredCorners[bestIndex], null, out var snappedBest))
+        var snappedBest = _context.UnitSnap.UnitSnap(desiredCorners[bestIndex], this);
+        
+        if (snappedBest.HasValue)
         {
-            desiredCorner = snappedBest;
+            desiredCorner = snappedBest.Value;
         }
 
         return desiredCorner - currentCorners[bestIndex];
@@ -256,6 +259,16 @@ public class SelectionToolOverlay : FrameworkElement, IDisposable
         InvalidateVisual();
     }
     
+    public bool CanUnitSnapTo(ISheetElement element)
+    {
+        return !_sheet.Selection.Contains(element);
+    }
+    
+    public bool CanUnitSnapTo(Handle handle)
+    {
+        return true;
+    }
+
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);

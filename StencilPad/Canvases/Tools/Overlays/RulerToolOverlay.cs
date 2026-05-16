@@ -35,10 +35,11 @@ public class RulerToolOverlay : Canvas, IDisposable
         _currentMousePosition = e.GetPosition(this);
 
         var unitPosition = _viewport.FromPoint(_currentMousePosition);
-
-        if (_unitSnap.TryUnitSnap(unitPosition, null, out var snappedPosition))
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
+        
+        if (snapPosition.HasValue)
         {
-            unitPosition = snappedPosition;
+            unitPosition = snapPosition.Value;
         }
 
         if (_start is null)
@@ -81,10 +82,11 @@ public class RulerToolOverlay : Canvas, IDisposable
         var startPoint = _start.Value.Millimeters;
 
         var unitPosition = _viewport.FromPoint(_currentMousePosition);
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
         
-        if (_unitSnap.TryUnitSnap(unitPosition, null, out var snappedPosition))
+        if (snapPosition.HasValue)
         {
-            unitPosition = snappedPosition;
+            unitPosition = snapPosition.Value;
         }
 
         var endPoint = unitPosition.Millimeters;

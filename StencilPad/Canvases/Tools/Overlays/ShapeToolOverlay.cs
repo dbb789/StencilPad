@@ -52,10 +52,11 @@ public class ShapeToolOverlay : Canvas, IDisposable
         if (e.ClickCount == 1)
         {
             var unitPosition = _viewport.FromPoint(_currentMousePosition);
+            var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
 
-            if (_unitSnap.TryUnitSnap(unitPosition, null, out var snapped))
+            if (snapPosition.HasValue)
             {
-                unitPosition = snapped;
+                unitPosition = snapPosition.Value;
             }
 
             if (!MouseOverExistingVertex(_currentMousePosition))
@@ -110,10 +111,11 @@ public class ShapeToolOverlay : Canvas, IDisposable
         {
             var lastPoint = _polygon.Vertices[^1].Position.Millimeters;
             var unitPosition = _viewport.FromPoint(_currentMousePosition);
+            var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
 
-            if (_unitSnap.TryUnitSnap(unitPosition, null, out var snapped))
+            if (snapPosition.HasValue)
             {
-                unitPosition = snapped;
+                unitPosition = snapPosition.Value;
             }
 
             dc.DrawLine(shapePen, lastPoint, unitPosition.Millimeters);

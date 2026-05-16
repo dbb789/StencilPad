@@ -50,10 +50,11 @@ public class TextToolOverlay : Canvas, IDisposable
 
         var mousePosition = e.GetPosition(this);
         var unitPosition = _viewport.FromPoint(mousePosition);
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
 
-        if (_unitSnap.TryUnitSnap(unitPosition, null, out var snappedPosition))
+        if (snapPosition.HasValue)
         {
-            _pendingPosition = snappedPosition;
+            _pendingPosition = snapPosition.Value;
         }
 
         ShowTextBox(mousePosition);

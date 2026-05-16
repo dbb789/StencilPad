@@ -44,6 +44,11 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         _byPosition.Query(bounds, results);
     }
+
+    public bool TryGetHandleEntry(Handle handle, out HandleMapEntry entry)
+    {
+        return _byHandle.TryGetValue(handle, out entry!);
+    }
     
     private void SetSheet(Sheet? sheet)
     {
@@ -72,23 +77,28 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
-    public bool TryUnitSnap(Unit2D point, Handle? selfHandle, out Unit2D snappedPoint)
+    public Unit2D? UnitSnap(Unit2D point, IUnitSnapContext context)
     {
         _queryResults.Clear();
-        _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(5),
-                                                                      Unit.FromMillimeters(5))),
+        _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(50),
+                                                                      Unit.FromMillimeters(50))),
                           _queryResults);
 
         Unit2D? closestSnap = null;
-        Unit closestDistance = Unit.FromMillimeters(5);
+        Unit closestDistance = Unit.FromMillimeters(50);
         
         foreach (var entry in _queryResults)
         {
-            if (selfHandle is not null && entry.Handle == selfHandle)
+            if (!context.CanUnitSnapTo(entry.Element))
             {
                 continue;
             }
-            
+
+            if (!context.CanUnitSnapTo(entry.Handle))
+            {
+                continue;
+            }
+
             var distance = (point - entry.Position).Magnitude;
             
             if (closestSnap is null || distance < closestDistance)
@@ -98,15 +108,7 @@ public class HandleMap : IHandleMap, IUnitSnap
             }
         }
 
-        if (closestSnap is not null)
-        {
-            snappedPoint = closestSnap.Value;
-            return true;
-        }
-
-        snappedPoint = default;
-
-        return false;
+        return closestSnap;
     }
     
     private void OnSheetElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)

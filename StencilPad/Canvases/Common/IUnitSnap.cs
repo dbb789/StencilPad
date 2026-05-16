@@ -5,5 +5,6 @@ namespace StencilPad.Canvases.Common;
 
 public interface IUnitSnap
 {
-    bool TryUnitSnap(Unit2D point, Handle? selfHandle, out Unit2D snappedPoint);
+    Unit2D? UnitSnap(Unit2D point,
+                     IUnitSnapContext context);
 }
