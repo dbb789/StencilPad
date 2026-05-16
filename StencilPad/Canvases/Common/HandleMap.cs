@@ -185,6 +185,8 @@ public class HandleMap : IHandleMap, IUnitSnap
         SheetSelectionChanged?.Invoke();
     }
 
+    private Dictionary<ISheetElement, Action> _elementCleanup = new();
+    
     private void Add(ISheetElement element)
     {
         foreach (var handle in element.HandleSource.Handles)
@@ -192,6 +194,21 @@ public class HandleMap : IHandleMap, IUnitSnap
             Add(element, handle, element.HandleSource.GetPoint(handle));    
         }
 
+        // FIXME: Nasty capture - but it'll be functional for now.
+        var addHandle = new Action<IHandleSource, Handle, Unit2D>((s, h, p) => Add(element, h, p));
+        var removeHandle = new Action<IHandleSource, Handle>((s, h) => Remove(element, h));
+
+        element.HandleSource.HandleAdded += addHandle;
+        element.HandleSource.HandleRemoved += removeHandle;
+
+        Action cleanup = () =>
+        {
+            element.HandleSource.HandleAdded -= addHandle;
+            element.HandleSource.HandleRemoved -= removeHandle;
+        };
+
+        _elementCleanup[element] = cleanup;
+        
         element.HandleSource.HandleMoved += OnHandleMoved;
         element.HandleSource.SelectionChanged += OnHandleSelectionChanged;
     }
@@ -202,9 +219,15 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             Remove(element, handle);
         }
-        
+
         element.HandleSource.HandleMoved -= OnHandleMoved;
         element.HandleSource.SelectionChanged -= OnHandleSelectionChanged;
+
+        if (_elementCleanup.TryGetValue(element, out var cleanup))
+        {
+            cleanup();
+            _elementCleanup.Remove(element);
+        }
     }
 
     private void Add(ISheetElement element, Handle handle, Unit2D position)

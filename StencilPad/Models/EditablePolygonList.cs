@@ -55,7 +55,7 @@ public class EditablePolygonList : IEditablePolygonSet
             PolygonAdded?.Invoke(polygon);
         }
 
-        _handleSource = new GroupHandleSource(_polygons);
+        _handleSource.SetChildren(_polygons);
         _handleSource.Position = other._handleSource.Position;
         _handleSource.SetSelectedHandles(other.HandleSource.GetSelectedHandles());
     }

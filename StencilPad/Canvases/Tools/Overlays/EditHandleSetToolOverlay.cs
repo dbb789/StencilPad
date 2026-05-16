@@ -55,7 +55,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         _adjustBrush = new SolidColorBrush(Color.FromArgb(128, 0, 128, 0));
         _adjustBrush.Freeze();
 
-        _selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 1);
+        _selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 2.0);
         _selectedPen.Freeze();
         
         ContextMenu = new ContextMenu();
@@ -122,7 +122,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         {
             HandleDragEnd?.Invoke();
         }
-        else
+        else if (_dragState.DraggedElement is not null)
         {
             HandleSelected?.Invoke(_dragState.DraggedElement.Source,
                                    _dragState.DraggedElement.Handle);

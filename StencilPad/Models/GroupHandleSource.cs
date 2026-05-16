@@ -139,7 +139,7 @@ public class GroupHandleSource : IHandleSource
     {
         return _routing[handle.HandleSetId].GetPoint(handle) + Position;
     }
-    
+
     private void OnHandleAdded(IHandleSource handleSource, Handle handle, Unit2D position)
     {
         _handles.Add(handle);
