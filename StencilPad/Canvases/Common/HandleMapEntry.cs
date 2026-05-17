@@ -3,14 +3,14 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
 
-public class HandleMapEntry
+public class HandleMapEntry : IHandleMapEntry
 {
-    public ISheetElement Element = null!;
+    public ISheetElement Element { get; set; } = null!;
     public IHandleSource Source => Element.HandleSource;
-    public Handle Handle;
-    public Unit2D Position;
-    public bool ElementSelected;
-    public bool HandleSelected;
+    public Handle Handle { get; set; }
+    public Unit2D Position { get; set; }
+    public bool ElementSelected { get; set; }
+    public bool HandleSelected { get; set; }
 
     public void SetPosition(Unit2D position)
     {

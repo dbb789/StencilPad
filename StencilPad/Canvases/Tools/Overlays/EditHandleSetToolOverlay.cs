@@ -25,8 +25,8 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
     private readonly IToolContext _context;
     private readonly Sheet _sheet;
 
-    private List<HandleMapEntry> _queryResults;
-    private DragState<HandleMapEntry> _dragState;
+    private List<IHandleMapEntry> _queryResults;
+    private DragState<IHandleMapEntry> _dragState;
     
     private Brush _moveBrush;
     private Brush _adjustBrush;

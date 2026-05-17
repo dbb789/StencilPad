@@ -159,7 +159,7 @@ public class EditHandleSetTool : ITool
 
         var modifyingSelection = IsModifyingSelection();
 
-        var selected = new List<HandleMapEntry>();
+        var selected = new List<IHandleMapEntry>();
         
         _context.HandleMap.QueryHandles(bounds, selected);
 

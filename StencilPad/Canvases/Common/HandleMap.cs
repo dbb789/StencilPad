@@ -13,12 +13,12 @@ public class HandleMap : IHandleMap, IUnitSnap
         set => SetSheet(value);
     }
 
-    public IEnumerable<HandleMapEntry> SelectedHandles => _selectedHandles;
+    public IEnumerable<IHandleMapEntry> SelectedHandles => _selectedHandles;
     
     private Sheet? _sheet;
     private Dictionary<Handle, HandleMapEntry> _byHandle;
     private DynamicQuadTree<HandleMapEntry> _byPosition;
-    private HashSet<HandleMapEntry> _selectedHandles;
+    private HashSet<IHandleMapEntry> _selectedHandles;
     private List<HandleMapEntry> _queryResults;
 
     public event Action? SheetSelectionChanged;
@@ -45,9 +45,15 @@ public class HandleMap : IHandleMap, IUnitSnap
         _queryResults = new(128);
     }
 
-    public void QueryHandles(UnitBounds bounds, List<HandleMapEntry> results)
+    public void QueryHandles(UnitBounds bounds, List<IHandleMapEntry> results)
     {
-        _byPosition.Query(bounds, results);
+        _queryResults.Clear();
+        _byPosition.Query(bounds, _queryResults);
+
+        foreach (var result in _queryResults)
+        {
+            results.Add(result);
+        }
     }
 
     public HandleMapEntry? GetClosestHandle(UnitBounds bounds)
@@ -72,9 +78,17 @@ public class HandleMap : IHandleMap, IUnitSnap
         return closest;
     }
 
-    public bool TryGetHandleEntry(Handle handle, out HandleMapEntry entry)
+    public bool TryGetHandleEntry(Handle handle, out IHandleMapEntry entry)
     {
-        return _byHandle.TryGetValue(handle, out entry!);
+        if (_byHandle.TryGetValue(handle, out var found))
+        {
+            entry = found;
+            return true;
+        }
+
+        entry = default!;
+        
+        return false;
     }
     
     private void SetSheet(Sheet? sheet)
