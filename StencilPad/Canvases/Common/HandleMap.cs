@@ -64,11 +64,14 @@ public class HandleMap : IHandleMap, IUnitSnap
         HandleMapEntry? closest = null;
         var closestDistance = bounds.Size.Magnitude * 2;
 
-        foreach (var result in _queryResults)
+        // Iterate backwards so that in the case of overlap, the most recently
+        // added/moved handle is returned.
+        for (int i = _queryResults.Count - 1; i >= 0; i--)
         {
+            var result = _queryResults[i];
             var distance = (result.Position - bounds.Center).Magnitude;
 
-            if (closest is null || distance <= closestDistance - Unit.Epsilon)
+            if (closest is null || distance < closestDistance)
             {
                 closest = result;
                 closestDistance = distance;
@@ -349,18 +352,15 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         if (_byHandle.TryGetValue(handle, out var entry))
         {
-            if (entry.HandleSelected != selected)
-            {
-                entry.HandleSelected = selected;
+            entry.HandleSelected = selected;
 
-                if (selected)
-                {
-                    _selectedHandles.Add(entry);
-                }
-                else
-                {
-                    _selectedHandles.Remove(entry);
-                }
+            if (selected)
+            {
+                _selectedHandles.Add(entry);
+            }
+            else
+            {
+                _selectedHandles.Remove(entry);
             }
             
             HandleSelectionChanged?.Invoke();
