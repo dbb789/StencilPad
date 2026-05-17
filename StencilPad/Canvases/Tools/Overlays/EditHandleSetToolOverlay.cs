@@ -13,6 +13,9 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 {
+    // Limit mouse move event handling to 60hz so we don't clog up WPF.
+    private const long MouseMoveEventThrottleMs = 16;
+    
     private record struct HandleEntry(ISheetElement Element, Handle Handle);
     private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
     
@@ -27,7 +30,9 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
     private List<IHandleMapEntry> _queryResults;
     private DragState<IHandleMapEntry> _dragState;
-    
+
+    private bool _redrawPending;
+    private long _lastMouseMoveEvent;
     private Brush _moveBrush;
     private Brush _adjustBrush;
     private Pen _selectedPen;
@@ -41,13 +46,13 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         _queryResults = new(128);
         _dragState = new();
         
-        _context.Viewport.ViewportChanged += InvalidateVisual;
+        _context.Viewport.ViewportChanged += ForceRedraw;
         
-        _context.HandleMap.SheetSelectionChanged += InvalidateVisual;
+        _context.HandleMap.SheetSelectionChanged += ForceRedraw;
         _context.HandleMap.HandleAdded += OnHandleAdded;
         _context.HandleMap.HandleRemoved += OnHandleRemoved;
         _context.HandleMap.HandleMoved += OnHandleMoved;
-        _context.HandleMap.HandleSelectionChanged += InvalidateVisual;
+        _context.HandleMap.HandleSelectionChanged += ForceRedraw;
 
         _moveBrush = new SolidColorBrush(Color.FromArgb(128, 255, 128, 0));
         _moveBrush.Freeze();
@@ -62,18 +67,22 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
         
         _context.EditOverlayRenderer.IsEnabled = true;
+
+        CompositionTarget.Rendering += OnRendering;
     }
 
     public void Dispose()
     {
         _context.EditOverlayRenderer.IsEnabled = false;
-        _context.Viewport.ViewportChanged -= InvalidateVisual;
+        _context.Viewport.ViewportChanged -= ForceRedraw;
 
-        _context.HandleMap.SheetSelectionChanged -= InvalidateVisual;
+        _context.HandleMap.SheetSelectionChanged -= ForceRedraw;
         _context.HandleMap.HandleAdded -= OnHandleAdded;
         _context.HandleMap.HandleRemoved -= OnHandleRemoved;
         _context.HandleMap.HandleMoved -= OnHandleMoved;
-        _context.HandleMap.HandleSelectionChanged += InvalidateVisual;
+        _context.HandleMap.HandleSelectionChanged += ForceRedraw;
+
+        CompositionTarget.Rendering -= OnRendering;
     }
 
     private void RebuildContextMenu(object sender,
@@ -131,9 +140,18 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         ReleaseMouseCapture();
         e.Handled = true;
     }
-    
+
     protected override void OnMouseMove(MouseEventArgs e)
     {
+        var now = Environment.TickCount;
+        
+        if (_lastMouseMoveEvent > (now - MouseMoveEventThrottleMs))
+        {
+            return;
+        }
+        
+        _lastMouseMoveEvent = now;
+        
         var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
 
         if (!_dragState.DragStarted)
@@ -167,17 +185,17 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
     private void OnHandleAdded(IHandleSource source, Handle handle, Unit2D position)
     {
-        InvalidateVisual();
+        ForceRedraw();
     }
 
     private void OnHandleRemoved(IHandleSource source, Handle handle)
     {
-        InvalidateVisual();
+        ForceRedraw();
     }
 
     private void OnHandleMoved(IHandleSource source, Handle handle, Unit2D position)
     {
-        InvalidateVisual();
+        ForceRedraw();
     }
 
     public bool CanUnitSnapTo(ISheetElement element)
@@ -193,6 +211,20 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         }
 
         return true;
+    }
+
+    private void ForceRedraw()
+    {
+        _redrawPending = true;
+    }
+    
+    private void OnRendering(object? sender, EventArgs e)
+    {
+        if (_redrawPending)
+        {
+            InvalidateVisual();
+            _redrawPending = false;
+        }
     }
 
     protected override void OnRender(DrawingContext dc)

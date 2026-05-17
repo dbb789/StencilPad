@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using StencilPad.Spatial;
@@ -9,6 +10,7 @@ public class SheetRenderPanel : ContentControl
     private SheetRenderer _sheetRenderer;
     private EditOverlayRenderer _editOverlayRenderer;
     private IViewport _viewport;
+    private bool _redrawPending;
 
     public SheetRenderPanel(SheetRenderer sheetRenderer,
                             EditOverlayRenderer editOverlayRenderer,
@@ -18,8 +20,38 @@ public class SheetRenderPanel : ContentControl
         _editOverlayRenderer = editOverlayRenderer;
         _viewport = viewport;
 
-        _sheetRenderer.InvalidateVisual += InvalidateVisual;
-        _editOverlayRenderer.InvalidateVisual += InvalidateVisual;
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        _sheetRenderer.InvalidateVisual += ForceRedraw;
+        _editOverlayRenderer.InvalidateVisual += ForceRedraw;
+
+        CompositionTarget.Rendering += OnRendering;
+    }
+
+    public void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        _sheetRenderer.InvalidateVisual -= ForceRedraw;
+        _editOverlayRenderer.InvalidateVisual -= ForceRedraw;
+
+        CompositionTarget.Rendering -= OnRendering;
+    }
+    
+    private void ForceRedraw()
+    {
+        _redrawPending = true;
+    }
+    
+    private void OnRendering(object? sender, EventArgs e)
+    {
+        if (_redrawPending)
+        {
+            InvalidateVisual();
+            _redrawPending = false;
+        }
     }
 
     protected override void OnRender(DrawingContext dc)

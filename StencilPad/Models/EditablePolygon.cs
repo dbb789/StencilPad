@@ -43,11 +43,7 @@ public class EditablePolygon : Polygon, IHandleSource
 
         UpdateSelectedIndices();
         RebuildHandles();
-
-        foreach (var handle in _handles)
-        {
-            HandleSelectionChanged?.Invoke(this, handle, _selection.Contains(handle));
-        }
+        ReapplySelection();
     }
 
     private void OnVertexRemoved(int index)
@@ -69,6 +65,7 @@ public class EditablePolygon : Polygon, IHandleSource
 
         UpdateSelectedIndices();
         RebuildHandles();
+        ReapplySelection();
     }
     
     protected override void OnCycledVertices(int index)
@@ -219,6 +216,8 @@ public class EditablePolygon : Polygon, IHandleSource
         base.AssignFromPolygon(other);
 
         RebuildHandles();
+        UpdateSelectedIndices();
+        ReapplySelection();
     }
 
     public void AssignFrom(EditablePolygon other)
@@ -244,6 +243,7 @@ public class EditablePolygon : Polygon, IHandleSource
         }
 
         UpdateSelectedIndices();
+        ReapplySelection();
     }
 
     public new EditablePolygon DeepClone()
@@ -267,6 +267,7 @@ public class EditablePolygon : Polygon, IHandleSource
         }
 
         UpdateSelectedIndices();
+        ReapplySelection();
     }
 
     private void RebuildHandles()
@@ -309,5 +310,13 @@ public class EditablePolygon : Polygon, IHandleSource
 
         _selectedEdges.Clear();
         CalculateSelectedEdges(_selectedEdges);
+    }
+
+    private void ReapplySelection()
+    {
+        foreach (var handle in _handles)
+        {
+            HandleSelectionChanged?.Invoke(this, handle, _selection.Contains(handle));
+        }
     }
 }
