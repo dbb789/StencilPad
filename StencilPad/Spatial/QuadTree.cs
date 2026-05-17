@@ -66,9 +66,9 @@ public class QuadTree<T> : IDisposable
         return true;
     }
 
-    public void Query(UnitBounds bounds, List<T> results)
+    public void Query(UnitBounds bounds, Action<T> func)
     {
-        _root.Query(bounds, results);
+        _root.Query(bounds, func);
     }
 
     public void VisitAllValues(Action<Unit2D, T> func)

@@ -105,7 +105,7 @@ public class QuadTreeNode<T>
         }
     }
 
-    public void Query(UnitBounds bounds, List<T> results)
+    public void Query(UnitBounds bounds, Action<T> func)
     {
         if (!Bounds.Intersects(bounds))
         {
@@ -116,13 +116,13 @@ public class QuadTreeNode<T>
         // its values without further checks.
         if (bounds.Contains(Bounds))
         {
-            GetAllValues(results);
+            GetAllValues(func);
             return;
         }
         
         if (_hasChildren)
         {
-            _children.Query(bounds, results);
+            _children.Query(bounds, func);
         }
         else
         {
@@ -130,23 +130,23 @@ public class QuadTreeNode<T>
             {
                 if (bounds.Contains(valuePoint))
                 {
-                    results.Add(value);
+                    func(value);
                 }
             }
         }
     }
 
-    public void GetAllValues(List<T> results)
+    public void GetAllValues(Action<T> func)
     {
         if (_hasChildren)
         {
-            _children.GetAllValues(results);
+            _children.GetAllValues(func);
         }
         else
         {
             foreach (var (value, valuePoint) in _values)
             {
-                results.Add(value);
+                func(value);
             }
         }
     }

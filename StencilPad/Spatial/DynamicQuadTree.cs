@@ -50,9 +50,9 @@ public class DynamicQuadTree<T>
         return _tree.Move(oldPoint, newPoint, value);
     }
 
-    public void Query(UnitBounds bounds, List<T> results)
+    public void Query(UnitBounds bounds, Action<T> func)
     {
-        _tree.Query(bounds, results);
+        _tree.Query(bounds, func);
     }
 
     public void VisitAllValues(Action<Unit2D, T> func)

@@ -47,19 +47,13 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     public void QueryHandles(UnitBounds bounds, List<IHandleMapEntry> results)
     {
-        _queryResults.Clear();
-        _byPosition.Query(bounds, _queryResults);
-
-        foreach (var result in _queryResults)
-        {
-            results.Add(result);
-        }
+        _byPosition.Query(bounds, x => results.Add(x));
     }
 
     public HandleMapEntry? GetClosestHandle(UnitBounds bounds)
     {
         _queryResults.Clear();
-        _byPosition.Query(bounds, _queryResults);
+        _byPosition.Query(bounds, x => _queryResults.Add(x));
 
         HandleMapEntry? closest = null;
         var closestDistance = bounds.Size.Magnitude * 2;
@@ -134,7 +128,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         _queryResults.Clear();
         _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(Unit.FromMillimeters(5),
                                                                       Unit.FromMillimeters(5))),
-                          _queryResults);
+                          x => _queryResults.Add(x));
 
         Unit2D? closestSnap = null;
         Unit closestDistance = Unit.FromMillimeters(50);
