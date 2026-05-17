@@ -9,10 +9,10 @@ public class StartEndHandleSource : IHandleSource
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
-    private MutableHandleSet _handles;
+    private HandleSet _handles;
     private Unit2D _start;
     private Unit2D _end;
-    private MutableHandleSet _selection;
+    private HandleSet _selection;
     private HandleSourceId _id = HandleFactory.NewId();
 
     public Unit2D Start

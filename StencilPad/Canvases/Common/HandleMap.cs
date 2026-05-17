@@ -335,15 +335,18 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         if (_byHandle.TryGetValue(handle, out var entry))
         {
-            entry.HandleSelected = selected;
+            if (entry.HandleSelected != selected)
+            {
+                entry.HandleSelected = selected;
 
-            if (selected)
-            {
-                _selectedHandles.Add(entry);
-            }
-            else
-            {
-                _selectedHandles.Remove(entry);
+                if (selected)
+                {
+                    _selectedHandles.Add(entry);
+                }
+                else
+                {
+                    _selectedHandles.Remove(entry);
+                }
             }
             
             HandleSelectionChanged?.Invoke();

@@ -5,8 +5,8 @@ namespace StencilPad.Models;
 public class EditablePolygon : Polygon, IHandleSource
 {
     private HandleSourceId _id = HandleFactory.NewId();
-    private MutableHandleSet _handles;
-    private MutableHandleSet _selection;
+    private HandleSet _handles;
+    private HandleSet _selection;
     private List<int> _selectedEdges;
     private List<int> _selectedVertices;
 
