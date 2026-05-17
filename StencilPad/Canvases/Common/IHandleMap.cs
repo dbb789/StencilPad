@@ -5,6 +5,8 @@ namespace StencilPad.Canvases.Common;
 
 public interface IHandleMap
 {
+    IEnumerable<HandleMapEntry> SelectedHandles { get; }
+
     event Action? SheetSelectionChanged;
     event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
     event Action<IHandleSource, Handle>? HandleRemoved;
@@ -14,4 +16,5 @@ public interface IHandleMap
     void QueryHandles(UnitBounds bounds, List<HandleMapEntry> results);
     HandleMapEntry? GetClosestHandle(UnitBounds bounds);
     bool TryGetHandleEntry(Handle handle, out HandleMapEntry entry);
+    void ClearSelection();
 }

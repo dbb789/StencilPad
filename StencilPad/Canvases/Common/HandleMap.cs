@@ -11,10 +11,13 @@ public class HandleMap : IHandleMap, IUnitSnap
         get => _sheet;
         set => SetSheet(value);
     }
+
+    public IEnumerable<HandleMapEntry> SelectedHandles => _selectedHandles;
     
     private Sheet? _sheet;
     private Dictionary<Handle, HandleMapEntry> _byHandle;
     private DynamicQuadTree<HandleMapEntry> _byPosition;
+    private HashSet<HandleMapEntry> _selectedHandles;
     private List<HandleMapEntry> _queryResults;
 
     public event Action? SheetSelectionChanged;
@@ -37,6 +40,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                                                           initialBounds,
                                                           nodeCapacity: 64,
                                                           maxDepth: 32);
+        _selectedHandles = new();
         _queryResults = new(128);
     }
 
@@ -99,6 +103,14 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
+    public void ClearSelection()
+    {
+        foreach (var entry in _byHandle.Values)
+        {
+            entry.SetSelected(false);
+        }
+    }
+    
     public Unit2D? UnitSnap(Unit2D point, IUnitSnapContext context)
     {
         _queryResults.Clear();
@@ -158,13 +170,13 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             foreach (SheetElement element in e.NewItems)
             {
-                foreach (var handle in element.HandleSource.Handles)
+                element.HandleSource.QueryHandles((handle, position, selected) =>
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
                         entry.ElementSelected = true;
                     }
-                }
+                });
             }
         }
 
@@ -172,13 +184,13 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             foreach (SheetElement element in e.OldItems)
             {
-                foreach (var handle in element.HandleSource.Handles)
+                element.HandleSource.QueryHandles((handle, position, selected) =>
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
                         entry.ElementSelected = false;
                     }
-                }
+                });
             }
         }
         
@@ -189,13 +201,13 @@ public class HandleMap : IHandleMap, IUnitSnap
     
     private void Add(ISheetElement element)
     {
-        foreach (var handle in element.HandleSource.Handles)
+        element.HandleSource.QueryHandles((handle, position, selected) =>
         {
-            Add(element, handle, element.HandleSource.GetPoint(handle));    
-        }
+            Add(element, handle, position, selected);
+        });
 
         // FIXME: Nasty capture - but it'll be functional for now.
-        var addHandle = new Action<IHandleSource, Handle, Unit2D>((s, h, p) => Add(element, h, p));
+        var addHandle = new Action<IHandleSource, Handle, Unit2D, bool>((s, h, p, se) => Add(element, h, p, se));
         var removeHandle = new Action<IHandleSource, Handle>((s, h) => Remove(element, h));
 
         element.HandleSource.HandleAdded += addHandle;
@@ -210,18 +222,18 @@ public class HandleMap : IHandleMap, IUnitSnap
         _elementCleanup[element] = cleanup;
         
         element.HandleSource.HandleMoved += OnHandleMoved;
-        element.HandleSource.SelectionChanged += OnHandleSelectionChanged;
+        element.HandleSource.HandleSelectionChanged += OnHandleSelectionChanged;
     }
 
     private void Remove(ISheetElement element)
     {
-        foreach (var handle in element.HandleSource.Handles)
+        element.HandleSource.QueryHandles((handle, position, selected) =>
         {
             Remove(element, handle);
-        }
+        });
 
         element.HandleSource.HandleMoved -= OnHandleMoved;
-        element.HandleSource.SelectionChanged -= OnHandleSelectionChanged;
+        element.HandleSource.HandleSelectionChanged -= OnHandleSelectionChanged;
 
         if (_elementCleanup.TryGetValue(element, out var cleanup))
         {
@@ -230,18 +242,24 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
-    private void Add(ISheetElement element, Handle handle, Unit2D position)
+    private void Add(ISheetElement element, Handle handle, Unit2D position, bool selected)
     {
         var entry = new HandleMapEntry
         {
             Element = element,
             Handle = handle,
             Position = position,
-            ElementSelected = _sheet?.Selection.Contains(element) ?? false,
+            ElementSelected = selected,
         };
 
         _byHandle[handle] = entry;
         _byPosition.Insert(position, entry);
+
+        if (selected)
+        {
+            _selectedHandles.Add(entry);
+        }
+        
         HandleAdded?.Invoke(element.HandleSource, handle, position);
     }
 
@@ -251,6 +269,11 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             _byPosition.Remove(entry.Position, entry);
             _byHandle.Remove(handle);
+
+            if (entry.HandleSelected)
+            {
+                _selectedHandles.Remove(entry);
+            }
             
             HandleRemoved?.Invoke(element.HandleSource, handle);
         }
@@ -266,22 +289,34 @@ public class HandleMap : IHandleMap, IUnitSnap
                 
                 HandleMoved?.Invoke(handleSource, handle, position);
             }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"HandleMap: Failed to move handle to new position {position}");
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"HandleMap: Received HandleMoved for unknown handle");
         }
     }
 
-    private void OnHandleSelectionChanged(IHandleSource handleSource)
+    private void OnHandleSelectionChanged(IHandleSource handleSource, Handle handle, bool selected)
     {
-        var selected = handleSource.GetSelectedHandles();
-        
-        foreach (var handle in handleSource.Handles)
+        if (_byHandle.TryGetValue(handle, out var entry))
         {
-            if (_byHandle.TryGetValue(handle, out var entry))
-            {
-                entry.HandleSelected = selected.Contains(handle);
-            }
-        }
+            entry.HandleSelected = selected;
 
-        HandleSelectionChanged?.Invoke();
+            if (selected)
+            {
+                _selectedHandles.Add(entry);
+            }
+            else
+            {
+                _selectedHandles.Remove(entry);
+            }
+            
+            HandleSelectionChanged?.Invoke();
+        }
     }
 }
 

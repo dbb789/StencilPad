@@ -57,7 +57,6 @@ public class EditablePolygonList : IEditablePolygonSet
 
         _handleSource.SetChildren(_polygons);
         _handleSource.Position = other._handleSource.Position;
-        _handleSource.SetSelectedHandles(other.HandleSource.GetSelectedHandles());
     }
 
     public List<EditablePolygon>.Enumerator GetEnumerator()

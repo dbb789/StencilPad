@@ -4,12 +4,10 @@ namespace StencilPad.Models;
 
 public class StartEndHandleSource : IHandleSource
 {
-    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded { add { } remove { } }
+    public event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded { add { } remove { } }
     public event Action<IHandleSource, Handle>? HandleRemoved { add { } remove { } }
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    public event Action<IHandleSource>? SelectionChanged;
-
-    public HandleSet Handles => _handles;
+    public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
     private MutableHandleSet _handles;
     private Unit2D _start;
@@ -49,6 +47,36 @@ public class StartEndHandleSource : IHandleSource
         _end = end;
     }
 
+    public void QueryHandles(Action<Handle, Unit2D, bool> func)
+    {
+        for (int i = 0; i < _handles.Count; i++)
+        {
+            var handle = _handles[i];
+            var position = GetPoint(handle);
+            var selected = _selection.Contains(handle);
+
+            func(handle, position, selected);
+        }
+    }
+
+    public void SetHandleSelected(Handle handle, bool selected)
+    {
+        if (selected)
+        {
+            if (_selection.Add(handle))
+            {
+                HandleSelectionChanged?.Invoke(this, handle, true);
+            }
+        }
+        else
+        {
+            if (_selection.Remove(handle))
+            {
+                HandleSelectionChanged?.Invoke(this, handle, false);
+            }
+        }
+    }
+
     public Unit2D GetPoint(Handle handle)
     {
         return handle.Key.StartEnd.Type == StartEndHandleKey.EndType.Start ? _start : _end;
@@ -64,19 +92,6 @@ public class StartEndHandleSource : IHandleSource
         {
             End = position;
         }
-    }
-
-    public HandleSet GetSelectedHandles()
-    {
-        return _selection;
-    }
-
-    public void SetSelectedHandles(HandleSet handles)
-    {
-        _selection.Clear();
-        _selection.AddRange(handles);
-        
-        SelectionChanged?.Invoke(this);
     }
 
     public void AssignFrom(StartEndHandleSource other)

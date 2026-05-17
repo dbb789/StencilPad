@@ -80,12 +80,10 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
                                     ContextMenuEventArgs e,
                                     IEnumerable<ISheetElementAction?> actions)
     {
-        var subSelection = _sheet.Selection.Where(e => e.HandleSource.GetSelectedHandles().Any());
-
         if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
                                                 _context,
                                                 _sheet,
-                                                subSelection,
+                                                _sheet.Selection,
                                                 actions,
                                                 ActionInvoked))
         {

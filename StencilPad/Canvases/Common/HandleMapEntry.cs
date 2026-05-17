@@ -11,4 +11,21 @@ public class HandleMapEntry
     public Unit2D Position;
     public bool ElementSelected;
     public bool HandleSelected;
+
+    public void SetPosition(Unit2D position)
+    {
+        if (Position != position)
+        {
+            Source.SetPoint(Handle, position);
+        }
+    }
+    
+    public void SetSelected(bool selected)
+    {
+        if (HandleSelected != selected)
+        {
+            HandleSelected = selected;
+            Source.SetHandleSelected(Handle, selected);
+        }
+    }
 }

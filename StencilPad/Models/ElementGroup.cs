@@ -51,7 +51,6 @@ public class ElementGroup : SheetElement<ElementGroup>
     {
         _children = new(other.Children.Select(child => child.DeepClone()));
         HandleSource.SetChildren(_children.Select(child => child.HandleSource));
-        HandleSource.SetSelectedHandles(other.HandleSource.GetSelectedHandles());
 
         ChildrenChanged?.Invoke();
     }
