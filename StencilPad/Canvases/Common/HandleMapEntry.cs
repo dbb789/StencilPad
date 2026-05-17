@@ -9,8 +9,8 @@ public class HandleMapEntry : IHandleMapEntry
     public IHandleSource Source => Element.HandleSource;
     public Handle Handle { get; set; }
     public Unit2D Position { get; set; }
-    public bool ElementSelected { get; set; }
-    public bool HandleSelected { get; set; }
+    public bool Editing { get; set; }
+    public bool Selected { get; set; }
 
     public void SetPosition(Unit2D position)
     {
@@ -22,9 +22,9 @@ public class HandleMapEntry : IHandleMapEntry
     
     public void SetSelected(bool selected)
     {
-        if (HandleSelected != selected)
+        if (Selected != selected)
         {
-            HandleSelected = selected;
+            Selected = selected;
             Source.SetHandleSelected(Handle, selected);
         }
     }

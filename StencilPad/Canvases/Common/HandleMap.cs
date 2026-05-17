@@ -192,7 +192,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
-                        entry.ElementSelected = true;
+                        entry.Editing = true;
                     }
                     else
                     {
@@ -210,7 +210,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
-                        entry.ElementSelected = false;
+                        entry.Editing = false;
                     }
                     else
                     {
@@ -279,8 +279,8 @@ public class HandleMap : IHandleMap, IUnitSnap
             Element = element,
             Handle = handle,
             Position = position,
-            ElementSelected = _sheet?.Selection.Contains(element) ?? false,
-            HandleSelected = selected
+            Editing = _sheet?.Selection.Contains(element) ?? false,
+            Selected = selected
         };
 
         if (_byHandle.ContainsKey(handle))
@@ -307,7 +307,7 @@ public class HandleMap : IHandleMap, IUnitSnap
             _byPosition.Remove(entry.Position, entry);
             _byHandle.Remove(handle);
 
-            if (entry.HandleSelected)
+            if (entry.Selected)
             {
                 _selectedHandles.Remove(entry);
             }
@@ -353,7 +353,7 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         if (_byHandle.TryGetValue(handle, out var entry))
         {
-            entry.HandleSelected = selected;
+            entry.Selected = selected;
 
             if (selected)
             {

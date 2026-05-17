@@ -207,7 +207,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
     {
         if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
         {
-            return !entry.HandleSelected;
+            return !entry.Selected;
         }
 
         return true;
@@ -240,13 +240,13 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         
         foreach (var entry in _queryResults)
         {
-            if (!entry.ElementSelected)
+            if (!entry.Editing)
             {
                 continue;
             }
             
             var point = _context.Viewport.ToPoint(entry.Position);
-            var pen = entry.HandleSelected ? _selectedPen : null;
+            var pen = entry.Selected ? _selectedPen : null;
            
             if (entry.Handle.Type == HandleType.Move)
             {

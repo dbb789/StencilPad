@@ -5,12 +5,11 @@ namespace StencilPad.Canvases.Common;
 
 public interface IHandleMapEntry
 {
-    ISheetElement Element { get; }
     IHandleSource Source { get; }
     Handle Handle { get; }
     Unit2D Position { get; }
-    bool ElementSelected { get; }
-    bool HandleSelected { get; }
+    bool Editing { get; }
+    bool Selected { get; }
 
     void SetPosition(Unit2D position);
     void SetSelected(bool selected);

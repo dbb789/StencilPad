@@ -109,7 +109,7 @@ public class EditHandleSetTool : ITool
     {
         if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
         {
-            if (!entry.HandleSelected)
+            if (!entry.Selected)
             {
                 _context.HandleMap.ClearSelection();
                 entry.SetSelected(true);
@@ -193,7 +193,7 @@ public class EditHandleSetTool : ITool
         {
             if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
             {
-                entry.SetSelected(!entry.HandleSelected);
+                entry.SetSelected(!entry.Selected);
             }
         }
         else
