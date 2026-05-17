@@ -279,7 +279,8 @@ public class HandleMap : IHandleMap, IUnitSnap
             Element = element,
             Handle = handle,
             Position = position,
-            ElementSelected = selected,
+            ElementSelected = _sheet?.Selection.Contains(element) ?? false,
+            HandleSelected = selected
         };
 
         if (_byHandle.ContainsKey(handle))
@@ -295,7 +296,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             _selectedHandles.Add(entry);
         }
-        
+
         HandleAdded?.Invoke(element.HandleSource, handle, position);
     }
 

@@ -43,6 +43,11 @@ public class EditablePolygon : Polygon, IHandleSource
 
         UpdateSelectedIndices();
         RebuildHandles();
+
+        foreach (var handle in _handles)
+        {
+            HandleSelectionChanged?.Invoke(this, handle, _selection.Contains(handle));
+        }
     }
 
     private void OnVertexRemoved(int index)
