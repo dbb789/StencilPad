@@ -163,16 +163,14 @@ public class EditHandleSetTool : ITool
         
         _context.HandleMap.QueryHandles(bounds, selected);
 
+        if (!modifyingSelection)
+        {
+            _context.HandleMap.ClearSelection();
+        }
+        
         foreach (var entry in selected)
         {
-            if (!modifyingSelection)
-            {
-                entry.SetSelected(true);
-            }
-            else
-            {
-                entry.SetSelected(!entry.HandleSelected);
-            }
+            entry.SetSelected(true);
         }
     }
 
