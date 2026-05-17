@@ -9,6 +9,21 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     private List<ISheetElement> _children;
 
+    public Unit2D _position = Unit2D.Zero;
+    public Unit2D Position
+    {
+        get => _position;
+        set
+        {
+            if (_position != value)
+            {
+                _position = value;
+                HandleSource.Position = value;                
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public event Action? ChildrenChanged;
     
     public ElementGroup()
@@ -41,10 +56,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     
     public override void Translate(Unit2D delta)
     {
-        foreach (var child in _children)
-        {
-            child.Translate(delta);
-        }
+        Position += delta;
     }
 
     public override void AssignFrom(ElementGroup other)

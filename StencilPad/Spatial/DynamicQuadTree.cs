@@ -55,6 +55,11 @@ public class DynamicQuadTree<T>
         _tree.Query(bounds, results);
     }
 
+    public void VisitAllValues(Action<Unit2D, T> func)
+    {
+        _tree.VisitAllValues(func);
+    }
+
     private bool SizeToFitPoint(Unit2D point)
     {
         var treeBounds = _tree.Bounds;

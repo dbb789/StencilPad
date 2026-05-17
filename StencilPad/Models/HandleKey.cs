@@ -119,6 +119,11 @@ public readonly struct HandleKey : IEquatable<HandleKey>, IComparable<HandleKey>
             _ => throw new InvalidOperationException("Invalid HandleKey type.")
         };
     }
+
+    public override string ToString()
+    {
+        return _type.ToString();
+    }
     
     public static bool operator==(HandleKey lhs, HandleKey rhs)
     {

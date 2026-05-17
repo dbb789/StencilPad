@@ -61,6 +61,11 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 
         return Key.CompareTo(other.Key);
     }
+
+    public override string ToString()
+    {
+        return $"[{HandleSetId}, {Type}, {Key}]";
+    }
     
     public static bool operator==(Handle lhs, Handle rhs)
     {

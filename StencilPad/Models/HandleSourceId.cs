@@ -13,4 +13,9 @@ public readonly record struct HandleSourceId : IComparable<HandleSourceId>
     {
         return _value.CompareTo(other._value);
     }
+
+    public override string ToString()
+    {
+        return _value.ToString();
+    }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.Diagnostics;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
@@ -176,6 +177,10 @@ public class HandleMap : IHandleMap, IUnitSnap
                     {
                         entry.ElementSelected = true;
                     }
+                    else
+                    {
+                        Debug.WriteLine($"HandleMap: Failed to set selection for handle {handle} from element {element}");
+                    }
                 });
             }
         }
@@ -189,6 +194,10 @@ public class HandleMap : IHandleMap, IUnitSnap
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
                         entry.ElementSelected = false;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"HandleMap: Failed to clear selection for handle {handle} from element {element}");
                     }
                 });
             }
@@ -240,6 +249,10 @@ public class HandleMap : IHandleMap, IUnitSnap
             cleanup();
             _elementCleanup.Remove(element);
         }
+        else
+        {
+            Debug.WriteLine($"HandleMap: Failed to find cleanup for element {element}");
+        }
     }
 
     private void Add(ISheetElement element, Handle handle, Unit2D position, bool selected)
@@ -252,6 +265,12 @@ public class HandleMap : IHandleMap, IUnitSnap
             ElementSelected = selected,
         };
 
+        if (_byHandle.ContainsKey(handle))
+        {
+            Debug.WriteLine($"HandleMap: Attempted to add duplicate handle {handle} from element {element}");
+            return;
+        }
+        
         _byHandle[handle] = entry;
         _byPosition.Insert(position, entry);
 
@@ -277,6 +296,10 @@ public class HandleMap : IHandleMap, IUnitSnap
             
             HandleRemoved?.Invoke(element.HandleSource, handle);
         }
+        else
+        {
+            Debug.WriteLine($"HandleMap: Attempted to remove unknown handle {handle} from element {element}");
+        }
     }
 
     private void OnHandleMoved(IHandleSource handleSource, Handle handle, Unit2D position)
@@ -291,12 +314,20 @@ public class HandleMap : IHandleMap, IUnitSnap
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"HandleMap: Failed to move handle to new position {position}");
+                Debug.WriteLine($"HandleMap: Failed to move handle {handle} from {entry.Position} to new position {position}");
+
+                _byPosition.VisitAllValues((pos, e) =>
+                {
+                    if (e.Handle == handle)
+                    {
+                        Debug.WriteLine($"HandleMap: Found handle {handle} at position {pos} during visit");
+                    }
+                });
             }
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine($"HandleMap: Received HandleMoved for unknown handle");
+            Debug.WriteLine($"HandleMap: Received HandleMoved for unknown handle {handle}");
         }
     }
 
@@ -316,6 +347,10 @@ public class HandleMap : IHandleMap, IUnitSnap
             }
             
             HandleSelectionChanged?.Invoke();
+        }
+        else
+        {
+            Debug.WriteLine($"HandleMap: Received HandleSelectionChanged for unknown handle {handle}");
         }
     }
 }
