@@ -4,6 +4,6 @@ namespace StencilPad.Canvases.Common;
 
 public interface IUnitSnapContext
 {
-    bool CanUnitSnapTo(ISheetElement element);
+    bool CanUnitSnapTo(IHandleSource source);
     bool CanUnitSnapTo(Handle handle);
 }

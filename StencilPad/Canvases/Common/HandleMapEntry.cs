@@ -5,8 +5,7 @@ namespace StencilPad.Canvases.Common;
 
 public class HandleMapEntry : IHandleMapEntry
 {
-    public ISheetElement Element { get; set; } = null!;
-    public IHandleSource Source => Element.HandleSource;
+    public IHandleSource Source { get; set; } = null!;
     public Handle Handle { get; set; }
     public Unit2D Position { get; set; }
     public bool Editing { get; set; }

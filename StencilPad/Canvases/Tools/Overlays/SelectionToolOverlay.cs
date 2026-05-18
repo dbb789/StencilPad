@@ -16,12 +16,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 {
     private IToolContext _context;
     private Sheet _sheet;
+    private HashSet<IHandleSource> _selectedSources;
 
     private Point? _dragPixelStart;
     private Unit2D _dragUnitStart;
     private UnitBounds _dragSelectionBounds;
     private bool _draggingSelection;
-    
+
     public event Action<Unit2D>? SelectionDragged;
     public event Action<Unit2D>? PointSelected;
     
@@ -33,10 +34,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     {
         _context = context;
         _sheet = sheet;
+        _selectedSources = [];
         _sheet.Selection.CollectionChanged += SelectionChanged;
 
         foreach (var selected in _sheet.Selection)
         {
+            _selectedSources.Add(selected.HandleSource);
+
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
                 renderer.InvalidateVisual += InvalidateVisual;
@@ -53,6 +57,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         foreach (var selected in _sheet.Selection)
         {
+            _selectedSources.Remove(selected.HandleSource);
+            
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
                 renderer.InvalidateVisual -= InvalidateVisual;
@@ -236,10 +242,14 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         {
             foreach (var item in e.OldItems)
             {
-                if (item is SheetElement element &&
-                    _context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
+                if (item is ISheetElement element)
                 {
-                    renderer.InvalidateVisual -= InvalidateVisual;
+                    _selectedSources.Remove(element.HandleSource);
+
+                    if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
+                    {
+                        renderer.InvalidateVisual -= InvalidateVisual;
+                    }
                 }
             }
         }
@@ -248,10 +258,14 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         {
             foreach (var item in e.NewItems)
             {
-                if (item is SheetElement element &&
-                    _context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
+                if (item is ISheetElement element)
                 {
-                    renderer.InvalidateVisual += InvalidateVisual;
+                    _selectedSources.Add(element.HandleSource);
+
+                    if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
+                    {
+                        renderer.InvalidateVisual += InvalidateVisual;
+                    }
                 }
             }
         }
@@ -259,9 +273,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         InvalidateVisual();
     }
     
-    public bool CanUnitSnapTo(ISheetElement element)
+    public bool CanUnitSnapTo(IHandleSource source)
     {
-        return !_sheet.Selection.Contains(element);
+        return !_selectedSources.Contains(source);
     }
     
     public bool CanUnitSnapTo(Handle handle)

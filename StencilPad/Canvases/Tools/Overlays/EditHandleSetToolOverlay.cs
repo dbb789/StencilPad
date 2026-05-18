@@ -198,7 +198,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         ForceRedraw();
     }
 
-    public bool CanUnitSnapTo(ISheetElement element)
+    public bool CanUnitSnapTo(IHandleSource source)
     {
         return true;
     }
