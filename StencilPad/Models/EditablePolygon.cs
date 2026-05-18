@@ -33,11 +33,11 @@ public class EditablePolygon : Polygon, IHandleSource
         for (int i = 0; i < _selection.Count; ++i)
         {
             var handle = _selection[i];
-            var key = handle.Key.Polygon;
+            var key = handle.GetKey<PolygonHandleKey>();
             
             if (key.Index >= index)
             {
-                _selection[i] = Handle.Move(_id, PolygonHandleKey.Vertex(key.Index + 1));
+                //_selection[i] = Handle.Move(_id, PolygonHandleKey.Vertex(key.Index + 1));
             }
         }
 
@@ -51,7 +51,7 @@ public class EditablePolygon : Polygon, IHandleSource
         for (int i = _selection.Count - 1; i >= 0; --i)
         {
             var handle = _selection[i];
-            var key = handle.Key.Polygon;
+            var key = handle.GetKey<PolygonHandleKey>();
 
             if (key.Index == index)
             {
@@ -59,7 +59,7 @@ public class EditablePolygon : Polygon, IHandleSource
             }
             else if (key.Index > index)
             {
-                _selection[i] = Handle.Move(_id, PolygonHandleKey.Vertex(key.Index - 1));
+                //_selection[i] = Handle.Move(_id, PolygonHandleKey.Vertex(key.Index - 1));
             }
         }
 
@@ -87,8 +87,8 @@ public class EditablePolygon : Polygon, IHandleSource
     
     private void CalculateSelectedVertices(List<int> indices)
     {
-        indices.AddRange(_selection.Where(x => x.Key.Polygon.Type == PolygonHandleType.Vertex)
-                         .Select(x => x.Key.Polygon.Index));
+        indices.AddRange(_selection.Where(x => x.GetKey<PolygonHandleKey>().Type == PolygonHandleType.Vertex)
+                         .Select(x => x.GetKey<PolygonHandleKey>().Index));
     }
 
     private void CalculateSelectedEdges(List<int> indices)
@@ -133,7 +133,7 @@ public class EditablePolygon : Polygon, IHandleSource
     
     public Unit2D GetPoint(Handle handle)
     {
-        var key = handle.Key.Polygon;
+        var key = handle.GetKey<PolygonHandleKey>();
 
         switch (key.Type)
         {
@@ -152,7 +152,7 @@ public class EditablePolygon : Polygon, IHandleSource
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        var key = handle.Key.Polygon;
+        var key = handle.GetKey<PolygonHandleKey>();
 
         switch (key.Type)
         {
@@ -260,10 +260,10 @@ public class EditablePolygon : Polygon, IHandleSource
         for (int i = 0; i < _selection.Count; ++i)
         {
             var handle = _selection[i];
-            var key = handle.Key.Polygon;
+            var key = handle.GetKey<PolygonHandleKey>();
             int newIndex = (key.Index - delta + vertexCount) % vertexCount;
 
-            _selection[i] = handle with { Key = new HandleKey(handle.Key.Polygon with { Index = newIndex }) };
+            // _selection[i] = Handle with { Key = new HandleKey(handle.GetKey<PolygonHandleKey>() with { Index = newIndex }) };
         }
 
         UpdateSelectedIndices();

@@ -2,35 +2,55 @@ namespace StencilPad.Models;
 
 public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 {
-    public static readonly Handle DisplayOnly = new(default, HandleType.Move, HandleKey.None);
+    public static readonly Handle DisplayOnly = new(default, HandleType.Move, 0, 0);
 
     public HandleSourceId HandleSetId { get; init; }
     public HandleType Type { get; init; }
-    public HandleKey Key { get; init; }
-    
+
+    private readonly HandleKeyType _keyType;
+    private readonly ulong _key;
+
     public bool CanGroupMove => Type == HandleType.Move;
 
-    public static Handle Move(HandleSourceId handleSetId, PolygonHandleKey key) =>
-        new(handleSetId, HandleType.Move, new HandleKey(key));
+    public static Handle Move<TKey>(HandleSourceId handleSetId, TKey key) where TKey : IHandleKey, new()
+    {
+        return new(handleSetId, HandleType.Move, key.KeyType, key.Pack());
+    }
+    
+    public static Handle Adjust<TKey>(HandleSourceId handleSetId, TKey key) where TKey : IHandleKey, new()
+    {
+        return new(handleSetId, HandleType.Adjust, key.KeyType, key.Pack());
+    }
 
-    public static Handle Adjust(HandleSourceId handleSetId, PolygonHandleKey key) =>
-        new(handleSetId, HandleType.Adjust, new HandleKey(key));
-
-    public static Handle Move(HandleSourceId handleSetId, StartEndHandleKey key) =>
-        new(handleSetId, HandleType.Move, new HandleKey(key));
-
-    private Handle(HandleSourceId handleSetId, HandleType type, HandleKey key)
+    private Handle(HandleSourceId handleSetId, HandleType type, HandleKeyType keyType, ulong key)
     {
         HandleSetId = handleSetId;
         Type = type;
-        Key = key;
+        
+        _keyType = keyType;
+        _key = key;
     }
 
+    public TKey GetKey<TKey>() where TKey : IHandleKey, new()
+    {
+        var key = new TKey();
+
+        if (key.KeyType != _keyType)
+        {
+            throw new InvalidOperationException($"Handle key type mismatch. Expected {key.KeyType}, got {_keyType}.");
+        }
+
+        key.Unpack(_key);
+
+        return key;
+    }
+    
     public bool Equals(Handle other)
     {
         return HandleSetId == other.HandleSetId &&
             Type == other.Type &&
-            Key == other.Key;
+            _keyType == other._keyType &&
+            _key == other._key;
     }
     
     public override bool Equals(object? obj)
@@ -40,7 +60,7 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(HandleSetId, Type, Key);
+        return HashCode.Combine(HandleSetId, Type, _keyType, _key);
     }
 
     public int CompareTo(Handle other)
@@ -59,12 +79,19 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
             return cmp;
         }
 
-        return Key.CompareTo(other.Key);
+        cmp = _keyType.CompareTo(other._keyType);
+
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        return _key.CompareTo(other._key);
     }
 
     public override string ToString()
     {
-        return $"[{HandleSetId}, {Type}, {Key}]";
+        return $"[{HandleSetId}, {Type}, {_keyType}, {_key}]";
     }
     
     public static bool operator==(Handle lhs, Handle rhs)

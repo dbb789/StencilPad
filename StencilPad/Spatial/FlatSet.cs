@@ -43,7 +43,6 @@ public class FlatSet<T> : IEnumerable<T> where T : struct
 	public T this[int index]
 	{
 		get => _data[index];
-		set => _data[index] = value;
 	}
 	
 	public int Count => _dataLength;
@@ -72,7 +71,7 @@ public class FlatSet<T> : IEnumerable<T> where T : struct
 
 		var elementIndex = ~index;
 
-		if (_dataLength >= _data.Length - 1)
+		if (_dataLength >= _data.Length)
 		{
 			ResizeArray();
 		}
@@ -118,45 +117,21 @@ public class FlatSet<T> : IEnumerable<T> where T : struct
 
     public void AddRange(IEnumerable<T> elements)
     {
-        if (_data.Length < _dataLength + elements.Count())
+        int count = elements.Count();
+        
+        if (_data.Length < _dataLength + count)
         {
-            _data = new T[_dataLength + elements.Count()];
-            Array.Copy(_data, _data, _dataLength);
+            var data = new T[_dataLength + count];
+            
+            Array.Copy(_data, data, _dataLength);
+
+            _data = data;
         }
 
         foreach (var element in elements)
         {
-            _data[_dataLength++] = element;
+            Add(element);
         }
-
-        Array.Sort(_data, 0, _dataLength);
-    }
-
-    public static FlatSet<T> Intersection(FlatSet<T> a, FlatSet<T> b)
-    {
-        var result = new FlatSet<T>(a.Count + b.Count);
-
-        for (int i = 0, j = 0; i < a.Count && j < b.Count;)
-        {
-            var comparison = Comparer<T>.Default.Compare(a[i], b[j]);
-
-            if (comparison == 0)
-            {
-                result.Add(a[i]);
-                i++;
-                j++;
-            }
-            else if (comparison < 0)
-            {
-                i++;
-            }
-            else
-            {
-                j++;
-            }
-        }
-
-        return result;
     }
 
 	private void ResizeArray()

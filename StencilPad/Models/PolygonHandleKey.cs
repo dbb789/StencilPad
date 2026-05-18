@@ -1,13 +1,15 @@
 namespace StencilPad.Models;
 
-public readonly record struct PolygonHandleKey : IComparable<PolygonHandleKey>
+public record struct PolygonHandleKey : IHandleKey
 {
     public static PolygonHandleKey Vertex(int index) => new(PolygonHandleType.Vertex, index);
     public static PolygonHandleKey ControlBegin(int index) => new(PolygonHandleType.ControlBegin, index);
     public static PolygonHandleKey ControlEnd(int index) => new(PolygonHandleType.ControlEnd, index);
+
+    public HandleKeyType KeyType => HandleKeyType.Polygon;
     
-    public PolygonHandleType Type { get; init; }
-    public int Index { get; init; }
+    public PolygonHandleType Type { get; private set; }
+    public int Index { get; private set; }
 
     public PolygonHandleKey(PolygonHandleType type, int index)
     {
@@ -15,15 +17,14 @@ public readonly record struct PolygonHandleKey : IComparable<PolygonHandleKey>
         Index = index;
     }
 
-    public int CompareTo(PolygonHandleKey other)
+    public ulong Pack()
     {
-        var cmp = Type.CompareTo(other.Type);
+        return ((ulong)Type << 32) | (uint)Index;
+    }
 
-        if (cmp != 0)
-        {
-            return cmp;
-        }
-        
-        return Index.CompareTo(other.Index);
+    public void Unpack(ulong key)
+    {
+        Type = (PolygonHandleType)(key >> 32);
+        Index = (int)(key & 0xFFFFFFFF);
     }
 }

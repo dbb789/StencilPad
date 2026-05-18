@@ -79,12 +79,12 @@ public class StartEndHandleSource : IHandleSource
 
     public Unit2D GetPoint(Handle handle)
     {
-        return handle.Key.StartEnd.Type == StartEndHandleKey.EndType.Start ? _start : _end;
+        return handle.GetKey<StartEndHandleKey>().Type == StartEndHandleKey.EndType.Start ? _start : _end;
     }
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        if (handle.Key.StartEnd.Type == StartEndHandleKey.EndType.Start)
+        if (handle.GetKey<StartEndHandleKey>().Type == StartEndHandleKey.EndType.Start)
         {
             Start = position;
         }

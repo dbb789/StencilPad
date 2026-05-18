@@ -9,7 +9,6 @@ public class HandleSet : IEnumerable<Handle>
     public Handle this[int index]
     {
         get => _handles[index];
-        set => _handles[index] = value;
     }
     
     private readonly FlatSet<Handle> _handles;
