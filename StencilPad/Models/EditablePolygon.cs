@@ -7,6 +7,8 @@ public class EditablePolygon : Polygon, IHandleSource
     private HandleSourceId _id = HandleFactory.NewId();
     private HandleSet _handles;
     private HandleSet _selection;
+
+    private bool _indicesDirty;
     private List<int> _selectedEdges;
     private List<int> _selectedVertices;
 
@@ -31,35 +33,43 @@ public class EditablePolygon : Polygon, IHandleSource
     private void OnVertexAdded(int index, ulong key)
     {
         var handle = Handle.Move(_id, PolygonHandleKey.Vertex(key));
-        
-        _handles.Add(handle);
 
-        HandleAdded?.Invoke(this, handle, GetPoint(handle), false);
-        
-        UpdateSelectedIndices();
-        ReapplySelection();
+        AddHandle(handle);
+
+        _indicesDirty = true;
     }
 
     private void OnVertexRemoved(int index, ulong key)
     {
         var handle = Handle.Move(_id, PolygonHandleKey.Vertex(key));
-
-        _handles.Remove(handle);
+        
         _selection.Remove(handle);
 
+        _handles.Remove(handle);
         HandleRemoved?.Invoke(this, handle);
         
-        UpdateSelectedIndices();
-        ReapplySelection();
+        _indicesDirty = true;
     }
     
     public IEnumerable<int> GetSelectedVertices()
     {
+        if (_indicesDirty)
+        {
+            UpdateSelectedIndices();
+            _indicesDirty = false;
+        }
+        
         return _selectedVertices;
     }
 
     public IEnumerable<int> GetSelectedEdges()
     {
+        if (_indicesDirty)
+        {
+            UpdateSelectedIndices();
+            _indicesDirty = false;
+        }
+        
         return _selectedEdges;
     }
     
