@@ -96,17 +96,24 @@ public class KeyedList<T> : IKeyedList<T>
         
         return _data[index].Item1;
     }
+    
+    public ulong KeyAt(int index)
+    {
+        index %= _data.Count;
 
+        if (index < 0)
+        {
+            index += _data.Count;
+        }
+        
+        return _data[index].Item2;
+    }
+    
     public int IndexOfKey(ulong key)
     {
         return _indices[key];
     }
 
-    public ulong KeyAt(int index)
-    {
-        return _data[index].Item2;
-    }
-    
     public T GetByKey(ulong key)
     {
         return _data[_indices[key]].Item1;

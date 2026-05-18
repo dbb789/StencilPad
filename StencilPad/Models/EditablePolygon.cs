@@ -168,6 +168,22 @@ public class EditablePolygon : Polygon, IHandleSource
         if (prev.Position != next.Position)
         {
             HandleMoved?.Invoke(this, Handle.Move(_id, PolygonHandleKey.Vertex(key)), next.Position);
+
+            var prevEdge = Edges.At(index - 1);
+
+            if (prevEdge.Type == EdgeType.Bezier)
+            {
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(Edges.KeyAt(index - 1))),
+                                    next.Position + prevEdge.ControlEndOffset);
+            }
+            
+            var edge = Edges.At(index);
+
+            if (edge.Type == EdgeType.Bezier)
+            {
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(Edges.KeyAt(index))),
+                                    next.Position + edge.ControlBeginOffset);
+            }
         }
     }
 
@@ -183,24 +199,14 @@ public class EditablePolygon : Polygon, IHandleSource
             
             if (prev.ControlBeginOffset != next.ControlBeginOffset)
             {
-                var prevEdgeKey = Edges.KeyAt((index - 1 + Edges.Count) % Edges.Count);
-                
-                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(prevEdgeKey)),
-                    Vertices[index].Position + next.ControlBeginOffset);
-
-                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(edgeKey)),
-                    Vertices.At(index).Position - next.ControlBeginOffset);
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(edgeKey)),
+                                    Vertices.At(index).Position + next.ControlBeginOffset);
             }
 
             if (prev.ControlEndOffset != next.ControlEndOffset)
             {
-                var nextEdgeKey = Edges.KeyAt((index + 1) % Edges.Count);
-                
                 HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(edgeKey)),
-                    Vertices.At(index + 1).Position + next.ControlEndOffset);
-
-                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(nextEdgeKey)),
-                    Vertices.At(index + 1).Position - next.ControlEndOffset);
+                                    Vertices.At(index + 1).Position + next.ControlEndOffset);
             }
         }
     }

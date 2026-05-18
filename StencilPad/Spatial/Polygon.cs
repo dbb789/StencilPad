@@ -180,18 +180,24 @@ public class Polygon : IPolygon
     {
         if (index != 0 || _closed)
         {
-            var prevIndex = (index - 1 + _edges.Count) % _edges.Count;
-            var prevEdge = _edges[prevIndex];
+            if (oldEdge.ControlBeginOffset != newEdge.ControlBeginOffset)
+            {
+                var prevIndex = (index - 1 + _edges.Count) % _edges.Count;
+                var prevEdge = _edges[prevIndex];
 
-            _edges[prevIndex] = prevEdge with { ControlEndOffset = -_edges.At(index).ControlBeginOffset };
+                _edges[prevIndex] = prevEdge with { ControlEndOffset = -newEdge.ControlBeginOffset };
+            }
         }
         
         if ((index != _edges.Count - 1) || _closed)
         {
-            var nextIndex = (index + 1) % _edges.Count;
-            var nextEdge = _edges[nextIndex];
+            if (oldEdge.ControlEndOffset != newEdge.ControlEndOffset)
+            {
+                var nextIndex = (index + 1) % _edges.Count;
+                var nextEdge = _edges[nextIndex];
 
-            _edges[nextIndex] = nextEdge with { ControlBeginOffset = -_edges.At(index).ControlEndOffset };
+                _edges[nextIndex] = nextEdge with { ControlBeginOffset = -newEdge.ControlEndOffset };
+            }
         }
 
         GeometryChanged?.Invoke();
