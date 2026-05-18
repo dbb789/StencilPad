@@ -2,16 +2,16 @@ namespace StencilPad.Spatial;
 
 public class Polygon : IPolygon
 {
-    public AssignableList<Vertex> Vertices => _vertices;
-    public AssignableList<Edge> Edges => _edges;
+    public IKeyedList<Vertex> Vertices => _vertices;
+    public IKeyedList<Edge> Edges => _edges;
     public bool Closed => _closed;
 
-    private readonly MutableAssignableList<Vertex> _vertices;
-    private readonly MutableAssignableList<Edge> _edges;
+    private readonly KeyedList<Vertex> _vertices;
+    private readonly KeyedList<Edge> _edges;
     private bool _closed;
 
-    public event Action<int>? VertexAdded;
-    public event Action<int>? VertexRemoved;
+    public event Action<int, ulong>? VertexAdded;
+    public event Action<int, ulong>? VertexRemoved;
     public event Action? GeometryChanged;
     
     public Polygon()
@@ -43,16 +43,18 @@ public class Polygon : IPolygon
             throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
         }
 
-        _vertices.Items.Insert(index, vertex);
+        _vertices.Insert(index, vertex);
 
         if (_vertices.Count > 1)
         {
             // Appends a new edge at the end if inserting at the end, otherwise
             // inserts the edge with the same index as the vertex.
-            _edges.Items.Insert(Math.Min(index, _edges.Count), new Edge());
+            _edges.Insert(Math.Min(index, _edges.Count), new Edge());
         }
+
+        var vertexKey = _vertices.KeyAt(index);
         
-        VertexAdded?.Invoke(index);
+        VertexAdded?.Invoke(index, vertexKey);
         GeometryChanged?.Invoke();
     }
     
@@ -68,10 +70,12 @@ public class Polygon : IPolygon
             throw new InvalidOperationException("Cannot delete vertex from a polygon with 1 or fewer vertices.");
         }
 
-        _vertices.Items.RemoveAt(index);
-        _edges.Items.RemoveAt(index);
+        var vertexKey = _vertices.KeyAt(index);
+        
+        _vertices.RemoveAt(index);
+        _edges.RemoveAt(index);
 
-        VertexRemoved?.Invoke(index);
+        VertexRemoved?.Invoke(index, vertexKey);
         GeometryChanged?.Invoke();
     }
     
@@ -82,24 +86,12 @@ public class Polygon : IPolygon
             return;
         }
 
-        var delta = (_vertices.Count - 1) - index;
-        
-        Cycle(_vertices.Items, delta);
-        Cycle(_edges.Items, delta);
-        
-        _edges.Items.RemoveAt(_edges.Count - 1);
+        _edges.RemoveAt(_edges.Count - 1);
         _closed = false;
-
-        OnCycledVertices(index);
 
         GeometryChanged?.Invoke();
     }
 
-    protected virtual void OnCycledVertices(int index)
-    {
-        // ...
-    }
-    
     public void Close()
     {
         if (_closed || _vertices.Count <= 2)
@@ -107,7 +99,7 @@ public class Polygon : IPolygon
             return;
         }
         
-        _edges.Items.Add(new Edge());
+        _edges.Add(new Edge());
         _closed = true;
 
         GeometryChanged?.Invoke();
@@ -117,11 +109,13 @@ public class Polygon : IPolygon
     {
         for (int i = _vertices.Count - 1; i >= 0; --i)
         {
-            VertexRemoved?.Invoke(i);
+            var key = _vertices.KeyAt(i);
+            
+            VertexRemoved?.Invoke(i, key);
         }
         
-        _vertices.Items.Clear();
-        _edges.Items.Clear();
+        _vertices.Clear();
+        _edges.Clear();
         _closed = false;
 
         GeometryChanged?.Invoke();
@@ -161,10 +155,8 @@ public class Polygon : IPolygon
 
     protected void AssignFromPolygon(Polygon other)
     {
-        _vertices.Items.Clear();
-        _vertices.Items.AddRange(other._vertices.Items);
-        _edges.Items.Clear();
-        _edges.Items.AddRange(other._edges.Items);
+        _vertices.AssignFrom(other._vertices);
+        _edges.AssignFrom(other._edges);
         _closed = other._closed;
 
         GeometryChanged?.Invoke();
@@ -179,48 +171,29 @@ public class Polygon : IPolygon
         return clone;
     }
 
-    private void VertexReassigned(int index, Vertex oldVertex, Vertex newVertex)
+    private void VertexReassigned(int index, ulong key, Vertex oldVertex, Vertex newVertex)
     {
         GeometryChanged?.Invoke();
     }
 
-    private void EdgeReassigned(int index, Edge oldEdge, Edge newEdge)
+    private void EdgeReassigned(int index, ulong key, Edge oldEdge, Edge newEdge)
     {
         if (index != 0 || _closed)
         {
             var prevIndex = (index - 1 + _edges.Count) % _edges.Count;
-            var prevEdge = _edges.Items[prevIndex];
+            var prevEdge = _edges[prevIndex];
 
-            _edges.Items[prevIndex] = prevEdge with { ControlEndOffset = -_edges.At(index).ControlBeginOffset };
+            _edges[prevIndex] = prevEdge with { ControlEndOffset = -_edges.At(index).ControlBeginOffset };
         }
         
         if ((index != _edges.Count - 1) || _closed)
         {
             var nextIndex = (index + 1) % _edges.Count;
-            var nextEdge = _edges.Items[nextIndex];
+            var nextEdge = _edges[nextIndex];
 
-            _edges.Items[nextIndex] = nextEdge with { ControlBeginOffset = -_edges.At(index).ControlEndOffset };
+            _edges[nextIndex] = nextEdge with { ControlBeginOffset = -_edges.At(index).ControlEndOffset };
         }
 
         GeometryChanged?.Invoke();
-    }
-
-    private static void Cycle<T>(List<T> list, int delta)
-    {
-        if (list.Count == 0)
-        {
-            return;
-        }
-        
-        var count = list.Count;
-        var newItems = new List<T>(count);
-
-        for (int i = 0; i < count; ++i)
-        {
-            newItems.Add(list[(i - delta + count) % count]);
-        }
-
-        list.Clear();
-        list.AddRange(newItems);
     }
 }

@@ -57,9 +57,10 @@ public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
 	private KeyValuePair<TKey, TValue> [] _data;
 	private int _dataLength;
 
-	public KeyValuePair<TKey, TValue> this[int index]
+	public TValue this[TKey key]
 	{
-		get => _data[index];
+		get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
+        set => Add(key, value);
 	}
 	
 	public int Count => _dataLength;
@@ -84,7 +85,9 @@ public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
 
 		if (index >= 0)
 		{
-			return false;
+			_data[index] = kvp;
+            
+            return false;
 		}
 
 		var elementIndex = ~index;

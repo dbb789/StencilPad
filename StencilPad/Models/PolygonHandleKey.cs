@@ -2,29 +2,29 @@ namespace StencilPad.Models;
 
 public record struct PolygonHandleKey : IHandleKey
 {
-    public static PolygonHandleKey Vertex(int index) => new(PolygonHandleType.Vertex, index);
-    public static PolygonHandleKey ControlBegin(int index) => new(PolygonHandleType.ControlBegin, index);
-    public static PolygonHandleKey ControlEnd(int index) => new(PolygonHandleType.ControlEnd, index);
+    public static PolygonHandleKey Vertex(ulong key) => new(PolygonHandleType.Vertex, key);
+    public static PolygonHandleKey ControlBegin(ulong key) => new(PolygonHandleType.ControlBegin, key);
+    public static PolygonHandleKey ControlEnd(ulong key) => new(PolygonHandleType.ControlEnd, key);
 
     public HandleKeyType KeyType => HandleKeyType.Polygon;
     
     public PolygonHandleType Type { get; private set; }
-    public int Index { get; private set; }
+    public ulong Key { get; private set; }
 
-    public PolygonHandleKey(PolygonHandleType type, int index)
+    public PolygonHandleKey(PolygonHandleType type, ulong key)
     {
         Type = type;
-        Index = index;
+        Key = key;
     }
 
     public ulong Pack()
     {
-        return ((ulong)Type << 32) | (uint)Index;
+        return ((ulong)Type << 60) | (Key & 0xFFFFFFFFFFFFFFF);
     }
 
     public void Unpack(ulong key)
     {
-        Type = (PolygonHandleType)(key >> 32);
-        Index = (int)(key & 0xFFFFFFFF);
+        Type = (PolygonHandleType)(key >> 60);
+        Key = (key & 0xFFFFFFFFFFFFFFF);
     }
 }

@@ -2,7 +2,7 @@ namespace StencilPad.Spatial;
 
 public interface IPolygon
 {
-    public AssignableList<Vertex> Vertices { get; }
-    public AssignableList<Edge> Edges { get; }
+    public IKeyedList<Vertex> Vertices { get; }
+    public IKeyedList<Edge> Edges { get; }
     public bool Closed { get; }
 }

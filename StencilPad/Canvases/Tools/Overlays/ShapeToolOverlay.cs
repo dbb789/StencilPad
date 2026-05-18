@@ -126,8 +126,10 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
     private bool MouseOverExistingVertex(Point mousePosition)
     {
-        foreach (var vertex in _polygon.Vertices)
+        for (int i = 0; i < _polygon.Vertices.Count; ++i)
         {
+            var vertex = _polygon.Vertices[i];
+
             if (MouseOverVertex(vertex, mousePosition))
             {
                 return true;
