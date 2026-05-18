@@ -114,8 +114,9 @@ public class KeyedList<T> : IKeyedList<T>
     
     public void AssignFrom(KeyedList<T> other)
     {
-        _data = new(other._data);
-        _indices = new(other._indices);
+        _data.Clear();
+        _data.AddRange(other._data);
+        _indices.AssignFrom(other._indices);
         _counter = other._counter;
     }
 

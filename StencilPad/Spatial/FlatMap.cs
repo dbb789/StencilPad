@@ -170,7 +170,18 @@ public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
         
 		return Array.BinarySearch(_data, 0, _dataLength, kvp, Comparer) >= 0;
 	}
-        
+
+    public void AssignFrom(FlatMap<TKey, TValue> other)
+    {
+        if (_data.Length < other._dataLength)
+        {
+            _data = new KeyValuePair<TKey, TValue>[other._dataLength];
+        }
+
+        Array.Copy(other._data, _data, other._dataLength);
+        _dataLength = other._dataLength;
+    }
+    
 	public Enumerator GetEnumerator()
 	{
 		return new Enumerator(_data, _dataLength);
