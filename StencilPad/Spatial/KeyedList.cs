@@ -54,11 +54,11 @@ public class KeyedList<T> : IKeyedList<T>
 
         _data.Insert(index, (value, key));
         
-        for (int i = index; i < _data.Count; i++)
+        for (int i = index + 1; i < _data.Count; i++)
         {
             var cycleKey = _data[i].Item2;
 
-            _indices[cycleKey] = index + 1;
+            _indices[cycleKey] = index;
         }
         
         _indices.Add(key, index);
@@ -75,7 +75,7 @@ public class KeyedList<T> : IKeyedList<T>
         {
             var cycleKey = _data[i].Item2;
 
-            _indices[cycleKey] = index - 1;
+            _indices[cycleKey] = index;
         }
     }
     
