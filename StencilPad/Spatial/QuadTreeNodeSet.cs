@@ -84,20 +84,20 @@ public struct QuadTreeNodeSet<T>
             ?? _se.Remove(bounds, value);
     }
     
-    public void Query(UnitBounds bounds, List<T> results)
+    public void Query(UnitBounds bounds, Action<T> func)
     {
-        _nw.Query(bounds, results);
-        _ne.Query(bounds, results);
-        _sw.Query(bounds, results);
-        _se.Query(bounds, results);
+        _nw.Query(bounds, func);
+        _ne.Query(bounds, func);
+        _sw.Query(bounds, func);
+        _se.Query(bounds, func);
     }
     
-    public void GetAllValues(List<T> results)
+    public void GetAllValues(Action<T> func)
     {
-        _nw.GetAllValues(results);
-        _ne.GetAllValues(results);
-        _sw.GetAllValues(results);
-        _se.GetAllValues(results);
+        _nw.GetAllValues(func);
+        _ne.GetAllValues(func);
+        _sw.GetAllValues(func);
+        _se.GetAllValues(func);
     }
     
     public void VisitAllValues(Action<Unit2D, T> func)

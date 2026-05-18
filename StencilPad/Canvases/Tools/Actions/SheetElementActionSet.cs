@@ -93,23 +93,25 @@ public class SheetElementActionSet
                         {
                             foreach (var child in ((ElementGroup)element).Children)
                             {
-                                children.Add(child);
+                                children.Add(child.DeepClone());
                             }
                         }
                         else
                         {
-                            children.Add(element);
+                            children.Add(element.DeepClone());
                         }
                     }
 
                     var group = new ElementGroup(children);
 
-                    operation.Add(new AddSheetElementOperation(sheet, group));
-
+                    // Watch the ordering here, we want to avoid any issues with
+                    // duplicate IDs.
                     foreach (var child in elements)
                     {
                         operation.Add(new RemoveSheetElementOperation(sheet, child));
                     }
+                    
+                    operation.Add(new AddSheetElementOperation(sheet, group));
 
                     operationService.Push(operation);
 
@@ -130,11 +132,16 @@ public class SheetElementActionSet
                     {
                         foreach (var child in group.Children)
                         {
-                            operation.Add(new AddSheetElementOperation(sheet, child));
-                            added.Add(child);
+                            added.Add(child.DeepClone());
                         }
 
                         operation.Add(new RemoveSheetElementOperation(sheet, group));
+
+                        foreach (var element in added)
+                        {
+                            element.Translate(group.Position);
+                            operation.Add(new AddSheetElementOperation(sheet, element));
+                        }
                     }
 
                     operationService.Push(operation);

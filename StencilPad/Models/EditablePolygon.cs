@@ -4,18 +4,16 @@ namespace StencilPad.Models;
 
 public class EditablePolygon : Polygon, IHandleSource
 {
-    public HandleSet Handles => _handles;
-    
     private HandleSourceId _id = HandleFactory.NewId();
-    private MutableHandleSet _handles;
-    private MutableHandleSet _selection;
+    private HandleSet _handles;
+    private HandleSet _selection;
     private List<int> _selectedEdges;
     private List<int> _selectedVertices;
 
-    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    public event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    public event Action<IHandleSource>? SelectionChanged;
+    public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
     public EditablePolygon()
     {
@@ -43,8 +41,9 @@ public class EditablePolygon : Polygon, IHandleSource
             }
         }
 
-        InvokeSelectionChanged();
+        UpdateSelectedIndices();
         RebuildHandles();
+        ReapplySelection();
     }
 
     private void OnVertexRemoved(int index)
@@ -64,8 +63,9 @@ public class EditablePolygon : Polygon, IHandleSource
             }
         }
 
-        InvokeSelectionChanged();
+        UpdateSelectedIndices();
         RebuildHandles();
+        ReapplySelection();
     }
     
     protected override void OnCycledVertices(int index)
@@ -103,12 +103,34 @@ public class EditablePolygon : Polygon, IHandleSource
         }
     }
     
-    public void ClearSelection()
+    public void QueryHandles(Action<Handle, Unit2D, bool> func)
     {
-        _selection.Clear();
-        InvokeSelectionChanged();
+        foreach (var handle in _handles)
+        {
+            func(handle, GetPoint(handle), _selection.Contains(handle));
+        }
     }
 
+    public void SetHandleSelected(Handle handle, bool selected)
+    {
+        if (selected)
+        {
+            if (_selection.Add(handle))
+            {
+                UpdateSelectedIndices();
+                HandleSelectionChanged?.Invoke(this, handle, true);
+            }
+        }
+        else
+        {
+            if (_selection.Remove(handle))
+            {
+                UpdateSelectedIndices();
+                HandleSelectionChanged?.Invoke(this, handle, false);
+            }
+        }
+    }
+    
     public Unit2D GetPoint(Handle handle)
     {
         var key = handle.Key.Polygon;
@@ -153,19 +175,6 @@ public class EditablePolygon : Polygon, IHandleSource
         }
     }
 
-    public HandleSet GetSelectedHandles()
-    {
-        return _selection;
-    }
-
-    public void SetSelectedHandles(HandleSet handles)
-    {
-        _selection.Clear();
-        _selection.AddRange(handles);
-
-        InvokeSelectionChanged();
-    }
-
     private void VertexReassigned(int index, Vertex prev, Vertex next)
     {
         if (prev.Position != next.Position)
@@ -207,6 +216,8 @@ public class EditablePolygon : Polygon, IHandleSource
         base.AssignFromPolygon(other);
 
         RebuildHandles();
+        UpdateSelectedIndices();
+        ReapplySelection();
     }
 
     public void AssignFrom(EditablePolygon other)
@@ -222,16 +233,17 @@ public class EditablePolygon : Polygon, IHandleSource
         
         _handles.Clear();
         _handles.AddRange(other._handles);
-
-        foreach (var handle in _handles)
-        {
-            HandleAdded?.Invoke(this, handle, GetPoint(handle));
-        }
         
         _selection.Clear();
         _selection.AddRange(other._selection);
 
-        InvokeSelectionChanged();
+        foreach (var handle in _handles)
+        {
+            HandleAdded?.Invoke(this, handle, GetPoint(handle), other._selection.Contains(handle));
+        }
+
+        UpdateSelectedIndices();
+        ReapplySelection();
     }
 
     public new EditablePolygon DeepClone()
@@ -254,7 +266,8 @@ public class EditablePolygon : Polygon, IHandleSource
             _selection[i] = handle with { Key = new HandleKey(handle.Key.Polygon with { Index = newIndex }) };
         }
 
-        InvokeSelectionChanged();
+        UpdateSelectedIndices();
+        ReapplySelection();
     }
 
     private void RebuildHandles()
@@ -287,17 +300,23 @@ public class EditablePolygon : Polygon, IHandleSource
     private void AddHandle(Handle handle)
     {
         _handles.Add(handle);
-        HandleAdded?.Invoke(this, handle, GetPoint(handle));
+        HandleAdded?.Invoke(this, handle, GetPoint(handle), _selection.Contains(handle));
     }
     
-    private void InvokeSelectionChanged()
+    private void UpdateSelectedIndices()
     {
         _selectedVertices.Clear();
         CalculateSelectedVertices(_selectedVertices);
 
         _selectedEdges.Clear();
         CalculateSelectedEdges(_selectedEdges);
-        
-        SelectionChanged?.Invoke(this);
+    }
+
+    private void ReapplySelection()
+    {
+        foreach (var handle in _handles)
+        {
+            HandleSelectionChanged?.Invoke(this, handle, _selection.Contains(handle));
+        }
     }
 }

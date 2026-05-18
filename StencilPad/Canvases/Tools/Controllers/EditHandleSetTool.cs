@@ -107,24 +107,15 @@ public class EditHandleSetTool : ITool
     private void OnHandleDragBegin(IHandleSource source,
                                    Handle handle)
     {
-        
-        if (!source.GetSelectedHandles().Contains(handle))
+        if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
         {
-            foreach (var element in _selection)
+            if (!entry.Selected)
             {
-                if (element.HandleSource != source)
-                {
-                    element.HandleSource.SetSelectedHandles([]);
-                }
+                _context.HandleMap.ClearSelection();
+                entry.SetSelected(true);
             }
-            
-            var singleHandle = new MutableHandleSet(1);
-            
-            singleHandle.Add(handle);
-
-            source.SetSelectedHandles(singleHandle);
         }
-
+        
         _editContext = new EditSheetElementContext(_sheet, _selection);
     }
 
@@ -137,16 +128,14 @@ public class EditHandleSetTool : ITool
             source.SetPoint(handle, source.GetPoint(handle) + delta);
             return;
         }
-        
-        foreach (var e in _selection)
+
+        foreach (var entry in _context.HandleMap.SelectedHandles)
         {
-            foreach (var selected in e.HandleSource.GetSelectedHandles())
+            if (entry.Handle.CanGroupMove)
             {
-                if (selected.CanGroupMove)
-                {
-                    e.HandleSource.SetPoint(selected, e.HandleSource.GetPoint(selected) + delta);
-                }
+               entry.SetPosition(entry.Position + delta);
             }
+            
         }
     }
 
@@ -170,32 +159,18 @@ public class EditHandleSetTool : ITool
 
         var modifyingSelection = IsModifyingSelection();
 
-        var selected = new List<HandleMapEntry>();
+        var selected = new List<IHandleMapEntry>();
         
         _context.HandleMap.QueryHandles(bounds, selected);
 
-        var bySource = new Dictionary<IHandleSource, List<Handle>>();
-
+        if (!modifyingSelection)
+        {
+            _context.HandleMap.ClearSelection();
+        }
+        
         foreach (var entry in selected)
         {
-            List<Handle> list;
-
-            if (!bySource.TryGetValue(entry.Source, out list!))
-            {
-                list = new List<Handle>(128);
-                bySource[entry.Source] = list;
-            }
-
-            list.Add(entry.Handle);
-        }
-
-        foreach (var (source, list) in bySource)
-        {
-            var handleSet = new MutableHandleSet(list.Count);
-
-            handleSet.AddRange(list);
-            
-            source.SetSelectedHandles(handleSet);
+            entry.SetSelected(true);
         }
     }
 
@@ -205,11 +180,8 @@ public class EditHandleSetTool : ITool
         {
             return;
         }
-        
-        foreach (var element in _selection)
-        {
-            element.HandleSource.SetSelectedHandles([]);
-        }
+
+        _context.HandleMap.ClearSelection();
     }
 
     private void OnHandleSelected(IHandleSource source,
@@ -219,34 +191,19 @@ public class EditHandleSetTool : ITool
 
         if (modifyingSelection)
         {
-            var selectedHandles = new MutableHandleSet(source.GetSelectedHandles());
-            
-            if (selectedHandles.Contains(handle))
+            if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
             {
-                selectedHandles.Remove(handle);
+                entry.SetSelected(!entry.Selected);
             }
-            else
-            {
-                selectedHandles.Add(handle);
-            }
-            
-            source.SetSelectedHandles(selectedHandles);
         }
         else
         {
-            foreach (var element in _selection)
-            {
-                if (element.HandleSource != source)
-                {
-                    element.HandleSource.SetSelectedHandles([]);
-                }
-            }
-            
-            var singleHandle = new MutableHandleSet(1);
-            
-            singleHandle.Add(handle);
+            _context.HandleMap.ClearSelection();
 
-            source.SetSelectedHandles(singleHandle);
+            if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+            {
+                entry.SetSelected(true);
+            }
         }
     }
     
@@ -274,8 +231,8 @@ public class EditHandleSetTool : ITool
     
     private IEnumerable<ISheetElement> GetEditableSelection()
     {
-        return _sheet.Selection
-            .Where(e => e.HandleSource.Handles.Any());
+        return _sheet.Selection;
+            //.Where(e => e.HandleSource.Handles.Any());
     }
 }
 

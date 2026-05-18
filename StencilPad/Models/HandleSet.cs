@@ -5,48 +5,67 @@ namespace StencilPad.Models;
 
 public class HandleSet : IEnumerable<Handle>
 {
-    public int Count => Handles.Count;
-    public Handle this[int index] => Handles[index];
+    public int Count => _handles.Count;
+    public Handle this[int index]
+    {
+        get => _handles[index];
+        set => _handles[index] = value;
+    }
     
-    protected readonly FlatSet<Handle> Handles;
+    private readonly FlatSet<Handle> _handles;
 
     public HandleSet(int initialCapacity = 0)
     {
-        Handles = new FlatSet<Handle>(initialCapacity);
+        _handles = new FlatSet<Handle>(initialCapacity);
     }
 
-    protected HandleSet(HandleSet other)
+    public HandleSet(HandleSet other)
     {
-        Handles = new FlatSet<Handle>(other.Handles);
+        _handles = new FlatSet<Handle>(other._handles);
     }
     
-    protected HandleSet(FlatSet<Handle> handles)
+    public bool Add(Handle handle)
     {
-        Handles = handles;
+        return _handles.Add(handle);
+    }
+
+    public bool Remove(Handle handle)
+    {
+        return _handles.Remove(handle);
+    }
+
+    public void RemoveAt(int index)
+    {
+        _handles.RemoveAt(index);
+    }
+
+    public void AddRange(IEnumerable<Handle> handles)
+    {
+        _handles.AddRange(handles);
+    }
+
+    public void Clear()
+    {
+        _handles.Clear();
     }
 
     public bool Contains(Handle handle)
     {
-        return Handles.Contains(handle);
+        return _handles.Contains(handle);
     }
     
     public FlatSet<Handle>.Enumerator GetEnumerator()
     {
-        return Handles.GetEnumerator();
+        return _handles.GetEnumerator();
     }
 
     IEnumerator<Handle> IEnumerable<Handle>.GetEnumerator()
     {
-        return Handles.GetEnumerator();
+        return _handles.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return Handles.GetEnumerator();
-    }
-
-    public static HandleSet Intersection(HandleSet a, HandleSet b)
-    {
-        return new HandleSet(FlatSet<Handle>.Intersection(a.Handles, b.Handles));
+        return _handles.GetEnumerator();
     }
 }

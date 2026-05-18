@@ -4,16 +4,14 @@ namespace StencilPad.Models;
 
 public interface IHandleSource
 {
-    HandleSet Handles { get; }
-
-    event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
+    event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded;
     event Action<IHandleSource, Handle>? HandleRemoved;
     event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
-    event Action<IHandleSource>? SelectionChanged;
+    event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
-    HandleSet GetSelectedHandles();
-    void SetSelectedHandles(HandleSet handles);
-
+    void QueryHandles(Action<Handle, Unit2D, bool> func);
+    void SetHandleSelected(Handle handle, bool selected);
+    
     Unit2D GetPoint(Handle handle);
     void SetPoint(Handle handle, Unit2D position);
 }
