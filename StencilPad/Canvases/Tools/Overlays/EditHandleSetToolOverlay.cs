@@ -110,7 +110,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
         var handle = _context.HandleMap.GetClosestHandle(UnitBounds.FromCenterSize(clickPosition, clickSize));
 
-        if (handle is null)
+        if (handle is null || !handle.Editing)
         {
             return;
         }

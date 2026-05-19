@@ -170,7 +170,10 @@ public class EditHandleSetTool : ITool
         
         foreach (var entry in selected)
         {
-            entry.SetSelected(true);
+            if (entry.Editing)
+            {
+                entry.SetSelected(true);
+            }
         }
     }
 
@@ -232,7 +235,6 @@ public class EditHandleSetTool : ITool
     private IEnumerable<ISheetElement> GetEditableSelection()
     {
         return _sheet.Selection;
-            //.Where(e => e.HandleSource.Handles.Any());
     }
 }
 
