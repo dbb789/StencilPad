@@ -1,10 +1,9 @@
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class RubberBandRenderPanel : ContentControl
+public class RubberBandRenderPanel : FrameworkElement
 {
     private static readonly Brush RubberBandFill;
     private static readonly Pen RubberBandBorder;
