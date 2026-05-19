@@ -33,12 +33,16 @@
         <TextBlock Grid.Row="0" Grid.Column="0" Text="Spacing:"
                    VerticalAlignment="Center"/>
         <widgets:UnitSliderField Grid.Row="0" Grid.Column="2" MinWidth="180"
-                                 Value="{Binding Spacing}"/>
+                                 Value="{Binding Spacing}"
+                                 SliderMinimum="1"
+                                 SliderMaximum="10"/>
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="Offset:"
                    VerticalAlignment="Center"/>
         <widgets:UnitSliderField Grid.Row="2" Grid.Column="2" MinWidth="180"
-                                 Value="{Binding Offset}"/>
+                                 Value="{Binding Offset}"
+                                 SliderMinimum="0"
+                                 SliderMaximum="10"/>
 
         <Button Grid.Row="4" Grid.Column="2" Content="Close"
                 MinWidth="75" HorizontalAlignment="Right" Click="Close_Click"/>

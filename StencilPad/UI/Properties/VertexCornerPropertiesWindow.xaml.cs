@@ -15,5 +15,8 @@ public partial class VertexCornerPropertiesWindow : Window
         DataContext = new VertexCornerPropertiesViewModel(sheet, targets, operationService);
     }
 
-    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+    private void Close_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
 }

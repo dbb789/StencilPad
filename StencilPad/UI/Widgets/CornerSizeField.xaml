@@ -9,8 +9,10 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBox Grid.Column="0"
-                 Text="{Binding TextValue, ElementName=Root, UpdateSourceTrigger=PropertyChanged}"
+        <TextBox x:Name="ValueField"
+                 Grid.Column="0"
+                 Text="{Binding TextValue, ElementName=Root, UpdateSourceTrigger=LostFocus}"
+                 KeyDown="ValueField_KeyDown"
                  VerticalContentAlignment="Center"
                  Padding="4,2"/>
 

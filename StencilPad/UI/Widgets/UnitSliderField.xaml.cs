@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using StencilPad.Spatial;
 
 namespace StencilPad.UI.Widgets;
@@ -113,16 +114,26 @@ public partial class UnitSliderField : UserControl
         field.UpdateSliderValue();
     }
     
-    private void TextBoxChanged(object sender, TextChangedEventArgs e)
+    private void ValueField_KeyDown(object sender, KeyEventArgs e)
     {
-        if (_textValue != TextBox.Text)
+        if (e.Key == System.Windows.Input.Key.Enter)
         {
-            _textValue = TextBox.Text;
+            ApplyValueField();
+        }
+    }
 
-            if (Unit.TryParse(_textValue, UnitType, out var parsed))
-            {
-                Value = ClampValue(parsed);
-            }
+    private void ApplyValueField()
+    {
+        if (_textValue == ValueField.Text)
+        {
+            return;
+        }
+        
+        _textValue = ValueField.Text;
+
+        if (Unit.TryParse(_textValue, UnitType, out var parsed))
+        {
+            Value = ClampValue(parsed);
         }
     }
 
@@ -139,7 +150,7 @@ public partial class UnitSliderField : UserControl
     private void UpdateTextValue()
     {
         _textValue = Value.ToType(UnitType).ToString("0.###");
-        TextBox.Text = _textValue;
+        ValueField.Text = _textValue;
     }
 
     private void UpdateSliderValue()

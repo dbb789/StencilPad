@@ -14,9 +14,9 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBox Grid.Row="0" Grid.Column="0"
-                 x:Name="TextBox"
-                 TextChanged="TextBoxChanged"
+        <TextBox x:Name="ValueField"
+                 Grid.Row="0" Grid.Column="0"
+                 KeyDown="ValueField_KeyDown"
                  VerticalContentAlignment="Center"
                  Padding="4,2"/>
 
@@ -39,7 +39,7 @@
                 Minimum="{Binding SliderMinimum, ElementName=Root}"
                 Maximum="{Binding SliderMaximum, ElementName=Root}"
                 Value="{Binding SliderValue, ElementName=Root}"
-                SmallChange="0.1"
-                LargeChange="1"/>
+                IsSnapToTickEnabled="True"
+                TickFrequency="0.1"/>
     </Grid>
 </UserControl>

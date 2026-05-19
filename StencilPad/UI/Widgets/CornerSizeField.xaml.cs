@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using StencilPad.Spatial;
 
 namespace StencilPad.UI.Widgets;
@@ -30,7 +31,7 @@ public partial class CornerSizeField : UserControl
 
     public static readonly DependencyProperty TextValueProperty =
         DependencyProperty.Register(nameof(TextValue), typeof(string), typeof(CornerSizeField),
-            new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
+            new FrameworkPropertyMetadata("0", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
     public CornerSize Value
     {
@@ -55,6 +56,14 @@ public partial class CornerSizeField : UserControl
         InitializeComponent();
     }
 
+    private void ValueField_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter)
+        {
+            ValueField.GetBindingExpression(TextBox.TextProperty).UpdateSource();
+        }
+    }
+    
     private bool _isUpdating;
 
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

@@ -10,8 +10,8 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBox x:Name="TextBox"
-                 TextChanged="TextBoxChanged"
+        <TextBox x:Name="ValueField"
+                 KeyDown="ValueField_KeyDown"
                  Grid.Column="0" 
                  VerticalContentAlignment="Center"
                  Padding="4,2"/>
