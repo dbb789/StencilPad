@@ -59,7 +59,7 @@ public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
 
 	public TValue this[TKey key]
 	{
-		get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
+		get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException($"Key '{key}' not found in FlatMap<T>.");
         set => Add(key, value);
 	}
 	

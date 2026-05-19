@@ -12,7 +12,9 @@ public class Polygon : IPolygon
 
     public event Action<int, ulong>? VertexAdded;
     public event Action<int, ulong>? VertexRemoved;
-    public event Action<bool> ClosedChanged;
+    public event Action<int, ulong>? EdgeAdded;
+    public event Action<int, ulong>? EdgeRemoved;
+    public event Action<bool>? ClosedChanged;
     public event Action? GeometryChanged;
     
     public Polygon()
@@ -53,9 +55,8 @@ public class Polygon : IPolygon
             _edges.Insert(Math.Min(index, _edges.Count), new Edge());
         }
 
-        var vertexKey = _vertices.KeyAt(index);
-        
-        VertexAdded?.Invoke(index, vertexKey);
+        VertexAdded?.Invoke(index, _vertices.KeyAt(index));
+        EdgeRemoved?.Invoke(index, _edges.KeyAt(index));
         GeometryChanged?.Invoke();
     }
     
@@ -76,7 +77,8 @@ public class Polygon : IPolygon
         _vertices.RemoveAt(index);
         _edges.RemoveAt(index);
 
-        VertexRemoved?.Invoke(index, vertexKey);
+        VertexRemoved?.Invoke(index, _vertices.KeyAt(index));
+        EdgeRemoved?.Invoke(index, _edges.KeyAt(index));
         GeometryChanged?.Invoke();
     }
     
@@ -92,9 +94,13 @@ public class Polygon : IPolygon
         _vertices.RotateIndices(-offset);
         _edges.RotateIndices(-offset);
 
-        _edges.RemoveAt(_edges.Count - 1);
+        var edgeIndex = _edges.Count - 1;
+        var edgeKey = _edges.KeyAt(edgeIndex);
+        
+        _edges.RemoveAt(edgeIndex);
         _closed = false;
         
+        EdgeRemoved?.Invoke(edgeIndex, edgeKey);
         ClosedChanged?.Invoke(_closed);
         GeometryChanged?.Invoke();
     }
@@ -109,6 +115,7 @@ public class Polygon : IPolygon
         _edges.Add(new Edge());
         _closed = true;
 
+        EdgeAdded?.Invoke(_edges.Count - 1, _edges.KeyAt(_edges.Count - 1));
         ClosedChanged?.Invoke(_closed);
         GeometryChanged?.Invoke();
     }

@@ -200,4 +200,124 @@ public class KeyedListTests
             Assert.That(list[2], Is.EqualTo(3));
         });
     }
+
+    [Test]
+    public void RotateIndices_ZeroOffset_DoesNothing()
+    {
+        var list = new KeyedList<string>();
+        list.Add("A");
+        list.Add("B");
+        
+        list.RotateIndices(0);
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(list.Count, Is.EqualTo(2));
+            Assert.That(list[0], Is.EqualTo("A"));
+            Assert.That(list[1], Is.EqualTo("B"));
+        });
+    }
+
+    [Test]
+    public void RotateIndices_PositiveOffset_RotatesLeft()
+    {
+        var list = new KeyedList<string>();
+        list.Add("A"); // key 1
+        list.Add("B"); // key 2
+        list.Add("C"); // key 3
+        
+        list.RotateIndices(1);
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(list[0], Is.EqualTo("B"));
+            Assert.That(list[1], Is.EqualTo("C"));
+            Assert.That(list[2], Is.EqualTo("A"));
+            
+            Assert.That(list.IndexOfKey(1), Is.EqualTo(2));
+            Assert.That(list.IndexOfKey(2), Is.EqualTo(0));
+            Assert.That(list.IndexOfKey(3), Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public void RotateIndices_NegativeOffset_RotatesRight()
+    {
+        var list = new KeyedList<string>();
+        list.Add("A");
+        list.Add("B");
+        list.Add("C");
+        
+        list.RotateIndices(-1);
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(list[0], Is.EqualTo("C"));
+            Assert.That(list[1], Is.EqualTo("A"));
+            Assert.That(list[2], Is.EqualTo("B"));
+        });
+    }
+
+    [Test]
+    public void RotateIndices_EmptyList_DoesNothing()
+    {
+        var list = new KeyedList<string>();
+        Assert.DoesNotThrow(() => list.RotateIndices(1));
+    }
+
+    [Test]
+    public void RotateIndices_LargeOffset_WrapsCorrectly()
+    {
+        var list = new KeyedList<string>();
+        list.Add("A");
+        list.Add("B");
+        list.Add("C");
+        
+        list.RotateIndices(4); // Equivalent to 1
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(list[0], Is.EqualTo("B"));
+            Assert.That(list[1], Is.EqualTo("C"));
+            Assert.That(list[2], Is.EqualTo("A"));
+        });
+    }
+
+    [Test]
+    public void RotateIndices_TriggersItemReassignedCorrectly()
+    {
+        var list = new KeyedList<string>();
+        list.Add("A");
+        list.Add("B");
+        list.Add("C");
+        var keyA = list.KeyAt(0);
+        var keyB = list.KeyAt(1);
+        var keyC = list.KeyAt(2);
+
+        var events = new List<(int index, ulong key, string oldVal, string newVal)>();
+        list.ItemReassigned += (idx, k, ov, nv) => events.Add((idx, k, ov, nv));
+
+        list.RotateIndices(1); // [A, B, C] -> [B, C, A]
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(events.Count, Is.EqualTo(3));
+            
+            var event0 = events.FirstOrDefault(e => e.index == 0);
+            var event1 = events.FirstOrDefault(e => e.index == 1);
+            var event2 = events.FirstOrDefault(e => e.index == 2);
+
+            Assert.That(event0.oldVal, Is.EqualTo("A"), "Index 0 old value");
+            Assert.That(event0.newVal, Is.EqualTo("B"), "Index 0 new value");
+            Assert.That(event0.key, Is.EqualTo(keyB), "Index 0 key");
+
+            Assert.That(event1.oldVal, Is.EqualTo("B"), "Index 1 old value");
+            Assert.That(event1.newVal, Is.EqualTo("C"), "Index 1 new value");
+            Assert.That(event1.key, Is.EqualTo(keyC), "Index 1 key");
+
+            Assert.That(event2.oldVal, Is.EqualTo("C"), "Index 2 old value");
+            Assert.That(event2.newVal, Is.EqualTo("A"), "Index 2 new value");
+            Assert.That(event2.key, Is.EqualTo(keyA), "Index 2 key");
+        });
+    }
 }

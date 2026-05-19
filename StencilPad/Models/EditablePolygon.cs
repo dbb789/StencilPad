@@ -26,6 +26,7 @@ public class EditablePolygon : Polygon, IHandleSource
         
         VertexAdded += OnVertexAdded;
         VertexRemoved += OnVertexRemoved;
+        EdgeRemoved += OnEdgeRemoved;
         Vertices.ItemReassigned += VertexReassigned;
         Edges.ItemReassigned += EdgeReassigned;
         ClosedChanged += OnClosedChanged;
@@ -48,6 +49,27 @@ public class EditablePolygon : Polygon, IHandleSource
 
         _handles.Remove(handle);
         HandleRemoved?.Invoke(this, handle);
+        
+        _indicesDirty = true;
+    }
+
+    private void OnEdgeRemoved(int index, ulong key)
+    {
+        var beginHandle = Handle.Adjust(_id, PolygonHandleKey.ControlBegin(key));
+        var endHandle = Handle.Adjust(_id, PolygonHandleKey.ControlEnd(key));
+
+        _selection.Remove(beginHandle);
+        _selection.Remove(endHandle);
+
+        if (_handles.Remove(beginHandle))
+        {
+            HandleRemoved?.Invoke(this, beginHandle);
+        }
+
+        if (_handles.Remove(endHandle))
+        {
+            HandleRemoved?.Invoke(this, endHandle);
+        }
         
         _indicesDirty = true;
     }
@@ -131,7 +153,7 @@ public class EditablePolygon : Polygon, IHandleSource
         }
         
         default:
-            throw new ArgumentOutOfRangeException(nameof(handle));
+            throw new ArgumentOutOfRangeException(nameof(handle), $"Unexpected handle type: {key.Type}");
         }
     }
 
@@ -197,21 +219,33 @@ public class EditablePolygon : Polygon, IHandleSource
     {
         if (prev.Type != next.Type)
         {
-            RebuildHandles();
+            var beginHandle = Handle.Adjust(_id, PolygonHandleKey.ControlBegin(key));
+            var endHandle = Handle.Adjust(_id, PolygonHandleKey.ControlEnd(key));
+
+            if (prev.Type == EdgeType.Bezier)
+            {
+                _handles.Remove(beginHandle);
+                _handles.Remove(endHandle);
+                HandleRemoved?.Invoke(this, beginHandle);
+                HandleRemoved?.Invoke(this, endHandle);
+            }
+            else if (next.Type == EdgeType.Bezier)
+            {
+                AddHandle(beginHandle);
+                AddHandle(endHandle);
+            }
         }
         else if (next.Type == EdgeType.Bezier)
         {
-            var edgeKey = Edges.KeyAt(index);
-            
             if (prev.ControlBeginOffset != next.ControlBeginOffset)
             {
-                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(edgeKey)),
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(key)),
                                     Vertices.At(index).Position + next.ControlBeginOffset);
             }
 
             if (prev.ControlEndOffset != next.ControlEndOffset)
             {
-                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(edgeKey)),
+                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(key)),
                                     Vertices.At(index + 1).Position + next.ControlEndOffset);
             }
         }
