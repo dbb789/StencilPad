@@ -46,17 +46,25 @@ public class Polygon : IPolygon
             throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
         }
 
+        int newEdgeIndex = -1;
+
         _vertices.Insert(index, vertex);
 
         if (_vertices.Count > 1)
         {
             // Appends a new edge at the end if inserting at the end, otherwise
             // inserts the edge with the same index as the vertex.
-            _edges.Insert(Math.Min(index, _edges.Count), new Edge());
+            newEdgeIndex = Math.Min(index, _edges.Count);
+            _edges.Insert(newEdgeIndex, new Edge());
         }
 
         VertexAdded?.Invoke(index, _vertices.KeyAt(index));
-        EdgeRemoved?.Invoke(index, _edges.KeyAt(index));
+        
+        if (newEdgeIndex >= 0)
+        {
+            EdgeAdded?.Invoke(newEdgeIndex, _edges.KeyAt(newEdgeIndex));
+        }
+        
         GeometryChanged?.Invoke();
     }
     
@@ -75,10 +83,14 @@ public class Polygon : IPolygon
         var vertexKey = _vertices.KeyAt(index);
         
         _vertices.RemoveAt(index);
-        _edges.RemoveAt(index);
 
-        VertexRemoved?.Invoke(index, _vertices.KeyAt(index));
-        EdgeRemoved?.Invoke(index, _edges.KeyAt(index));
+        var edgeIndex = _closed ? index : Math.Min(index, _edges.Count - 1);
+        var edgeKey = _edges.KeyAt(edgeIndex);
+        
+        _edges.RemoveAt(edgeIndex);
+
+        VertexRemoved?.Invoke(index, vertexKey);
+        EdgeRemoved?.Invoke(edgeIndex, edgeKey);
         GeometryChanged?.Invoke();
     }
     
