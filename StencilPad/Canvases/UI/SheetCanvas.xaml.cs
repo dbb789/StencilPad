@@ -72,7 +72,7 @@ namespace StencilPad.Canvases.UI
         public SheetRenderPanel Renderer => _renderer;
         public ToolOverlay ToolOverlay => _toolOverlay;
         public IUnitSnap UnitSnap => _unitSnap;
-        public UnitSnapOverlay UnitSnapOverlay => _unitSnapOverlay;
+        public IUnitSnapOverlay UnitSnapOverlay => _unitSnapOverlay;
         
         private readonly VisualViewport _viewport;
         private readonly HandleMap _handleMap;
@@ -137,8 +137,7 @@ namespace StencilPad.Canvases.UI
 
             _viewport.ViewportChanged += UpdateCanvasSize;
             
-            // _unitSnap.Add(_canvasGrid);
-            _unitSnap.Add(_handleMap);
+            _unitSnap.Add(_canvasGrid);
 
             Loaded += (s, e) =>
             {

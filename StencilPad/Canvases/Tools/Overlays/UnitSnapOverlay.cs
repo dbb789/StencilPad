@@ -7,7 +7,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class UnitSnapOverlay : ContentControl
+public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
 {
     private static readonly Pen IndicatorPen;
     private static readonly IUnitSnapContext DefaultContext;

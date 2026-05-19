@@ -121,6 +121,11 @@ public class KeyedList<T> : IKeyedList<T>
         }
     }
 
+    public void Set(int index, T value)
+    {
+        _data[index] = (value, _data[index].Item2);
+    }
+    
     public T At(int index)
     {
         index %= _data.Count;
