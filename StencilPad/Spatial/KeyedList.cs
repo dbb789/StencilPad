@@ -54,7 +54,7 @@ public class KeyedList<T> : IKeyedList<T>
 
         _data.Insert(index, (value, key));
         
-        for (int i = index + 1; i < _data.Count; i++)
+        for (int i = index + 1; i < _data.Count; ++i)
         {
             var cycleKey = _data[i].Item2;
 
@@ -71,7 +71,7 @@ public class KeyedList<T> : IKeyedList<T>
         _data.RemoveAt(index);
         _indices.Remove(key);
 
-        for (int i = index; i < _data.Count; i++)
+        for (int i = index; i < _data.Count; ++i)
         {
             var cycleKey = _data[i].Item2;
 
@@ -101,7 +101,7 @@ public class KeyedList<T> : IKeyedList<T>
         
         var newData = new List<(T, ulong)>(_data.Count);
         
-        for (int i = 0; i < _data.Count; i++)
+        for (int i = 0; i < _data.Count; ++i)
         {
             newData.Add(_data[(i + _data.Count + offset) % _data.Count]);
         }
@@ -110,12 +110,12 @@ public class KeyedList<T> : IKeyedList<T>
         
         _data = newData;
         
-        for (int i = 0; i < _data.Count; i++)
+        for (int i = 0; i < _data.Count; ++i)
         {
             _indices[_data[i].Item2] = i;
         }
 
-        for (int i = 0; i < _data.Count; i++)
+        for (int i = 0; i < _data.Count; ++i)
         {
             ItemReassigned?.Invoke(i, _data[i].Item2, oldData[i].Item1, _data[i].Item1);
         }

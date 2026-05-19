@@ -36,7 +36,6 @@ public class Polygon : IPolygon
         }
 
         InsertVertex(_vertices.Count, vertex);
-        GeometryChanged?.Invoke();
     }
 
     public void InsertVertex(int index, Vertex vertex)
@@ -91,6 +90,23 @@ public class Polygon : IPolygon
 
         VertexRemoved?.Invoke(index, vertexKey);
         EdgeRemoved?.Invoke(edgeIndex, edgeKey);
+
+        if (_closed && _vertices.Count < 3)
+        {
+            _closed = false;
+
+            if (_edges.Count > 0)
+            {
+                var lastEdgeIndex = _edges.Count - 1;
+                var lastEdgeKey = _edges.KeyAt(lastEdgeIndex);
+                
+                _edges.RemoveAt(lastEdgeIndex);
+                EdgeRemoved?.Invoke(lastEdgeIndex, lastEdgeKey);
+            }
+
+            ClosedChanged?.Invoke(_closed);
+        }
+
         GeometryChanged?.Invoke();
     }
     
@@ -103,8 +119,19 @@ public class Polygon : IPolygon
 
         int offset = (_edges.Count - 1) - index;
         
-        _vertices.RotateIndices(-offset);
-        _edges.RotateIndices(-offset);
+        _vertices.ItemReassigned -= VertexReassigned;
+        _edges.ItemReassigned -= EdgeReassigned;
+
+        try
+        {
+            _vertices.RotateIndices(-offset);
+            _edges.RotateIndices(-offset);
+        }
+        finally
+        {
+            _vertices.ItemReassigned += VertexReassigned;
+            _edges.ItemReassigned += EdgeReassigned;
+        }
 
         var edgeIndex = _edges.Count - 1;
         var edgeKey = _edges.KeyAt(edgeIndex);
@@ -140,10 +167,28 @@ public class Polygon : IPolygon
             
             VertexRemoved?.Invoke(i, key);
         }
+
+        for (int i = _edges.Count - 1; i >= 0; --i)
+        {
+            var key = _edges.KeyAt(i);
+            
+            EdgeRemoved?.Invoke(i, key);
+        }
         
-        _vertices.Clear();
-        _edges.Clear();
-        _closed = false;
+        _vertices.ItemReassigned -= VertexReassigned;
+        _edges.ItemReassigned -= EdgeReassigned;
+
+        try
+        {
+            _vertices.Clear();
+            _edges.Clear();
+            _closed = false;
+        }
+        finally
+        {
+            _vertices.ItemReassigned += VertexReassigned;
+            _edges.ItemReassigned += EdgeReassigned;
+        }
 
         GeometryChanged?.Invoke();
     }
