@@ -12,6 +12,8 @@ public class UnitSnapOverlay : ContentControl
     private static readonly Pen IndicatorPen;
     private static readonly IUnitSnapContext DefaultContext;
 
+    public Unit2D? LastSnapPoint => _lastSnapPoint;
+    
     private IViewport _viewport;
     private IUnitSnap _unitSnap;
     private IUnitSnapContext? _context;
