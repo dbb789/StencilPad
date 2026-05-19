@@ -36,16 +36,30 @@ public class EditablePolygonList : IEditablePolygonSet
         PolygonAdded?.Invoke(polygon);
     }
 
-    public void AssignFrom(EditablePolygonList other)
+    public void Remove(EditablePolygon polygon)
     {
-        foreach (var polygon in _polygons)
+        if (_polygons.Remove(polygon))
         {
+            _handleSource.Remove(polygon);
             PolygonRemoved?.Invoke(polygon);
         }
+    }
+
+    public void Clear()
+    {
+        for (int i = _polygons.Count - 1; i >= 0; --i)
+        {
+            Remove(_polygons[i]);
+        }
+    }
+    
+    public void AssignFrom(EditablePolygonList other)
+    {
+        Clear();
 
         int polygonCount = other._polygons.Count;
         
-        _polygons = new(polygonCount);
+        _polygons.Capacity = polygonCount;
 
         for (int i = 0; i < polygonCount; ++i)
         {
@@ -55,8 +69,8 @@ public class EditablePolygonList : IEditablePolygonSet
             PolygonAdded?.Invoke(polygon);
         }
 
-        _handleSource.SetChildren(_polygons);
         _handleSource.Position = other._handleSource.Position;
+        _handleSource.SetChildren(_polygons);
     }
 
     public List<EditablePolygon>.Enumerator GetEnumerator()
