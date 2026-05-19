@@ -22,7 +22,7 @@ public class TextElementRenderer : SheetElementRenderer
                 return UnitBounds.Empty;
             }
 
-            return UnitBounds.FromMinMax(_textElement.Start, _textElement.End);
+            return UnitBounds.FromMinMax(_textElement.Min, _textElement.Max);
         }
     }
 
@@ -50,7 +50,7 @@ public class TextElementRenderer : SheetElementRenderer
 
     public override bool BoundsTest(UnitBounds bounds)
     {
-        return bounds.Contains(_textElement.Start);
+        return bounds.Contains(_textElement.Min);
     }
 
     public override void Render(DrawingContext dc)
@@ -60,7 +60,7 @@ public class TextElementRenderer : SheetElementRenderer
             return;
         }
 
-        var bounds = UnitBounds.FromMinMax(_textElement.Start, _textElement.End);
+        var bounds = UnitBounds.FromMinMax(_textElement.Min, _textElement.Max);
         var clipRect = bounds.Millimeters;
 
         dc.PushClip(new RectangleGeometry(clipRect));
@@ -90,7 +90,7 @@ public class TextElementRenderer : SheetElementRenderer
             Trimming = TextTrimming.None
         };
 
-        var size = UnitBounds.FromMinMax(_textElement.Start, _textElement.End).Size;
+        var size = UnitBounds.FromMinMax(_textElement.Min, _textElement.Max).Size;
         if (size.X.Millimeters > 0)
         {
             _formattedText.MaxTextWidth = size.X.Millimeters;

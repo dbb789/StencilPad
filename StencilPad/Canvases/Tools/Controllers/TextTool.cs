@@ -59,7 +59,7 @@ public class TextTool : ITool
     private void TextPlaced(Unit2D position, string text)
     {
         var element = new TextElement(position, text);
-        element.End = position + TextElementRenderer.Measure(element);
+        element.Max = position + TextElementRenderer.Measure(element);
 
         _operationService.Push(
             new AddSheetElementOperation(_sheet.Id, element));

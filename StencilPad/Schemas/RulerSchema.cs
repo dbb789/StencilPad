@@ -5,15 +5,15 @@ namespace StencilPad.Schemas;
 
 public class RulerSchema : SheetElementSchema
 {
-    public Unit2D Start { get; set; } = Unit2D.Zero;
-    public Unit2D End { get; set; } = Unit2D.Zero;
+    public Unit2D Min { get; set; } = Unit2D.Zero;
+    public Unit2D Max { get; set; } = Unit2D.Zero;
     
     public static RulerSchema Pack(Ruler ruler)
     {
         return new RulerSchema
         {
-            Start = ruler.Start,
-            End = ruler.End
+            Min = ruler.Min,
+            Max = ruler.Max
         };
     }
 
@@ -21,8 +21,8 @@ public class RulerSchema : SheetElementSchema
     {
         return new Ruler
         {
-            Start = Start,
-            End = End
+            Min = Min,
+            Max = Max
         };
     }
 }

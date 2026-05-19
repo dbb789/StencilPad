@@ -12,8 +12,8 @@ public class RulerRenderer : SheetElementRenderer
 
     public override UnitBounds SelectionBounds =>
         UnitBounds.FromMinMax(
-            new Unit2D(Unit.Min(_ruler.Start.X, _ruler.End.X), Unit.Min(_ruler.Start.Y, _ruler.End.Y)),
-            new Unit2D(Unit.Max(_ruler.Start.X, _ruler.End.X), Unit.Max(_ruler.Start.Y, _ruler.End.Y)));
+            new Unit2D(Unit.Min(_ruler.Min.X, _ruler.Max.X), Unit.Min(_ruler.Min.Y, _ruler.Max.Y)),
+            new Unit2D(Unit.Max(_ruler.Min.X, _ruler.Max.X), Unit.Max(_ruler.Min.Y, _ruler.Max.Y)));
 
     private readonly Ruler _ruler;
 
@@ -30,8 +30,8 @@ public class RulerRenderer : SheetElementRenderer
 
     public override bool HitTest(Unit2D unit)
     {
-        var start = _ruler.Start;
-        var end = _ruler.End;
+        var start = _ruler.Min;
+        var end = _ruler.Max;
         var lineX = end.X.Millimeters - start.X.Millimeters;
         var lineY = end.Y.Millimeters - start.Y.Millimeters;
         var lineLenSq = lineX * lineX + lineY * lineY;
@@ -55,13 +55,13 @@ public class RulerRenderer : SheetElementRenderer
 
     public override bool BoundsTest(UnitBounds bounds)
     {
-        return bounds.Contains(_ruler.Start) || bounds.Contains(_ruler.End);
+        return bounds.Contains(_ruler.Min) || bounds.Contains(_ruler.Max);
     }
 
     public override void Render(DrawingContext dc)
     {
-        var start = _ruler.Start.Millimeters;
-        var end = _ruler.End.Millimeters;
+        var start = _ruler.Min.Millimeters;
+        var end = _ruler.Max.Millimeters;
 
         var pen = new Pen(Brushes.Black, 0.2);
 

@@ -21,7 +21,7 @@ public class TextElementEditRenderer : SheetElementEditRenderer
 
     public override void Render(DrawingContext dc)
     {
-        var bounds = UnitBounds.FromMinMax(_textElement.Start, _textElement.End);
+        var bounds = UnitBounds.FromMinMax(_textElement.Min, _textElement.Max);
         var size = bounds.Size;
 
         if (size == Unit2D.Zero)

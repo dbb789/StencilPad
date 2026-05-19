@@ -5,21 +5,21 @@ namespace StencilPad.Models;
 
 public class TextElement : SheetElement<TextElement>
 {
-    public override StartEndHandleSource HandleSource { get; }
+    public override MinMaxHandleSource HandleSource { get; }
 
-    public Unit2D Start
+    public Unit2D Min
     {
-        get => HandleSource.Start;
-        set => HandleSource.Start = value;
+        get => HandleSource.Min;
+        set => HandleSource.Min = value;
     }
 
-    public Unit2D End
+    public Unit2D Max
     {
-        get => HandleSource.End;
-        set => HandleSource.End = value;
+        get => HandleSource.Max;
+        set => HandleSource.Max = value;
     }
 
-    public Unit2D Size => End - Start;
+    public Unit2D Size => Max - Min;
 
     private string _text = "";
     public string Text
@@ -81,39 +81,39 @@ public class TextElement : SheetElement<TextElement>
     
     public TextElement()
     {
-        HandleSource = new StartEndHandleSource(Unit2D.Zero, Unit2D.Zero);
+        HandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
     }
 
     public TextElement(Unit2D start, string text)
     {
-        HandleSource = new StartEndHandleSource(start, start);
+        HandleSource = new MinMaxHandleSource(start, start);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
         _text = text;
     }
 
     public override void MirrorX(Unit centerY)
     {
-        Start = new Unit2D(Start.X, (centerY * 2) - Start.Y);
-        End = new Unit2D(End.X, (centerY * 2) - End.Y);
+        Min = new Unit2D(Min.X, (centerY * 2) - Min.Y);
+        Max = new Unit2D(Max.X, (centerY * 2) - Max.Y);
     }
 
     public override void MirrorY(Unit centerX)
     {
-        Start = new Unit2D((centerX * 2) - Start.X, Start.Y);
-        End = new Unit2D((centerX * 2) - End.X, End.Y);
+        Min = new Unit2D((centerX * 2) - Min.X, Min.Y);
+        Max = new Unit2D((centerX * 2) - Max.X, Max.Y);
     }
 
     public override void Translate(Unit2D delta)
     {
-        HandleSource.Start += delta;
-        HandleSource.End += delta;
+        HandleSource.Min += delta;
+        HandleSource.Max += delta;
     }
 
     public override void AssignFrom(TextElement other)
     {
-        Start = other.Start;
-        End = other.End;
+        Min = other.Min;
+        Max = other.Max;
         Text = other.Text;
         FontName = other.FontName;
         FontSize = other.FontSize;

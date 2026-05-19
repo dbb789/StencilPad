@@ -6,8 +6,8 @@ namespace StencilPad.Schemas;
 
 public class TextElementSchema : SheetElementSchema
 {
-    public Unit2D Start { get; set; } = Unit2D.Zero;
-    public Unit2D End { get; set; } = Unit2D.Zero;
+    public Unit2D Min { get; set; } = Unit2D.Zero;
+    public Unit2D Max { get; set; } = Unit2D.Zero;
     public string Text { get; set; } = "";
     public string FontName { get; set; } = "Arial";
     public double FontSize { get; set; } = 5.0;
@@ -17,8 +17,8 @@ public class TextElementSchema : SheetElementSchema
     {
         return new TextElementSchema
         {
-            Start = element.Start,
-            End = element.End,
+            Min = element.Min,
+            Max = element.Max,
             Text = element.Text,
             FontName = element.FontName,
             FontSize = element.FontSize,
@@ -28,9 +28,9 @@ public class TextElementSchema : SheetElementSchema
 
     public override TextElement Unpack()
     {
-        return new TextElement(Start, Text)
+        return new TextElement(Min, Text)
         {
-            End = End,
+            Max = Max,
             FontName = FontName,
             FontSize = FontSize,
             Color = Color

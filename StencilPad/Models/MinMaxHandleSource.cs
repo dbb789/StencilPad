@@ -2,7 +2,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class StartEndHandleSource : IHandleSource
+public class MinMaxHandleSource : IHandleSource
 {
     public event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded { add { } remove { } }
     public event Action<IHandleSource, Handle>? HandleRemoved { add { } remove { } }
@@ -10,41 +10,41 @@ public class StartEndHandleSource : IHandleSource
     public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
     private HandleSet _handles;
-    private Unit2D _start;
-    private Unit2D _end;
+    private Unit2D _min;
+    private Unit2D _max;
     private HandleSet _selection;
     private HandleSourceId _id = HandleFactory.NewId();
 
-    public Unit2D Start
+    public Unit2D Min
     {
-        get => _start;
+        get => _min;
         set
         {
-            _start = value;
-            HandleMoved?.Invoke(this, _handles[0], _start);
+            _min = value;
+            HandleMoved?.Invoke(this, _handles[0], _min);
         }
     }
 
-    public Unit2D End
+    public Unit2D Max
     {
-        get => _end;
+        get => _max;
         set
         {
-            _end = value;
-            HandleMoved?.Invoke(this, _handles[1], _end);
+            _max = value;
+            HandleMoved?.Invoke(this, _handles[1], _max);
         }
     }
 
-    public StartEndHandleSource(Unit2D start, Unit2D end)
+    public MinMaxHandleSource(Unit2D start, Unit2D end)
     {
         _handles = new(2);
-        _handles.Add(Handle.Move(_id, new StartEndHandleKey(StartEndHandleKey.EndType.Start)));
-        _handles.Add(Handle.Move(_id, new StartEndHandleKey(StartEndHandleKey.EndType.End)));
+        _handles.Add(Handle.Move(_id, new MinMaxHandleKey(MinMaxHandleKey.HandleType.Min)));
+        _handles.Add(Handle.Move(_id, new MinMaxHandleKey(MinMaxHandleKey.HandleType.Max)));
 
         _selection = new(2);
 
-        _start = start;
-        _end = end;
+        _min = start;
+        _max = end;
     }
 
     public void QueryHandles(Action<Handle, Unit2D, bool> func)
@@ -79,36 +79,36 @@ public class StartEndHandleSource : IHandleSource
 
     public Unit2D GetPoint(Handle handle)
     {
-        return handle.GetKey<StartEndHandleKey>().Type == StartEndHandleKey.EndType.Start ? _start : _end;
+        return handle.GetKey<MinMaxHandleKey>().Type == MinMaxHandleKey.HandleType.Min ? _min : _max;
     }
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        if (handle.GetKey<StartEndHandleKey>().Type == StartEndHandleKey.EndType.Start)
+        if (handle.GetKey<MinMaxHandleKey>().Type == MinMaxHandleKey.HandleType.Min)
         {
-            Start = position;
+            Min = position;
         }
         else
         {
-            End = position;
+            Max = position;
         }
     }
 
-    public void AssignFrom(StartEndHandleSource other)
+    public void AssignFrom(MinMaxHandleSource other)
     {
         _id = other._id;
-        _start = other._start;
-        _end = other._end;
+        _min = other._min;
+        _max = other._max;
         _selection.Clear();
         _selection.AddRange(other._selection);
 
-        HandleMoved?.Invoke(this, _handles[0], _start);
-        HandleMoved?.Invoke(this, _handles[1], _end);
+        HandleMoved?.Invoke(this, _handles[0], _min);
+        HandleMoved?.Invoke(this, _handles[1], _max);
     }
 
-    public StartEndHandleSource DeepClone()
+    public MinMaxHandleSource DeepClone()
     {
-        var clone = new StartEndHandleSource(_start, _end);
+        var clone = new MinMaxHandleSource(_min, _max);
 
         clone._id = _id;
         clone._selection.Clear();

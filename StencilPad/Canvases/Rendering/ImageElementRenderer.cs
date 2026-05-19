@@ -12,9 +12,9 @@ public class ImageElementRenderer : SheetElementRenderer
     public override ImageElement Element => _imageElement;
 
     public override UnitBounds SelectionBounds =>
-        _imageElement.Start == _imageElement.End
+        _imageElement.Min == _imageElement.Max
             ? UnitBounds.Empty
-            : UnitBounds.FromMinMax(_imageElement.Start, _imageElement.End);
+            : UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max);
 
     private readonly ImageElement _imageElement;
     private BitmapImage? _bitmap;
@@ -41,7 +41,7 @@ public class ImageElementRenderer : SheetElementRenderer
 
     public override bool BoundsTest(UnitBounds bounds)
     {
-        return bounds.Contains(_imageElement.Start);
+        return bounds.Contains(_imageElement.Min);
     }
     
     public override void Render(DrawingContext dc)
@@ -51,7 +51,7 @@ public class ImageElementRenderer : SheetElementRenderer
             return;
         }
 
-        var rect = UnitBounds.FromMinMax(_imageElement.Start, _imageElement.End).Millimeters;
+        var rect = UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max).Millimeters;
 
         if (rect.Width <= 0 || rect.Height <= 0)
         {

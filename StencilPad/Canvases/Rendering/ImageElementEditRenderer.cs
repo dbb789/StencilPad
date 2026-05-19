@@ -6,6 +6,18 @@ namespace StencilPad.Canvases.Rendering;
 
 public class ImageElementEditRenderer : SheetElementEditRenderer
 {
+    private static Pen OutlinePen;
+
+    static ImageElementEditRenderer()
+    {
+        OutlinePen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 0)), 0.2)
+        {
+            DashStyle = DashStyles.Dot
+        };
+        
+        OutlinePen.Freeze();
+    }
+    
     private readonly ImageElement _imageElement;
 
     public ImageElementEditRenderer(ImageElement imageElement)
@@ -21,17 +33,13 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
 
     public override void Render(DrawingContext dc)
     {
-        var bounds = UnitBounds.FromMinMax(_imageElement.Start, _imageElement.End);
+        var bounds = UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max);
+        
         if (bounds.Size == Unit2D.Zero)
         {
             return;
         }
 
-        var pen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 0)), 0.2)
-        {
-            DashStyle = DashStyles.Dot
-        };
-
-        dc.DrawRectangle(Brushes.Transparent, pen, bounds.Millimeters);
+        dc.DrawRectangle(Brushes.Transparent, OutlinePen, bounds.Millimeters);
     }
 }

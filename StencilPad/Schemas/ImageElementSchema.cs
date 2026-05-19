@@ -5,8 +5,9 @@ namespace StencilPad.Schemas;
 
 public class ImageElementSchema : SheetElementSchema
 {
-    public Unit2D Start { get; set; } = Unit2D.Zero;
-    public Unit2D End { get; set; } = Unit2D.Zero;
+    public Unit2D Min { get; set; } = Unit2D.Zero;
+    public Unit2D Max { get; set; } = Unit2D.Zero;
+    
     // System.Text.Json serializes byte[] as a base64 string automatically.
     public byte[] ImageData { get; set; } = [];
 
@@ -14,14 +15,14 @@ public class ImageElementSchema : SheetElementSchema
     {
         return new ImageElementSchema
         {
-            Start = element.Start,
-            End = element.End,
+            Min = element.Min,
+            Max = element.Max,
             ImageData = element.ImageData
         };
     }
 
     public override ImageElement Unpack()
     {
-        return new ImageElement(Start, End, ImageData);
+        return new ImageElement(Min, Max, ImageData);
     }
 }

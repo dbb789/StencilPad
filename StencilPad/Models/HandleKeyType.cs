@@ -4,5 +4,5 @@ public enum HandleKeyType : byte
 {
     None = 0,
     Polygon = 1,
-    StartEnd = 2
+    MinMax = 2
 }
