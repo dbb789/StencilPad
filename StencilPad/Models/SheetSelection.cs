@@ -97,12 +97,17 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
     public bool Remove(ISheetElement element)
     {
-        if (!_elements.TryGetElement(element.Id, out var existingElement))
+        return Remove(element.Id);
+    }
+
+    private bool Remove(Guid id)
+    {
+        if (!_elements.TryGetElement(id, out var existingElement))
         {
-            throw new ArgumentException("Element does not exist in parent collection.", nameof(element));
+            throw new ArgumentException("Element does not exist in parent collection.", nameof(id));
         }
         
-        if (_selectedIds.Remove(element.Id))
+        if (_selectedIds.Remove(id))
         {
             ++_version;
 
@@ -120,11 +125,11 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
         {
             return;
         }
-        
-        _selectedIds.Clear();
-        ++_version;
 
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        foreach (var id in _selectedIds.ToList())
+        {
+            Remove(id);
+        }
     }
 
     public Enumerator GetEnumerator()

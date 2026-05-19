@@ -79,7 +79,7 @@ public class EditablePolygon : Polygon, IHandleSource
         _indicesDirty = true;
     }
 
-    public IEnumerable<int> GetSelectedVertices()
+    public List<int> GetSelectedVertices()
     {
         if (_indicesDirty)
         {
@@ -90,7 +90,7 @@ public class EditablePolygon : Polygon, IHandleSource
         return _selectedVertices;
     }
 
-    public IEnumerable<int> GetSelectedEdges()
+    public List<int> GetSelectedEdges()
     {
         if (_indicesDirty)
         {

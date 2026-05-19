@@ -167,6 +167,17 @@ public class Polygon : IPolygon
 
             _vertices[i] = vertex with { Position = mirrored };
         }
+
+        for (int i = 0; i < _edges.Count; ++i)
+        {
+            var edge = _edges[i];
+            
+            _edges[i] = edge with
+            {
+                ControlBeginOffset = edge.ControlBeginOffset with { Y = -edge.ControlBeginOffset.Y },
+                ControlEndOffset = edge.ControlEndOffset with { Y = -edge.ControlEndOffset.Y }
+            };
+        }
     }
 
     public void MirrorY(Unit centerX)
@@ -177,6 +188,17 @@ public class Polygon : IPolygon
             var mirrored = vertex.Position with { X = (centerX * 2) - vertex.Position.X };
 
             _vertices[i] = vertex with { Position = mirrored };
+        }
+
+        for (int i = 0; i < _edges.Count; ++i)
+        {
+            var edge = _edges[i];
+
+            _edges[i] = edge with
+            {
+                ControlBeginOffset = edge.ControlBeginOffset with { X = -edge.ControlBeginOffset.X },
+                ControlEndOffset = edge.ControlEndOffset with { X = -edge.ControlEndOffset.X }
+            };
         }
     }
 
