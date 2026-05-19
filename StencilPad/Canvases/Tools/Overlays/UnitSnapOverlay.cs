@@ -18,6 +18,7 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
     private IUnitSnap _unitSnap;
     private IUnitSnapContext? _context;
     private Unit2D? _lastSnapPoint;
+    private bool _redrawPending;
     
     static UnitSnapOverlay()
     {
@@ -32,18 +33,28 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
         _viewport = viewport;
         _unitSnap = unitSnap;
         _context = null;
+
+        Loaded += (s, e) =>
+        {
+            CompositionTarget.Rendering += OnRendering;
+        };
+
+        Unloaded += (s, e) =>
+        {
+            CompositionTarget.Rendering -= OnRendering;
+        };
     }
 
     public void Begin(IUnitSnapContext context)
     {
         _context = context;
-        InvalidateVisual();
+        _lastSnapPoint = null;
     }
 
     public void End()
     {
         _context = null;
-        InvalidateVisual();
+        _lastSnapPoint = null;
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -54,10 +65,19 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
         if (_lastSnapPoint != snapped)
         {
             _lastSnapPoint = snapped;
-            InvalidateVisual();
+            _redrawPending = true;
         }
     }
     
+    private void OnRendering(object? sender, EventArgs e)
+    {
+        if (_redrawPending)
+        {
+            InvalidateVisual();
+            _redrawPending = false;
+        }
+    }
+
     protected override void OnRender(DrawingContext dc)
     {
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));

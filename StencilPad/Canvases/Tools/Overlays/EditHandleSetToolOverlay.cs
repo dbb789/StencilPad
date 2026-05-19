@@ -68,7 +68,15 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         
         _context.EditOverlayRenderer.IsEnabled = true;
 
-        CompositionTarget.Rendering += OnRendering;
+        Loaded += (s, e) =>
+        {
+            CompositionTarget.Rendering += OnRendering;
+        };
+
+        Unloaded += (s, e) =>
+        {
+            CompositionTarget.Rendering -= OnRendering;
+        };
     }
 
     public void Dispose()
@@ -81,8 +89,6 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         _context.HandleMap.HandleRemoved -= OnHandleRemoved;
         _context.HandleMap.HandleMoved -= OnHandleMoved;
         _context.HandleMap.HandleSelectionChanged += ForceRedraw;
-
-        CompositionTarget.Rendering -= OnRendering;
     }
 
     private void RebuildContextMenu(object sender,
