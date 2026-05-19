@@ -8,8 +8,8 @@ namespace StencilPad.Services;
 
 public class FileService : IFileService
 {
-    private const string FileExtension = ".lcad";
-    private const string FileFilter = "StencilPad Files (*.lcad)|*.lcad";
+    private const string FileExtension = ".spad";
+    private const string FileFilter = "StencilPad Files (*.spad)|*.spad";
     private const int FileVersion = 1;
 
     private static readonly JsonSerializerOptions JsonOptions = SchemaJsonOptions.Default;
