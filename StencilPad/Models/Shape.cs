@@ -98,17 +98,21 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     public override void MirrorX(Unit centerY)
     {
+        Position = Position with { Y = (centerY * 2) - Position.Y };
+
         foreach (var polygon in _polygonList)
         {
-            polygon.MirrorX(centerY - Position.Y);
+            polygon.MirrorX(Unit.Zero);
         }
     }
 
     public override void MirrorY(Unit centerX)
     {
+        Position = Position with { X = (centerX * 2) - Position.X };
+
         foreach (var polygon in _polygonList)
         {
-            polygon.MirrorY(centerX - Position.X);
+            polygon.MirrorY(Unit.Zero);
         }
     }
 
