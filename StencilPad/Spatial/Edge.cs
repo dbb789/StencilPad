@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public record struct Edge
+public readonly record struct Edge
 {
     public EdgeType Type { get; init; }
     public Unit2D ControlBeginOffset { get; init; }
