@@ -28,6 +28,7 @@ public class EditablePolygon : Polygon, IHandleSource
         VertexRemoved += OnVertexRemoved;
         Vertices.ItemReassigned += VertexReassigned;
         Edges.ItemReassigned += EdgeReassigned;
+        ClosedChanged += OnClosedChanged;
     }
 
     private void OnVertexAdded(int index, ulong key)
@@ -50,7 +51,12 @@ public class EditablePolygon : Polygon, IHandleSource
         
         _indicesDirty = true;
     }
-    
+
+    private void OnClosedChanged(bool closed)
+    {
+        _indicesDirty = true;
+    }
+
     public IEnumerable<int> GetSelectedVertices()
     {
         if (_indicesDirty)
@@ -257,9 +263,6 @@ public class EditablePolygon : Polygon, IHandleSource
     
     private void RebuildHandles()
     {
-        // FIXME: This needs to be optimized to avoid unnecessary handle
-        // removals and additions when only a few vertices or edges are changed.
-        
         foreach (var handle in _handles)
         {
             HandleRemoved?.Invoke(this, handle);

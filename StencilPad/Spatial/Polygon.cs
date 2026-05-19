@@ -12,6 +12,7 @@ public class Polygon : IPolygon
 
     public event Action<int, ulong>? VertexAdded;
     public event Action<int, ulong>? VertexRemoved;
+    public event Action<bool> ClosedChanged;
     public event Action? GeometryChanged;
     
     public Polygon()
@@ -86,9 +87,15 @@ public class Polygon : IPolygon
             return;
         }
 
+        int offset = (_edges.Count - 1) - index;
+        
+        _vertices.RotateIndices(-offset);
+        _edges.RotateIndices(-offset);
+
         _edges.RemoveAt(_edges.Count - 1);
         _closed = false;
-
+        
+        ClosedChanged?.Invoke(_closed);
         GeometryChanged?.Invoke();
     }
 
@@ -102,6 +109,7 @@ public class Polygon : IPolygon
         _edges.Add(new Edge());
         _closed = true;
 
+        ClosedChanged?.Invoke(_closed);
         GeometryChanged?.Invoke();
     }
 

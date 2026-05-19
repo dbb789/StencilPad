@@ -85,6 +85,37 @@ public class KeyedList<T> : IKeyedList<T>
         _indices.Clear();
     }
 
+    public void RotateIndices(int offset)
+    {
+        if (offset == 0)
+        {
+            return;
+        }
+        
+        var newData = new List<(T, ulong)>(_data.Count);
+        
+        for (int i = 0; i < _data.Count; i++)
+        {
+            newData.Add(_data[(i + _data.Count + offset) % _data.Count]);
+        }
+
+        var oldData = _data;
+        
+        _data = newData;
+        
+        for (int i = 0; i < _data.Count; i++)
+        {
+            _indices[_data[i].Item2] = i;
+        }
+
+        for (int i = 0; i < _data.Count; i++)
+        {
+            var oldIndex = (i + _data.Count - offset) % _data.Count;
+            
+            ItemReassigned?.Invoke(i, _data[i].Item2, oldData[oldIndex].Item1, _data[i].Item1);
+        }
+    }
+
     public T At(int index)
     {
         index %= _data.Count;
