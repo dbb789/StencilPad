@@ -72,6 +72,7 @@ namespace StencilPad.Canvases.UI
         public SheetRenderPanel Renderer => _renderer;
         public ToolOverlay ToolOverlay => _toolOverlay;
         public IUnitSnap UnitSnap => _unitSnap;
+        public UnitSnapOverlay UnitSnapOverlay => _unitSnapOverlay;
         
         private readonly VisualViewport _viewport;
         private readonly HandleMap _handleMap;
@@ -82,6 +83,7 @@ namespace StencilPad.Canvases.UI
         private readonly SheetRenderPanel _renderer;
         private readonly ToolOverlay _toolOverlay;
         private readonly RubberBandRenderPanel _rubberBandRenderPanel;
+        private readonly UnitSnapOverlay _unitSnapOverlay;
         private readonly CompositeUnitSnap _unitSnap;
         
         public event Action? CanvasReady;
@@ -112,6 +114,9 @@ namespace StencilPad.Canvases.UI
             _rubberBandEventPanel.Updated += _rubberBandRenderPanel.Updated;
 
             _unitSnap = new CompositeUnitSnap();
+            _unitSnapOverlay = new UnitSnapOverlay(_viewport, _unitSnap);
+
+            _rubberBandRenderPanel.Content = _unitSnapOverlay;
             
             InitializeComponent();
 

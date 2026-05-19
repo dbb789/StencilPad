@@ -46,6 +46,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
                 renderer.InvalidateVisual += InvalidateVisual;
             }
         }
+
+        _context.UnitSnapOverlay.Begin(this);
         
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
@@ -53,6 +55,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
     public void Dispose()
     {
+        _context.UnitSnapOverlay.End();
+
         _sheet.Selection.CollectionChanged -= SelectionChanged;
 
         foreach (var selected in _sheet.Selection)

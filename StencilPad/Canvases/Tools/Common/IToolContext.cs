@@ -16,6 +16,7 @@ public interface IToolContext
     IHandleMap HandleMap { get; }
     IRubberBand RubberBand { get; }
     IUnitSnap UnitSnap { get; }
+    UnitSnapOverlay UnitSnapOverlay { get; }
     event Action? SelectAllRequested;
     event Action? ClearSelectionRequested;
 }
