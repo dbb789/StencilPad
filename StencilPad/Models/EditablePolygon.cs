@@ -21,11 +21,13 @@ public class EditablePolygon : Polygon, IHandleSource
     {
         _handles = new(4);
         _selection = new(4);
+        _indicesDirty = false;
         _selectedEdges = new();
         _selectedVertices = new();
         
         VertexAdded += OnVertexAdded;
         VertexRemoved += OnVertexRemoved;
+        EdgeAdded += OnEdgeAdded;
         EdgeRemoved += OnEdgeRemoved;
         Vertices.ItemReassigned += VertexReassigned;
         Edges.ItemReassigned += EdgeReassigned;
@@ -38,7 +40,7 @@ public class EditablePolygon : Polygon, IHandleSource
 
         AddHandle(handle);
 
-        _indicesDirty = true;
+        MarkIndicesDirty();
     }
 
     private void OnVertexRemoved(int index, ulong key)
@@ -50,7 +52,20 @@ public class EditablePolygon : Polygon, IHandleSource
         _handles.Remove(handle);
         HandleRemoved?.Invoke(this, handle);
         
-        _indicesDirty = true;
+        MarkIndicesDirty();
+    }
+
+    private void OnEdgeAdded(int index, ulong key)
+    {
+        var edge = Edges[index];
+
+        if (edge.Type == EdgeType.Bezier)
+        {
+            AddHandle(Handle.Adjust(_id, PolygonHandleKey.ControlBegin(key)));
+            AddHandle(Handle.Adjust(_id, PolygonHandleKey.ControlEnd(key)));
+        }
+
+        MarkIndicesDirty();
     }
 
     private void OnEdgeRemoved(int index, ulong key)
@@ -71,32 +86,29 @@ public class EditablePolygon : Polygon, IHandleSource
             HandleRemoved?.Invoke(this, endHandle);
         }
         
-        _indicesDirty = true;
+        MarkIndicesDirty();
     }
 
     private void OnClosedChanged(bool closed)
     {
-        _indicesDirty = true;
+        MarkIndicesDirty();
     }
 
+    private void MarkIndicesDirty()
+    {
+        _indicesDirty = true;
+    }
+    
     public List<int> GetSelectedVertices()
     {
-        if (_indicesDirty)
-        {
-            UpdateSelectedIndices();
-            _indicesDirty = false;
-        }
+        UpdateSelectedIndices();
         
         return _selectedVertices;
     }
 
     public List<int> GetSelectedEdges()
     {
-        if (_indicesDirty)
-        {
-            UpdateSelectedIndices();
-            _indicesDirty = false;
-        }
+        UpdateSelectedIndices();
         
         return _selectedEdges;
     }
@@ -115,7 +127,7 @@ public class EditablePolygon : Polygon, IHandleSource
         {
             if (_selection.Add(handle))
             {
-                UpdateSelectedIndices();
+                MarkIndicesDirty();
                 HandleSelectionChanged?.Invoke(this, handle, true);
             }
         }
@@ -123,7 +135,7 @@ public class EditablePolygon : Polygon, IHandleSource
         {
             if (_selection.Remove(handle))
             {
-                UpdateSelectedIndices();
+                MarkIndicesDirty();
                 HandleSelectionChanged?.Invoke(this, handle, false);
             }
         }
@@ -197,20 +209,27 @@ public class EditablePolygon : Polygon, IHandleSource
         {
             HandleMoved?.Invoke(this, Handle.Move(_id, PolygonHandleKey.Vertex(key)), next.Position);
 
-            var prevEdge = Edges.At(index - 1);
-
-            if (prevEdge.Type == EdgeType.Bezier)
+            if (index > 0 || Closed)
             {
-                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(Edges.KeyAt(index - 1))),
-                                    next.Position + prevEdge.ControlEndOffset);
+                var prevIndex = (index - 1 + Edges.Count) % Edges.Count;
+                var prevEdge = Edges.At(prevIndex);
+
+                if (prevEdge.Type == EdgeType.Bezier)
+                {
+                    HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlEnd(Edges.KeyAt(prevIndex))),
+                                        next.Position + prevEdge.ControlEndOffset);
+                }
             }
             
-            var edge = Edges.At(index);
-
-            if (edge.Type == EdgeType.Bezier)
+            if (index < Edges.Count || Closed)
             {
-                HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(Edges.KeyAt(index))),
-                                    next.Position + edge.ControlBeginOffset);
+                var edge = Edges.At(index);
+
+                if (edge.Type == EdgeType.Bezier)
+                {
+                    HandleMoved?.Invoke(this, Handle.Adjust(_id, PolygonHandleKey.ControlBegin(Edges.KeyAt(index))),
+                                        next.Position + edge.ControlBeginOffset);
+                }
             }
         }
     }
@@ -256,7 +275,7 @@ public class EditablePolygon : Polygon, IHandleSource
         base.AssignFromPolygon(other);
 
         RebuildHandles();
-        UpdateSelectedIndices();
+        MarkIndicesDirty();
         ReapplySelection();
     }
 
@@ -282,7 +301,14 @@ public class EditablePolygon : Polygon, IHandleSource
             HandleAdded?.Invoke(this, handle, GetPoint(handle), other._selection.Contains(handle));
         }
 
-        UpdateSelectedIndices();
+        other.UpdateSelectedIndices();
+
+        _selectedVertices.Clear();
+        _selectedVertices.AddRange(other._selectedVertices);
+        _selectedEdges.Clear();
+        _selectedEdges.AddRange(other._selectedEdges);
+        _indicesDirty = false;
+
         ReapplySelection();
     }
 
@@ -327,6 +353,13 @@ public class EditablePolygon : Polygon, IHandleSource
     
     private void UpdateSelectedIndices()
     {
+        if (!_indicesDirty)
+        {
+            return;
+        }
+
+        _indicesDirty = false;
+        
         _selectedVertices.Clear();
 
         foreach (var handle in _selection)
