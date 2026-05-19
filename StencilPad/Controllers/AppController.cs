@@ -378,9 +378,16 @@ public class AppController
         }
 
         var operations = elements
-            .Select(e => new AddSheetElementOperation(tab.Sheet.Id, e));
+            .Select(e => new AddSheetElementOperation(tab.Sheet, e));
 
         _operationService.Push(new BulkCommandOperation(operations));
+
+        tab.Sheet.Selection.Clear();
+        
+        foreach (var element in elements)
+        {
+            tab.Sheet.Selection.Add(element);
+        }
     }
     
     private void ImportImage()

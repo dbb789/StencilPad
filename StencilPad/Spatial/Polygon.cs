@@ -150,63 +150,111 @@ public class Polygon : IPolygon
 
     public void Translate(Unit2D delta)
     {
-        for (int i = 0; i < _vertices.Count; ++i)
+        _vertices.ItemReassigned -= VertexReassigned;
+
+        try
         {
-            var vertex = _vertices[i];
-            
-            _vertices[i] = vertex with { Position = vertex.Position + delta };
+            for (int i = 0; i < _vertices.Count; ++i)
+            {
+                var vertex = _vertices[i];
+                
+                _vertices[i] = vertex with { Position = vertex.Position + delta };
+            }
         }
+        finally
+        {
+            _vertices.ItemReassigned += VertexReassigned;
+        }
+
+        GeometryChanged?.Invoke();
     }
 
     public void MirrorX(Unit centerY)
     {
-        for (int i = 0; i < _vertices.Count; ++i)
-        {
-            var vertex = _vertices[i];
-            var mirrored = vertex.Position with { Y = (centerY * 2) - vertex.Position.Y };
+        _vertices.ItemReassigned -= VertexReassigned;
+        _edges.ItemReassigned -= EdgeReassigned;
 
-            _vertices[i] = vertex with { Position = mirrored };
-        }
-
-        for (int i = 0; i < _edges.Count; ++i)
+        try
         {
-            var edge = _edges[i];
-            
-            _edges[i] = edge with
+            for (int i = 0; i < _vertices.Count; ++i)
             {
-                ControlBeginOffset = edge.ControlBeginOffset with { Y = -edge.ControlBeginOffset.Y },
-                ControlEndOffset = edge.ControlEndOffset with { Y = -edge.ControlEndOffset.Y }
-            };
+                var vertex = _vertices[i];
+                var mirrored = vertex.Position with { Y = (centerY * 2) - vertex.Position.Y };
+
+                _vertices[i] = vertex with { Position = mirrored };
+            }
+
+            for (int i = 0; i < _edges.Count; ++i)
+            {
+                var edge = _edges[i];
+                
+                _edges[i] = edge with
+                {
+                    ControlBeginOffset = edge.ControlBeginOffset with { Y = -edge.ControlBeginOffset.Y },
+                    ControlEndOffset = edge.ControlEndOffset with { Y = -edge.ControlEndOffset.Y }
+                };
+            }
         }
+        finally
+        {
+            _vertices.ItemReassigned += VertexReassigned;
+            _edges.ItemReassigned += EdgeReassigned;
+        }
+
+        GeometryChanged?.Invoke();
     }
 
     public void MirrorY(Unit centerX)
     {
-        for (int i = 0; i < _vertices.Count; ++i)
+        _vertices.ItemReassigned -= VertexReassigned;
+        _edges.ItemReassigned -= EdgeReassigned;
+
+        try
         {
-            var vertex = _vertices[i];
-            var mirrored = vertex.Position with { X = (centerX * 2) - vertex.Position.X };
-
-            _vertices[i] = vertex with { Position = mirrored };
-        }
-
-        for (int i = 0; i < _edges.Count; ++i)
-        {
-            var edge = _edges[i];
-
-            _edges[i] = edge with
+            for (int i = 0; i < _vertices.Count; ++i)
             {
-                ControlBeginOffset = edge.ControlBeginOffset with { X = -edge.ControlBeginOffset.X },
-                ControlEndOffset = edge.ControlEndOffset with { X = -edge.ControlEndOffset.X }
-            };
+                var vertex = _vertices[i];
+                var mirrored = vertex.Position with { X = (centerX * 2) - vertex.Position.X };
+
+                _vertices[i] = vertex with { Position = mirrored };
+            }
+
+            for (int i = 0; i < _edges.Count; ++i)
+            {
+                var edge = _edges[i];
+
+                _edges[i] = edge with
+                {
+                    ControlBeginOffset = edge.ControlBeginOffset with { X = -edge.ControlBeginOffset.X },
+                    ControlEndOffset = edge.ControlEndOffset with { X = -edge.ControlEndOffset.X }
+                };
+            }
         }
+        finally
+        {
+            _vertices.ItemReassigned += VertexReassigned;
+            _edges.ItemReassigned += EdgeReassigned;
+        }
+
+        GeometryChanged?.Invoke();
     }
 
     protected void AssignFromPolygon(Polygon other)
     {
-        _vertices.AssignFrom(other._vertices);
-        _edges.AssignFrom(other._edges);
-        _closed = other._closed;
+        _vertices.ItemReassigned -= VertexReassigned;
+        _edges.ItemReassigned -= EdgeReassigned;
+
+        try
+        {
+            _vertices.AssignFrom(other._vertices);
+            _edges.AssignFrom(other._edges);
+            _closed = other._closed;
+        }
+        finally
+        {
+            _vertices.ItemReassigned += VertexReassigned;
+            _edges.ItemReassigned += EdgeReassigned;
+        }
 
         GeometryChanged?.Invoke();
     }

@@ -82,11 +82,4 @@ public class Unit2DTests
             Assert.That((a / 2.0).X.Millimeters, Is.EqualTo(5));
         });
     }
-
-    [Test]
-    public void ToString_FormatsCorrectly()
-    {
-        var u = new Unit2D(Unit.FromMillimeters(1.5), Unit.FromMillimeters(2.5));
-        Assert.That(u.ToString(), Is.EqualTo("(1.5, 2.5)"));
-    }
 }

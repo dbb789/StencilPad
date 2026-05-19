@@ -27,6 +27,10 @@ public record SheetFormat
         }
     }
 
+    public SheetFormat()
+        : this(SheetSizeType.A4, SheetOrientation.Portrait)
+    { }
+
     public SheetFormat(SheetSizeType sizeType,
                        SheetOrientation orientation)
     {

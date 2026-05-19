@@ -19,4 +19,14 @@ public record struct Edge
         ControlBeginOffset = controlBeginOffset;
         ControlEndOffset = controlEndOffset;
     }
+
+    public override string ToString()
+    {
+        return Type switch
+        {
+            EdgeType.Straight => "[Straight]",
+            EdgeType.Bezier => $"[Bezier [{ControlBeginOffset}, {ControlEndOffset}]]",
+            _ => "[Unknown]"
+        };
+    }
 }
