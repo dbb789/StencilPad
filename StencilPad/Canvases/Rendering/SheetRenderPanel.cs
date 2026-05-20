@@ -11,7 +11,6 @@ public class SheetRenderPanel : ContentControl
     private SheetRenderer _sheetRenderer;
     private EditOverlayRenderer _editOverlayRenderer;
     private IViewport _viewport;
-    private bool _redrawPending;
 
     public SheetRenderPanel(SheetRenderer sheetRenderer,
                             EditOverlayRenderer editOverlayRenderer,
@@ -29,32 +28,19 @@ public class SheetRenderPanel : ContentControl
     {
         _sheetRenderer.RendererDirty += ForceRedraw;
         _editOverlayRenderer.RendererDirty += ForceRedraw;
-
-        CompositionTarget.Rendering += OnRendering;
     }
 
     public void OnUnloaded(object sender, RoutedEventArgs e)
     {
         _sheetRenderer.RendererDirty -= ForceRedraw;
         _editOverlayRenderer.RendererDirty -= ForceRedraw;
-
-        CompositionTarget.Rendering -= OnRendering;
     }
     
     private void ForceRedraw()
     {
-        _redrawPending = true;
+        InvalidateVisual();
     }
     
-    private void OnRendering(object? sender, EventArgs e)
-    {
-        if (_redrawPending)
-        {
-            InvalidateVisual();
-            _redrawPending = false;
-        }
-    }
-
     protected override void OnRender(DrawingContext dc)
     {
         dc.PushTransform(_viewport.MillimetersToPixelsTransform);

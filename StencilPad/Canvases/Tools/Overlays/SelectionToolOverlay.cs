@@ -23,7 +23,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     private UnitBounds _dragSelectionBounds;
     private bool _draggingSelection;
     
-    private bool _redrawPending;
     private Pen _elementPen;
     private Brush _elementFill;
     private Pen _groupPen;
@@ -69,16 +68,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
-
-        Loaded += (s, e) =>
-        {
-            CompositionTarget.Rendering += OnRendering;
-        };
-
-        Unloaded += (s, e) =>
-        {
-            CompositionTarget.Rendering -= OnRendering;
-        };
     }
 
     public void Dispose()
@@ -317,18 +306,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
     private void ForceRedraw()
     {
-        _redrawPending = true;
+        InvalidateVisual();
     }
 
-    private void OnRendering(object? sender, EventArgs e)
-    {
-        if (_redrawPending)
-        {
-            InvalidateVisual();
-            _redrawPending = false;
-        }
-    }
-    
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
