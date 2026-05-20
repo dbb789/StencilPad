@@ -4,6 +4,8 @@ namespace StencilPad.Models;
 
 public class BoundsHandleSource : IHandleSource
 {
+    // This component has a fixed number of handles so we can just hardcode the
+    // events to do nothing since we won't be adding or removing any handles.
     public event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded { add { } remove { } }
     public event Action<IHandleSource, Handle>? HandleRemoved { add { } remove { } }
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
@@ -137,9 +139,11 @@ public class BoundsHandleSource : IHandleSource
         _selection.Clear();
         _selection.AddRange(other._selection);
 
+        UpdateAllHandles();
+
         foreach (var handle in _handles)
         {
-            HandleMoved?.Invoke(this, handle, GetPoint(handle));
+            HandleSelectionChanged?.Invoke(this, handle, _selection.Contains(handle));
         }
     }
 
