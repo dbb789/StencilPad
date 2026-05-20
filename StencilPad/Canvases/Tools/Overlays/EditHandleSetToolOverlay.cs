@@ -31,7 +31,6 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
     private List<IHandleMapEntry> _queryResults;
     private DragState<IHandleMapEntry> _dragState;
 
-    private bool _redrawPending;
     private long _lastMouseMoveEvent;
     private Brush _moveBrush;
     private Brush _adjustBrush;
@@ -67,16 +66,6 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
         
         _context.EditOverlayRenderer.IsEnabled = true;
-
-        Loaded += (s, e) =>
-        {
-            CompositionTarget.Rendering += OnRendering;
-        };
-
-        Unloaded += (s, e) =>
-        {
-            CompositionTarget.Rendering -= OnRendering;
-        };
     }
 
     public void Dispose()
@@ -221,18 +210,9 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
     private void ForceRedraw()
     {
-        _redrawPending = true;
+        InvalidateVisual();
     }
     
-    private void OnRendering(object? sender, EventArgs e)
-    {
-        if (_redrawPending)
-        {
-            InvalidateVisual();
-            _redrawPending = false;
-        }
-    }
-
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
