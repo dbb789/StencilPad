@@ -151,6 +151,38 @@ public class Polygon : IPolygon
         GeometryChanged?.Invoke();
     }
 
+    public void SetControlBegin(int edgeIndex, Unit2D position)
+    {
+        var offset = position - Vertices.At(edgeIndex).Position;
+
+        _edges[edgeIndex] = _edges[edgeIndex] with
+            { ControlBeginOffset = offset };
+
+        if ((edgeIndex != 0) || _closed)
+        {
+            var prevIndex = (edgeIndex - 1 + _edges.Count) % _edges.Count;
+
+            _edges[prevIndex] = _edges[prevIndex] with
+                { ControlEndOffset = -offset};
+        }
+    }
+
+    public void SetControlEnd(int edgeIndex, Unit2D position)
+    {
+        var offset = position - Vertices.At(edgeIndex + 1).Position;
+
+        _edges[edgeIndex] = _edges[edgeIndex] with
+            { ControlEndOffset = offset };
+        
+        if ((edgeIndex != _edges.Count - 1) || _closed)
+        {
+            var nextIndex = (edgeIndex + 1) % _edges.Count;
+
+            _edges[nextIndex] = _edges[nextIndex] with
+                { ControlBeginOffset = -offset };
+        }
+    }
+
     public void Clear()
     {
         for (int i = _vertices.Count - 1; i >= 0; --i)
@@ -262,28 +294,6 @@ public class Polygon : IPolygon
 
     private void EdgeReassigned(int index, ulong key, Edge oldEdge, Edge newEdge)
     {
-        if (index != 0 || _closed)
-        {
-            if (oldEdge.ControlBeginOffset != newEdge.ControlBeginOffset)
-            {
-                var prevIndex = (index - 1 + _edges.Count) % _edges.Count;
-                var prevEdge = _edges[prevIndex];
-
-                _edges[prevIndex] = prevEdge with { ControlEndOffset = -newEdge.ControlBeginOffset };
-            }
-        }
-        
-        if ((index != _edges.Count - 1) || _closed)
-        {
-            if (oldEdge.ControlEndOffset != newEdge.ControlEndOffset)
-            {
-                var nextIndex = (index + 1) % _edges.Count;
-                var nextEdge = _edges[nextIndex];
-
-                _edges[nextIndex] = nextEdge with { ControlBeginOffset = -newEdge.ControlEndOffset };
-            }
-        }
-
         GeometryChanged?.Invoke();
     }
 }

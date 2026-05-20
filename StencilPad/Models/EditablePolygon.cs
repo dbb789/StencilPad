@@ -190,17 +190,15 @@ public class EditablePolygon : Polygon, IHandleSource
         case PolygonHandleType.ControlBegin:
         {
             var index = Edges.IndexOfKey(key.Key);
-            
-            Edges[index] = Edges[index] with
-                           { ControlBeginOffset = position - Vertices.At(index).Position };
+
+            SetControlBegin(index, position);
             break;
         }
         case PolygonHandleType.ControlEnd:
         {
             var index = Edges.IndexOfKey(key.Key);
-            
-            Edges[index] = Edges[index] with
-                           { ControlEndOffset = position - Vertices.At(index + 1).Position };
+
+            SetControlEnd(index, position);
             break;
         }
         default:

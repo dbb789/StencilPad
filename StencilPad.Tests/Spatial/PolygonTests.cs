@@ -200,7 +200,7 @@ public class PolygonTests
     }
 
     [Test]
-    public void Symmetry_EdgeReassigned_UpdatesNeighbors()
+    public void Symmetry_SetControlBeginEnd()
     {
         var polygon = new Polygon();
         polygon.AddVertex(new Vertex(U2(0, 0)));
@@ -210,15 +210,15 @@ public class PolygonTests
 
         // Edge 0 (V0-V1), Edge 1 (V1-V2), Edge 2 (V2-V0)
         // Modify Edge 0 ControlEndOffset -> should update Edge 1 ControlBeginOffset
-        polygon.Edges[0] = polygon.Edges[0] with { ControlEndOffset = U2(2, 3) };
+        polygon.SetControlEnd(0, U2(10, 0) + U2(2, 3));
         Assert.That(polygon.Edges[1].ControlBeginOffset, Is.EqualTo(U2(-2, -3)));
 
         // Modify Edge 1 ControlBeginOffset -> should update Edge 0 ControlEndOffset
-        polygon.Edges[1] = polygon.Edges[1] with { ControlBeginOffset = U2(-4, -5) };
+        polygon.SetControlBegin(1, U2(10, 0) + U2(-4, -5));
         Assert.That(polygon.Edges[0].ControlEndOffset, Is.EqualTo(U2(4, 5)));
         
         // Wrap around: Modify Edge 2 ControlEndOffset -> should update Edge 0 ControlBeginOffset
-        polygon.Edges[2] = polygon.Edges[2] with { ControlEndOffset = U2(1, 1) };
+        polygon.SetControlEnd(2, U2(1, 1));
         Assert.That(polygon.Edges[0].ControlBeginOffset, Is.EqualTo(U2(-1, -1)));
     }
 
