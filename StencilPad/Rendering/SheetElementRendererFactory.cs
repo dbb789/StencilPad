@@ -26,7 +26,7 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
         }
         else if (element is Ruler ruler)
         {
-            renderer = new RulerRenderer(ruler);
+            renderer = new RulerRenderer(ruler, _resourceService);
         }
         else if (element is ElementGroup elementGroup)
         {
