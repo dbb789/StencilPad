@@ -31,7 +31,7 @@ public class EditablePolygon : Polygon, IHandleSource
         EdgeRemoved += OnEdgeRemoved;
         Vertices.ItemReassigned += VertexReassigned;
         Edges.ItemReassigned += EdgeReassigned;
-        InvalidateAll += OnInvalidateAll;
+        InvalidateAllPositions += OnInvalidateAllPositions;
     }
 
     private void OnVertexAdded(int index, ulong key)
@@ -89,7 +89,7 @@ public class EditablePolygon : Polygon, IHandleSource
         MarkIndicesDirty();
     }
 
-    private void OnInvalidateAll()
+    private void OnInvalidateAllPositions()
     {
         foreach (var handle in _handles)
         {

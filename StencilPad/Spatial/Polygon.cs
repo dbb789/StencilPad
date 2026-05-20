@@ -14,7 +14,13 @@ public class Polygon : IPolygon
     public event Action<int, ulong>? VertexRemoved;
     public event Action<int, ulong>? EdgeAdded;
     public event Action<int, ulong>? EdgeRemoved;
-    public event Action? InvalidateAll;
+
+    // This is the result of a bulk update that has rearranged all or most
+    // vertices or edges - we've deliberately avoided invoking
+    // Vertices.ItemReassigned or Edges.ItemReassigned.
+    public event Action? InvalidateAllPositions;
+
+    // Signals to the renderer that this polygon needs to be rebuilt.
     public event Action? GeometryChanged;
     
     public Polygon()
@@ -127,7 +133,7 @@ public class Polygon : IPolygon
         _closed = false;
         
         EdgeRemoved?.Invoke(edgeIndex, edgeKey);
-        InvalidateAll?.Invoke();
+        InvalidateAllPositions?.Invoke();
         GeometryChanged?.Invoke();
     }
 
@@ -177,7 +183,7 @@ public class Polygon : IPolygon
             _vertices.Set(i, vertex with { Position = vertex.Position + delta });
         }
 
-        InvalidateAll?.Invoke();
+        InvalidateAllPositions?.Invoke();
         GeometryChanged?.Invoke();
     }
 
@@ -202,7 +208,7 @@ public class Polygon : IPolygon
             });
         }
 
-        InvalidateAll?.Invoke();
+        InvalidateAllPositions?.Invoke();
         GeometryChanged?.Invoke();
     }
 
@@ -227,7 +233,7 @@ public class Polygon : IPolygon
             });
         }
         
-        InvalidateAll?.Invoke();
+        InvalidateAllPositions?.Invoke();
         GeometryChanged?.Invoke();
     }
 
