@@ -6,14 +6,6 @@ namespace StencilPad.Rendering;
 
 public class SheetRenderer : IDisposable
 {
-    public class Factory(ISheetElementRendererFactory SheetElementRendererFactory)
-    {
-        public SheetRenderer Create()
-        {
-            return new SheetRenderer(SheetElementRendererFactory);
-        }
-    }
-    
     public Sheet? Sheet
     {
         get => _sheet;
@@ -29,7 +21,7 @@ public class SheetRenderer : IDisposable
 
     public event Action? InvalidateVisual;
 
-    private SheetRenderer(ISheetElementRendererFactory sheetElementRendererFactory)
+    public SheetRenderer(ISheetElementRendererFactory sheetElementRendererFactory)
     {
         _sheetElementRendererFactory = sheetElementRendererFactory;
         _renderers = new();

@@ -9,6 +9,7 @@ using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Rendering;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.UI
@@ -92,7 +93,7 @@ namespace StencilPad.Canvases.UI
         public event Action? ClearSelectionRequested;
 
         public SheetCanvas()
-            : this(App.ServiceProvider.GetRequiredService<SheetRenderer.Factory>())
+            : this(App.ServiceProvider.GetRequiredService<IResourceService>())
         {
             // Slightly nasty to do things this way but it avoids a ton of
             // component plumbing just to get the SheetRenderer into the
@@ -101,12 +102,14 @@ namespace StencilPad.Canvases.UI
             // funny machinery just to instantiate it.
         }
         
-        public SheetCanvas(SheetRenderer.Factory sheetRendererFactory)
+        public SheetCanvas(IResourceService resourceService)
         {   
             _viewport = new VisualViewport();
             _handleMap = new HandleMap();
 
-            _sheetRenderer = sheetRendererFactory.Create();
+            var sheetElementRendererFactory = new SheetElementRendererFactory(null!);
+            
+            _sheetRenderer = new SheetRenderer(sheetElementRendererFactory);
             
             _editOverlayRenderer = new EditOverlayRenderer();
 

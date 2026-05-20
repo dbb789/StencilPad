@@ -8,7 +8,6 @@ using StencilPad.UI.Dialogs;
 using StencilPad.ViewModels;
 using StencilPad.Services;
 using StencilPad.Canvases.Tools.Actions;
-using StencilPad.Rendering;
 
 namespace StencilPad;
 
@@ -56,9 +55,6 @@ public partial class App : Application
         services.AddSingleton<IFileService, FileService>();
         services.AddSingleton<IResourceService, ResourceService>();
 
-        services.AddSingleton<ISheetElementRendererFactory, SheetElementRendererFactory>();
-        services.AddSingleton<SheetRenderer.Factory>();
-        
         ToolSet.ConfigureServices(services);
         SheetElementActionSet.ConfigureServices(services);
         SheetElementEditActionSet.ConfigureServices(services);
