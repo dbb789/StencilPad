@@ -33,7 +33,8 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         {
             SetProperty(ref _cornerType, value);
 
-            var context = new EditSheetElementContext(_sheet, _targets.Select(t => t.Element));
+            var elements = new HashSet<ISheetElement>(_targets.Select(t => t.Element));
+            var context = new EditSheetElementContext(_sheet, elements);
             
             foreach (var target in _targets)
             {
@@ -54,7 +55,8 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         {
             SetProperty(ref _cornerSize, value);
 
-            var context = new EditSheetElementContext(_sheet, _targets.Select(t => t.Element));
+            var elements = new HashSet<ISheetElement>(_targets.Select(t => t.Element));
+            var context = new EditSheetElementContext(_sheet, elements);
 
             foreach (var target in _targets)
             {
