@@ -38,11 +38,6 @@ public class HandleSet : IEnumerable<Handle>
         _handles.RemoveAt(index);
     }
 
-    public void AddRange(IEnumerable<Handle> handles)
-    {
-        _handles.AddRange(handles);
-    }
-
     public void Clear()
     {
         _handles.Clear();
@@ -53,6 +48,11 @@ public class HandleSet : IEnumerable<Handle>
         return _handles.Contains(handle);
     }
     
+    public void AssignFrom(HandleSet other)
+    {
+        _handles.AssignFrom(other._handles);
+    }
+
     public FlatSet<Handle>.Enumerator GetEnumerator()
     {
         return _handles.GetEnumerator();

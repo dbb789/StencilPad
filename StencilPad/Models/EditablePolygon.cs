@@ -293,11 +293,8 @@ public class EditablePolygon : Polygon, IHandleSource
             HandleRemoved?.Invoke(this, handle);
         }
         
-        _handles.Clear();
-        _handles.AddRange(other._handles);
-        
-        _selection.Clear();
-        _selection.AddRange(other._selection);
+        _handles.AssignFrom(other._handles);
+        _selection.AssignFrom(other._selection);
 
         foreach (var handle in _handles)
         {

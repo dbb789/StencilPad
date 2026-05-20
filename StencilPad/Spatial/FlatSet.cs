@@ -38,7 +38,15 @@ public class FlatSet<T> : ReadOnlyFlatSet<T>
 		
 		return true;
 	}
-	
+
+    public void AddRange(IEnumerable<T> elements)
+    {
+        foreach (var element in elements)
+        {
+            Add(element);
+        }
+    }
+    
 	public bool Remove(T element)
 	{
 		var index = Array.BinarySearch(_data, 0, _dataLength, element);
@@ -65,25 +73,17 @@ public class FlatSet<T> : ReadOnlyFlatSet<T>
         --_dataLength;
     }
 
-    public void AddRange(IEnumerable<T> elements)
+    public void AssignFrom(FlatSet<T> other)
     {
-        int count = elements.Count();
-        
-        if (_data.Length < _dataLength + count)
+        if (_data.Length < other._dataLength)
         {
-            var data = new T[_dataLength + count];
-            
-            Array.Copy(_data, data, _dataLength);
-
-            _data = data;
+            _data = new T[other._dataLength];
         }
 
-        foreach (var element in elements)
-        {
-            Add(element);
-        }
+        Array.Copy(other._data, _data, other._dataLength);
+        _dataLength = other._dataLength;
     }
-
+    
 	private void ResizeArray()
 	{
 		Array.Resize(ref _data, Math.Max(4, _data.Length * 2));

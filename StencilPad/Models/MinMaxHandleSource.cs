@@ -99,8 +99,7 @@ public class MinMaxHandleSource : IHandleSource
         _id = other._id;
         _min = other._min;
         _max = other._max;
-        _selection.Clear();
-        _selection.AddRange(other._selection);
+        _selection.AssignFrom(other._selection);
 
         HandleMoved?.Invoke(this, _handles[0], _min);
         HandleMoved?.Invoke(this, _handles[1], _max);
@@ -111,8 +110,7 @@ public class MinMaxHandleSource : IHandleSource
         var clone = new MinMaxHandleSource(_min, _max);
 
         clone._id = _id;
-        clone._selection.Clear();
-        clone._selection.AddRange(_selection);
+        clone._selection.AssignFrom(_selection);
 
         return clone;
     }

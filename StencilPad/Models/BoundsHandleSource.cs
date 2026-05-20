@@ -136,8 +136,7 @@ public class BoundsHandleSource : IHandleSource
         _min = other._min;
         _max = other._max;
         
-        _selection.Clear();
-        _selection.AddRange(other._selection);
+        _selection.AssignFrom(other._selection);
 
         UpdateAllHandles();
 
