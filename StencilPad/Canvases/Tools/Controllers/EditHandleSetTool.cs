@@ -34,6 +34,7 @@ public class EditHandleSetTool : ITool
     private readonly SheetElementEditActionSet _sheetElementEditActions;
     private readonly IOperationService _operationService;
     private readonly List<ISheetElement> _selection;
+    private readonly List<Unit2D> _originalPositions;
     
     private EditHandleSetToolOverlay? _overlay;
     private EditSheetElementContext? _editContext;
@@ -51,6 +52,7 @@ public class EditHandleSetTool : ITool
         _operationService = operationService;
         _editContext = null;
         _selection = new(GetEditableSelection());
+        _originalPositions = new(64);
         _button.IsEnabled = _selection.Count > 0;
         _sheet.Selection.CollectionChanged += OnSelectionChanged;
     }
@@ -129,13 +131,35 @@ public class EditHandleSetTool : ITool
             return;
         }
 
-        foreach (var entry in _context.HandleMap.SelectedHandles)
+        // Sometimes, say in the case of a bounds handle, multiple handles that
+        // can affect each other are dragged at once. So we need to store their
+        // original positions, and apply the delta to those, instead of applying
+        // the delta to the current position, which may have already been
+        // modified by another handle. And (hopefully) they won't fight each
+        // other.
+        
+        var selectedHandles = _context.HandleMap.SelectedHandles;
+        
+        _originalPositions.Clear();
+        
+        for (int i = 0; i < selectedHandles.Count; ++i)
         {
+            var entry = selectedHandles[i];
+
             if (entry.Handle.CanGroupMove)
             {
-               entry.SetPosition(entry.Position + delta);
+                _originalPositions.Add(entry.Position);
             }
-            
+        }
+
+        for (int i = 0; i < selectedHandles.Count; ++i)
+        {
+            var entry = selectedHandles[i];
+
+            if (entry.Handle.CanGroupMove)
+            {
+                entry.SetPosition(_originalPositions[i] + delta);
+            }
         }
     }
 

@@ -27,4 +27,14 @@ public class HandleMapEntry : IHandleMapEntry
             Source.SetHandleSelected(Handle, selected);
         }
     }
+
+    public int CompareTo(IHandleMapEntry? other)
+    {
+        if (other == null)
+        {
+            return 1;
+        }
+        
+        return Handle.CompareTo(other.Handle);
+    }
 }

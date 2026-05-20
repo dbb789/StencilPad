@@ -5,18 +5,18 @@ namespace StencilPad.Models;
 
 public class TextElement : SheetElement<TextElement>
 {
-    public override MinMaxHandleSource HandleSource { get; }
+    public override BoundsHandleSource HandleSource { get; }
 
     public Unit2D Min
     {
-        get => HandleSource.Min;
-        set => HandleSource.Min = value;
+        get => HandleSource.Bounds.Min;
+        set => HandleSource.Bounds = UnitBounds.FromMinMax(value, HandleSource.Bounds.Max);
     }
 
     public Unit2D Max
     {
-        get => HandleSource.Max;
-        set => HandleSource.Max = value;
+        get => HandleSource.Bounds.Max;
+        set => HandleSource.Bounds = UnitBounds.FromMinMax(value, HandleSource.Bounds.Max);
     }
 
     public Unit2D Size => Max - Min;
@@ -81,39 +81,41 @@ public class TextElement : SheetElement<TextElement>
     
     public TextElement()
     {
-        HandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
+        HandleSource = new BoundsHandleSource(UnitBounds.Empty);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
     }
 
     public TextElement(Unit2D start, string text)
     {
-        HandleSource = new MinMaxHandleSource(start, start);
+        HandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(start, start));
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
         _text = text;
     }
 
     public override void MirrorX(Unit centerY)
     {
-        Min = new Unit2D(Min.X, (centerY * 2) - Min.Y);
-        Max = new Unit2D(Max.X, (centerY * 2) - Max.Y);
+        HandleSource.Bounds = UnitBounds.FromMinMax(
+            new Unit2D(Min.X, (centerY * 2) - Min.Y),
+            new Unit2D(Max.X, (centerY * 2) - Max.Y)
+        );
     }
 
     public override void MirrorY(Unit centerX)
     {
-        Min = new Unit2D((centerX * 2) - Min.X, Min.Y);
-        Max = new Unit2D((centerX * 2) - Max.X, Max.Y);
+        HandleSource.Bounds = UnitBounds.FromMinMax(
+            new Unit2D((centerX * 2) - Min.X, Min.Y),
+            new Unit2D((centerX * 2) - Max.X, Max.Y)
+        );
     }
 
     public override void Translate(Unit2D delta)
     {
-        HandleSource.Min += delta;
-        HandleSource.Max += delta;
+        HandleSource.Bounds += delta;
     }
 
     public override void AssignFrom(TextElement other)
     {
-        Min = other.Min;
-        Max = other.Max;
+        HandleSource.AssignFrom(other.HandleSource);
         Text = other.Text;
         FontName = other.FontName;
         FontSize = other.FontSize;
@@ -123,8 +125,10 @@ public class TextElement : SheetElement<TextElement>
     public override TextElement DeepClone()
     {
         var clone = new TextElement();
+        
         clone.Id = Id;
         clone.AssignFrom(this);
+        
         return clone;
     }
 }

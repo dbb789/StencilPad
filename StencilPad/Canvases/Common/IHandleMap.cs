@@ -5,7 +5,7 @@ namespace StencilPad.Canvases.Common;
 
 public interface IHandleMap
 {
-    IEnumerable<IHandleMapEntry> SelectedHandles { get; }
+    ReadOnlyFlatSet<IHandleMapEntry> SelectedHandles { get; }
 
     event Action? SheetSelectionChanged;
     event Action<IHandleSource, Handle, Unit2D>? HandleAdded;

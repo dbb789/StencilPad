@@ -13,12 +13,12 @@ public class HandleMap : IHandleMap, IUnitSnap
         set => SetSheet(value);
     }
 
-    public IEnumerable<IHandleMapEntry> SelectedHandles => _selectedHandles;
+    public ReadOnlyFlatSet<IHandleMapEntry> SelectedHandles => _selectedHandles;
     
     private Sheet? _sheet;
     private Dictionary<Handle, HandleMapEntry> _byHandle;
     private DynamicQuadTree<HandleMapEntry> _byPosition;
-    private HashSet<IHandleMapEntry> _selectedHandles;
+    private FlatSet<IHandleMapEntry> _selectedHandles;
     private List<HandleMapEntry> _queryResults;
 
     public event Action? SheetSelectionChanged;
@@ -41,7 +41,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                                                           initialBounds,
                                                           nodeCapacity: 64,
                                                           maxDepth: 32);
-        _selectedHandles = new();
+        _selectedHandles = new(128);
         _queryResults = new(128);
     }
 

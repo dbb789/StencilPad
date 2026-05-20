@@ -46,12 +46,17 @@ public readonly record struct UnitBounds
                           new Unit2D(Unit.Max(maxA.X, maxB.X),
                                      Unit.Max(maxA.Y, maxB.Y)));
     }
-
+    
     public Unit2D Center => (Min + Max) / 2;
     public Unit2D Size => Max - Min;
     public Unit2D Min => _min;
     public Unit2D Max => _max;
 
+    public Unit2D NW => _min;
+    public Unit2D NE => new Unit2D(_max.X, _min.Y);
+    public Unit2D SW => new Unit2D(_min.X, _max.Y);
+    public Unit2D SE => _max;
+    
     private readonly Unit2D _min;
     private readonly Unit2D _max;
 
@@ -109,6 +114,11 @@ public readonly record struct UnitBounds
                                      Unit.Min(min.Y, point.Y)),
                           new Unit2D(Unit.Max(max.X, point.X),
                                      Unit.Max(max.Y, point.Y)));
+    }
+
+    public override string ToString()
+    {
+        return $"[{_min}, {_max}]";
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

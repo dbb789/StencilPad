@@ -3,7 +3,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
 
-public interface IHandleMapEntry
+public interface IHandleMapEntry : IComparable<IHandleMapEntry>
 {
     IHandleSource Source { get; }
     Handle Handle { get; }
