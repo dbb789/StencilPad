@@ -1,4 +1,3 @@
-using StencilPad.Canvases.Rendering;
 using StencilPad.Models;
 
 namespace StencilPad.Rendering;
