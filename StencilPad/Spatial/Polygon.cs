@@ -14,7 +14,6 @@ public class Polygon : IPolygon
     public event Action<int, ulong>? VertexRemoved;
     public event Action<int, ulong>? EdgeAdded;
     public event Action<int, ulong>? EdgeRemoved;
-    public event Action<bool>? ClosedChanged;
     public event Action? InvalidateAll;
     public event Action? GeometryChanged;
     
@@ -104,8 +103,6 @@ public class Polygon : IPolygon
                 _edges.RemoveAt(lastEdgeIndex);
                 EdgeRemoved?.Invoke(lastEdgeIndex, lastEdgeKey);
             }
-
-            ClosedChanged?.Invoke(_closed);
         }
 
         GeometryChanged?.Invoke();
@@ -130,7 +127,6 @@ public class Polygon : IPolygon
         _closed = false;
         
         EdgeRemoved?.Invoke(edgeIndex, edgeKey);
-        ClosedChanged?.Invoke(_closed);
         InvalidateAll?.Invoke();
         GeometryChanged?.Invoke();
     }
@@ -146,7 +142,6 @@ public class Polygon : IPolygon
         _closed = true;
 
         EdgeAdded?.Invoke(_edges.Count - 1, _edges.KeyAt(_edges.Count - 1));
-        ClosedChanged?.Invoke(_closed);
         GeometryChanged?.Invoke();
     }
 

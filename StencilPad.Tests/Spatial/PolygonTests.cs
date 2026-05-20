@@ -251,14 +251,12 @@ public class PolygonTests
         int vertexRemovedCount = 0;
         int edgeAddedCount = 0;
         int edgeRemovedCount = 0;
-        int closedChangedCount = 0;
         int geometryChangedCount = 0;
 
         polygon.VertexAdded += (i, k) => vertexAddedCount++;
         polygon.VertexRemoved += (i, k) => vertexRemovedCount++;
         polygon.EdgeAdded += (i, k) => edgeAddedCount++;
         polygon.EdgeRemoved += (i, k) => edgeRemovedCount++;
-        polygon.ClosedChanged += (c) => closedChangedCount++;
         polygon.GeometryChanged += () => geometryChangedCount++;
 
         // Add first vertex
@@ -289,7 +287,6 @@ public class PolygonTests
             Assert.That(vertexRemovedCount, Is.EqualTo(3), "VertexRemoved");
             Assert.That(edgeAddedCount, Is.EqualTo(3), "EdgeAdded");
             Assert.That(edgeRemovedCount, Is.EqualTo(3), "EdgeRemoved");
-            Assert.That(closedChangedCount, Is.EqualTo(2), "ClosedChanged");
             Assert.That(geometryChangedCount, Is.GreaterThanOrEqualTo(6), "GeometryChanged");
         });
     }
