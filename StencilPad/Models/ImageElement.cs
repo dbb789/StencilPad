@@ -18,7 +18,6 @@ public class ImageElement : SheetElement<ImageElement>
         set => HandleSource.Bounds = UnitBounds.FromMinMax(value, HandleSource.Bounds.Max);
     }
 
-
     private byte[] _imageData = [];
     public byte[] ImageData
     {
