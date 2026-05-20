@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
-using StencilPad.Canvases.Rendering;
 using StencilPad.Models;
+using StencilPad.Rendering;
 using StencilPad.Schemas;
 
 namespace StencilPad.Services;

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using StencilPad.Rendering;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Rendering;

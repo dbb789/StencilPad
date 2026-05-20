@@ -1,8 +1,8 @@
-using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
+using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
 

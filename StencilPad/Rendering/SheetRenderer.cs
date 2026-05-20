@@ -2,7 +2,7 @@ using System.Collections.Specialized;
 using System.Windows.Media;
 using StencilPad.Models;
 
-namespace StencilPad.Canvases.Rendering;
+namespace StencilPad.Rendering;
 
 public class SheetRenderer : IDisposable
 {

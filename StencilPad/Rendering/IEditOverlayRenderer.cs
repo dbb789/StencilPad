@@ -1,4 +1,4 @@
-namespace StencilPad.Canvases.Rendering;
+namespace StencilPad.Rendering;
 
 public interface IEditOverlayRenderer
 {

@@ -8,8 +8,7 @@ using StencilPad.UI.Dialogs;
 using StencilPad.ViewModels;
 using StencilPad.Services;
 using StencilPad.Canvases.Tools.Actions;
-
-using StencilPad.Canvases.Rendering;
+using StencilPad.Rendering;
 
 namespace StencilPad;
 

@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using StencilPad.Spatial;
 
-namespace StencilPad.Canvases.Rendering;
+namespace StencilPad.Rendering;
 
 public static class RendererUtil
 {

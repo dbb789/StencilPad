@@ -1,9 +1,9 @@
 using System.IO;
 using System.Windows;
 using Microsoft.Win32;
-using StencilPad.Canvases.Rendering;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
+using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
 using StencilPad.ViewModels;

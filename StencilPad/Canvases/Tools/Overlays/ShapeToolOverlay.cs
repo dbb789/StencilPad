@@ -3,9 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Models;
+using StencilPad.Rendering;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;

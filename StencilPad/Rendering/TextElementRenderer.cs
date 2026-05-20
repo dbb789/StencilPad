@@ -5,7 +5,7 @@ using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
-namespace StencilPad.Canvases.Rendering;
+namespace StencilPad.Rendering;
 
 public class TextElementRenderer : SheetElementRenderer
 {

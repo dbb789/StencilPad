@@ -1,6 +1,7 @@
+using StencilPad.Canvases.Rendering;
 using StencilPad.Models;
 
-namespace StencilPad.Canvases.Rendering;
+namespace StencilPad.Rendering;
 
 public static class SheetElementEditRendererFactory
 {

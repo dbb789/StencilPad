@@ -1,7 +1,8 @@
+using StencilPad.Canvases.Rendering;
 using StencilPad.Models;
 using StencilPad.Services;
 
-namespace StencilPad.Canvases.Rendering;
+namespace StencilPad.Rendering;
 
 public class SheetElementRendererFactory : ISheetElementRendererFactory
 {

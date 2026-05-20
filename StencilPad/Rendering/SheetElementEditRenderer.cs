@@ -1,6 +1,6 @@
 using System.Windows.Media;
 
-namespace StencilPad.Canvases.Rendering;
+namespace StencilPad.Rendering;
 
 public abstract class SheetElementEditRenderer : IDisposable
 {
