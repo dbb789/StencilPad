@@ -114,11 +114,6 @@ public class KeyedList<T> : IKeyedList<T>
         {
             _indices[_data[i].Item2] = i;
         }
-
-        for (int i = 0; i < _data.Count; ++i)
-        {
-            ItemReassigned?.Invoke(i, _data[i].Item2, oldData[i].Item1, _data[i].Item1);
-        }
     }
 
     public void Set(int index, T value)

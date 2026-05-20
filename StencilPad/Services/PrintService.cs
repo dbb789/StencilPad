@@ -9,20 +9,22 @@ namespace StencilPad.Services;
 
 public class PrintService : IPrintService
 {
-    private readonly ISheetElementRendererFactory _sheetElementRendererFactory;
-
-    public PrintService(ISheetElementRendererFactory sheetElementRendererFactory)
+    private readonly IResourceService _resourceService;
+    
+    public PrintService(IResourceService resourceService)
     {
-        _sheetElementRendererFactory = sheetElementRendererFactory;
+        _resourceService = resourceService;
     }
     
     public Task<bool> PrintAsync(string documentName, Sheet sheet)
     {
+        var sheetElementRendererFactory = new SheetElementRendererFactory(_resourceService);
+        
         return PrintAsync(documentName, (dc) =>
         {
             foreach (var element in sheet.Elements)
             {
-                var renderer = _sheetElementRendererFactory.Create(element);
+                var renderer = sheetElementRendererFactory.Create(element);
                 
                 if (renderer is not null)
                 {

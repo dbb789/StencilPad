@@ -32,6 +32,7 @@ public class EditablePolygon : Polygon, IHandleSource
         Vertices.ItemReassigned += VertexReassigned;
         Edges.ItemReassigned += EdgeReassigned;
         ClosedChanged += OnClosedChanged;
+        InvalidateAll += OnInvalidateAll;
     }
 
     private void OnVertexAdded(int index, ulong key)
@@ -91,6 +92,16 @@ public class EditablePolygon : Polygon, IHandleSource
 
     private void OnClosedChanged(bool closed)
     {
+        MarkIndicesDirty();
+    }
+    
+    private void OnInvalidateAll()
+    {
+        foreach (var handle in _handles)
+        {
+            HandleMoved?.Invoke(this, handle, GetPoint(handle));
+        }
+        
         MarkIndicesDirty();
     }
 
