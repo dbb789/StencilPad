@@ -19,10 +19,20 @@ public class RulerRenderer : SheetElementRenderer
 
     public override Ruler Element => _ruler;
 
-    public override UnitBounds SelectionBounds =>
-        UnitBounds.FromMinMax(
-            new Unit2D(Unit.Min(_ruler.Min.X, _ruler.Max.X), Unit.Min(_ruler.Min.Y, _ruler.Max.Y)),
-            new Unit2D(Unit.Max(_ruler.Min.X, _ruler.Max.X), Unit.Max(_ruler.Min.Y, _ruler.Max.Y)));
+    public override UnitBounds SelectionBounds
+    {
+        get
+        {
+            var rulerBounds = UnitBounds.FromMinMax(
+                new Unit2D(Unit.Min(_ruler.Min.X, _ruler.Max.X), Unit.Min(_ruler.Min.Y, _ruler.Max.Y)),
+                new Unit2D(Unit.Max(_ruler.Min.X, _ruler.Max.X), Unit.Max(_ruler.Min.Y, _ruler.Max.Y)));
+
+            return UnitBounds.FromCenterSize(
+                rulerBounds.Center,
+                new Unit2D(Unit.Max(rulerBounds.Size.X, Unit.FromMillimeters(5)),
+                           Unit.Max(rulerBounds.Size.Y, Unit.FromMillimeters(5))));
+        }
+    }
 
     private readonly Ruler _ruler;
     private readonly IResourceService _resourceService;
@@ -77,8 +87,8 @@ public class RulerRenderer : SheetElementRenderer
 
         dc.DrawLine(RulerPen, start, end);
 
-        DrawArrowhead(dc, tip: end, from: start);
-        DrawArrowhead(dc, tip: start, from: end);
+        DrawArrowhead(dc, end, start);
+        DrawArrowhead(dc, start, end);
 
         var mid = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0);
         var label = $"{_ruler.Length.Millimeters:F1} mm";
@@ -91,8 +101,14 @@ public class RulerRenderer : SheetElementRenderer
             3.0,
             Brushes.Black,
             1.0);
+        
+        var rotation = Math.Atan2(end.Y - start.Y, end.X - start.X) * 180.0 / Math.PI;
 
-        dc.DrawText(formattedText, new Point(mid.X - formattedText.Width / 2.0, mid.Y + 1.5));
+        dc.PushTransform(new TranslateTransform(mid.X, mid.Y));
+        dc.PushTransform(new RotateTransform(rotation));
+        dc.DrawText(formattedText, new Point(-formattedText.Width / 2, 0.5));
+        dc.Pop();
+        dc.Pop();
     }
 
     private void DrawArrowhead(DrawingContext dc, Point tip, Point from)
