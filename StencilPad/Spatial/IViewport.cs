@@ -9,7 +9,8 @@ public interface IViewport
     Unit2D SheetSize { get; }
     Unit2D Size { get; }
     double Zoom { get; }
-
+    Transform MillimetersToPixelsTransform { get; }
+    
     event Action? ViewportChanged;
     
     Point ToPoint(Unit2D position);
@@ -17,6 +18,4 @@ public interface IViewport
     Unit2D FromPoint(Point point);
     Unit FromPixels(double pixels);
     double ToPixels(Unit unit);
-
-    Transform GetMillimetersToPixelsTransform();
 }

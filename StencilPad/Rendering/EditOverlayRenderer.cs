@@ -22,7 +22,7 @@ public class EditOverlayRenderer : IEditOverlayRenderer
     private bool _isEnabled;
     private readonly Dictionary<ISheetElement, SheetElementEditRenderer> _renderers;
 
-    public event Action? InvalidateVisual;
+    public event Action? RendererDirty;
 
     public EditOverlayRenderer()
     {
@@ -87,7 +87,7 @@ public class EditOverlayRenderer : IEditOverlayRenderer
             Unsubscribe();
         }
         
-        InvalidateVisual?.Invoke();
+        RendererDirty?.Invoke();
     }
 
     private void Subscribe()
@@ -138,7 +138,7 @@ public class EditOverlayRenderer : IEditOverlayRenderer
             }
         }
 
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private void RebuildRenderers()
@@ -172,7 +172,7 @@ public class EditOverlayRenderer : IEditOverlayRenderer
 
         if (renderer is not null)
         {
-            renderer.InvalidateVisual += InvokeInvalidateVisual;
+            renderer.RendererDirty += InvokeRendererDirty;
             _renderers[element] = renderer;
         }
     }
@@ -181,14 +181,14 @@ public class EditOverlayRenderer : IEditOverlayRenderer
     {
         if (_renderers.TryGetValue(element, out var renderer))
         {
-            renderer.InvalidateVisual -= InvokeInvalidateVisual;
+            renderer.RendererDirty -= InvokeRendererDirty;
             renderer.Dispose();
             _renderers.Remove(element);
         }
     }
 
-    private void InvokeInvalidateVisual()
+    private void InvokeRendererDirty()
     {
-        InvalidateVisual?.Invoke();
+        RendererDirty?.Invoke();
     }
 }

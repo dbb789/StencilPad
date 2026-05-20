@@ -23,12 +23,12 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
     public ImageElementEditRenderer(ImageElement imageElement)
     {
         _imageElement = imageElement;
-        _imageElement.GeometryChanged += InvokeInvalidateVisual;
+        _imageElement.GeometryChanged += InvokeRendererDirty;
     }
 
     public override void Dispose()
     {
-        _imageElement.GeometryChanged -= InvokeInvalidateVisual;
+        _imageElement.GeometryChanged -= InvokeRendererDirty;
     }
 
     public override void Render(DrawingContext dc)

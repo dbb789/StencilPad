@@ -101,7 +101,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
             return;
         }
 
-        dc.PushTransform(_viewport.GetMillimetersToPixelsTransform());
+        dc.PushTransform(_viewport.MillimetersToPixelsTransform);
 
         var shapePen = new Pen(Brushes.Black, 0.1);
 

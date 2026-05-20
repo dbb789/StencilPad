@@ -27,16 +27,16 @@ public class SheetRenderPanel : ContentControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        _sheetRenderer.InvalidateVisual += ForceRedraw;
-        _editOverlayRenderer.InvalidateVisual += ForceRedraw;
+        _sheetRenderer.RendererDirty += ForceRedraw;
+        _editOverlayRenderer.RendererDirty += ForceRedraw;
 
         CompositionTarget.Rendering += OnRendering;
     }
 
     public void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        _sheetRenderer.InvalidateVisual -= ForceRedraw;
-        _editOverlayRenderer.InvalidateVisual -= ForceRedraw;
+        _sheetRenderer.RendererDirty -= ForceRedraw;
+        _editOverlayRenderer.RendererDirty -= ForceRedraw;
 
         CompositionTarget.Rendering -= OnRendering;
     }
@@ -57,7 +57,7 @@ public class SheetRenderPanel : ContentControl
 
     protected override void OnRender(DrawingContext dc)
     {
-        dc.PushTransform(_viewport.GetMillimetersToPixelsTransform());
+        dc.PushTransform(_viewport.MillimetersToPixelsTransform);
 
         _sheetRenderer.Render(dc);
         _editOverlayRenderer.Render(dc);

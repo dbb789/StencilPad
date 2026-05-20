@@ -4,13 +4,13 @@ namespace StencilPad.Rendering;
 
 public abstract class SheetElementEditRenderer : IDisposable
 {
-    public event Action? InvalidateVisual;
+    public event Action? RendererDirty;
 
     public abstract void Render(DrawingContext dc);
     public abstract void Dispose();
 
-    protected void InvokeInvalidateVisual()
+    protected void InvokeRendererDirty()
     {
-        InvalidateVisual?.Invoke();
+        RendererDirty?.Invoke();
     }
 }

@@ -76,7 +76,7 @@ public class RulerToolOverlay : Canvas, IDisposable
             return;
         }
 
-        dc.PushTransform(_viewport.GetMillimetersToPixelsTransform());
+        dc.PushTransform(_viewport.MillimetersToPixelsTransform);
 
         var pen = new Pen(Brushes.Gray, 0.2) { DashStyle = DashStyles.Dash };
         var startPoint = _start.Value.Millimeters;

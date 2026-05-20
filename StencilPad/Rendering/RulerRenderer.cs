@@ -129,6 +129,6 @@ public class RulerRenderer : SheetElementRenderer
 
     private void GeometryChanged()
     {
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 }

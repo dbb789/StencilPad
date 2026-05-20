@@ -41,6 +41,6 @@ public class TextElementEditRenderer : SheetElementEditRenderer
 
     private void GeometryChanged()
     {
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 }

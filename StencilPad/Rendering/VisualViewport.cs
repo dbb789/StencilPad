@@ -4,7 +4,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
-public class VisualViewport() : IViewport
+public class VisualViewport : IViewport
 {
     private const double MmPerInch = 25.4;
 
@@ -21,10 +21,10 @@ public class VisualViewport() : IViewport
             _visual = value;
             _dpi = (_visual != null) ? VisualTreeHelper.GetDpi(_visual).PixelsPerInchX : 96.0;
             
-            ViewportChanged?.Invoke();
+            OnViewportChanged();
         }
     }
-
+    
     public Unit2D SheetSize
     {
         get => _sheetSize;
@@ -36,7 +36,7 @@ public class VisualViewport() : IViewport
             }
 
             _sheetSize = value;
-            ViewportChanged?.Invoke();
+            OnViewportChanged();
         }
     }
 
@@ -57,7 +57,7 @@ public class VisualViewport() : IViewport
 
             _size = value;
 
-            ViewportChanged?.Invoke();
+            OnViewportChanged();
         }
     }
 
@@ -79,23 +79,34 @@ public class VisualViewport() : IViewport
 
             _zoom = value;
 
-            ViewportChanged?.Invoke();
+            OnViewportChanged();
         }
     }
-
-    private Unit2D _sheetSize = new Unit2D(Unit.FromMillimeters(210.0),
-                                           Unit.FromMillimeters(297.0));
-
-    private Unit2D _size = new Unit2D(Unit.FromMillimeters(410.0),
-                                      Unit.FromMillimeters(497.0));
-
-    private double _zoom = 1.0;
+    
+    public Transform MillimetersToPixelsTransform
+    {
+        get => _millimetersToPixelsTransform;
+    }
 
     private Visual? _visual = null;
-    private double _dpi = 96.0;
+    private Unit2D _sheetSize;
+    private Unit2D _size;
+    private double _zoom;
+    private double _dpi;
+    private Transform _millimetersToPixelsTransform;
     
     public event Action? ViewportChanged;
 
+    public VisualViewport()
+    {
+        _visual = null;
+        _sheetSize = new Unit2D(Unit.FromMillimeters(210.0), Unit.FromMillimeters(297.0));
+        _size = _sheetSize * 1.1;
+        _zoom = 1.0;
+        _dpi = 96.0;
+        _millimetersToPixelsTransform = GetMillimetersToPixelsTransform();
+    }
+    
     public double ToPixels(Unit unit)
     {
         return unit.Millimeters / MmPerInch * _dpi * Zoom;
@@ -123,15 +134,23 @@ public class VisualViewport() : IViewport
                           FromPixels(point.Y - ToPixels(Size.Y) / 2.0));
     }
 
-    public Transform GetMillimetersToPixelsTransform()
+    private void OnViewportChanged()
+    {
+        _millimetersToPixelsTransform = GetMillimetersToPixelsTransform();
+        ViewportChanged?.Invoke();
+    }
+    
+    private Transform GetMillimetersToPixelsTransform()
     {
         var scale = ToPixels(Unit.FromMillimeters(1.0));
         var transform = new TransformGroup();
 
-        transform.Children.Add(new TranslateTransform(Size.X.Millimeters / 2.0,
-                                                      Size.Y.Millimeters / 2.0));
+        transform.Children.Add(new TranslateTransform(_size.X.Millimeters / 2.0,
+                                                      _size.Y.Millimeters / 2.0));
         transform.Children.Add(new ScaleTransform(scale, scale));
 
+        transform.Freeze();
+        
         return transform;
     }
 }

@@ -129,7 +129,7 @@ public class MarkerPathRenderer : SheetElementRenderer
                                            _markerPath.Offset);
         }
 
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private StreamGeometry? BuildMarkers(List<Point> points, Unit spacing, Unit offset)

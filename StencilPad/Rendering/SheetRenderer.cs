@@ -19,7 +19,7 @@ public class SheetRenderer : IDisposable
     private Sheet? _sheet;
     private OrderedDictionary<ISheetElement, SheetElementRenderer> _renderers;
 
-    public event Action? InvalidateVisual;
+    public event Action? RendererDirty;
 
     public SheetRenderer(ISheetElementRendererFactory sheetElementRendererFactory)
     {
@@ -71,7 +71,7 @@ public class SheetRenderer : IDisposable
 
         foreach (var renderer in _renderers.Values)
         {
-            renderer.InvalidateVisual -= InvokeInvalidateVisual;
+            renderer.RendererDirty -= InvokeRendererDirty;
             renderer.Dispose();
         }
         
@@ -85,7 +85,7 @@ public class SheetRenderer : IDisposable
             }
         }
 
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private void ElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -112,7 +112,7 @@ public class SheetRenderer : IDisposable
             }
         }
 
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
     
     private void AddRenderer(ISheetElement element, int index = -1)
@@ -121,7 +121,7 @@ public class SheetRenderer : IDisposable
 
         if (renderer is not null)
         {
-            renderer.InvalidateVisual += InvokeInvalidateVisual;
+            renderer.RendererDirty += InvokeRendererDirty;
 
             if (index < 0)
             {
@@ -136,14 +136,14 @@ public class SheetRenderer : IDisposable
     {
         if (_renderers.TryGetValue(element, out var renderer))
         {
-            renderer.InvalidateVisual -= InvokeInvalidateVisual;
+            renderer.RendererDirty -= InvokeRendererDirty;
             renderer.Dispose();
             _renderers.Remove(element);
         }
     }
     
-    private void InvokeInvalidateVisual()
+    private void InvokeRendererDirty()
     {
-        InvalidateVisual?.Invoke();
+        RendererDirty?.Invoke();
     }
 }

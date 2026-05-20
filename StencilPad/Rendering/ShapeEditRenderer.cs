@@ -73,13 +73,13 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     {
         _geometryDirty = true;
         
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
     
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         UpdateProperties();
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private void UpdateProperties()

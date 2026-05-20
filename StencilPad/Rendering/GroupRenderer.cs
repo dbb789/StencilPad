@@ -66,7 +66,7 @@ public class GroupRenderer : SheetElementRenderer
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         UpdateProperties();
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
     
     private void UpdateProperties()
@@ -93,19 +93,19 @@ public class GroupRenderer : SheetElementRenderer
             }
         }
 
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private void AddRenderer(SheetElementRenderer renderer)
     {
         _childRenderers.Add(renderer);
-        renderer.InvalidateVisual += InvokeInvalidateVisual;
+        renderer.RendererDirty += InvokeRendererDirty;
     }
 
     private void RemoveRenderer(SheetElementRenderer renderer)
     {
         _childRenderers.Remove(renderer);
-        renderer.InvalidateVisual -= InvokeInvalidateVisual;
+        renderer.RendererDirty -= InvokeRendererDirty;
         renderer.Dispose();
     }
     

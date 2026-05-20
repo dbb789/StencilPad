@@ -22,7 +22,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     private Unit2D _dragUnitStart;
     private UnitBounds _dragSelectionBounds;
     private bool _draggingSelection;
-
+    
+    private bool _redrawPending;
+    private Pen _elementPen;
+    private Brush _elementFill;
+    private Pen _groupPen;
+    private Brush _groupFill;
+    
     public event Action<Unit2D>? SelectionDragged;
     public event Action<Unit2D>? PointSelected;
     
@@ -43,14 +49,36 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
-                renderer.InvalidateVisual += InvalidateVisual;
+                renderer.RendererDirty += ForceRedraw;
             }
         }
 
         _context.UnitSnapOverlay.Begin(this);
+
+        _elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 0.4);
+        _elementPen.Freeze();
+
+        _elementFill = new SolidColorBrush(Color.FromArgb(10, 0, 0, 255));
+        _elementFill.Freeze();
+        
+        _groupPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 128, 255)), 0.4);
+        _groupPen.Freeze();
+
+        _groupFill = new SolidColorBrush(Color.FromArgb(10, 0, 128, 255));
+        _groupFill.Freeze();
         
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
+
+        Loaded += (s, e) =>
+        {
+            CompositionTarget.Rendering += OnRendering;
+        };
+
+        Unloaded += (s, e) =>
+        {
+            CompositionTarget.Rendering -= OnRendering;
+        };
     }
 
     public void Dispose()
@@ -65,7 +93,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
-                renderer.InvalidateVisual -= InvalidateVisual;
+                renderer.RendererDirty -= ForceRedraw;
             }
         }
     }
@@ -252,7 +280,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
                     if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
                     {
-                        renderer.InvalidateVisual -= InvalidateVisual;
+                        renderer.RendererDirty -= ForceRedraw;
                     }
                 }
             }
@@ -268,13 +296,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
                     if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
                     {
-                        renderer.InvalidateVisual += InvalidateVisual;
+                        renderer.RendererDirty += ForceRedraw;
                     }
                 }
             }
         }
         
-        InvalidateVisual();
+        ForceRedraw();
     }
     
     public bool CanUnitSnapTo(IHandleSource source)
@@ -287,19 +315,27 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         return true;
     }
 
+    private void ForceRedraw()
+    {
+        _redrawPending = true;
+    }
+
+    private void OnRendering(object? sender, EventArgs e)
+    {
+        if (_redrawPending)
+        {
+            InvalidateVisual();
+            _redrawPending = false;
+        }
+    }
+    
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
 
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
-        dc.PushTransform(_context.Viewport.GetMillimetersToPixelsTransform());
+        dc.PushTransform(_context.Viewport.MillimetersToPixelsTransform);
         
-        var elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 0.4);
-        var elementFill = new SolidColorBrush(Color.FromArgb(10, 0, 0, 255));
-
-        var groupPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 128, 255)), 0.4);
-        var groupFill = new SolidColorBrush(Color.FromArgb(10, 0, 128, 255));
-
         foreach (var selected in _sheet.Selection)
         {
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
@@ -308,11 +344,11 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
                 if (selected is ElementGroup)
                 {
-                    dc.DrawRectangle(groupFill, groupPen, bounds.Millimeters);
+                    dc.DrawRectangle(_groupFill, _groupPen, bounds.Millimeters);
                 }
                 else
                 {
-                    dc.DrawRectangle(elementFill, elementPen, bounds.Millimeters);
+                    dc.DrawRectangle(_elementFill, _elementPen, bounds.Millimeters);
                 }
             }
         }

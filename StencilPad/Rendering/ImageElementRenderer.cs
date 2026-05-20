@@ -21,7 +21,7 @@ public class ImageElementRenderer : SheetElementRenderer
     public ImageElementRenderer(ImageElement imageElement)
     {
         _imageElement = imageElement;
-        _imageElement.GeometryChanged += InvokeInvalidateVisual;
+        _imageElement.GeometryChanged += InvokeRendererDirty;
         _imageElement.PropertyChanged += OnPropertyChanged;
         
         RebuildBitmap();
@@ -29,7 +29,7 @@ public class ImageElementRenderer : SheetElementRenderer
 
     public override void Dispose()
     {
-        _imageElement.GeometryChanged -= InvokeInvalidateVisual;
+        _imageElement.GeometryChanged -= InvokeRendererDirty;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -77,7 +77,7 @@ public class ImageElementRenderer : SheetElementRenderer
         _bitmap = bitmap;
     }
 
-    private void OnHandlesChanged() => InvokeInvalidateVisual();
+    private void OnHandlesChanged() => InvokeRendererDirty();
 
     private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -86,7 +86,7 @@ public class ImageElementRenderer : SheetElementRenderer
             RebuildBitmap();
         }
 
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     /// <summary>

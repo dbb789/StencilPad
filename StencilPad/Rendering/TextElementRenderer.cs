@@ -135,12 +135,12 @@ public class TextElementRenderer : SheetElementRenderer
     private void GeometryChanged()
     {
         RebuildFormattedText();
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         RebuildFormattedText();
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 }

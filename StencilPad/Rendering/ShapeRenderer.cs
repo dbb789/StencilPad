@@ -84,7 +84,7 @@ public class ShapeRenderer : SheetElementRenderer
     {
         _geometryDirty = true;
         
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private void UpdateProperties()
@@ -117,7 +117,7 @@ public class ShapeRenderer : SheetElementRenderer
             _fill.Freeze();
         }
         
-        InvokeInvalidateVisual();
+        InvokeRendererDirty();
     }
 
     private Geometry GetGeometry()
