@@ -2,12 +2,37 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using StencilPad.Canvases.Rendering;
+using StencilPad.Models;
 
 namespace StencilPad.Services;
 
 public class PrintService : IPrintService
 {
-    public async Task<bool> PrintAsync(string documentName, Action<DrawingContext> drawFunc)
+    private readonly ISheetElementRendererFactory _sheetElementRendererFactory;
+
+    public PrintService(ISheetElementRendererFactory sheetElementRendererFactory)
+    {
+        _sheetElementRendererFactory = sheetElementRendererFactory;
+    }
+    
+    public Task<bool> PrintAsync(string documentName, Sheet sheet)
+    {
+        return PrintAsync(documentName, (dc) =>
+        {
+            foreach (var element in sheet.Elements)
+            {
+                var renderer = _sheetElementRendererFactory.Create(element);
+                
+                if (renderer is not null)
+                {
+                    renderer.Render(dc);
+                }
+            }
+        });
+    }
+    
+    private async Task<bool> PrintAsync(string documentName, Action<DrawingContext> drawFunc)
     {
         try
         {

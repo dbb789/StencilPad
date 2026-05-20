@@ -9,10 +9,14 @@ using StencilPad.ViewModels;
 using StencilPad.Services;
 using StencilPad.Canvases.Tools.Actions;
 
+using StencilPad.Canvases.Rendering;
+
 namespace StencilPad;
 
 public partial class App : Application
 {
+    public static IServiceProvider ServiceProvider { get; private set; } = null!;
+    
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -25,8 +29,9 @@ public partial class App : Application
         
         ConfigureServices(services, mainWindow);
         
-        var serviceProvider = services.BuildServiceProvider();
-        var controllerFactory = serviceProvider.GetRequiredService<AppController.Factory>();
+        ServiceProvider = services.BuildServiceProvider();;
+        
+        var controllerFactory = ServiceProvider.GetRequiredService<AppController.Factory>();
         var controller = controllerFactory.Create(project, viewModel);
         
         mainWindow.Show();
@@ -50,7 +55,11 @@ public partial class App : Application
         services.AddSingleton<IPrintService, PrintService>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IFileService, FileService>();
+        services.AddSingleton<IResourceService, ResourceService>();
 
+        services.AddSingleton<ISheetElementRendererFactory, SheetElementRendererFactory>();
+        services.AddSingleton<SheetRenderer.Factory>();
+        
         ToolSet.ConfigureServices(services);
         SheetElementActionSet.ConfigureServices(services);
         SheetElementEditActionSet.ConfigureServices(services);

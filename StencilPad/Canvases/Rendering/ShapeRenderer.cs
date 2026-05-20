@@ -166,6 +166,16 @@ public class ShapeRenderer : SheetElementRenderer
                        Unit.FromMillimeters(_geometry.Bounds.Bottom)));
     }
 
+    // Exposed so that ResourceService can build Geometry without needing to
+    // know how to interpret a Shape object.
+    public static void AddToGeometry(Shape shape, StreamGeometryContext ctx)
+    {
+        foreach (var polygon in shape.PolygonSet)
+        {
+            RendererUtil.AddToGeometry(ctx, polygon);
+        }
+    }
+    
     public override void Render(DrawingContext dc)
     {
         if (_pen is null || _fill is null || _transform is null)

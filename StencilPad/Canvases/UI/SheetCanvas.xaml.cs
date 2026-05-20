@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Common;
@@ -63,14 +64,13 @@ namespace StencilPad.Canvases.UI
             set => SetValue(SnapToPointProperty, value);
         }
 
-        public IViewport Viewport => _viewport;
-        public IRubberBand RubberBand => _rubberBandEventPanel;
-        public IHandleMap HandleMap => _handleMap;
+        public ToolOverlay ToolOverlay => _toolOverlay;
+        public CanvasGrid CanvasGrid => _canvasGrid;
         public SheetRenderer SheetRenderer => _sheetRenderer;
         public IEditOverlayRenderer EditOverlayRenderer => _editOverlayRenderer;
-        public CanvasGrid CanvasGrid => _canvasGrid;
-        public SheetRenderPanel Renderer => _renderer;
-        public ToolOverlay ToolOverlay => _toolOverlay;
+        public IViewport Viewport => _viewport;
+        public IHandleMap HandleMap => _handleMap;
+        public IRubberBand RubberBand => _rubberBandEventPanel;
         public IUnitSnap UnitSnap => _unitSnap;
         public IUnitSnapOverlay UnitSnapOverlay => _unitSnapOverlay;
         
@@ -91,10 +91,22 @@ namespace StencilPad.Canvases.UI
         public event Action? ClearSelectionRequested;
 
         public SheetCanvas()
+            : this(App.ServiceProvider.GetRequiredService<SheetRenderer.Factory>())
+        {
+            // Slightly nasty to do things this way but it avoids a ton of
+            // component plumbing just to get the SheetRenderer into the
+            // SheetCanvas. This component also essentially bridges MVC onto
+            // vanilla WPF MVVM, so the last thing we want is to have a load of
+            // funny machinery just to instantiate it.
+        }
+        
+        public SheetCanvas(SheetRenderer.Factory sheetRendererFactory)
         {   
             _viewport = new VisualViewport();
             _handleMap = new HandleMap();
-            _sheetRenderer = new SheetRenderer();
+
+            _sheetRenderer = sheetRendererFactory.Create();
+            
             _editOverlayRenderer = new EditOverlayRenderer();
 
             _canvasGrid = new CanvasGrid(_viewport);
@@ -246,7 +258,7 @@ namespace StencilPad.Canvases.UI
             Height = _viewport.ToPixels(_viewport.Size.Y);
 
             _canvasGrid.InvalidateVisual();
-            Renderer.InvalidateVisual();
+            _renderer.InvalidateVisual();
         }
     }
 }

@@ -1,8 +1,8 @@
-using System.Windows.Media;
+using StencilPad.Models;
 
 namespace StencilPad.Services;
 
 public interface IPrintService
 {
-    Task<bool> PrintAsync(string documentName, Action<DrawingContext> drawFunc);
+    Task<bool> PrintAsync(string documentName, Sheet sheet);
 }

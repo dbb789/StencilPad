@@ -6,6 +6,14 @@ namespace StencilPad.Canvases.Rendering;
 
 public class SheetRenderer : IDisposable
 {
+    public class Factory(ISheetElementRendererFactory SheetElementRendererFactory)
+    {
+        public SheetRenderer Create()
+        {
+            return new SheetRenderer(SheetElementRendererFactory);
+        }
+    }
+    
     public Sheet? Sheet
     {
         get => _sheet;
@@ -14,14 +22,16 @@ public class SheetRenderer : IDisposable
 
     public SheetElementRenderer this[int index] => _renderers.GetAt(index).Value;
     public int Count => _renderers.Count;
-    
+
+    private readonly ISheetElementRendererFactory _sheetElementRendererFactory;
     private Sheet? _sheet;
     private OrderedDictionary<ISheetElement, SheetElementRenderer> _renderers;
 
     public event Action? InvalidateVisual;
 
-    public SheetRenderer()
+    private SheetRenderer(ISheetElementRendererFactory sheetElementRendererFactory)
     {
+        _sheetElementRendererFactory = sheetElementRendererFactory;
         _renderers = new();
     }
 
@@ -115,7 +125,7 @@ public class SheetRenderer : IDisposable
     
     private void AddRenderer(ISheetElement element, int index = -1)
     {
-        var renderer = SheetElementRendererFactory.Create(element);
+        var renderer = _sheetElementRendererFactory.Create(element);
 
         if (renderer is not null)
         {

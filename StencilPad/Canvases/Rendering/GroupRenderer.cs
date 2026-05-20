@@ -24,19 +24,22 @@ public class GroupRenderer : SheetElementRenderer
     }
 
     private readonly ElementGroup _elementGroup;
+    private readonly SheetElementRendererFactory _rendererFactory;
     private readonly List<SheetElementRenderer> _childRenderers;
     private Transform? _transform;
 
-    public GroupRenderer(ElementGroup elementGroup)
+    public GroupRenderer(ElementGroup elementGroup,
+                         SheetElementRendererFactory rendererFactory)
     {
         _elementGroup = elementGroup;
         _elementGroup.PropertyChanged += PropertyChanged;
+        _rendererFactory = rendererFactory;
         
         _childRenderers = new(_elementGroup.Children.Count());
         
         foreach (var child in _elementGroup.Children)
         {
-            var renderer = SheetElementRendererFactory.Create(child);
+            var renderer = _rendererFactory.Create(child);
 
             if (renderer is not null)
             {
@@ -82,7 +85,7 @@ public class GroupRenderer : SheetElementRenderer
 
         foreach (var child in _elementGroup.Children)
         {
-            var renderer = SheetElementRendererFactory.Create(child);
+            var renderer = _rendererFactory.Create(child);
 
             if (renderer is not null)
             {

@@ -237,51 +237,22 @@ public class AppController
     private async void PrintSelectedTab()
     {
         var selectedTab = _viewModel.SelectedTab;
-
-        if (selectedTab?.Sheet is null)
+        
+        if (selectedTab is null)
         {
             _dialogService.ShowWarning("No sheet selected.", "Print Failed");
             return;
         }
 
-        var renderers = CreateRenderers(selectedTab.Sheet);
-
-        if (!renderers.Any())
-        {
-            _dialogService.ShowWarning("No content to print on this sheet.", "Print Failed");
-            return;
-        }
-
+        var sheet = selectedTab.Sheet;
         var documentName = selectedTab.Header;
-        var success = await _printService.PrintAsync(documentName, (dc) =>
-        {
-            foreach (var renderer in renderers)
-            {
-                renderer.Render(dc);
-            }
-        });
+        
+        var success = await _printService.PrintAsync(documentName, sheet);
 
         if (!success)
         {
             _dialogService.ShowWarning("Print job failed or was cancelled.", "Print Failed");
         }
-    }
-
-    private IEnumerable<SheetElementRenderer> CreateRenderers(Sheet sheet)
-    {
-        var renderers = new List<SheetElementRenderer>();
-
-        foreach (var element in sheet.Elements)
-        {
-            var renderer = SheetElementRendererFactory.Create(element);
-
-            if (renderer is not null)
-            {
-                renderers.Add(renderer);
-            }
-        }
-
-        return renderers;
     }
 
     private void PushOperation(IOperation operation, bool shouldExecute)

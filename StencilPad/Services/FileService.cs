@@ -1,5 +1,3 @@
-using System.IO;
-using System.Text.Json;
 using Microsoft.Win32;
 using StencilPad.Models;
 using StencilPad.Schemas;
@@ -11,8 +9,6 @@ public class FileService : IFileService
     private const string FileExtension = ".spad";
     private const string FileFilter = "StencilPad Files (*.spad)|*.spad";
     private const int FileVersion = 1;
-
-    private static readonly JsonSerializerOptions JsonOptions = SchemaJsonOptions.Default;
 
     public async Task<string?> OpenAsync(Project target)
     {
@@ -27,27 +23,15 @@ public class FileService : IFileService
             return null;
         }
 
-        string json;
-
-        try
-        {
-            json = await File.ReadAllTextAsync(dialog.FileName);
-        }
-        catch (Exception ex)
-        {
-            throw new FileServiceException($"Failed to read file: {ex.Message}", ex);
-        }
-
         ProjectSchema schema;
 
         try
         {
-            schema = JsonSerializer.Deserialize<ProjectSchema>(json, JsonOptions)
-                ?? throw new FileServiceException("File is empty or could not be parsed.");
+            schema = await SchemaUtil.LoadProjectAsync(dialog.FileName);
         }
-        catch (JsonException ex)
+        catch (Exception e)
         {
-            throw new FileServiceException($"File is not a valid StencilPad file: {ex.Message}", ex);
+            throw new FileServiceException($"Failed to load file: {e.Message}", e);
         }
 
         if (schema.Version != FileVersion)
@@ -64,24 +48,13 @@ public class FileService : IFileService
 
     public async Task SaveAsync(Project project, string filePath)
     {
-        string json;
-
         try
         {
-            json = JsonSerializer.Serialize(ProjectSchema.Pack(project, FileVersion), JsonOptions);
+            await SchemaUtil.SaveProjectAsync(ProjectSchema.Pack(project, FileVersion), filePath);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            throw new FileServiceException($"Failed to serialise project: {ex.Message}", ex);
-        }
-
-        try
-        {
-            await File.WriteAllTextAsync(filePath, json);
-        }
-        catch (Exception ex)
-        {
-            throw new FileServiceException($"Failed to write file: {ex.Message}", ex);
+            throw new FileServiceException($"Failed to write file: {e.Message}", e);
         }
     }
 

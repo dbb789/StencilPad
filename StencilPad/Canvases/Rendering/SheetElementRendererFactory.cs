@@ -1,10 +1,18 @@
 using StencilPad.Models;
+using StencilPad.Services;
 
 namespace StencilPad.Canvases.Rendering;
 
-public static class SheetElementRendererFactory
+public class SheetElementRendererFactory : ISheetElementRendererFactory
 {
-    public static SheetElementRenderer? Create(ISheetElement element)
+    private readonly IResourceService _resourceService;
+    
+    public SheetElementRendererFactory(IResourceService resourceService)
+    {
+        _resourceService = resourceService;
+    }
+    
+    public SheetElementRenderer? Create(ISheetElement element)
     {
         SheetElementRenderer? renderer = null;
         
@@ -22,7 +30,7 @@ public static class SheetElementRendererFactory
         }
         else if (element is ElementGroup elementGroup)
         {
-            renderer = new GroupRenderer(elementGroup);
+            renderer = new GroupRenderer(elementGroup, this);
         }
         else if (element is TextElement textElement)
         {
