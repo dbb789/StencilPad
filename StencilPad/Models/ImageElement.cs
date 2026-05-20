@@ -15,7 +15,7 @@ public class ImageElement : SheetElement<ImageElement>
     public Unit2D Max
     {
         get => HandleSource.Bounds.Max;
-        set => HandleSource.Bounds = UnitBounds.FromMinMax(value, HandleSource.Bounds.Max);
+        set => HandleSource.Bounds = UnitBounds.FromMinMax(HandleSource.Bounds.Min, value);
     }
 
     private byte[] _imageData = [];
