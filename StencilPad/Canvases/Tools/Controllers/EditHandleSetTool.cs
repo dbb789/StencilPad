@@ -127,7 +127,10 @@ public class EditHandleSetTool : ITool
     {
         if (!handle.CanGroupMove)
         {
-            element.SetPoint(handle, element.Transform.Apply(element.GetPoint(handle)) + delta);
+            if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+            {
+                entry.SetPosition(entry.Position + delta);
+            }
             return;
         }
 
