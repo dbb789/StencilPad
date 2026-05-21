@@ -40,14 +40,16 @@ public class ShapeTool : ITool
     {
         _overlay = new ShapeToolOverlay(_context.Viewport, _context.UnitSnap);
         _context.ToolOverlay.ActiveOverlay = _overlay;
-
+        _context.UnitSnapOverlay.Begin();
+        
         _overlay.OnPolygonCompleted += PolygonCompleted;
     }
 
     public void ToolEnd()
     {
         _context.ToolOverlay.ActiveOverlay = null;
-
+        _context.UnitSnapOverlay.End();
+        
         if (_overlay is not null)
         {
             _overlay.OnPolygonCompleted -= PolygonCompleted;

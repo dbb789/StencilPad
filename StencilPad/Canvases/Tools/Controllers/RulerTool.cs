@@ -43,6 +43,7 @@ public class RulerTool : ITool
     {
         _overlay = new RulerToolOverlay(_context.Viewport, _context.UnitSnap);
         _context.ToolOverlay.ActiveOverlay = _overlay;
+        _context.UnitSnapOverlay.Begin();
 
         _overlay.OnRulerPlaced += RulerPlaced;
     }
@@ -50,6 +51,7 @@ public class RulerTool : ITool
     public void ToolEnd()
     {
         _context.ToolOverlay.ActiveOverlay = null;
+        _context.UnitSnapOverlay.End();
 
         if (_overlay is not null)
         {

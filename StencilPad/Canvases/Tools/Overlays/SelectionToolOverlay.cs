@@ -48,8 +48,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             }
         }
 
-        _context.UnitSnapOverlay.Begin(this);
-
         _elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 2);
         _elementPen.Freeze();
 
@@ -68,8 +66,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
     public void Dispose()
     {
-        _context.UnitSnapOverlay.End();
-
         _sheet.Selection.CollectionChanged -= SelectionChanged;
 
         foreach (var selected in _sheet.Selection)

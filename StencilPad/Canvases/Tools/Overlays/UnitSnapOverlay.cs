@@ -13,7 +13,8 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
     private static readonly IUnitSnapContext DefaultContext;
 
     public Unit2D? LastSnapPoint => _lastSnapPoint;
-    
+
+    private bool _isActive;
     private IViewport _viewport;
     private IUnitSnap _unitSnap;
     private IUnitSnapContext? _context;
@@ -34,20 +35,30 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
         _context = null;
     }
 
-    public void Begin(IUnitSnapContext context)
+    public void Begin(IUnitSnapContext? context = null)
     {
         _context = context;
         _lastSnapPoint = null;
+        _isActive = true;
     }
 
     public void End()
     {
         _context = null;
         _lastSnapPoint = null;
+        _isActive = false;
+
+        // Redraw without indicator.
+        InvalidateVisual();        
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
+        if (!_isActive)
+        {
+            return;
+        }
+
         var mousePos = _viewport.FromPoint(e.GetPosition(this));
         var snapped = _unitSnap.UnitSnap(mousePos, _context ?? DefaultContext);
 
@@ -60,6 +71,11 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
     
     protected override void OnRender(DrawingContext dc)
     {
+        if (!_isActive)
+        {
+            return;
+        }
+
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
         if (_lastSnapPoint is null)

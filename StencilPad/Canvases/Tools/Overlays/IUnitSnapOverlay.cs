@@ -7,6 +7,6 @@ public interface IUnitSnapOverlay
 {
     Unit2D? LastSnapPoint { get; }
 
-    void Begin(IUnitSnapContext context);
+    void Begin(IUnitSnapContext? context = null);
     void End();
 }
