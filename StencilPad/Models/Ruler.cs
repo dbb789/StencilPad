@@ -6,20 +6,6 @@ public class Ruler : SheetElement<Ruler>
 {
     public override MinMaxHandleSource HandleSource { get; }
 
-    public override UnitTransform Transform
-    {
-        get => HandleSource.Transform;
-        set
-        {
-            if (HandleSource.Transform != value)
-            {
-                HandleSource.Transform = value;
-                OnPropertyChanged();
-                GeometryChanged?.Invoke();
-            }
-        }
-    }
-
     public Unit2D Min
     {
         get => HandleSource.Min;
@@ -40,12 +26,14 @@ public class Ruler : SheetElement<Ruler>
     {
         HandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        TransformChanged += () => GeometryChanged?.Invoke();
     }
     
     public Ruler(Unit2D start, Unit2D end)
     {
         HandleSource = new MinMaxHandleSource(start, end);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        TransformChanged += () => GeometryChanged?.Invoke();
     }
     
     public override void MirrorX(Unit centerY)

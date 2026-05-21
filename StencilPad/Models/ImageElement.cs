@@ -6,20 +6,6 @@ public class ImageElement : SheetElement<ImageElement>
 {
     public override BoundsHandleSource HandleSource { get; }
 
-    public override UnitTransform Transform
-    {
-        get => HandleSource.Transform;
-        set
-        {
-            if (HandleSource.Transform != value)
-            {
-                HandleSource.Transform = value;
-                OnPropertyChanged();
-                GeometryChanged?.Invoke();
-            }
-        }
-    }
-
     public Unit2D Min
     {
         get => HandleSource.Bounds.Min;
@@ -49,12 +35,14 @@ public class ImageElement : SheetElement<ImageElement>
     {
         HandleSource = new BoundsHandleSource(UnitBounds.Empty);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        TransformChanged += () => GeometryChanged?.Invoke();
     }
 
     public ImageElement(Unit2D min, Unit2D max, byte[] imageData)
     {
         HandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(min, max));
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        TransformChanged += () => GeometryChanged?.Invoke();
         _imageData = imageData;
     }
 

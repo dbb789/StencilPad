@@ -41,50 +41,12 @@ public class EditablePolygonListTests
     }
 
     [Test]
-    public void Transform_PropagatesToHandleSource()
-    {
-        var list = new EditablePolygonList();
-        var poly = new EditablePolygon();
-        poly.AddVertex(new Vertex(U2(10, 10)));
-        list.Add(poly);
-
-        // Position 0,0 (default) -> Handle world pos is 10,10
-        // Move list to 5,5 -> Handle world pos should be 15,15
-        list.Transform = new UnitTransform(U2(5, 5), 0m);
-
-        var handle = list.HandleSource.GetAnyHandle();
-        Assert.That(list.HandleSource.GetPoint(handle), Is.EqualTo(U2(15, 15)));
-    }
-
-    [Test]
-    public void Transform_PropagatesRotationToHandleSource()
-    {
-        var list = new EditablePolygonList();
-        var poly = new EditablePolygon();
-        poly.AddVertex(new Vertex(U2(10, 0)));
-        list.Add(poly);
-
-        // Rotate 90 degrees
-        list.Transform = new UnitTransform(Unit2D.Zero, 90m);
-
-        var handle = list.HandleSource.GetAnyHandle();
-        var point = list.HandleSource.GetPoint(handle);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(point.X.Millimeters, Is.EqualTo(0).Within(1e-9));
-            Assert.That(point.Y.Millimeters, Is.EqualTo(10).Within(1e-9));
-        });
-    }
-
-    [Test]
-    public void AssignFrom_SyncsStateAndTransform()
+    public void AssignFrom_SyncsState()
     {
         var source = new EditablePolygonList();
         var poly = new EditablePolygon();
         poly.AddVertex(new Vertex(U2(10, 10)));
         source.Add(poly);
-        source.Transform = new UnitTransform(U2(5, 5), 90m);
 
         var target = new EditablePolygonList();
         target.AssignFrom(source);
@@ -92,14 +54,10 @@ public class EditablePolygonListTests
         Assert.Multiple(() =>
         {
             Assert.That(target.Count, Is.EqualTo(1));
-            Assert.That(target.Transform, Is.EqualTo(new UnitTransform(U2(5, 5), 90m)));
             var handle = target.HandleSource.GetAnyHandle();
             var point = target.HandleSource.GetPoint(handle);
-            
-            // (10,10) rotated 90 deg -> (-10, 10)
-            // Translated by (5,5) -> (-5, 15)
-            Assert.That(point.X.Millimeters, Is.EqualTo(-5).Within(1e-9));
-            Assert.That(point.Y.Millimeters, Is.EqualTo(15).Within(1e-9));
+            Assert.That(point.X.Millimeters, Is.EqualTo(10).Within(1e-9));
+            Assert.That(point.Y.Millimeters, Is.EqualTo(10).Within(1e-9));
         });
     }
 

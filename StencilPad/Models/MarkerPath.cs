@@ -10,19 +10,6 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     public EditablePolygon Polygon => _singlePolygon.Polygon;
     private SingleEditablePolygon _singlePolygon;
 
-    public override UnitTransform Transform
-    {
-        get => _singlePolygon.Transform;
-        set
-        {
-            if (_singlePolygon.Transform != value)
-            {
-                _singlePolygon.Transform = value;
-                OnPropertyChanged();
-            }
-        }
-    }
- 
     private Unit _spacing = Unit.FromMillimeters(4);
     public Unit Spacing
     {

@@ -7,12 +7,6 @@ public class EditablePolygonList : IEditablePolygonSet
 {
     public IHandleSource HandleSource => _handleSource;
 
-    public UnitTransform Transform
-    {
-        get => _handleSource.Transform;
-        set => _handleSource.Transform = value;
-    }
-    
     private List<EditablePolygon> _polygons;
     private GroupHandleSource _handleSource;
     
@@ -69,9 +63,7 @@ public class EditablePolygonList : IEditablePolygonSet
             PolygonAdded?.Invoke(polygon);
         }
 
-        _handleSource.Transform = other._handleSource.Transform;
-        _handleSource.SetChildren(_polygons);
-    }
+        _handleSource.SetChildren(_polygons);    }
 
     public List<EditablePolygon>.Enumerator GetEnumerator()
     {

@@ -7,20 +7,6 @@ public class TextElement : SheetElement<TextElement>
 {
     public override BoundsHandleSource HandleSource { get; }
 
-    public override UnitTransform Transform
-    {
-        get => HandleSource.Transform;
-        set
-        {
-            if (HandleSource.Transform != value)
-            {
-                HandleSource.Transform = value;
-                OnPropertyChanged();
-                GeometryChanged?.Invoke();
-            }
-        }
-    }
-
     public Unit2D Min
     {
         get => HandleSource.Bounds.Min;
@@ -97,6 +83,7 @@ public class TextElement : SheetElement<TextElement>
     {
         HandleSource = new BoundsHandleSource(UnitBounds.Empty);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        TransformChanged += () => GeometryChanged?.Invoke();
     }
 
     public TextElement(Unit2D start, string text)

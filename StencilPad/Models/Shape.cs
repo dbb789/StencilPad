@@ -10,21 +10,6 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     private EditablePolygonList _polygonList;
 
-    private UnitTransform _transform = UnitTransform.Identity;
-    public override UnitTransform Transform
-    {
-        get => _transform;
-        set
-        {
-            if (_transform != value)
-            {
-                _transform = value;
-                _polygonList.Transform = value;                
-                OnPropertyChanged();
-            }
-        }
-    }
-    
     private Color _fillColor = Color.FromArgb(0, 255, 255, 255);
     public Color FillColor
     {
@@ -70,7 +55,6 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public Shape()
     {
         _polygonList = new();
-        _transform = UnitTransform.Identity;
 
         _polygonList.Add(new EditablePolygon());
     }
@@ -78,7 +62,6 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public Shape(Polygon polygon)
     {
         _polygonList = new();
-        _transform = UnitTransform.Identity;
         
         var editablePolygon = new EditablePolygon();
         

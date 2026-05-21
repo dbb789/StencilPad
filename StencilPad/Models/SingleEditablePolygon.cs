@@ -9,19 +9,6 @@ public class SingleEditablePolygon : IEditablePolygonSet
     public EditablePolygon Polygon { get; }
     public IHandleSource HandleSource => Polygon;
 
-    private UnitTransform _transform = UnitTransform.Identity;
-    public UnitTransform Transform
-    {
-        get => _transform;
-        set
-        {
-            if (_transform != value)
-            {
-                _transform = value;
-            }
-        }
-    }
-
     public EditablePolygon this[int index] => Polygon;
     public int Count => 1;
 

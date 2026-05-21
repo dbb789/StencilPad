@@ -9,21 +9,6 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     private List<ISheetElement> _children;
 
-    private UnitTransform _transform = UnitTransform.Identity;
-    public override UnitTransform Transform
-    {
-        get => _transform;
-        set
-        {
-            if (_transform != value)
-            {
-                _transform = value;
-                HandleSource.Transform = value;                
-                OnPropertyChanged();
-            }
-        }
-    }
-
     public event Action? ChildrenChanged;
     
     public ElementGroup()
