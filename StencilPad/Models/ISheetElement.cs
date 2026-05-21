@@ -9,8 +9,6 @@ public interface ISheetElement
     UnitTransform Transform { get; set; }
     event Action<ISheetElement>? TransformChanged;
     
-    IHandleSource HandleSource { get; }
-
     event Action<ISheetElement, Handle, Unit2D, bool>? HandleAdded;
     event Action<ISheetElement, Handle>? HandleRemoved;
     event Action<ISheetElement, Handle, Unit2D>? HandleMoved;

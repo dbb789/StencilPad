@@ -21,7 +21,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     public ElementGroup(IEnumerable<ISheetElement> children)
     {
         _children = new(children.Select(c => c.DeepClone()));
-        _groupHandleSource = new(_children.Select(child => child.HandleSource));
+        _groupHandleSource = new(_children);
         SetHandleSource(_groupHandleSource);
     }
 
@@ -61,7 +61,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     public override void AssignFrom(ElementGroup other)
     {
         _children = new(other.Children.Select(child => child.DeepClone()));
-        _groupHandleSource.SetChildren(_children.Select(child => child.HandleSource));
+        _groupHandleSource.SetChildren(_children);
 
         Transform = other.Transform;
 

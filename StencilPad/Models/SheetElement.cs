@@ -35,41 +35,51 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public event Action<ISheetElement>? TransformChanged;
 
-    private IHandleSource? _handleSource;
-    
-    public IHandleSource HandleSource
-    {
-        get => _handleSource ?? throw new InvalidOperationException("HandleSource not set");
-    }
+    private IHandleSource? _elementHandleSource;
 
     public event Action<ISheetElement, Handle, Unit2D, bool>? HandleAdded;
     public event Action<ISheetElement, Handle>? HandleRemoved;
     public event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
     public event Action<ISheetElement, Handle, bool>? HandleSelectionChanged;
 
-    public void QueryHandles(Action<Handle, Unit2D, bool> func) => HandleSource.QueryHandles(func);
-    public void SetHandleSelected(Handle handle, bool selected) => HandleSource.SetHandleSelected(handle, selected);
-    public Unit2D GetPoint(Handle handle) => HandleSource.GetPoint(handle);
-    public void SetPoint(Handle handle, Unit2D position) => HandleSource.SetPoint(handle, position);
+    public void QueryHandles(Action<Handle, Unit2D, bool> func)
+    {
+        _elementHandleSource?.QueryHandles(func);
+    }
+
+    public void SetHandleSelected(Handle handle, bool selected)
+    {
+        _elementHandleSource?.SetHandleSelected(handle, selected);
+    }
+
+    public Unit2D GetPoint(Handle handle)
+    {
+        return _elementHandleSource?.GetPoint(handle) ?? Unit2D.Zero;
+    }
+    
+    public void SetPoint(Handle handle, Unit2D position)
+    {
+        _elementHandleSource?.SetPoint(handle, position);
+    }
 
     protected void SetHandleSource(IHandleSource newHandleSource)
     {
-        if (_handleSource is not null)
+        if (_elementHandleSource is not null)
         {
-            _handleSource.HandleAdded -= InvokeHandleAdded;
-            _handleSource.HandleRemoved -= InvokeHandleRemoved;
-            _handleSource.HandleMoved -= InvokeHandleMoved;
-            _handleSource.HandleSelectionChanged -= InvokeHandleSelectionChanged;
+            _elementHandleSource.HandleAdded -= InvokeHandleAdded;
+            _elementHandleSource.HandleRemoved -= InvokeHandleRemoved;
+            _elementHandleSource.HandleMoved -= InvokeHandleMoved;
+            _elementHandleSource.HandleSelectionChanged -= InvokeHandleSelectionChanged;
         }
 
-        _handleSource = newHandleSource;
+        _elementHandleSource = newHandleSource;
 
-        if (_handleSource is not null)
+        if (_elementHandleSource is not null)
         {
-            _handleSource.HandleAdded += InvokeHandleAdded;
-            _handleSource.HandleRemoved += InvokeHandleRemoved;
-            _handleSource.HandleMoved += InvokeHandleMoved;
-            _handleSource.HandleSelectionChanged += InvokeHandleSelectionChanged;
+            _elementHandleSource.HandleAdded += InvokeHandleAdded;
+            _elementHandleSource.HandleRemoved += InvokeHandleRemoved;
+            _elementHandleSource.HandleMoved += InvokeHandleMoved;
+            _elementHandleSource.HandleSelectionChanged += InvokeHandleSelectionChanged;
         }
     }
 

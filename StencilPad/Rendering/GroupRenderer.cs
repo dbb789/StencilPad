@@ -32,7 +32,7 @@ public class GroupRenderer : SheetElementRenderer
                          SheetElementRendererFactory rendererFactory)
     {
         _elementGroup = elementGroup;
-        _elementGroup.PropertyChanged += PropertyChanged;
+        _elementGroup.TransformChanged += TransformChanged;
         _rendererFactory = rendererFactory;
         
         _childRenderers = new(_elementGroup.Children.Count());
@@ -49,13 +49,13 @@ public class GroupRenderer : SheetElementRenderer
 
         _elementGroup.ChildrenChanged += RebuildRenderers;
 
-        UpdateProperties();
+        TransformChanged(_elementGroup);
     }
 
     public override void Dispose()
     {
         _elementGroup.ChildrenChanged -= RebuildRenderers;
-        _elementGroup.PropertyChanged -= PropertyChanged;
+        _elementGroup.TransformChanged -= TransformChanged;
 
         foreach (var renderer in _childRenderers.ToList())
         {
@@ -63,18 +63,10 @@ public class GroupRenderer : SheetElementRenderer
         }
     }
     
-    private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(ElementGroup.Transform))
-        {
-            _transform = _elementGroup.Transform.CreateGroupTransform();
-        }
-        InvokeRendererDirty();
-    }
-    
-    private void UpdateProperties()
+    private void TransformChanged(ISheetElement element)
     {
         _transform = _elementGroup.Transform.CreateGroupTransform();
+        InvokeRendererDirty();
     }
 
     private void RebuildRenderers()
