@@ -77,19 +77,17 @@ public class TextElement : SheetElement<TextElement>
         }
     }
 
-    public event Action? GeometryChanged;
-    
     public TextElement()
     {
         _boundsHandleSource = new BoundsHandleSource(UnitBounds.Empty);
-        _boundsHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _boundsHandleSource.HandleMoved += (_, _, _) => FireGeometryChanged();
         SetHandleSource(_boundsHandleSource);
     }
 
     public TextElement(Unit2D start, string text)
     {
         _boundsHandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(start, start));
-        _boundsHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _boundsHandleSource.HandleMoved += (_, _, _) => FireGeometryChanged();
         SetHandleSource(_boundsHandleSource);
         _text = text;
     }
@@ -125,6 +123,13 @@ public class TextElement : SheetElement<TextElement>
     }
 
     public override UnitBounds GetBounds(UnitTransform transform) => _boundsHandleSource.Bounds.ApplyTransform(transform);
+
+    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    {
+        _boundsHandleSource.Bounds = UnitBounds.FromMinMax(
+            transform.InverseApply(newBounds.Min),
+            transform.InverseApply(newBounds.Max));
+    }
 
     public override void AssignFrom(TextElement other)
     {

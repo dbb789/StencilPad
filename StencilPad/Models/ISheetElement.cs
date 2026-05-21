@@ -8,6 +8,7 @@ public interface ISheetElement
 
     UnitTransform Transform { get; set; }
     event Action<ISheetElement>? TransformChanged;
+    event Action<ISheetElement>? GeometryChanged;
     
     event Action<ISheetElement, Handle, Unit2D, bool>? HandleAdded;
     event Action<ISheetElement, Handle>? HandleRemoved;
@@ -25,6 +26,7 @@ public interface ISheetElement
     void NormalizePosition();
     UnitBounds GetBounds(UnitTransform transform);
     UnitBounds GetTransformedBounds();
+    void SetBounds(UnitBounds newBounds, UnitTransform transform);
     void AssignFromElement(ISheetElement other);
     ISheetElement DeepClone();
 }

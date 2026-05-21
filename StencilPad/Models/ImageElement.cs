@@ -29,19 +29,17 @@ public class ImageElement : SheetElement<ImageElement>
         }
     }
 
-    public event Action? GeometryChanged;
-    
     public ImageElement()
     {
         _boundsHandleSource = new BoundsHandleSource(UnitBounds.Empty);
-        _boundsHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _boundsHandleSource.HandleMoved += (_, _, _) => FireGeometryChanged();
         SetHandleSource(_boundsHandleSource);
     }
 
     public ImageElement(Unit2D min, Unit2D max, byte[] imageData)
     {
         _boundsHandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(min, max));
-        _boundsHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _boundsHandleSource.HandleMoved += (_, _, _) => FireGeometryChanged();
         SetHandleSource(_boundsHandleSource);
         _imageData = imageData;
     }
@@ -77,6 +75,13 @@ public class ImageElement : SheetElement<ImageElement>
     }
 
     public override UnitBounds GetBounds(UnitTransform transform) => _boundsHandleSource.Bounds.ApplyTransform(transform);
+
+    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    {
+        _boundsHandleSource.Bounds = UnitBounds.FromMinMax(
+            transform.InverseApply(newBounds.Min),
+            transform.InverseApply(newBounds.Max));
+    }
 
     public override void AssignFrom(ImageElement other)
     {

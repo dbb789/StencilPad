@@ -39,6 +39,7 @@ public class SelectionTool : ITool
     private readonly SheetElementActionSet _sheetElementActionSet;
     
     private SelectionToolOverlay? _overlay;
+    private Dictionary<ISheetElement, UnitBounds> _resizeInitialBounds = new();
 
     private SelectionTool(Sheet sheet,
                           IToolContext context,
@@ -68,6 +69,8 @@ public class SelectionTool : ITool
 
         _overlay.ActionInvoked += ActionInvoked;
         _overlay.SelectionDragged += SelectionDragged;
+        _overlay.SelectionResizeStarted += SelectionResizeStarted;
+        _overlay.SelectionResized += SelectionResized;
         _overlay.SelectionRotateStarted += SelectionRotateStarted;
         _overlay.SelectionRotated += SelectionRotated;
     }
@@ -85,6 +88,8 @@ public class SelectionTool : ITool
 
             _overlay.ActionInvoked -= ActionInvoked;
             _overlay.SelectionDragged -= SelectionDragged;
+            _overlay.SelectionResizeStarted -= SelectionResizeStarted;
+            _overlay.SelectionResized -= SelectionResized;
             _overlay.SelectionRotateStarted -= SelectionRotateStarted;
             _overlay.SelectionRotated -= SelectionRotated;
             _overlay.Dispose();
@@ -152,6 +157,30 @@ public class SelectionTool : ITool
         foreach (var selected in _sheet.Selection)
         {
             selected.Translate(delta);
+        }
+    }
+
+    private void SelectionResizeStarted()
+    {
+        _resizeInitialBounds.Clear();
+
+        foreach (var selected in _sheet.Selection)
+        {
+            _resizeInitialBounds[selected] = selected.GetTransformedBounds();
+        }
+    }
+
+    private void SelectionResized(Unit2D seDelta)
+    {
+        foreach (var selected in _sheet.Selection)
+        {
+            if (!_resizeInitialBounds.TryGetValue(selected, out var initialBounds))
+            {
+                continue;
+            }
+
+            var newBounds = UnitBounds.FromMinMax(initialBounds.Min, initialBounds.SE + seDelta);
+            selected.SetBounds(newBounds, selected.Transform);
         }
     }
 

@@ -40,12 +40,14 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     public MarkerPath()
     {
         _singlePolygon = new();
+        _singlePolygon.Polygon.GeometryChanged += () => FireGeometryChanged();
         SetHandleSource(_singlePolygon.HandleSource);
     }
     
     public MarkerPath(Polygon polygon)
     {
         _singlePolygon = new(polygon);
+        _singlePolygon.Polygon.GeometryChanged += () => FireGeometryChanged();
         SetHandleSource(_singlePolygon.HandleSource);
     }
     
@@ -84,6 +86,12 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     }
 
     public override UnitBounds GetBounds(UnitTransform transform) => Polygon.CalculateBounds(transform);
+
+    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    {
+        var oldBounds = Polygon.CalculateBounds(transform);
+        Polygon.SetBounds(oldBounds, newBounds, transform);
+    }
 
     public override void AssignFrom(MarkerPath other)
     {

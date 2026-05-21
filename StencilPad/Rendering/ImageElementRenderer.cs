@@ -16,7 +16,7 @@ public class ImageElementRenderer : SheetElementRenderer
     public ImageElementRenderer(ImageElement imageElement)
     {
         _imageElement = imageElement;
-        _imageElement.GeometryChanged += InvokeRendererDirty;
+        _imageElement.GeometryChanged += OnGeometryChanged;
         _imageElement.TransformChanged += TransformChanged;
         _imageElement.PropertyChanged += OnPropertyChanged;
         
@@ -25,7 +25,7 @@ public class ImageElementRenderer : SheetElementRenderer
 
     public override void Dispose()
     {
-        _imageElement.GeometryChanged -= InvokeRendererDirty;
+        _imageElement.GeometryChanged -= OnGeometryChanged;
         _imageElement.TransformChanged -= TransformChanged;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
@@ -75,6 +75,8 @@ public class ImageElementRenderer : SheetElementRenderer
 
         InvokeRendererDirty();
     }
+
+    private void OnGeometryChanged(ISheetElement _) => InvokeRendererDirty();
 
     private void TransformChanged(ISheetElement element)
     {

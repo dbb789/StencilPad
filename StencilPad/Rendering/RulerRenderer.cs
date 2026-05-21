@@ -111,7 +111,7 @@ public class RulerRenderer : SheetElementRenderer
         _transform = _ruler.Transform.CreateGroupTransform();
     }
 
-    private void GeometryChanged()
+    private void GeometryChanged(ISheetElement _)
     {
         InvokeRendererDirty();
     }

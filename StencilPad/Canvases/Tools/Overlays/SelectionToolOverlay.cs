@@ -36,6 +36,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     private Pen _handlePen;
     
     public event Action<Unit2D>? SelectionDragged;
+    public event Action? SelectionResizeStarted;
     public event Action<Unit2D>? SelectionResized;
     public event Action? SelectionRotateStarted;
     public event Action<double>? SelectionRotated;
@@ -73,6 +74,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         foreach (var element in _sheet.Selection)
         {
             element.TransformChanged += OnTransformChanged;
+            element.GeometryChanged += OnTransformChanged;
         }
     }
 
@@ -83,6 +85,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         foreach (var element in _sheet.Selection)
         {
             element.TransformChanged -= OnTransformChanged;
+            element.GeometryChanged -= OnTransformChanged;
         }
     }
     
@@ -118,6 +121,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             {
                 _resizeInitialSE = bounds.SE;
                 _resizeDragState.OnDragStart(mousePosition, true, _resizeInitialSE);
+
+                SelectionResizeStarted?.Invoke();
                 
                 CaptureMouse();
                 e.Handled = true;
@@ -283,6 +288,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             foreach (ISheetElement element in e.NewItems)
             {
                 element.TransformChanged += OnTransformChanged;
+                element.GeometryChanged += OnTransformChanged;
             }
         }
 
@@ -291,6 +297,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             foreach (ISheetElement element in e.OldItems)
             {
                 element.TransformChanged -= OnTransformChanged;
+                element.GeometryChanged -= OnTransformChanged;
             }
         }
         

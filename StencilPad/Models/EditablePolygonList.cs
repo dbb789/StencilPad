@@ -80,6 +80,16 @@ public class EditablePolygonList : IEditablePolygonSet
         return bounds ?? UnitBounds.Empty;
     }
 
+    public void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    {
+        var oldBounds = CalculateBounds(transform);
+
+        foreach (var polygon in _polygons)
+        {
+            polygon.SetBounds(oldBounds, newBounds, transform);
+        }
+    }
+
     public Unit2D CalculateMidpoint()
     {
         if (_polygons.Count == 0)

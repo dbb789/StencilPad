@@ -118,7 +118,7 @@ public class TextElementRenderer : SheetElementRenderer
         return new Unit2D(Unit.FromMillimeters(ft.Width + 0.5), Unit.FromMillimeters(ft.Height));
     }
 
-    private void GeometryChanged()
+    private void GeometryChanged(ISheetElement _)
     {
         RebuildFormattedText();
         InvokeRendererDirty();

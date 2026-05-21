@@ -23,13 +23,13 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
     public ImageElementEditRenderer(ImageElement imageElement)
     {
         _imageElement = imageElement;
-        _imageElement.GeometryChanged += InvokeRendererDirty;
+        _imageElement.GeometryChanged += OnGeometryChanged;
         _imageElement.PropertyChanged += OnPropertyChanged;
     }
 
     public override void Dispose()
     {
-        _imageElement.GeometryChanged -= InvokeRendererDirty;
+        _imageElement.GeometryChanged -= OnGeometryChanged;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -60,6 +60,8 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
         group.Freeze();
         return group;
     }
+
+    private void OnGeometryChanged(ISheetElement _) => InvokeRendererDirty();
 
     private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {

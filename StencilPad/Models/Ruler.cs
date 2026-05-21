@@ -20,19 +20,17 @@ public class Ruler : SheetElement<Ruler>
 
     public Unit Length => (Max - Min).Magnitude;
 
-    public event Action? GeometryChanged;
-    
     public Ruler()
     {
         _minMaxHandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
-        _minMaxHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _minMaxHandleSource.HandleMoved += (_, _, _) => FireGeometryChanged();
         SetHandleSource(_minMaxHandleSource);
     }
     
     public Ruler(Unit2D start, Unit2D end)
     {
         _minMaxHandleSource = new MinMaxHandleSource(start, end);
-        _minMaxHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _minMaxHandleSource.HandleMoved += (_, _, _) => FireGeometryChanged();
         SetHandleSource(_minMaxHandleSource);
     }
     
@@ -68,6 +66,12 @@ public class Ruler : SheetElement<Ruler>
     }
 
     public override UnitBounds GetBounds(UnitTransform transform) => UnitBounds.FromMinMax(_minMaxHandleSource.Min, _minMaxHandleSource.Max).ApplyTransform(transform);
+
+    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    {
+        _minMaxHandleSource.Min = transform.InverseApply(newBounds.Min);
+        _minMaxHandleSource.Max = transform.InverseApply(newBounds.Max);
+    }
 
     public override void AssignFrom(Ruler other)
     {

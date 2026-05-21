@@ -94,6 +94,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     private void InvalidateBoundsCache()
     {
         _cachedBounds = null;
+        FireGeometryChanged();
     }
 
     public void Add(Polygon polygon)
@@ -158,6 +159,12 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         }
 
         return _polygonList.CalculateBounds(transform);
+    }
+
+    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    {
+        _polygonList.SetBounds(newBounds, transform);
+        _cachedBounds = null;
     }
 
     public override void AssignFrom(Shape other)

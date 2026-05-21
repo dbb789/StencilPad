@@ -57,7 +57,7 @@ public class TextElementEditRenderer : SheetElementEditRenderer
         return group;
     }
 
-    private void GeometryChanged()
+    private void GeometryChanged(ISheetElement _)
     {
         InvokeRendererDirty();
     }
