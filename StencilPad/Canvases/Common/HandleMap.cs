@@ -182,7 +182,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             foreach (SheetElement element in e.NewItems)
             {
-                element.QueryHandles((handle, position, selected) =>
+                element.QueryHandles((handle, localPosition, selected) =>
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
@@ -200,7 +200,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             foreach (SheetElement element in e.OldItems)
             {
-                element.QueryHandles((handle, position, selected) =>
+                element.QueryHandles((handle, localPosition, selected) =>
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
@@ -219,9 +219,9 @@ public class HandleMap : IHandleMap, IUnitSnap
     
     private void Add(ISheetElement element)
     {
-        element.QueryHandles((handle, position, selected) =>
+        element.QueryHandles((handle, localPosition, selected) =>
         {
-            Add(element, handle, position, selected);
+            Add(element, handle, element.Transform.Apply(localPosition), selected);
         });
 
         element.HandleAdded += OnHandleAdded;
@@ -233,7 +233,7 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     private void Remove(ISheetElement element)
     {
-        element.QueryHandles((handle, position, selected) =>
+        element.QueryHandles((handle, localPosition, selected) =>
         {
             Remove(element, handle);
         });
@@ -242,15 +242,16 @@ public class HandleMap : IHandleMap, IUnitSnap
         element.HandleRemoved -= OnHandleRemoved;
         element.HandleMoved -= OnHandleMoved;
         element.HandleSelectionChanged -= OnHandleSelectionChanged;
+        element.TransformChanged -= OnTransformChanged;
     }
 
-    private void Add(ISheetElement element, Handle handle, Unit2D position, bool selected)
+    private void Add(ISheetElement element, Handle handle, Unit2D worldPosition, bool selected)
     {
         var entry = new HandleMapEntry
         {
             Element = element,
             Handle = handle,
-            Position = position,
+            Position = worldPosition,
             Editing = _sheet?.Selection.Contains(element) ?? false,
             Selected = selected
         };
@@ -262,14 +263,14 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
         
         _byHandle[handle] = entry;
-        _byPosition.Insert(position, entry);
+        _byPosition.Insert(worldPosition, entry);
 
         if (selected)
         {
             _selectedHandles.Add(entry);
         }
 
-        HandleAdded?.Invoke(element, handle, position);
+        HandleAdded?.Invoke(element, handle, worldPosition);
     }
 
     private void Remove(ISheetElement element, Handle handle)
@@ -292,9 +293,9 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
-    private void OnHandleAdded(ISheetElement element, Handle handle, Unit2D position, bool selected)
+    private void OnHandleAdded(ISheetElement element, Handle handle, Unit2D localPosition, bool selected)
     {
-        Add(element, handle, position, selected);
+        Add(element, handle, element.Transform.Apply(localPosition), selected);
     }
 
     private void OnHandleRemoved(ISheetElement element, Handle handle)
@@ -302,9 +303,9 @@ public class HandleMap : IHandleMap, IUnitSnap
         Remove(element, handle);
     }
 
-    private void OnHandleMoved(ISheetElement element, Handle handle, Unit2D position)
+    private void OnHandleMoved(ISheetElement element, Handle handle, Unit2D localPosition)
     {
-        UpdateHandle(element, handle, position);
+        UpdateHandle(element, handle, localPosition);
     }
 
     private void OnHandleSelectionChanged(ISheetElement element, Handle handle, bool selected)
@@ -332,9 +333,9 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     private void OnTransformChanged(ISheetElement element)
     {
-        element.QueryHandles((handle, position, selected) =>
+        element.QueryHandles((handle, localPosition, selected) =>
         {
-            UpdateHandle(element, handle, position);
+            UpdateHandle(element, handle, localPosition);
         });
     }
 
