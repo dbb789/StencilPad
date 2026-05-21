@@ -69,18 +69,20 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
+
+        foreach (var element in _sheet.Selection)
+        {
+            element.TransformChanged += OnTransformChanged;
+        }
     }
 
     public void Dispose()
     {
         _sheet.Selection.CollectionChanged -= SelectionChanged;
 
-        foreach (var selected in _sheet.Selection)
+        foreach (var element in _sheet.Selection)
         {
-            if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
-            {
-                renderer.RendererDirty -= ForceRedraw;
-            }
+            element.TransformChanged -= OnTransformChanged;
         }
     }
     
@@ -105,7 +107,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         foreach (var element in _sheet.Selection)
         {
-            var bounds = GetElementBounds(element);
+            var bounds = element.GetTransformedBounds();
             var screenBounds = new Rect(_context.Viewport.ToPoint(bounds.Min),
                                         _context.Viewport.ToPoint(bounds.Max));
 
@@ -145,8 +147,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         if (elementUnderMouse != null)
         {
-            var elementBounds = GetElementBounds(elementUnderMouse);
-            
+            var elementBounds = elementUnderMouse.GetTransformedBounds();
+
             _dragState.OnDragStart(mousePosition,
                                    elementUnderMouse,
                                    elementBounds.Center);
@@ -196,7 +198,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             return;
         }
 
-        var elementBounds = GetElementBounds(_dragState.DraggedElement);
+        var elementBounds = _dragState.DraggedElement.GetTransformedBounds();
         var dragResult = _dragState.OnDragMove(_context.Viewport,
                                                mousePosition);
         
@@ -265,8 +267,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     {
         foreach (var selected in _sheet.Selection)
         {
-            if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer) &&
-                renderer.HitTest(point))
+            if (selected.GetTransformedBounds().Contains(point))
             {
                 return selected;
             }
@@ -274,42 +275,30 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         return null;
     }
-
-    private UnitBounds GetElementBounds(ISheetElement element)
-    {
-        return element.GetBounds().ApplyTransform(element.Transform);
-    }
     
     private void SelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.OldItems is not null)
+        if (e.NewItems != null)
         {
-            foreach (var item in e.OldItems)
+            foreach (ISheetElement element in e.NewItems)
             {
-                if (item is ISheetElement element)
-                {
-                    if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
-                    {
-                        renderer.RendererDirty -= ForceRedraw;
-                    }
-                }
+                element.TransformChanged += OnTransformChanged;
             }
         }
 
-        if (e.NewItems is not null)
+        if (e.OldItems != null)
         {
-            foreach (var item in e.NewItems)
+            foreach (ISheetElement element in e.OldItems)
             {
-                if (item is ISheetElement element)
-                {
-                    if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
-                    {
-                        renderer.RendererDirty += ForceRedraw;
-                    }
-                }
+                element.TransformChanged -= OnTransformChanged;
             }
         }
         
+        ForceRedraw();
+    }
+
+    private void OnTransformChanged(ISheetElement element)
+    {
         ForceRedraw();
     }
     
@@ -336,7 +325,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         
         foreach (var selected in _sheet.Selection)
         {
-            var unitBounds = selected.GetBounds().ApplyTransform(selected.Transform);
+            var unitBounds = selected.GetTransformedBounds();
             var bounds = new Rect(_context.Viewport.ToPoint(unitBounds.Min),
                                   _context.Viewport.ToPoint(unitBounds.Max));
             

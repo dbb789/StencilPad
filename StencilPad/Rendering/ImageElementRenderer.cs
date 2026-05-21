@@ -10,11 +10,6 @@ public class ImageElementRenderer : SheetElementRenderer
 {
     public override ImageElement Element => _imageElement;
 
-    public override UnitBounds SelectionBounds =>
-        _imageElement.Min == _imageElement.Max
-            ? UnitBounds.Empty
-            : UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max).ApplyTransform(_imageElement.Transform);
-
     private readonly ImageElement _imageElement;
     private BitmapImage? _bitmap;
 
@@ -35,29 +30,6 @@ public class ImageElementRenderer : SheetElementRenderer
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
-    public override bool HitTest(Unit2D unit)
-    {
-        var localUnit = _imageElement.Transform.InverseApply(unit);
-        return UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max).Contains(localUnit);
-    }
-
-    public override bool BoundsTest(UnitBounds bounds)
-    {
-        // Transform the selection bounds into the local space of the image.
-        var localNW = _imageElement.Transform.InverseApply(bounds.NW);
-        var localNE = _imageElement.Transform.InverseApply(bounds.NE);
-        var localSW = _imageElement.Transform.InverseApply(bounds.SW);
-        var localSE = _imageElement.Transform.InverseApply(bounds.SE);
-
-        var localSelectionBounds = UnitBounds.FromMinMax(
-            new Unit2D(Unit.Min(Unit.Min(localNW.X, localNE.X), Unit.Min(localSW.X, localSE.X)),
-                       Unit.Min(Unit.Min(localNW.Y, localNE.Y), Unit.Min(localSW.Y, localSE.Y))),
-            new Unit2D(Unit.Max(Unit.Max(localNW.X, localNE.X), Unit.Max(localSW.X, localSE.X)),
-                       Unit.Max(Unit.Max(localNW.Y, localNE.Y), Unit.Max(localSW.Y, localSE.Y))));
-
-        return localSelectionBounds.Intersects(UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max));
-    }
-    
     public override void Render(DrawingContext dc)
     {
         if (_bitmap is null || _imageElement.ImageData.Length == 0)

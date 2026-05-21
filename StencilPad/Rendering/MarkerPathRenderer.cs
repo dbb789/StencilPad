@@ -11,24 +11,6 @@ public class MarkerPathRenderer : SheetElementRenderer
     private record struct MarkerData(Point Position, int SegmentIndex);
     
     public override MarkerPath Element => _markerPath;
-    public override UnitBounds SelectionBounds
-    {
-        get
-        {
-            if (_geometry is null)
-            {
-                return UnitBounds.Empty;
-            }
-
-            var localBounds = UnitBounds.FromMinMax(
-                new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Left),
-                           Unit.FromMillimeters(_geometry.Bounds.Top)),
-                new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Right),
-                           Unit.FromMillimeters(_geometry.Bounds.Bottom)));
-
-            return localBounds.ApplyTransform(_markerPath.Transform);
-        }
-    }
 
     public int MarkerCount => _markerCount;
     
@@ -55,42 +37,6 @@ public class MarkerPathRenderer : SheetElementRenderer
     {
         _markerPath.Polygon.GeometryChanged -= RebuildGeometry;
         _markerPath.PropertyChanged -= PropertyChanged;
-    }
-
-    public override bool HitTest(Unit2D unit)
-    {
-        if (_geometry is null)
-        {
-            return false;
-        }
-
-        return _geometry.FillContains(_markerPath.Transform.InverseApply(unit).Millimeters);
-    }
-
-    public override bool BoundsTest(UnitBounds bounds)
-    {
-        if (_geometry is null)
-        {
-            return false;
-        }
-
-        // Transform the selection bounds into the local space of the marker path.
-        var localNW = _markerPath.Transform.InverseApply(bounds.NW);
-        var localNE = _markerPath.Transform.InverseApply(bounds.NE);
-        var localSW = _markerPath.Transform.InverseApply(bounds.SW);
-        var localSE = _markerPath.Transform.InverseApply(bounds.SE);
-
-        var localSelectionGeometry = new StreamGeometry();
-        using (var ctx = localSelectionGeometry.Open())
-        {
-            ctx.BeginFigure(localNW.Millimeters, true, true);
-            ctx.LineTo(localNE.Millimeters, true, false);
-            ctx.LineTo(localSE.Millimeters, true, false);
-            ctx.LineTo(localSW.Millimeters, true, false);
-        }
-        localSelectionGeometry.Freeze();
-
-        return _geometry.FillContainsWithDetail(localSelectionGeometry) != IntersectionDetail.Empty;
     }
 
     public override void Render(DrawingContext dc)

@@ -330,10 +330,7 @@ public class SheetElementActionSet
         
         foreach (var element in elements)
         {
-            if (context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
-            {
-                element.Translate(getDelta(renderedBounds.Value, renderer.SelectionBounds));
-            }
+            element.Translate(getDelta(renderedBounds.Value, element.GetTransformedBounds()));
         }
     }
 
@@ -344,10 +341,7 @@ public class SheetElementActionSet
 
         foreach (var element in elements)
         {
-            if (context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
-            {
-                renderedBounds = UnitBounds.Union(renderedBounds, renderer.SelectionBounds);
-            }
+            renderedBounds = UnitBounds.Union(renderedBounds, element.GetTransformedBounds());
         }
 
         return renderedBounds;

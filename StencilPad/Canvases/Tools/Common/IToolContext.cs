@@ -10,7 +10,6 @@ public interface IToolContext
 {
     ToolOverlay ToolOverlay { get; }
     CanvasGrid CanvasGrid { get; }
-    SheetRenderer SheetRenderer { get; }
     IEditOverlayRenderer EditOverlayRenderer { get; }
     IViewport Viewport { get; }
     IHandleMap HandleMap { get; }

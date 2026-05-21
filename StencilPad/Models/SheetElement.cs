@@ -83,6 +83,11 @@ public abstract class SheetElement : ModelBase, ISheetElement
         }
     }
 
+    public UnitBounds GetTransformedBounds()
+    {
+        return GetBounds().ApplyTransform(Transform);
+    }
+    
     private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
     {
         HandleAdded?.Invoke(this, handle, position, selected);

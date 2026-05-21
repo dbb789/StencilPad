@@ -107,14 +107,12 @@ public class SelectionTool : ITool
         }
         
         var hitList = new List<ISheetElement>(8);
-        
-        for (int i = _context.SheetRenderer.Count - 1; i >= 0; --i)
+
+        foreach (var element in _sheet.Elements)
         {
-            var element = _context.SheetRenderer[i];
-            
-            if (element.HitTest(point))
+            if (element.GetTransformedBounds().Contains(point))
             {
-                hitList.Add(element.Element);
+                hitList.Add(element);
             }
         }
 
@@ -139,14 +137,12 @@ public class SelectionTool : ITool
         {
             _sheet.Selection.Clear();
         }
-        
-        for (int i = _context.SheetRenderer.Count - 1; i >= 0; --i)
-        {
-            var element = _context.SheetRenderer[i];
 
-            if (element.BoundsTest(bounds))
+        foreach (var element in _sheet.Elements)
+        {
+            if (element.GetTransformedBounds().Intersects(bounds))
             {
-                _sheet.Selection.Add(element.Element);
+                _sheet.Selection.Add(element);
             }
         }
     }
@@ -180,11 +176,9 @@ public class SelectionTool : ITool
     {
         _sheet.Selection.Clear();
 
-        for (int i = _context.SheetRenderer.Count - 1; i >= 0; --i)
+        foreach (var element in _sheet.Elements)
         {
-            var element = _context.SheetRenderer[i];
-
-            _sheet.Selection.Add(element.Element);
+            _sheet.Selection.Add(element);
         }
     }
 

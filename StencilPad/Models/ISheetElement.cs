@@ -24,6 +24,7 @@ public interface ISheetElement
     void Translate(Unit2D delta);
     void NormalizePosition();
     UnitBounds GetBounds();
+    UnitBounds GetTransformedBounds();
     void AssignFromElement(ISheetElement other);
     ISheetElement DeepClone();
 }
