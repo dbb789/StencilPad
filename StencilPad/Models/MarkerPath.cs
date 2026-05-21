@@ -5,7 +5,6 @@ namespace StencilPad.Models;
 public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 {
     public IEditablePolygonSet PolygonSet => _singlePolygon;
-    public override IHandleSource HandleSource => _singlePolygon.HandleSource;
 
     public EditablePolygon Polygon => _singlePolygon.Polygon;
     private SingleEditablePolygon _singlePolygon;
@@ -41,11 +40,13 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     public MarkerPath()
     {
         _singlePolygon = new();
+        SetHandleSource(_singlePolygon.HandleSource);
     }
     
     public MarkerPath(Polygon polygon)
     {
         _singlePolygon = new(polygon);
+        SetHandleSource(_singlePolygon.HandleSource);
     }
     
     public override void MirrorX(Unit centerY)

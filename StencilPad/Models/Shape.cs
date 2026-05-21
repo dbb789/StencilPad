@@ -6,7 +6,6 @@ namespace StencilPad.Models;
 public class Shape : SheetElement<Shape>, IPolygonSheetElement
 {
     public IEditablePolygonSet PolygonSet => _polygonList;
-    public override IHandleSource HandleSource => _polygonList.HandleSource;
 
     private EditablePolygonList _polygonList;
 
@@ -57,6 +56,8 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         _polygonList = new();
 
         _polygonList.Add(new EditablePolygon());
+
+        SetHandleSource(_polygonList.HandleSource);
     }
     
     public Shape(Polygon polygon)
@@ -68,6 +69,8 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         editablePolygon.AssignFrom(polygon);
 
         _polygonList.Add(editablePolygon);
+
+        SetHandleSource(_polygonList.HandleSource);
     }
 
     public void Add(Polygon polygon)

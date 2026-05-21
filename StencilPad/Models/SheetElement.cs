@@ -35,37 +35,64 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public event Action? TransformChanged;
 
-    public abstract IHandleSource HandleSource { get; }
-
-    public event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded
+    private IHandleSource? _handleSource;
+    
+    public IHandleSource HandleSource
     {
-        add => HandleSource.HandleAdded += value;
-        remove => HandleSource.HandleAdded -= value;
+        get => _handleSource ?? throw new InvalidOperationException("HandleSource not set");
     }
 
-    public event Action<IHandleSource, Handle>? HandleRemoved
-    {
-        add => HandleSource.HandleRemoved += value;
-        remove => HandleSource.HandleRemoved -= value;
-    }
-
-    public event Action<IHandleSource, Handle, Unit2D>? HandleMoved
-    {
-        add => HandleSource.HandleMoved += value;
-        remove => HandleSource.HandleMoved -= value;
-    }
-
-    public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged
-    {
-        add => HandleSource.HandleSelectionChanged += value;
-        remove => HandleSource.HandleSelectionChanged -= value;
-    }
+    public event Action<ISheetElement, Handle, Unit2D, bool>? HandleAdded;
+    public event Action<ISheetElement, Handle>? HandleRemoved;
+    public event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
+    public event Action<ISheetElement, Handle, bool>? HandleSelectionChanged;
 
     public void QueryHandles(Action<Handle, Unit2D, bool> func) => HandleSource.QueryHandles(func);
     public void SetHandleSelected(Handle handle, bool selected) => HandleSource.SetHandleSelected(handle, selected);
     public Unit2D GetPoint(Handle handle) => HandleSource.GetPoint(handle);
     public void SetPoint(Handle handle, Unit2D position) => HandleSource.SetPoint(handle, position);
 
+    protected void SetHandleSource(IHandleSource newHandleSource)
+    {
+        if (_handleSource is not null)
+        {
+            _handleSource.HandleAdded -= InvokeHandleAdded;
+            _handleSource.HandleRemoved -= InvokeHandleRemoved;
+            _handleSource.HandleMoved -= InvokeHandleMoved;
+            _handleSource.HandleSelectionChanged -= InvokeHandleSelectionChanged;
+        }
+
+        _handleSource = newHandleSource;
+
+        if (_handleSource is not null)
+        {
+            _handleSource.HandleAdded += InvokeHandleAdded;
+            _handleSource.HandleRemoved += InvokeHandleRemoved;
+            _handleSource.HandleMoved += InvokeHandleMoved;
+            _handleSource.HandleSelectionChanged += InvokeHandleSelectionChanged;
+        }
+    }
+
+    private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
+    {
+        HandleAdded?.Invoke(this, handle, position, selected);
+    }
+
+    private void InvokeHandleRemoved(IHandleSource source, Handle handle)
+    {
+        HandleRemoved?.Invoke(this, handle);
+    }
+
+    private void InvokeHandleMoved(IHandleSource source, Handle handle, Unit2D position)
+    {
+        HandleMoved?.Invoke(this, handle, position);
+    }
+
+    private void InvokeHandleSelectionChanged(IHandleSource source, Handle handle, bool selected)
+    {
+        HandleSelectionChanged?.Invoke(this, handle, selected);
+    }
+    
     public abstract void MirrorX(Unit centerY);
     public abstract void MirrorY(Unit centerX);
     public abstract void Translate(Unit2D delta);

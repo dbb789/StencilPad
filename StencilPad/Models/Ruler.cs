@@ -4,18 +4,18 @@ namespace StencilPad.Models;
 
 public class Ruler : SheetElement<Ruler>
 {
-    public override MinMaxHandleSource HandleSource { get; }
+    private MinMaxHandleSource _minMaxHandleSource;
 
     public Unit2D Min
     {
-        get => HandleSource.Min;
-        set => HandleSource.Min = value;
+        get => _minMaxHandleSource.Min;
+        set => _minMaxHandleSource.Min = value;
     }
     
     public Unit2D Max
     {
-        get => HandleSource.Max;
-        set => HandleSource.Max = value;
+        get => _minMaxHandleSource.Max;
+        set => _minMaxHandleSource.Max = value;
     }
 
     public Unit Length => (Max - Min).Magnitude;
@@ -24,14 +24,16 @@ public class Ruler : SheetElement<Ruler>
     
     public Ruler()
     {
-        HandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
-        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _minMaxHandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
+        _minMaxHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        SetHandleSource(_minMaxHandleSource);
     }
     
     public Ruler(Unit2D start, Unit2D end)
     {
-        HandleSource = new MinMaxHandleSource(start, end);
-        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _minMaxHandleSource = new MinMaxHandleSource(start, end);
+        _minMaxHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        SetHandleSource(_minMaxHandleSource);
     }
     
     public override void MirrorX(Unit centerY)
@@ -59,7 +61,7 @@ public class Ruler : SheetElement<Ruler>
     
     public override void AssignFrom(Ruler other)
     {
-        HandleSource.AssignFrom(other.HandleSource);
+        _minMaxHandleSource.AssignFrom(other._minMaxHandleSource);
         Transform = other.Transform;
     }
 
