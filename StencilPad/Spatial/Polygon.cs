@@ -183,6 +183,122 @@ public class Polygon : IPolygon
         }
     }
 
+    public UnitBounds CalculateBounds()
+    {
+        if (_vertices.Count == 0)
+        {
+            return UnitBounds.Empty;
+        }
+
+        var bounds = UnitBounds.FromMinMax(_vertices[0].Position, _vertices[0].Position);
+
+        for (int i = 1; i < _vertices.Count; i++)
+        {
+            bounds = bounds.Extend(_vertices[i].Position);
+        }
+
+        for (int i = 0; i < _edges.Count; i++)
+        {
+            if (_edges[i].Type != EdgeType.Bezier)
+            {
+                continue;
+            }
+
+            var p0 = _vertices[i].Position;
+            var p3 = _vertices[(i + 1) % _vertices.Count].Position;
+            var p1 = p0 + _edges[i].ControlBeginOffset;
+            var p2 = p3 + _edges[i].ControlEndOffset;
+
+            double p0x = p0.X.Millimeters, p1x = p1.X.Millimeters, p2x = p2.X.Millimeters, p3x = p3.X.Millimeters;
+            double p0y = p0.Y.Millimeters, p1y = p1.Y.Millimeters, p2y = p2.Y.Millimeters, p3y = p3.Y.Millimeters;
+
+            double minX = Math.Min(p0x, p3x), maxX = Math.Max(p0x, p3x);
+            double minY = Math.Min(p0y, p3y), maxY = Math.Max(p0y, p3y);
+
+            ExtendBezierAxis(p0x, p1x, p2x, p3x, ref minX, ref maxX);
+            ExtendBezierAxis(p0y, p1y, p2y, p3y, ref minY, ref maxY);
+
+            bounds = bounds.Extend(new Unit2D(Unit.FromMillimeters(minX), Unit.FromMillimeters(minY)));
+            bounds = bounds.Extend(new Unit2D(Unit.FromMillimeters(maxX), Unit.FromMillimeters(maxY)));
+        }
+
+        return bounds;
+    }
+
+    private static void ExtendBezierAxis(double p0, double p1, double p2, double p3, ref double min, ref double max)
+    {
+        // Solve B'(t) = 0: 3[At² + Bt + C] = 0
+        // A = -p0 + 3p1 - 3p2 + p3
+        // B = 2(p0 - 2p1 + p2)
+        // C = p1 - p0
+        double a = -p0 + 3 * p1 - 3 * p2 + p3;
+        double b = 2 * (p0 - 2 * p1 + p2);
+        double c = p1 - p0;
+
+        if (Math.Abs(a) < 1e-12)
+        {
+            if (Math.Abs(b) > 1e-12)
+            {
+                GetBezierMinMax(p0, p1, p2, p3, -c / b, ref min, ref max);
+            }
+            return;
+        }
+
+        double discriminant = b * b - 4 * a * c;
+
+        if (discriminant < 0)
+        {
+            return;
+        }
+
+        double sqrtD = Math.Sqrt(discriminant);
+        
+        GetBezierMinMax(p0, p1, p2, p3, (-b + sqrtD) / (2 * a), ref min, ref max);
+        GetBezierMinMax(p0, p1, p2, p3, (-b - sqrtD) / (2 * a), ref min, ref max);
+    }
+
+    private static void GetBezierMinMax(double p0,
+                                        double p1,
+                                        double p2,
+                                        double p3,
+                                        double t,
+                                        ref double min,
+                                        ref double max)
+    {
+        if (t <= 0 || t >= 1)
+        {
+            return;
+        }
+
+        double t_2 = t * t;
+        double t_3 = t_2 * t;
+        double mt = 1 - t;
+        double mt_2 = mt * mt;
+        double mt_3 = mt_2 * mt;
+
+        double val = mt_3 * p0 + 3 * mt_2 * t * p1 + 3 * mt * t_2 * p2 + t_3 * p3;
+
+        min = Math.Min(min, val);
+        max = Math.Max(max, val);
+    }
+
+    public Unit2D CalculateMidpoint()
+    {
+        if (_vertices.Count == 0)
+        {
+            return Unit2D.Zero;
+        }
+
+        var sum = Unit2D.Zero;
+
+        for (int i = 0; i < _vertices.Count; i++)
+        {
+            sum += _vertices[i].Position;
+        }
+
+        return sum / _vertices.Count;
+    }
+
     public void Clear()
     {
         for (int i = _vertices.Count - 1; i >= 0; --i)

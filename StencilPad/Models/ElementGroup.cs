@@ -58,6 +58,42 @@ public class ElementGroup : SheetElement<ElementGroup>
         Transform = Transform with { Position = Transform.Position + delta };
     }
 
+    public override void NormalizePosition()
+    {
+        if (_children.Count == 0)
+        {
+            return;
+        }
+
+        var sum = Unit2D.Zero;
+
+        foreach (var child in _children)
+        {
+            sum += child.Transform.Position;
+        }
+
+        var midpoint = sum / _children.Count;
+
+        foreach (var child in _children)
+        {
+            child.Transform = child.Transform with { Position = child.Transform.Position - midpoint };
+        }
+
+        Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
+    }
+
+    public override UnitBounds GetBounds()
+    {
+        UnitBounds? bounds = null;
+
+        foreach (var child in _children)
+        {
+            bounds = UnitBounds.Union(bounds, child.GetBounds().ApplyTransform(child.Transform));
+        }
+
+        return bounds ?? UnitBounds.Empty;
+    }
+
     public override void AssignFrom(ElementGroup other)
     {
         _children = new(other.Children.Select(child => child.DeepClone()));

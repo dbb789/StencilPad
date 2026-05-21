@@ -68,6 +68,8 @@ public class SelectionTool : ITool
 
         _overlay.ActionInvoked += ActionInvoked;
         _overlay.SelectionDragged += SelectionDragged;
+        _overlay.SelectionRotateStarted += SelectionRotateStarted;
+        _overlay.SelectionRotated += SelectionRotated;
     }
 
     public void ToolEnd()
@@ -83,6 +85,8 @@ public class SelectionTool : ITool
 
             _overlay.ActionInvoked -= ActionInvoked;
             _overlay.SelectionDragged -= SelectionDragged;
+            _overlay.SelectionRotateStarted -= SelectionRotateStarted;
+            _overlay.SelectionRotated -= SelectionRotated;
             _overlay.Dispose();
             _overlay = null;
         }
@@ -152,6 +156,23 @@ public class SelectionTool : ITool
         foreach (var selected in _sheet.Selection)
         {
             selected.Translate(delta);
+        }
+    }
+
+    private void SelectionRotateStarted()
+    {
+        foreach (var selected in _sheet.Selection)
+        {
+            selected.NormalizePosition();
+        }
+    }
+
+    private void SelectionRotated(double deltaRadians)
+    {
+        var deltaDegrees = (decimal)(deltaRadians * (180.0 / Math.PI));
+        foreach (var selected in _sheet.Selection)
+        {
+            selected.Transform = selected.Transform with { Angle = selected.Transform.Angle + deltaDegrees };
         }
     }
 

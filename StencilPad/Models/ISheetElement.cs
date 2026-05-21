@@ -22,6 +22,8 @@ public interface ISheetElement
     void MirrorX(Unit centerY);
     void MirrorY(Unit centerX);
     void Translate(Unit2D delta);
+    void NormalizePosition();
+    UnitBounds GetBounds();
     void AssignFromElement(ISheetElement other);
     ISheetElement DeepClone();
 }

@@ -58,7 +58,17 @@ public class Ruler : SheetElement<Ruler>
     {
         Transform = Transform with { Position = Transform.Position + delta };
     }
-    
+
+    public override void NormalizePosition()
+    {
+        var midpoint = (_minMaxHandleSource.Min + _minMaxHandleSource.Max) / 2;
+        _minMaxHandleSource.Min -= midpoint;
+        _minMaxHandleSource.Max -= midpoint;
+        Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
+    }
+
+    public override UnitBounds GetBounds() => UnitBounds.FromMinMax(_minMaxHandleSource.Min, _minMaxHandleSource.Max);
+
     public override void AssignFrom(Ruler other)
     {
         _minMaxHandleSource.AssignFrom(other._minMaxHandleSource);

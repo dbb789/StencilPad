@@ -76,6 +76,15 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         Transform = Transform with { Position = Transform.Position + delta };
     }
 
+    public override void NormalizePosition()
+    {
+        var midpoint = Polygon.CalculateMidpoint();
+        Polygon.Translate(-midpoint);
+        Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
+    }
+
+    public override UnitBounds GetBounds() => Polygon.CalculateBounds();
+
     public override void AssignFrom(MarkerPath other)
     {
         _singlePolygon.AssignFrom(other._singlePolygon);

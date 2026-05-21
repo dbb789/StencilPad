@@ -51,9 +51,13 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         }
     }
     
+    private UnitBounds? _cachedBounds;
+
     public Shape()
     {
         _polygonList = new();
+        _polygonList.PolygonAdded += OnPolygonAdded;
+        _polygonList.PolygonRemoved += OnPolygonRemoved;
 
         _polygonList.Add(new EditablePolygon());
 
@@ -63,7 +67,9 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public Shape(Polygon polygon)
     {
         _polygonList = new();
-        
+        _polygonList.PolygonAdded += OnPolygonAdded;
+        _polygonList.PolygonRemoved += OnPolygonRemoved;
+
         var editablePolygon = new EditablePolygon();
         
         editablePolygon.AssignFrom(polygon);
@@ -71,6 +77,23 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         _polygonList.Add(editablePolygon);
 
         SetHandleSource(_polygonList.HandleSource);
+    }
+
+    private void OnPolygonAdded(EditablePolygon polygon)
+    {
+        polygon.GeometryChanged += InvalidateBoundsCache;
+        _cachedBounds = null;
+    }
+
+    private void OnPolygonRemoved(EditablePolygon polygon)
+    {
+        polygon.GeometryChanged -= InvalidateBoundsCache;
+        _cachedBounds = null;
+    }
+
+    private void InvalidateBoundsCache()
+    {
+        _cachedBounds = null;
     }
 
     public void Add(Polygon polygon)
@@ -113,6 +136,23 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public override void Translate(Unit2D delta)
     {
         Transform = Transform with { Position = Transform.Position + delta };
+    }
+
+    public override void NormalizePosition()
+    {
+        var midpoint = _polygonList.CalculateMidpoint();
+
+        foreach (var polygon in _polygonList)
+        {
+            polygon.Translate(-midpoint);
+        }
+
+        Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
+    }
+
+    public override UnitBounds GetBounds()
+    {
+        return _cachedBounds ??= _polygonList.CalculateBounds();
     }
 
     public override void AssignFrom(Shape other)

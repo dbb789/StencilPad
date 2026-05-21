@@ -66,6 +66,35 @@ public class EditablePolygonList : IEditablePolygonSet
         _handleSource.SetChildren(_polygons);
     }
 
+    public UnitBounds CalculateBounds()
+    {
+        UnitBounds? bounds = null;
+
+        foreach (var polygon in _polygons)
+        {
+            bounds = UnitBounds.Union(bounds, polygon.CalculateBounds());
+        }
+
+        return bounds ?? UnitBounds.Empty;
+    }
+
+    public Unit2D CalculateMidpoint()
+    {
+        if (_polygons.Count == 0)
+        {
+            return Unit2D.Zero;
+        }
+
+        var sum = Unit2D.Zero;
+
+        foreach (var polygon in _polygons)
+        {
+            sum += polygon.CalculateMidpoint();
+        }
+
+        return sum / _polygons.Count;
+    }
+
     public List<EditablePolygon>.Enumerator GetEnumerator()
     {
         return _polygons.GetEnumerator();
