@@ -150,9 +150,14 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds()
+    public override UnitBounds GetBounds(UnitTransform transform)
     {
-        return _cachedBounds ??= _polygonList.CalculateBounds();
+        if (transform == UnitTransform.Identity)
+        {
+            return _cachedBounds ??= _polygonList.CalculateBounds();
+        }
+
+        return _polygonList.CalculateBounds(transform);
     }
 
     public override void AssignFrom(Shape other)

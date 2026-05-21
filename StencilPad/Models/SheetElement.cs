@@ -85,7 +85,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public UnitBounds GetTransformedBounds()
     {
-        return GetBounds().ApplyTransform(Transform);
+        return GetBounds(Transform);
     }
     
     private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
@@ -112,7 +112,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
     public abstract void MirrorY(Unit centerX);
     public abstract void Translate(Unit2D delta);
     public abstract void NormalizePosition();
-    public abstract UnitBounds GetBounds();
+    public abstract UnitBounds GetBounds(UnitTransform transform);
     public abstract void AssignFromElement(ISheetElement other);
     public abstract ISheetElement DeepClone();
 }

@@ -183,18 +183,21 @@ public class Polygon : IPolygon
         }
     }
 
-    public UnitBounds CalculateBounds()
+    public UnitBounds CalculateBounds() => CalculateBounds(UnitTransform.Identity);
+
+    public UnitBounds CalculateBounds(UnitTransform transform)
     {
         if (_vertices.Count == 0)
         {
             return UnitBounds.Empty;
         }
 
-        var bounds = UnitBounds.FromMinMax(_vertices[0].Position, _vertices[0].Position);
+        var first = transform.Apply(_vertices[0].Position);
+        var bounds = UnitBounds.FromMinMax(first, first);
 
         for (int i = 1; i < _vertices.Count; i++)
         {
-            bounds = bounds.Extend(_vertices[i].Position);
+            bounds = bounds.Extend(transform.Apply(_vertices[i].Position));
         }
 
         for (int i = 0; i < _edges.Count; i++)
@@ -204,10 +207,10 @@ public class Polygon : IPolygon
                 continue;
             }
 
-            var p0 = _vertices[i].Position;
-            var p3 = _vertices[(i + 1) % _vertices.Count].Position;
-            var p1 = p0 + _edges[i].ControlBeginOffset;
-            var p2 = p3 + _edges[i].ControlEndOffset;
+            var p0 = transform.Apply(_vertices[i].Position);
+            var p3 = transform.Apply(_vertices[(i + 1) % _vertices.Count].Position);
+            var p1 = transform.Apply(_vertices[i].Position + _edges[i].ControlBeginOffset);
+            var p2 = transform.Apply(_vertices[(i + 1) % _vertices.Count].Position + _edges[i].ControlEndOffset);
 
             double p0x = p0.X.Millimeters, p1x = p1.X.Millimeters, p2x = p2.X.Millimeters, p3x = p3.X.Millimeters;
             double p0y = p0.Y.Millimeters, p1y = p1.Y.Millimeters, p2y = p2.Y.Millimeters, p3y = p3.Y.Millimeters;

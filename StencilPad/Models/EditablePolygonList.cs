@@ -66,13 +66,15 @@ public class EditablePolygonList : IEditablePolygonSet
         _handleSource.SetChildren(_polygons);
     }
 
-    public UnitBounds CalculateBounds()
+    public UnitBounds CalculateBounds() => CalculateBounds(UnitTransform.Identity);
+
+    public UnitBounds CalculateBounds(UnitTransform transform)
     {
         UnitBounds? bounds = null;
 
         foreach (var polygon in _polygons)
         {
-            bounds = UnitBounds.Union(bounds, polygon.CalculateBounds());
+            bounds = UnitBounds.Union(bounds, polygon.CalculateBounds(transform));
         }
 
         return bounds ?? UnitBounds.Empty;

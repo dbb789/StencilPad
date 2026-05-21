@@ -23,7 +23,7 @@ public interface ISheetElement
     void MirrorY(Unit centerX);
     void Translate(Unit2D delta);
     void NormalizePosition();
-    UnitBounds GetBounds();
+    UnitBounds GetBounds(UnitTransform transform);
     UnitBounds GetTransformedBounds();
     void AssignFromElement(ISheetElement other);
     ISheetElement DeepClone();

@@ -82,13 +82,13 @@ public class ElementGroup : SheetElement<ElementGroup>
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds()
+    public override UnitBounds GetBounds(UnitTransform transform)
     {
         UnitBounds? bounds = null;
 
         foreach (var child in _children)
         {
-            bounds = UnitBounds.Union(bounds, child.GetBounds().ApplyTransform(child.Transform));
+            bounds = UnitBounds.Union(bounds, child.GetBounds(transform * child.Transform));
         }
 
         return bounds ?? UnitBounds.Empty;

@@ -124,7 +124,7 @@ public class TextElement : SheetElement<TextElement>
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds() => _boundsHandleSource.Bounds;
+    public override UnitBounds GetBounds(UnitTransform transform) => _boundsHandleSource.Bounds.ApplyTransform(transform);
 
     public override void AssignFrom(TextElement other)
     {
