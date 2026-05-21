@@ -15,7 +15,8 @@ public class MarkerPathSchema : SheetElementSchema
         {
             Polygon = PolygonSchema.Pack(markerPath.Polygon),
             Offset = markerPath.Offset,
-            Spacing = markerPath.Spacing
+            Spacing = markerPath.Spacing,
+            Transform = markerPath.Transform
         };
     }
 
@@ -24,8 +25,8 @@ public class MarkerPathSchema : SheetElementSchema
         return new MarkerPath(PolygonSchema.Unpack(Polygon))
         {
             Offset = Offset,
-            Spacing = Spacing
+            Spacing = Spacing,
+            Transform = Transform
         };
-
     }
 }

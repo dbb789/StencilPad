@@ -22,7 +22,8 @@ public class TextElementSchema : SheetElementSchema
             Text = element.Text,
             FontName = element.FontName,
             FontSize = element.FontSize,
-            Color = element.Color
+            Color = element.Color,
+            Transform = element.Transform
         };
     }
 
@@ -33,7 +34,8 @@ public class TextElementSchema : SheetElementSchema
             Max = Max,
             FontName = FontName,
             FontSize = FontSize,
-            Color = Color
+            Color = Color,
+            Transform = Transform
         };
     }
 }

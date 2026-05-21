@@ -11,7 +11,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     private EditablePolygonList _polygonList;
 
     private UnitTransform _transform = UnitTransform.Identity;
-    public UnitTransform Transform
+    public override UnitTransform Transform
     {
         get => _transform;
         set

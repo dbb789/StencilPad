@@ -5,6 +5,7 @@ namespace StencilPad.Models;
 public interface ISheetElement
 {
     Guid Id { get; }
+    UnitTransform Transform { get; set; }
     IHandleSource HandleSource { get; }
 
     void MirrorX(Unit centerY);

@@ -6,7 +6,6 @@ namespace StencilPad.Schemas;
 public class ElementGroupSchema : SheetElementSchema
 {
     public SheetElementSchema[] Children { get; set; } = [];
-    public UnitTransform Transform { get; set; } = UnitTransform.Identity;
 
     public static ElementGroupSchema Pack(ElementGroup elementGroup)
     {

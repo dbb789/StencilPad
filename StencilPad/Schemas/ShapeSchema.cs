@@ -7,7 +7,6 @@ namespace StencilPad.Schemas;
 public class ShapeSchema : SheetElementSchema
 {
     public PolygonSchema [] Polygons { get; set; } = [];
-    public UnitTransform Transform { get; set; } = UnitTransform.Identity;
     public Color FillColor { get; set; } = new();
     public Color LineColor { get; set; } = new();
     public Unit LineWidth { get; set; } = new();

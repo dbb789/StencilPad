@@ -24,11 +24,13 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += InvokeRendererDirty;
+        _imageElement.PropertyChanged += OnPropertyChanged;
     }
 
     public override void Dispose()
     {
         _imageElement.GeometryChanged -= InvokeRendererDirty;
+        _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
     public override void Render(DrawingContext dc)
@@ -40,6 +42,30 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
             return;
         }
 
+        var transform = CreateTransform();
+        dc.PushTransform(transform);
         dc.DrawRectangle(Brushes.Transparent, OutlinePen, bounds.Millimeters);
+        dc.Pop();
+    }
+
+    private Transform CreateTransform()
+    {
+        var group = new TransformGroup();
+        if (_imageElement.Transform.Angle != 0m)
+        {
+            group.Children.Add(new RotateTransform((double)_imageElement.Transform.Angle));
+        }
+        group.Children.Add(new TranslateTransform(_imageElement.Transform.Position.X.Millimeters,
+                                                  _imageElement.Transform.Position.Y.Millimeters));
+        group.Freeze();
+        return group;
+    }
+
+    private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ImageElement.Transform))
+        {
+            InvokeRendererDirty();
+        }
     }
 }

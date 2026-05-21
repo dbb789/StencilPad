@@ -6,6 +6,20 @@ public class ImageElement : SheetElement<ImageElement>
 {
     public override BoundsHandleSource HandleSource { get; }
 
+    public override UnitTransform Transform
+    {
+        get => HandleSource.Transform;
+        set
+        {
+            if (HandleSource.Transform != value)
+            {
+                HandleSource.Transform = value;
+                OnPropertyChanged();
+                GeometryChanged?.Invoke();
+            }
+        }
+    }
+
     public Unit2D Min
     {
         get => HandleSource.Bounds.Min;
@@ -46,23 +60,25 @@ public class ImageElement : SheetElement<ImageElement>
 
     public override void MirrorX(Unit centerY)
     {
-        HandleSource.Bounds = UnitBounds.FromMinMax(
-            new Unit2D(Min.X, (centerY * 2) - Min.Y),
-            new Unit2D(Max.X, (centerY * 2) - Max.Y)
-        );
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { Y = (centerY * 2) - Transform.Position.Y },
+            Angle = -Transform.Angle
+        };
     }
 
     public override void MirrorY(Unit centerX)
     {
-        HandleSource.Bounds = UnitBounds.FromMinMax(
-            new Unit2D((centerX * 2) - Min.X, Min.Y),
-            new Unit2D((centerX * 2) - Max.X, Max.Y)
-        );
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { X = (centerX * 2) - Transform.Position.X },
+            Angle = -Transform.Angle
+        };
     }
 
     public override void Translate(Unit2D delta)
     {
-        HandleSource.Bounds += delta;
+        Transform = Transform with { Position = Transform.Position + delta };
     }
 
     public override void AssignFrom(ImageElement other)

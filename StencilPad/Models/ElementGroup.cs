@@ -10,7 +10,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     private List<ISheetElement> _children;
 
     private UnitTransform _transform = UnitTransform.Identity;
-    public UnitTransform Transform
+    public override UnitTransform Transform
     {
         get => _transform;
         set
