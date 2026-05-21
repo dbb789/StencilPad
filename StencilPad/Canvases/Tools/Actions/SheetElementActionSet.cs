@@ -53,8 +53,8 @@ public class SheetElementActionSet
 
                                 // Normalise the polygon so that the vertices
                                 // are relative to the new shape's current
-                                // position.
-                                newPolygon.Translate(element.Position - newShape.Position);
+                                // transform.
+                                newPolygon.Transform(newShape.Transform.Invert() * element.Transform);
                                 newShape.Add(newPolygon);
                             }
                         }
@@ -139,7 +139,7 @@ public class SheetElementActionSet
 
                         foreach (var element in added)
                         {
-                            element.Translate(group.Position);
+                            element.Translate(group.Transform.Position);
                             operation.Add(new AddSheetElementOperation(sheet, element));
                         }
                     }

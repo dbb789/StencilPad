@@ -7,10 +7,10 @@ public class EditablePolygonList : IEditablePolygonSet
 {
     public IHandleSource HandleSource => _handleSource;
 
-    public Unit2D Position
+    public UnitTransform Transform
     {
-        get => _handleSource.Position;
-        set => _handleSource.Position = value;
+        get => _handleSource.Transform;
+        set => _handleSource.Transform = value;
     }
     
     private List<EditablePolygon> _polygons;
@@ -69,7 +69,7 @@ public class EditablePolygonList : IEditablePolygonSet
             PolygonAdded?.Invoke(polygon);
         }
 
-        _handleSource.Position = other._handleSource.Position;
+        _handleSource.Transform = other._handleSource.Transform;
         _handleSource.SetChildren(_polygons);
     }
 

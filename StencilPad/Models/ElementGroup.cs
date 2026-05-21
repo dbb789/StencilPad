@@ -9,16 +9,16 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     private List<ISheetElement> _children;
 
-    public Unit2D _position = Unit2D.Zero;
-    public Unit2D Position
+    private UnitTransform _transform = UnitTransform.Identity;
+    public UnitTransform Transform
     {
-        get => _position;
+        get => _transform;
         set
         {
-            if (_position != value)
+            if (_transform != value)
             {
-                _position = value;
-                HandleSource.Position = value;                
+                _transform = value;
+                HandleSource.Transform = value;                
                 OnPropertyChanged();
             }
         }
@@ -40,29 +40,43 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     public override void MirrorX(Unit centerY)
     {
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { Y = (centerY * 2) - Transform.Position.Y },
+            Angle = -Transform.Angle
+        };
+
         foreach (var child in _children)
         {
-            child.MirrorX(centerY);
+            child.MirrorX(Unit.Zero);
         }
     }
 
     public override void MirrorY(Unit centerX)
     {
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { X = (centerX * 2) - Transform.Position.X },
+            Angle = -Transform.Angle
+        };
+
         foreach (var child in _children)
         {
-            child.MirrorY(centerX);
+            child.MirrorY(Unit.Zero);
         }
     }
     
     public override void Translate(Unit2D delta)
     {
-        Position += delta;
+        Transform = Transform with { Position = Transform.Position + delta };
     }
 
     public override void AssignFrom(ElementGroup other)
     {
         _children = new(other.Children.Select(child => child.DeepClone()));
         HandleSource.SetChildren(_children.Select(child => child.HandleSource));
+
+        Transform = other.Transform;
 
         ChildrenChanged?.Invoke();
     }

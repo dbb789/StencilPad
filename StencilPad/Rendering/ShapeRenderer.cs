@@ -12,7 +12,7 @@ public class ShapeRenderer : SheetElementRenderer
     {
         get
         {
-            return GetGeometryBounds() + _shape.Position;
+            return GetGeometryBounds().ApplyTransform(_shape.Transform);
         }
     }
 
@@ -69,15 +69,37 @@ public class ShapeRenderer : SheetElementRenderer
     {
         var geometry = GetGeometry();
 
-        return geometry.FillContains((unit -_shape.Position).Millimeters);
+        return geometry.FillContains(_shape.Transform.InverseApply(unit).Millimeters);
     }
 
     public override bool BoundsTest(UnitBounds bounds)
     {
+        // This is tricky because a rotated rectangle is not an axis-aligned rectangle in local space.
+        // For simplicity, we'll check if any corner of the input bounds is inside the shape, 
+        // OR if any corner of the shape's bounds is inside the input bounds.
+        // Or more accurately, we can transform the input bounds into local space (it becomes a polygon)
+        // but WPF's FillContainsWithDetail only takes a Geometry.
+        
         var geometry = GetGeometry();
-        var rect = new RectangleGeometry((bounds -_shape.Position).Millimeters);
+        
+        // Transform the selection bounds into the local space of the shape.
+        // It becomes a rotated rectangle.
+        var localNW = _shape.Transform.InverseApply(bounds.NW);
+        var localNE = _shape.Transform.InverseApply(bounds.NE);
+        var localSW = _shape.Transform.InverseApply(bounds.SW);
+        var localSE = _shape.Transform.InverseApply(bounds.SE);
 
-        return geometry.FillContainsWithDetail(rect) != IntersectionDetail.Empty;
+        var localSelectionGeometry = new StreamGeometry();
+        using (var ctx = localSelectionGeometry.Open())
+        {
+            ctx.BeginFigure(localNW.Millimeters, true, true);
+            ctx.LineTo(localNE.Millimeters, true, false);
+            ctx.LineTo(localSE.Millimeters, true, false);
+            ctx.LineTo(localSW.Millimeters, true, false);
+        }
+        localSelectionGeometry.Freeze();
+
+        return geometry.FillContainsWithDetail(localSelectionGeometry) != IntersectionDetail.Empty;
     }
 
     private void MarkGeometryDirty()
@@ -95,18 +117,27 @@ public class ShapeRenderer : SheetElementRenderer
         _fill = new SolidColorBrush(_shape.FillColor);
         _fill.Freeze();
         
-        _transform = new TranslateTransform(_shape.Position.X.Millimeters,
-                                            _shape.Position.Y.Millimeters);
-        _transform.Freeze();
+        _transform = CreateTransform();
+    }
+
+    private Transform CreateTransform()
+    {
+        var group = new TransformGroup();
+        if (_shape.Transform.Angle != 0m)
+        {
+            group.Children.Add(new RotateTransform((double)_shape.Transform.Angle));
+        }
+        group.Children.Add(new TranslateTransform(_shape.Transform.Position.X.Millimeters,
+                                                  _shape.Transform.Position.Y.Millimeters));
+        group.Freeze();
+        return group;
     }
     
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Shape.Position))
+        if (e.PropertyName == nameof(Shape.Transform))
         {
-            _transform = new TranslateTransform(_shape.Position.X.Millimeters,
-                                                _shape.Position.Y.Millimeters);
-            _transform.Freeze();
+            _transform = CreateTransform();
         }
         else
         {

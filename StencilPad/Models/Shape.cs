@@ -10,16 +10,16 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     private EditablePolygonList _polygonList;
 
-    public Unit2D _position = Unit2D.Zero;
-    public Unit2D Position
+    private UnitTransform _transform = UnitTransform.Identity;
+    public UnitTransform Transform
     {
-        get => _position;
+        get => _transform;
         set
         {
-            if (_position != value)
+            if (_transform != value)
             {
-                _position = value;
-                _polygonList.Position = value;                
+                _transform = value;
+                _polygonList.Transform = value;                
                 OnPropertyChanged();
             }
         }
@@ -70,7 +70,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public Shape()
     {
         _polygonList = new();
-        _position = Unit2D.Zero;
+        _transform = UnitTransform.Identity;
 
         _polygonList.Add(new EditablePolygon());
     }
@@ -78,7 +78,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     public Shape(Polygon polygon)
     {
         _polygonList = new();
-        _position = Unit2D.Zero;
+        _transform = UnitTransform.Identity;
         
         var editablePolygon = new EditablePolygon();
         
@@ -98,7 +98,11 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     public override void MirrorX(Unit centerY)
     {
-        Position = Position with { Y = (centerY * 2) - Position.Y };
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { Y = (centerY * 2) - Transform.Position.Y },
+            Angle = -Transform.Angle
+        };
 
         foreach (var polygon in _polygonList)
         {
@@ -108,7 +112,11 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     public override void MirrorY(Unit centerX)
     {
-        Position = Position with { X = (centerX * 2) - Position.X };
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { X = (centerX * 2) - Transform.Position.X },
+            Angle = -Transform.Angle
+        };
 
         foreach (var polygon in _polygonList)
         {
@@ -118,14 +126,14 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     public override void Translate(Unit2D delta)
     {
-        Position += delta;
+        Transform = Transform with { Position = Transform.Position + delta };
     }
 
     public override void AssignFrom(Shape other)
     {
         _polygonList.AssignFrom(other._polygonList);
 
-        Position = other.Position;
+        Transform = other.Transform;
         FillColor = other.FillColor;
         LineColor = other.LineColor;
         LineWidth = other.LineWidth;

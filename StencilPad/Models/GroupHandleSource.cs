@@ -4,25 +4,25 @@ namespace StencilPad.Models;
 
 public class GroupHandleSource : IHandleSource
 {
-    private Unit2D _position;
+    private UnitTransform _transform = UnitTransform.Identity;
     
-    public Unit2D Position
+    public UnitTransform Transform
     {
-        get => _position;
+        get => _transform;
         set
         {
-            if (_position == value)
+            if (_transform == value)
             {
                 return;
             }
 
-            _position = value;
+            _transform = value;
 
             foreach (var child in _children)
             {
                 child.QueryHandles((handle, position, selected) =>
                 {
-                    HandleMoved?.Invoke(this, handle, position + Position);
+                    HandleMoved?.Invoke(this, handle, Transform.Apply(position));
                 });
             }
         }
@@ -77,7 +77,7 @@ public class GroupHandleSource : IHandleSource
         child.QueryHandles((handle, position, selected) =>
         {
             _routing[handle.HandleSetId] = child;
-            HandleAdded?.Invoke(this, handle, position + Position, selected);
+            HandleAdded?.Invoke(this, handle, Transform.Apply(position), selected);
         });
     }
 
@@ -102,7 +102,7 @@ public class GroupHandleSource : IHandleSource
         {
             child.QueryHandles((handle, position, selected) =>
             {
-                func(handle, position + Position, selected);
+                func(handle, Transform.Apply(position), selected);
             });
         }
     }
@@ -114,18 +114,18 @@ public class GroupHandleSource : IHandleSource
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        _routing[handle.HandleSetId].SetPoint(handle, position - Position);
+        _routing[handle.HandleSetId].SetPoint(handle, Transform.InverseApply(position));
     }
 
     public Unit2D GetPoint(Handle handle)
     {
-        return _routing[handle.HandleSetId].GetPoint(handle) + Position;
+        return Transform.Apply(_routing[handle.HandleSetId].GetPoint(handle));
     }
 
     private void OnHandleAdded(IHandleSource handleSource, Handle handle, Unit2D position, bool selected)
     {
         _routing[handle.HandleSetId] = handleSource;        
-        HandleAdded?.Invoke(this, handle, position + Position, selected);
+        HandleAdded?.Invoke(this, handle, Transform.Apply(position), selected);
     }
 
     private void OnHandleRemoved(IHandleSource handleSource, Handle handle)
@@ -135,7 +135,7 @@ public class GroupHandleSource : IHandleSource
     
     private void OnHandleMoved(IHandleSource handleSource, Handle handle, Unit2D position)
     {
-        HandleMoved?.Invoke(this, handle, position + Position);
+        HandleMoved?.Invoke(this, handle, Transform.Apply(position));
     }
 
     private void OnHandleSelectionChanged(IHandleSource handleSource, Handle handle, bool selected)

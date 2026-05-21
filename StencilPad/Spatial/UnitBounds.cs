@@ -116,6 +116,19 @@ public readonly record struct UnitBounds
                                      Unit.Max(max.Y, point.Y)));
     }
 
+    public UnitBounds ApplyTransform(UnitTransform transform)
+    {
+        var nw = transform.Apply(NW);
+        var ne = transform.Apply(NE);
+        var sw = transform.Apply(SW);
+        var se = transform.Apply(SE);
+
+        return FromMinMax(new Unit2D(Unit.Min(Unit.Min(nw.X, ne.X), Unit.Min(sw.X, se.X)),
+                                     Unit.Min(Unit.Min(nw.Y, ne.Y), Unit.Min(sw.Y, se.Y))),
+                          new Unit2D(Unit.Max(Unit.Max(nw.X, ne.X), Unit.Max(sw.X, se.X)),
+                                     Unit.Max(Unit.Max(nw.Y, ne.Y), Unit.Max(sw.Y, se.Y))));
+    }
+
     public override string ToString()
     {
         return $"[{_min}, {_max}]";
