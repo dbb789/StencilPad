@@ -28,9 +28,9 @@ public class GroupHandleSource : IHandleSource
 
     public void SetChildren(IEnumerable<ISheetElement> children)
     {
-        foreach (var child in _children.ToList())
+        for (int i = _children.Count - 1; i >= 0; i--)
         {
-            Remove(child);
+            Remove(_children[i]);
         }
 
         _routing.Clear();
