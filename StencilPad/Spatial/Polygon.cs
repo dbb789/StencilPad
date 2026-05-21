@@ -219,6 +219,28 @@ public class Polygon : IPolygon
         GeometryChanged?.Invoke();
     }
 
+    public void Transform(UnitTransform transform)
+    {
+        for (int i = 0; i < _vertices.Count; ++i)
+        {
+            var vertex = _vertices[i];
+            _vertices.Set(i, vertex with { Position = transform.Apply(vertex.Position) });
+        }
+
+        for (int i = 0; i < _edges.Count; ++i)
+        {
+            var edge = _edges[i];
+            _edges.Set(i, edge with
+            {
+                ControlBeginOffset = transform.Rotate(edge.ControlBeginOffset),
+                ControlEndOffset = transform.Rotate(edge.ControlEndOffset)
+            });
+        }
+
+        InvalidateAllPositions?.Invoke();
+        GeometryChanged?.Invoke();
+    }
+
     public void MirrorX(Unit centerY)
     {
         for (int i = 0; i < _vertices.Count; ++i)

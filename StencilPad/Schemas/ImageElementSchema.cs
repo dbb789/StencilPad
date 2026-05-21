@@ -17,12 +17,16 @@ public class ImageElementSchema : SheetElementSchema
         {
             Min = element.Min,
             Max = element.Max,
-            ImageData = element.ImageData
+            ImageData = element.ImageData,
+            Transform = element.Transform
         };
     }
 
     public override ImageElement Unpack()
     {
-        return new ImageElement(Min, Max, ImageData);
+        return new ImageElement(Min, Max, ImageData)
+        {
+            Transform = Transform
+        };
     }
 }

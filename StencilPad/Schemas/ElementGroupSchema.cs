@@ -12,7 +12,8 @@ public class ElementGroupSchema : SheetElementSchema
         return new ElementGroupSchema
         {
             Children = elementGroup.Children
-                .Select(Pack).Where(c => c is not null).ToArray()!
+                .Select(Pack).Where(c => c is not null).ToArray()!,
+            Transform = elementGroup.Transform
         };
     }
 
@@ -20,6 +21,9 @@ public class ElementGroupSchema : SheetElementSchema
     {
         var children = Children.Select(c => c.Unpack()).ToArray();
         
-        return new ElementGroup(children);
+        var group = new ElementGroup(children);
+        group.Transform = Transform;
+        
+        return group;
     }
 }

@@ -4,18 +4,18 @@ namespace StencilPad.Models;
 
 public class ImageElement : SheetElement<ImageElement>
 {
-    public override BoundsHandleSource HandleSource { get; }
+    private BoundsHandleSource _boundsHandleSource;
 
     public Unit2D Min
     {
-        get => HandleSource.Bounds.Min;
-        set => HandleSource.Bounds = UnitBounds.FromMinMax(value, HandleSource.Bounds.Max);
+        get => _boundsHandleSource.Bounds.Min;
+        set => _boundsHandleSource.Bounds = UnitBounds.FromMinMax(value, _boundsHandleSource.Bounds.Max);
     }
 
     public Unit2D Max
     {
-        get => HandleSource.Bounds.Max;
-        set => HandleSource.Bounds = UnitBounds.FromMinMax(HandleSource.Bounds.Min, value);
+        get => _boundsHandleSource.Bounds.Max;
+        set => _boundsHandleSource.Bounds = UnitBounds.FromMinMax(_boundsHandleSource.Bounds.Min, value);
     }
 
     private byte[] _imageData = [];
@@ -33,41 +33,45 @@ public class ImageElement : SheetElement<ImageElement>
     
     public ImageElement()
     {
-        HandleSource = new BoundsHandleSource(UnitBounds.Empty);
-        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _boundsHandleSource = new BoundsHandleSource(UnitBounds.Empty);
+        _boundsHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        SetHandleSource(_boundsHandleSource);
     }
 
     public ImageElement(Unit2D min, Unit2D max, byte[] imageData)
     {
-        HandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(min, max));
-        HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        _boundsHandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(min, max));
+        _boundsHandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
+        SetHandleSource(_boundsHandleSource);
         _imageData = imageData;
     }
 
     public override void MirrorX(Unit centerY)
     {
-        HandleSource.Bounds = UnitBounds.FromMinMax(
-            new Unit2D(Min.X, (centerY * 2) - Min.Y),
-            new Unit2D(Max.X, (centerY * 2) - Max.Y)
-        );
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { Y = (centerY * 2) - Transform.Position.Y },
+            Angle = -Transform.Angle
+        };
     }
 
     public override void MirrorY(Unit centerX)
     {
-        HandleSource.Bounds = UnitBounds.FromMinMax(
-            new Unit2D((centerX * 2) - Min.X, Min.Y),
-            new Unit2D((centerX * 2) - Max.X, Max.Y)
-        );
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { X = (centerX * 2) - Transform.Position.X },
+            Angle = -Transform.Angle
+        };
     }
 
     public override void Translate(Unit2D delta)
     {
-        HandleSource.Bounds += delta;
+        Transform = Transform with { Position = Transform.Position + delta };
     }
 
     public override void AssignFrom(ImageElement other)
     {
-        HandleSource.AssignFrom(other.HandleSource);
+        _boundsHandleSource.AssignFrom(other._boundsHandleSource);
         ImageData = other.ImageData;
     }
 

@@ -5,7 +5,7 @@ namespace StencilPad.Canvases.Common;
 
 public interface IHandleMapEntry : IComparable<IHandleMapEntry>
 {
-    IHandleSource Source { get; }
+    ISheetElement Element { get; }
     Handle Handle { get; }
     Unit2D Position { get; }
     bool Editing { get; }

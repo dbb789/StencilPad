@@ -13,7 +13,7 @@ public class ImageElementRenderer : SheetElementRenderer
     public override UnitBounds SelectionBounds =>
         _imageElement.Min == _imageElement.Max
             ? UnitBounds.Empty
-            : UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max);
+            : UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max).ApplyTransform(_imageElement.Transform);
 
     private readonly ImageElement _imageElement;
     private BitmapImage? _bitmap;
@@ -22,6 +22,7 @@ public class ImageElementRenderer : SheetElementRenderer
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += InvokeRendererDirty;
+        _imageElement.TransformChanged += TransformChanged;
         _imageElement.PropertyChanged += OnPropertyChanged;
         
         RebuildBitmap();
@@ -30,17 +31,31 @@ public class ImageElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _imageElement.GeometryChanged -= InvokeRendererDirty;
+        _imageElement.TransformChanged -= TransformChanged;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
     public override bool HitTest(Unit2D unit)
     {
-        return SelectionBounds.Contains(unit);
+        var localUnit = _imageElement.Transform.InverseApply(unit);
+        return UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max).Contains(localUnit);
     }
 
     public override bool BoundsTest(UnitBounds bounds)
     {
-        return bounds.Contains(_imageElement.Min);
+        // Transform the selection bounds into the local space of the image.
+        var localNW = _imageElement.Transform.InverseApply(bounds.NW);
+        var localNE = _imageElement.Transform.InverseApply(bounds.NE);
+        var localSW = _imageElement.Transform.InverseApply(bounds.SW);
+        var localSE = _imageElement.Transform.InverseApply(bounds.SE);
+
+        var localSelectionBounds = UnitBounds.FromMinMax(
+            new Unit2D(Unit.Min(Unit.Min(localNW.X, localNE.X), Unit.Min(localSW.X, localSE.X)),
+                       Unit.Min(Unit.Min(localNW.Y, localNE.Y), Unit.Min(localSW.Y, localSE.Y))),
+            new Unit2D(Unit.Max(Unit.Max(localNW.X, localNE.X), Unit.Max(localSW.X, localSE.X)),
+                       Unit.Max(Unit.Max(localNW.Y, localNE.Y), Unit.Max(localSW.Y, localSE.Y))));
+
+        return localSelectionBounds.Intersects(UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max));
     }
     
     public override void Render(DrawingContext dc)
@@ -57,7 +72,9 @@ public class ImageElementRenderer : SheetElementRenderer
             return;
         }
 
+        dc.PushTransform(_imageElement.Transform.CreateGroupTransform());
         dc.DrawImage(_bitmap, rect);
+        dc.Pop();
     }
 
     private void RebuildBitmap()
@@ -77,8 +94,6 @@ public class ImageElementRenderer : SheetElementRenderer
         _bitmap = bitmap;
     }
 
-    private void OnHandlesChanged() => InvokeRendererDirty();
-
     private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ImageElement.ImageData))
@@ -89,6 +104,11 @@ public class ImageElementRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
+    private void TransformChanged(ISheetElement element)
+    {
+        InvokeRendererDirty();
+    }
+    
     /// <summary>
     /// Decodes the natural size of the image in millimetres, using the image's own DPI.
     /// Caps the larger dimension at <paramref name="maxMm"/> to keep placement sensible.

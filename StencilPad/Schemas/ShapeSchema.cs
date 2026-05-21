@@ -7,7 +7,6 @@ namespace StencilPad.Schemas;
 public class ShapeSchema : SheetElementSchema
 {
     public PolygonSchema [] Polygons { get; set; } = [];
-    public Unit2D Position { get; set; } = Unit2D.Zero;
     public Color FillColor { get; set; } = new();
     public Color LineColor { get; set; } = new();
     public Unit LineWidth { get; set; } = new();
@@ -17,7 +16,7 @@ public class ShapeSchema : SheetElementSchema
         return new ShapeSchema
         {
             Polygons = shape.PolygonSet.Select(p => PolygonSchema.Pack(p)).ToArray(),
-            Position = shape.Position,
+            Transform = shape.Transform,
             FillColor = shape.FillColor,
             LineColor = shape.LineColor,
             LineWidth = shape.LineWidth
@@ -28,11 +27,14 @@ public class ShapeSchema : SheetElementSchema
     {
         var shape = new Shape()
         {
-            Position = Position,
+            Transform = Transform,
             FillColor = FillColor,
             LineColor = LineColor,
             LineWidth = LineWidth
         };
+
+        // The constructor adds one empty polygon, so clear it.
+        shape.PolygonSet.Clear();
 
         foreach (var schema in Polygons)
         {

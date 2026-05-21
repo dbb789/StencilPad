@@ -12,6 +12,11 @@ public class SingleEditablePolygon : IEditablePolygonSet
     public EditablePolygon this[int index] => Polygon;
     public int Count => 1;
 
+    public void Clear()
+    {
+        Polygon.Clear();
+    }
+
     public event Action<EditablePolygon>? PolygonAdded { add { } remove { } }
     public event Action<EditablePolygon>? PolygonRemoved { add { } remove { } }
     

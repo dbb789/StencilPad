@@ -50,6 +50,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         _shape.PolygonSet.PolygonAdded -= PolygonAdded;
         _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
         _shape.PolygonSet.HandleSource.HandleSelectionChanged -= SelectionChanged;
+        _shape.PropertyChanged -= PropertyChanged;
     }
 
     private void PolygonAdded(EditablePolygon polygon)
@@ -78,15 +79,16 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        UpdateProperties();
+        if (e.PropertyName == nameof(Shape.Transform))
+        {
+            _transform = _shape.Transform.CreateGroupTransform();
+        }
         InvokeRendererDirty();
     }
 
     private void UpdateProperties()
     {
-        _transform = new TranslateTransform(_shape.Position.X.Millimeters,
-                                            _shape.Position.Y.Millimeters);
-        _transform.Freeze();
+        _transform = _shape.Transform.CreateGroupTransform();
     }
 
     private void RebuildGeometry()

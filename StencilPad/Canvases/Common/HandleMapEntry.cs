@@ -5,7 +5,7 @@ namespace StencilPad.Canvases.Common;
 
 public class HandleMapEntry : IHandleMapEntry
 {
-    public IHandleSource Source { get; set; } = null!;
+    public ISheetElement Element { get; set; } = null!;
     public Handle Handle { get; set; }
     public Unit2D Position { get; set; }
     public bool Editing { get; set; }
@@ -15,7 +15,7 @@ public class HandleMapEntry : IHandleMapEntry
     {
         if (Position != position)
         {
-            Source.SetPoint(Handle, position);
+            Element.SetPoint(Handle, Element.Transform.InverseApply(position));
         }
     }
     
@@ -24,7 +24,7 @@ public class HandleMapEntry : IHandleMapEntry
         if (Selected != selected)
         {
             Selected = selected;
-            Source.SetHandleSelected(Handle, selected);
+            Element.SetHandleSelected(Handle, selected);
         }
     }
 

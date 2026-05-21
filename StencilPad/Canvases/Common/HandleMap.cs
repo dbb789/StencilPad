@@ -23,9 +23,9 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     public event Action? SheetSelectionChanged;
 
-    public event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
-    public event Action<IHandleSource, Handle>? HandleRemoved;
-    public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
+    public event Action<ISheetElement, Handle, Unit2D>? HandleAdded;
+    public event Action<ISheetElement, Handle>? HandleRemoved;
+    public event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
     public event Action? HandleSelectionChanged;
 
     public HandleMap()
@@ -135,7 +135,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         
         foreach (var entry in _queryResults)
         {
-            if (!context.CanUnitSnapTo(entry.Source))
+            if (!context.CanUnitSnapTo(entry.Element))
             {
                 continue;
             }
@@ -182,7 +182,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             foreach (SheetElement element in e.NewItems)
             {
-                element.HandleSource.QueryHandles((handle, position, selected) =>
+                element.QueryHandles((handle, localPosition, selected) =>
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
@@ -200,7 +200,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             foreach (SheetElement element in e.OldItems)
             {
-                element.HandleSource.QueryHandles((handle, position, selected) =>
+                element.QueryHandles((handle, localPosition, selected) =>
                 {
                     if (_byHandle.TryGetValue(handle, out var entry))
                     {
@@ -219,67 +219,65 @@ public class HandleMap : IHandleMap, IUnitSnap
     
     private void Add(ISheetElement element)
     {
-        var source = element.HandleSource;
-        
-        source.QueryHandles((handle, position, selected) =>
+        element.QueryHandles((handle, localPosition, selected) =>
         {
-            Add(source, handle, position, selected);
+            Add(element, handle, element.Transform.Apply(localPosition), selected);
         });
 
-        source.HandleAdded += OnHandleAdded;
-        source.HandleRemoved += OnHandleRemoved;
-        source.HandleMoved += OnHandleMoved;
-        source.HandleSelectionChanged += OnHandleSelectionChanged;
+        element.HandleAdded += OnHandleAdded;
+        element.HandleRemoved += OnHandleRemoved;
+        element.HandleMoved += OnHandleMoved;
+        element.HandleSelectionChanged += OnHandleSelectionChanged;
+        element.TransformChanged += OnTransformChanged;
     }
 
     private void Remove(ISheetElement element)
     {
-        var source = element.HandleSource;
-        
-        source.QueryHandles((handle, position, selected) =>
+        element.QueryHandles((handle, localPosition, selected) =>
         {
-            Remove(source, handle);
+            Remove(element, handle);
         });
 
-        source.HandleAdded -= OnHandleAdded;
-        source.HandleRemoved -= OnHandleRemoved;
-        source.HandleMoved -= OnHandleMoved;
-        source.HandleSelectionChanged -= OnHandleSelectionChanged;
+        element.HandleAdded -= OnHandleAdded;
+        element.HandleRemoved -= OnHandleRemoved;
+        element.HandleMoved -= OnHandleMoved;
+        element.HandleSelectionChanged -= OnHandleSelectionChanged;
+        element.TransformChanged -= OnTransformChanged;
     }
 
-    private void Add(IHandleSource source, Handle handle, Unit2D position, bool selected)
+    private void Add(ISheetElement element, Handle handle, Unit2D worldPosition, bool selected)
     {
         var entry = new HandleMapEntry
         {
-            Source = source,
+            Element = element,
             Handle = handle,
-            Position = position,
-            Editing = _sheet?.Selection.Any(x => x.HandleSource == source) ?? false,
+            Position = worldPosition,
+            Editing = _sheet?.Selection.Contains(element) ?? false,
             Selected = selected
         };
 
         if (_byHandle.ContainsKey(handle))
         {
-            Debug.WriteLine($"HandleMap: Attempted to add duplicate handle {handle} from source {source}");
+            Debug.WriteLine($"HandleMap: Attempted to add duplicate handle {handle} from element {element}");
             return;
         }
         
         _byHandle[handle] = entry;
-        _byPosition.Insert(position, entry);
+        _byPosition.Insert(worldPosition, entry);
 
         if (selected)
         {
             _selectedHandles.Add(entry);
         }
 
-        HandleAdded?.Invoke(source, handle, position);
+        HandleAdded?.Invoke(element, handle, worldPosition);
     }
 
-    private void Remove(IHandleSource source, Handle handle)
+    private void Remove(ISheetElement element, Handle handle)
     {
         if (_byHandle.TryGetValue(handle, out var entry))
         {
-            _byPosition.Remove(entry.Position, entry);
+            _byPosition.Remove(entry);
             _byHandle.Remove(handle);
 
             if (entry.Selected)
@@ -287,54 +285,30 @@ public class HandleMap : IHandleMap, IUnitSnap
                 _selectedHandles.Remove(entry);
             }
             
-            HandleRemoved?.Invoke(source, handle);
+            HandleRemoved?.Invoke(element, handle);
         }
         else
         {
-            Debug.WriteLine($"HandleMap: Attempted to remove unknown handle {handle} from source {source}");
+            Debug.WriteLine($"HandleMap: Attempted to remove unknown handle {handle} from element {element}");
         }
     }
 
-    private void OnHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
+    private void OnHandleAdded(ISheetElement element, Handle handle, Unit2D localPosition, bool selected)
     {
-        Add(source, handle, position, selected);
+        Add(element, handle, element.Transform.Apply(localPosition), selected);
     }
 
-    private void OnHandleRemoved(IHandleSource source, Handle handle)
+    private void OnHandleRemoved(ISheetElement element, Handle handle)
     {
-        Remove(source, handle);
+        Remove(element, handle);
     }
 
-    private void OnHandleMoved(IHandleSource source, Handle handle, Unit2D position)
+    private void OnHandleMoved(ISheetElement element, Handle handle, Unit2D localPosition)
     {
-        if (_byHandle.TryGetValue(handle, out var entry))
-        {
-            if (_byPosition.Move(entry.Position, position, entry))
-            {
-                entry.Position = position;
-                
-                HandleMoved?.Invoke(source, handle, position);
-            }
-            else
-            {
-                Debug.WriteLine($"HandleMap: Failed to move handle {handle} from {entry.Position} to new position {position}");
-
-                _byPosition.VisitAllValues((pos, e) =>
-                {
-                    if (e.Handle == handle)
-                    {
-                        Debug.WriteLine($"HandleMap: Found handle {handle} at position {pos} during visit");
-                    }
-                });
-            }
-        }
-        else
-        {
-            Debug.WriteLine($"HandleMap: Received HandleMoved for unknown handle {handle}");
-        }
+        UpdateHandle(element, handle, localPosition);
     }
 
-    private void OnHandleSelectionChanged(IHandleSource source, Handle handle, bool selected)
+    private void OnHandleSelectionChanged(ISheetElement element, Handle handle, bool selected)
     {
         if (_byHandle.TryGetValue(handle, out var entry))
         {
@@ -354,6 +328,45 @@ public class HandleMap : IHandleMap, IUnitSnap
         else
         {
             Debug.WriteLine($"HandleMap: Received HandleSelectionChanged for unknown handle {handle}");
+        }
+    }
+
+    private void OnTransformChanged(ISheetElement element)
+    {
+        element.QueryHandles((handle, localPosition, selected) =>
+        {
+            UpdateHandle(element, handle, localPosition);
+        });
+    }
+
+    private void UpdateHandle(ISheetElement element, Handle handle, Unit2D localPosition)
+    {
+        if (_byHandle.TryGetValue(handle, out var entry))
+        {
+            var worldPosition = element.Transform.Apply(localPosition);
+            
+            if (_byPosition.Move(worldPosition, entry))
+            {
+                entry.Position = worldPosition;
+                
+                HandleMoved?.Invoke(element, handle, worldPosition);
+            }
+            else
+            {
+                Debug.WriteLine($"HandleMap: Failed to move handle {handle} from {entry.Position} to new position {worldPosition} during transform change");
+                
+                _byPosition.VisitAllValues((pos, e) =>
+                {
+                    if (e.Handle == handle)
+                    {
+                        Debug.WriteLine($"HandleMap: Found handle {handle} at position {pos} during visit");
+                    }
+                });
+            }
+        }
+        else
+        {
+            Debug.WriteLine($"HandleMap: Received TransformChanged for unknown handle {handle}");
         }
     }
 }

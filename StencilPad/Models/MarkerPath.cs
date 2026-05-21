@@ -5,11 +5,10 @@ namespace StencilPad.Models;
 public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 {
     public IEditablePolygonSet PolygonSet => _singlePolygon;
-    public override IHandleSource HandleSource => _singlePolygon.HandleSource;
 
     public EditablePolygon Polygon => _singlePolygon.Polygon;
     private SingleEditablePolygon _singlePolygon;
- 
+
     private Unit _spacing = Unit.FromMillimeters(4);
     public Unit Spacing
     {
@@ -41,32 +40,46 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     public MarkerPath()
     {
         _singlePolygon = new();
+        SetHandleSource(_singlePolygon.HandleSource);
     }
     
     public MarkerPath(Polygon polygon)
     {
         _singlePolygon = new(polygon);
+        SetHandleSource(_singlePolygon.HandleSource);
     }
     
     public override void MirrorX(Unit centerY)
     {
-        Polygon.MirrorX(centerY);
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { Y = (centerY * 2) - Transform.Position.Y },
+            Angle = -Transform.Angle
+        };
+
+        Polygon.MirrorX(Unit.Zero);
     }
 
     public override void MirrorY(Unit centerX)
     {
-        Polygon.MirrorY(centerX);
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { X = (centerX * 2) - Transform.Position.X },
+            Angle = -Transform.Angle
+        };
+
+        Polygon.MirrorY(Unit.Zero);
     }
 
     public override void Translate(Unit2D delta)
     {
-        Polygon.Translate(delta);
+        Transform = Transform with { Position = Transform.Position + delta };
     }
 
     public override void AssignFrom(MarkerPath other)
     {
         _singlePolygon.AssignFrom(other._singlePolygon);
-        
+        Transform = other.Transform;
         Spacing = other.Spacing;
         Offset = other.Offset;
     }

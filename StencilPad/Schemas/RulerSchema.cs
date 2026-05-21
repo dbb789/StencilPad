@@ -13,7 +13,8 @@ public class RulerSchema : SheetElementSchema
         return new RulerSchema
         {
             Min = ruler.Min,
-            Max = ruler.Max
+            Max = ruler.Max,
+            Transform = ruler.Transform
         };
     }
 
@@ -22,7 +23,8 @@ public class RulerSchema : SheetElementSchema
         return new Ruler
         {
             Min = Min,
-            Max = Max
+            Max = Max,
+            Transform = Transform
         };
     }
 }

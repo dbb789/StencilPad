@@ -20,11 +20,13 @@ public class MarkerPathRenderer : SheetElementRenderer
                 return UnitBounds.Empty;
             }
 
-            return UnitBounds.FromMinMax(
+            var localBounds = UnitBounds.FromMinMax(
                 new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Left),
                            Unit.FromMillimeters(_geometry.Bounds.Top)),
                 new Unit2D(Unit.FromMillimeters(_geometry.Bounds.Right),
                            Unit.FromMillimeters(_geometry.Bounds.Bottom)));
+
+            return localBounds.ApplyTransform(_markerPath.Transform);
         }
     }
 
@@ -36,6 +38,7 @@ public class MarkerPathRenderer : SheetElementRenderer
     private StreamGeometry? _geometry;
     private StreamGeometry? _markerGeometry;
     private int _markerCount;
+    private Transform? _transform;
     
     public MarkerPathRenderer(MarkerPath markerPath)
     {
@@ -44,6 +47,7 @@ public class MarkerPathRenderer : SheetElementRenderer
         _markerPath.PropertyChanged += PropertyChanged;
         _markerCount = 0;
         
+        UpdateProperties();
         RebuildGeometry();
     }
 
@@ -60,7 +64,7 @@ public class MarkerPathRenderer : SheetElementRenderer
             return false;
         }
 
-        return _geometry.FillContains(unit.Millimeters);
+        return _geometry.FillContains(_markerPath.Transform.InverseApply(unit).Millimeters);
     }
 
     public override bool BoundsTest(UnitBounds bounds)
@@ -70,14 +74,28 @@ public class MarkerPathRenderer : SheetElementRenderer
             return false;
         }
 
-        var rect = new RectangleGeometry(bounds.Millimeters);
+        // Transform the selection bounds into the local space of the marker path.
+        var localNW = _markerPath.Transform.InverseApply(bounds.NW);
+        var localNE = _markerPath.Transform.InverseApply(bounds.NE);
+        var localSW = _markerPath.Transform.InverseApply(bounds.SW);
+        var localSE = _markerPath.Transform.InverseApply(bounds.SE);
 
-        return _geometry.FillContainsWithDetail(rect) != IntersectionDetail.Empty;
+        var localSelectionGeometry = new StreamGeometry();
+        using (var ctx = localSelectionGeometry.Open())
+        {
+            ctx.BeginFigure(localNW.Millimeters, true, true);
+            ctx.LineTo(localNE.Millimeters, true, false);
+            ctx.LineTo(localSE.Millimeters, true, false);
+            ctx.LineTo(localSW.Millimeters, true, false);
+        }
+        localSelectionGeometry.Freeze();
+
+        return _geometry.FillContainsWithDetail(localSelectionGeometry) != IntersectionDetail.Empty;
     }
 
     public override void Render(DrawingContext dc)
     {
-        if (_geometry is null)
+        if (_geometry is null || _transform is null)
         {
             return;
         }
@@ -85,12 +103,14 @@ public class MarkerPathRenderer : SheetElementRenderer
         var pen = new Pen(Brushes.Black, 0.2);
         var fill = Brushes.Transparent;
 
+        dc.PushTransform(_transform);
         dc.DrawGeometry(fill, pen, _geometry);
 
         if (_markerGeometry is not null)
         {
             dc.DrawGeometry(null, new Pen(Brushes.Black, 0.2), _markerGeometry);
         }
+        dc.Pop();
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -100,6 +120,17 @@ public class MarkerPathRenderer : SheetElementRenderer
         {
             RebuildGeometry();
         }
+        else if (e.PropertyName == nameof(MarkerPath.Transform))
+        {
+            _transform = _markerPath.Transform.CreateGroupTransform();
+        }
+        
+        InvokeRendererDirty();
+    }
+
+    private void UpdateProperties()
+    {
+        _transform = _markerPath.Transform.CreateGroupTransform();
     }
     
     private void RebuildGeometry()

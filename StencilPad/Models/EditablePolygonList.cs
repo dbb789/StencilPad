@@ -7,14 +7,8 @@ public class EditablePolygonList : IEditablePolygonSet
 {
     public IHandleSource HandleSource => _handleSource;
 
-    public Unit2D Position
-    {
-        get => _handleSource.Position;
-        set => _handleSource.Position = value;
-    }
-    
     private List<EditablePolygon> _polygons;
-    private GroupHandleSource _handleSource;
+    private PolygonListHandleSource _handleSource;
     
     public EditablePolygon this[int index] => _polygons[index];
     public int Count => _polygons.Count;
@@ -25,7 +19,7 @@ public class EditablePolygonList : IEditablePolygonSet
     public EditablePolygonList()
     {
         _polygons = [];
-        _handleSource = new GroupHandleSource();
+        _handleSource = new PolygonListHandleSource();
     }
 
     public void Add(EditablePolygon polygon)
@@ -69,7 +63,6 @@ public class EditablePolygonList : IEditablePolygonSet
             PolygonAdded?.Invoke(polygon);
         }
 
-        _handleSource.Position = other._handleSource.Position;
         _handleSource.SetChildren(_polygons);
     }
 

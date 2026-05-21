@@ -23,35 +23,44 @@ public class RulerRenderer : SheetElementRenderer
     {
         get
         {
-            var rulerBounds = UnitBounds.FromMinMax(
+            var localRulerBounds = UnitBounds.FromMinMax(
                 new Unit2D(Unit.Min(_ruler.Min.X, _ruler.Max.X), Unit.Min(_ruler.Min.Y, _ruler.Max.Y)),
                 new Unit2D(Unit.Max(_ruler.Min.X, _ruler.Max.X), Unit.Max(_ruler.Min.Y, _ruler.Max.Y)));
 
-            return UnitBounds.FromCenterSize(
-                rulerBounds.Center,
-                new Unit2D(Unit.Max(rulerBounds.Size.X, Unit.FromMillimeters(5)),
-                           Unit.Max(rulerBounds.Size.Y, Unit.FromMillimeters(5))));
+            var localBoundsWithTolerance = UnitBounds.FromCenterSize(
+                localRulerBounds.Center,
+                new Unit2D(Unit.Max(localRulerBounds.Size.X, Unit.FromMillimeters(5)),
+                           Unit.Max(localRulerBounds.Size.Y, Unit.FromMillimeters(5))));
+
+            return localBoundsWithTolerance.ApplyTransform(_ruler.Transform);
         }
     }
 
     private readonly Ruler _ruler;
     private readonly IResourceService _resourceService;
+    private Transform? _transform;
 
     public RulerRenderer(Ruler ruler, IResourceService resourceService)
     {
         _ruler = ruler;
         _ruler.GeometryChanged += GeometryChanged;
+        _ruler.TransformChanged += OnTransformChanged;
+        _ruler.PropertyChanged += PropertyChanged;
         
         _resourceService = resourceService;
+        UpdateProperties();
     }
 
     public override void Dispose()
     {
         _ruler.GeometryChanged -= GeometryChanged;
+        _ruler.TransformChanged -= OnTransformChanged;
+        _ruler.PropertyChanged -= PropertyChanged;
     }
 
     public override bool HitTest(Unit2D unit)
     {
+        var localUnit = _ruler.Transform.InverseApply(unit);
         var start = _ruler.Min;
         var end = _ruler.Max;
         var lineX = end.X.Millimeters - start.X.Millimeters;
@@ -63,28 +72,46 @@ public class RulerRenderer : SheetElementRenderer
             return false;
         }
         
-        var toPointX = unit.X.Millimeters - start.X.Millimeters;
-        var toPointY = unit.Y.Millimeters - start.Y.Millimeters;
+        var toPointX = localUnit.X.Millimeters - start.X.Millimeters;
+        var toPointY = localUnit.Y.Millimeters - start.Y.Millimeters;
         var t = Math.Clamp((toPointX * lineX + toPointY * lineY) / lineLenSq, 0.0, 1.0);
 
         var closestX = start.X.Millimeters + t * lineX;
         var closestY = start.Y.Millimeters + t * lineY;
-        var dx = unit.X.Millimeters - closestX;
-        var dy = unit.Y.Millimeters - closestY;
+        var dx = localUnit.X.Millimeters - closestX;
+        var dy = localUnit.Y.Millimeters - closestY;
 
         return (dx * dx + dy * dy) < 4.0; // 2mm tolerance
     }
 
     public override bool BoundsTest(UnitBounds bounds)
     {
-        return bounds.Contains(_ruler.Min) || bounds.Contains(_ruler.Max);
+        // Transform the selection bounds into the local space of the ruler.
+        var localNW = _ruler.Transform.InverseApply(bounds.NW);
+        var localNE = _ruler.Transform.InverseApply(bounds.NE);
+        var localSW = _ruler.Transform.InverseApply(bounds.SW);
+        var localSE = _ruler.Transform.InverseApply(bounds.SE);
+
+        var localSelectionBounds = UnitBounds.FromMinMax(
+            new Unit2D(Unit.Min(Unit.Min(localNW.X, localNE.X), Unit.Min(localSW.X, localSE.X)),
+                       Unit.Min(Unit.Min(localNW.Y, localNE.Y), Unit.Min(localSW.Y, localSE.Y))),
+            new Unit2D(Unit.Max(Unit.Max(localNW.X, localNE.X), Unit.Max(localSW.X, localSE.X)),
+                       Unit.Max(Unit.Max(localNW.Y, localNE.Y), Unit.Max(localSW.Y, localSE.Y))));
+
+        return localSelectionBounds.Contains(_ruler.Min) || localSelectionBounds.Contains(_ruler.Max);
     }
 
     public override void Render(DrawingContext dc)
     {
+        if (_transform is null)
+        {
+            return;
+        }
+
         var start = _ruler.Min.Millimeters;
         var end = _ruler.Max.Millimeters;
 
+        dc.PushTransform(_transform);
         dc.DrawLine(RulerPen, start, end);
 
         DrawArrowhead(dc, end, start);
@@ -109,6 +136,7 @@ public class RulerRenderer : SheetElementRenderer
         dc.DrawText(formattedText, new Point(-formattedText.Width / 2, 0.5));
         dc.Pop();
         dc.Pop();
+        dc.Pop();
     }
 
     private void DrawArrowhead(DrawingContext dc, Point tip, Point from)
@@ -125,6 +153,22 @@ public class RulerRenderer : SheetElementRenderer
         dc.Pop();
         dc.Pop();
         dc.Pop();
+    }
+
+    private void PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        InvokeRendererDirty();
+    }
+
+    private void OnTransformChanged(ISheetElement element)
+    {
+        _transform = _ruler.Transform.CreateGroupTransform();
+        InvokeRendererDirty();
+    }
+
+    private void UpdateProperties()
+    {
+        _transform = _ruler.Transform.CreateGroupTransform();
     }
 
     private void GeometryChanged()

@@ -22,7 +22,7 @@ public class TextElementRenderer : SheetElementRenderer
                 return UnitBounds.Empty;
             }
 
-            return UnitBounds.FromMinMax(_textElement.Min, _textElement.Max);
+            return UnitBounds.FromMinMax(_textElement.Min, _textElement.Max).ApplyTransform(_textElement.Transform);
         }
     }
 
@@ -33,6 +33,7 @@ public class TextElementRenderer : SheetElementRenderer
     {
         _textElement = textElement;
         _textElement.GeometryChanged += GeometryChanged;
+        _textElement.TransformChanged += TransformChanged;
         _textElement.PropertyChanged += OnPropertyChanged;
         RebuildFormattedText();
     }
@@ -40,17 +41,31 @@ public class TextElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _textElement.GeometryChanged -= GeometryChanged;
+        _textElement.TransformChanged -= TransformChanged;
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 
     public override bool HitTest(Unit2D unit)
     {
-        return SelectionBounds.Contains(unit);
+        var localUnit = _textElement.Transform.InverseApply(unit);
+        return UnitBounds.FromMinMax(_textElement.Min, _textElement.Max).Contains(localUnit);
     }
 
     public override bool BoundsTest(UnitBounds bounds)
     {
-        return bounds.Contains(_textElement.Min);
+        // Transform the selection bounds into the local space of the text.
+        var localNW = _textElement.Transform.InverseApply(bounds.NW);
+        var localNE = _textElement.Transform.InverseApply(bounds.NE);
+        var localSW = _textElement.Transform.InverseApply(bounds.SW);
+        var localSE = _textElement.Transform.InverseApply(bounds.SE);
+
+        var localSelectionBounds = UnitBounds.FromMinMax(
+            new Unit2D(Unit.Min(Unit.Min(localNW.X, localNE.X), Unit.Min(localSW.X, localSE.X)),
+                       Unit.Min(Unit.Min(localNW.Y, localNE.Y), Unit.Min(localSW.Y, localSE.Y))),
+            new Unit2D(Unit.Max(Unit.Max(localNW.X, localNE.X), Unit.Max(localSW.X, localSE.X)),
+                       Unit.Max(Unit.Max(localNW.Y, localNE.Y), Unit.Max(localSW.Y, localSE.Y))));
+
+        return localSelectionBounds.Intersects(UnitBounds.FromMinMax(_textElement.Min, _textElement.Max));
     }
 
     public override void Render(DrawingContext dc)
@@ -63,9 +78,16 @@ public class TextElementRenderer : SheetElementRenderer
         var bounds = UnitBounds.FromMinMax(_textElement.Min, _textElement.Max);
         var clipRect = bounds.Millimeters;
 
+        dc.PushTransform(_textElement.Transform.CreateGroupTransform());
         dc.PushClip(new RectangleGeometry(clipRect));
         dc.DrawText(_formattedText, clipRect.TopLeft);
         dc.Pop();
+        dc.Pop();
+    }
+    
+    private void TransformChanged(ISheetElement element)
+    {
+        InvokeRendererDirty();
     }
 
     private void RebuildFormattedText()

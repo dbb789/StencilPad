@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using StencilPad.Models;
+using StencilPad.Spatial;
 
 namespace StencilPad.Schemas;
 
@@ -12,6 +13,8 @@ namespace StencilPad.Schemas;
 [JsonDerivedType(typeof(ImageElementSchema), "image")]
 public abstract class SheetElementSchema
 {
+    public UnitTransform Transform { get; set; } = UnitTransform.Identity;
+
     public abstract ISheetElement Unpack();
 
     public static SheetElementSchema? Pack(ISheetElement element)

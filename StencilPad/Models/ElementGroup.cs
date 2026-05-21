@@ -5,64 +5,65 @@ namespace StencilPad.Models;
 public class ElementGroup : SheetElement<ElementGroup>
 {
     public IEnumerable<ISheetElement> Children => _children;
-    public override GroupHandleSource HandleSource { get; }
 
     private List<ISheetElement> _children;
-
-    public Unit2D _position = Unit2D.Zero;
-    public Unit2D Position
-    {
-        get => _position;
-        set
-        {
-            if (_position != value)
-            {
-                _position = value;
-                HandleSource.Position = value;                
-                OnPropertyChanged();
-            }
-        }
-    }
+    private GroupHandleSource _groupHandleSource;
 
     public event Action? ChildrenChanged;
     
     public ElementGroup()
     {
         _children = new();
-        HandleSource = new();
+        _groupHandleSource = new();
+        SetHandleSource(_groupHandleSource);
     }
     
     public ElementGroup(IEnumerable<ISheetElement> children)
     {
         _children = new(children.Select(c => c.DeepClone()));
-        HandleSource = new(_children.Select(child => child.HandleSource));
+        _groupHandleSource = new(_children);
+        SetHandleSource(_groupHandleSource);
     }
 
     public override void MirrorX(Unit centerY)
     {
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { Y = (centerY * 2) - Transform.Position.Y },
+            Angle = -Transform.Angle
+        };
+
         foreach (var child in _children)
         {
-            child.MirrorX(centerY);
+            child.MirrorX(Unit.Zero);
         }
     }
 
     public override void MirrorY(Unit centerX)
     {
+        Transform = Transform with 
+        { 
+            Position = Transform.Position with { X = (centerX * 2) - Transform.Position.X },
+            Angle = -Transform.Angle
+        };
+
         foreach (var child in _children)
         {
-            child.MirrorY(centerX);
+            child.MirrorY(Unit.Zero);
         }
     }
     
     public override void Translate(Unit2D delta)
     {
-        Position += delta;
+        Transform = Transform with { Position = Transform.Position + delta };
     }
 
     public override void AssignFrom(ElementGroup other)
     {
         _children = new(other.Children.Select(child => child.DeepClone()));
-        HandleSource.SetChildren(_children.Select(child => child.HandleSource));
+        _groupHandleSource.SetChildren(_children);
+
+        Transform = other.Transform;
 
         ChildrenChanged?.Invoke();
     }

@@ -4,37 +4,13 @@ namespace StencilPad.Models;
 
 public class GroupHandleSource : IHandleSource
 {
-    private Unit2D _position;
-    
-    public Unit2D Position
-    {
-        get => _position;
-        set
-        {
-            if (_position == value)
-            {
-                return;
-            }
-
-            _position = value;
-
-            foreach (var child in _children)
-            {
-                child.QueryHandles((handle, position, selected) =>
-                {
-                    HandleMoved?.Invoke(this, handle, position + Position);
-                });
-            }
-        }
-    }
-
     public event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
-    private readonly List<IHandleSource> _children;
-    private readonly Dictionary<HandleSourceId, IHandleSource> _routing;
+    private readonly List<ISheetElement> _children;
+    private readonly Dictionary<HandleSourceId, ISheetElement> _routing;
 
     public GroupHandleSource()
     {
@@ -42,7 +18,7 @@ public class GroupHandleSource : IHandleSource
         _routing = [];
     }
 
-    public GroupHandleSource(IEnumerable<IHandleSource> children)
+    public GroupHandleSource(IEnumerable<ISheetElement> children)
     {
         _children = [];
         _routing = [];
@@ -50,11 +26,11 @@ public class GroupHandleSource : IHandleSource
         SetChildren(children);
     }
 
-    public void SetChildren(IEnumerable<IHandleSource> children)
+    public void SetChildren(IEnumerable<ISheetElement> children)
     {
-        foreach (var child in _children.ToList())
+        for (int i = _children.Count - 1; i >= 0; i--)
         {
-            Remove(child);
+            Remove(_children[i]);
         }
 
         _routing.Clear();
@@ -65,7 +41,7 @@ public class GroupHandleSource : IHandleSource
         }
     }
 
-    public void Add(IHandleSource child)
+    public void Add(ISheetElement child)
     {
         _children.Add(child);
         
@@ -73,15 +49,16 @@ public class GroupHandleSource : IHandleSource
         child.HandleRemoved += OnHandleRemoved;
         child.HandleMoved += OnHandleMoved;
         child.HandleSelectionChanged += OnHandleSelectionChanged;
+        child.TransformChanged += OnTransformChanged;
         
-        child.QueryHandles((handle, position, selected) =>
+        child.QueryHandles((handle, localPosition, selected) =>
         {
             _routing[handle.HandleSetId] = child;
-            HandleAdded?.Invoke(this, handle, position + Position, selected);
+            HandleAdded?.Invoke(this, handle, child.Transform.Apply(localPosition), selected);
         });
     }
 
-    public void Remove(IHandleSource child)
+    public void Remove(ISheetElement child)
     {
         _children.Remove(child);
         
@@ -89,8 +66,9 @@ public class GroupHandleSource : IHandleSource
         child.HandleRemoved -= OnHandleRemoved;
         child.HandleMoved -= OnHandleMoved;
         child.HandleSelectionChanged -= OnHandleSelectionChanged;
+        child.TransformChanged -= OnTransformChanged;
 
-        child.QueryHandles((handle, position, selected) =>
+        child.QueryHandles((handle, localPosition, selected) =>
         {
             HandleRemoved?.Invoke(this, handle);
         });
@@ -100,9 +78,9 @@ public class GroupHandleSource : IHandleSource
     {
         foreach (var child in _children)
         {
-            child.QueryHandles((handle, position, selected) =>
+            child.QueryHandles((handle, localPosition, selected) =>
             {
-                func(handle, position + Position, selected);
+                func(handle, child.Transform.Apply(localPosition), selected);
             });
         }
     }
@@ -112,34 +90,45 @@ public class GroupHandleSource : IHandleSource
         _routing[handle.HandleSetId].SetHandleSelected(handle, selected);
     }
 
-    public void SetPoint(Handle handle, Unit2D position)
+    public void SetPoint(Handle handle, Unit2D groupLocalPosition)
     {
-        _routing[handle.HandleSetId].SetPoint(handle, position - Position);
+        var child = _routing[handle.HandleSetId];
+        child.SetPoint(handle, child.Transform.InverseApply(groupLocalPosition));
     }
 
     public Unit2D GetPoint(Handle handle)
     {
-        return _routing[handle.HandleSetId].GetPoint(handle) + Position;
+        var child = _routing[handle.HandleSetId];
+        return child.Transform.Apply(child.GetPoint(handle));
     }
 
-    private void OnHandleAdded(IHandleSource handleSource, Handle handle, Unit2D position, bool selected)
+    private void OnHandleAdded(ISheetElement child, Handle handle, Unit2D localPosition, bool selected)
     {
-        _routing[handle.HandleSetId] = handleSource;        
-        HandleAdded?.Invoke(this, handle, position + Position, selected);
+        _routing[handle.HandleSetId] = child;
+        HandleAdded?.Invoke(this, handle, child.Transform.Apply(localPosition), selected);
     }
 
-    private void OnHandleRemoved(IHandleSource handleSource, Handle handle)
+    private void OnHandleRemoved(ISheetElement child, Handle handle)
     {
         HandleRemoved?.Invoke(this, handle);
     }
     
-    private void OnHandleMoved(IHandleSource handleSource, Handle handle, Unit2D position)
+    private void OnHandleMoved(ISheetElement child, Handle handle, Unit2D localPosition)
     {
-        HandleMoved?.Invoke(this, handle, position + Position);
+        HandleMoved?.Invoke(this, handle, child.Transform.Apply(localPosition));
     }
 
-    private void OnHandleSelectionChanged(IHandleSource handleSource, Handle handle, bool selected)
+    private void OnHandleSelectionChanged(ISheetElement child, Handle handle, bool selected)
     {
         HandleSelectionChanged?.Invoke(this, handle, selected);
     }
+
+    private void OnTransformChanged(ISheetElement child)
+    {
+        child.QueryHandles((handle, localPosition, selected) =>
+        {
+            HandleMoved?.Invoke(this, handle, child.Transform.Apply(localPosition));
+        });
+    }
 }
+

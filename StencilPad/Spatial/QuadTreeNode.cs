@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public class QuadTreeNode<T>
+public class QuadTreeNode<T> where T : notnull
 {
     public QuadTreeNode<T>? Parent => _parent;
     public bool IsLeaf => !_hasChildren;
@@ -51,49 +51,34 @@ public class QuadTreeNode<T>
         }
     }
 
-    public void Insert(Unit2D point, T value)
+    public void Insert(Unit2D point, T value, Dictionary<T, QuadTreeNode<T>> lookup)
     {
         if (_hasChildren)
         {
-            _children.Insert(point, value);
+            _children.Insert(point, value, lookup);
         }
         else
         {
             _values.Add((value, point));
+            lookup[value] = this;
             
             if (_maxDepth > 0 && _values.Count > _nodeCapacity)
             {
-                Subdivide();
+                Subdivide(lookup);
             }
         }
     }
 
-    public QuadTreeNode<T>? Remove(UnitBounds bounds, T value)
+    public void RemoveDirect(T value)
     {
-        if (!Bounds.Intersects(bounds))
+        for (int i = _values.Count - 1; i >= 0; i--)
         {
-            return null;
-        }
-
-        if (_hasChildren)
-        {
-            return _children.Remove(bounds, value);
-        }
-        else
-        {
-            for (int i = _values.Count - 1; i >= 0; i--)
+            if (EqualityComparer<T>.Default.Equals(_values[i].Item1, value))
             {
-                if (EqualityComparer<T>.Default.Equals(_values[i].Item1, value) &&
-                    bounds.Contains(_values[i].Item2))
-                {
-                    _values.RemoveAt(i);
-                    
-                    return this;
-                }
+                _values.RemoveAt(i);
+                return;
             }
         }
-
-        return null;
     }
 
     public void Prune()
@@ -166,7 +151,7 @@ public class QuadTreeNode<T>
         }
     }
 
-    private void Subdivide()
+    private void Subdivide(Dictionary<T, QuadTreeNode<T>> lookup)
     {
         _children.Initialize(this,
                              _nodePool,
@@ -178,7 +163,7 @@ public class QuadTreeNode<T>
 
         foreach (var (value, valuePoint) in _values)
         {
-            _children.Insert(valuePoint, value);
+            _children.Insert(valuePoint, value, lookup);
         }
 
         _values.Clear();

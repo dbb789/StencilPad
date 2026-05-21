@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public class DynamicQuadTree<T>
+public class DynamicQuadTree<T> where T : notnull
 {
     private readonly IObjectPool<QuadTreeNode<T>> _nodePool;
     private UnitBounds _maxBounds;
@@ -35,19 +35,19 @@ public class DynamicQuadTree<T>
         return true;
     }
 
-    public bool Remove(Unit2D point, T value)
+    public bool Remove(T value)
     {
-        return _tree.Remove(point, value);
+        return _tree.Remove(value);
     }
 
-    public bool Move(Unit2D oldPoint, Unit2D newPoint, T value)
+    public bool Move(Unit2D newPoint, T value)
     {
         if (!SizeToFitPoint(newPoint))
         {
             return false;
         }
 
-        return _tree.Move(oldPoint, newPoint, value);
+        return _tree.Move(newPoint, value);
     }
 
     public void Query(UnitBounds bounds, Action<T> func)
