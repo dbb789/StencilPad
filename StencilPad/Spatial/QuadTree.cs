@@ -1,16 +1,10 @@
 namespace StencilPad.Spatial;
 
-public class QuadTree<T> : IDisposable
+public class QuadTree<T> : IDisposable where T : notnull
 {
-    // Allows for numerical instability when removing points from the quadtree,
-    // for example if a point is sitting on the edge of a node or is otherwise
-    // offset by a small margin. Note that Remove() only ever removes up to one
-    // element, so this shouldn't cause any real issues with inconsistency.
-    private static readonly Unit2D SearchRegion = new(Unit.FromMillimeters(0.0001),
-                                                      Unit.FromMillimeters(0.0001));
-
     private readonly IObjectPool<QuadTreeNode<T>> _nodePool;
     private readonly QuadTreeNode<T> _root;
+    private readonly Dictionary<T, QuadTreeNode<T>> _lookup;
 
     public UnitBounds Bounds => _root.Bounds;
     
@@ -22,35 +16,43 @@ public class QuadTree<T> : IDisposable
         _nodePool = nodePool;
         _root = new QuadTreeNode<T>(nodePool, nodeCapacity);
         _root.Initialize(null, bounds, maxDepth);
+        _lookup = new();
     }
 
     public void Dispose()
     {
         _root.Clear();
+        _lookup.Clear();
     }
 
     public void Insert(Unit2D point, T value)
     {
-        _root.Insert(point, value);
+        _root.Insert(point, value, _lookup);
     }
 
-    public bool Remove(Unit2D point, T value)
+    public bool Remove(T value)
     {
-        var node = _root.Remove(UnitBounds.FromCenterSize(point, SearchRegion), value);
-
-        node?.Parent?.Prune();
-
-        return node is not null;
-    }
-
-    public bool Move(Unit2D oldPoint, Unit2D newPoint, T value)
-    {
-        var node = _root.Remove(UnitBounds.FromCenterSize(oldPoint, SearchRegion), value);
-
-        if (node is null)
+        if (!_lookup.TryGetValue(value, out var node))
         {
             return false;
         }
+
+        node.RemoveDirect(value);
+        _lookup.Remove(value);
+        node.Parent?.Prune();
+
+        return true;
+    }
+
+    public bool Move(Unit2D newPoint, T value)
+    {
+        if (!_lookup.TryGetValue(value, out var node))
+        {
+            return false;
+        }
+
+        node.RemoveDirect(value);
+        _lookup.Remove(value);
 
         var insertNode = node;
 
@@ -60,7 +62,7 @@ public class QuadTree<T> : IDisposable
             insertNode = insertNode.Parent;
         }
 
-        insertNode.Insert(newPoint, value);
+        insertNode.Insert(newPoint, value, _lookup);
         node.Parent?.Prune();
 
         return true;

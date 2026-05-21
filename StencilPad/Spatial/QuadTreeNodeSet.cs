@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public struct QuadTreeNodeSet<T>
+public struct QuadTreeNodeSet<T> where T : notnull
 {
     private IObjectPool<QuadTreeNode<T>> _nodePool;
     private UnitBounds _bounds;
@@ -50,38 +50,30 @@ public struct QuadTreeNodeSet<T>
         _se = null!;
     }
     
-    public void Insert(Unit2D point, T value)
+    public void Insert(Unit2D point, T value, Dictionary<T, QuadTreeNode<T>> lookup)
     {
         if (point.X < _bounds.Center.X)
         {
             if (point.Y < _bounds.Center.Y)
             {
-                _sw.Insert(point, value);
+                _sw.Insert(point, value, lookup);
             }
             else
             {
-                _nw.Insert(point, value);
+                _nw.Insert(point, value, lookup);
             }
         }
         else
         {
             if (point.Y < _bounds.Center.Y)
             {
-                _se.Insert(point, value);
+                _se.Insert(point, value, lookup);
             }
             else
             {
-                _ne.Insert(point, value);
+                _ne.Insert(point, value, lookup);
             }
         }
-    }
-
-    public QuadTreeNode<T>? Remove(UnitBounds bounds, T value)
-    {
-        return _nw.Remove(bounds, value)
-            ?? _ne.Remove(bounds, value)
-            ?? _sw.Remove(bounds, value)
-            ?? _se.Remove(bounds, value);
     }
     
     public void Query(UnitBounds bounds, Action<T> func)

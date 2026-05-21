@@ -277,7 +277,7 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         if (_byHandle.TryGetValue(handle, out var entry))
         {
-            _byPosition.Remove(entry.Position, entry);
+            _byPosition.Remove(entry);
             _byHandle.Remove(handle);
 
             if (entry.Selected)
@@ -345,7 +345,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             var worldPosition = element.Transform.Apply(localPosition);
             
-            if (_byPosition.Move(entry.Position, worldPosition, entry))
+            if (_byPosition.Move(worldPosition, entry))
             {
                 entry.Position = worldPosition;
                 
