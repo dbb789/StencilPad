@@ -67,7 +67,6 @@ public class SelectionTool : ITool
         _context.ClearSelectionRequested += ClearSelection;
 
         _overlay.ActionInvoked += ActionInvoked;
-        _overlay.PointSelected += PointSelected;
         _overlay.SelectionDragged += SelectionDragged;
     }
 
@@ -83,7 +82,6 @@ public class SelectionTool : ITool
             _context.ClearSelectionRequested -= ClearSelection;
 
             _overlay.ActionInvoked -= ActionInvoked;
-            _overlay.PointSelected -= PointSelected;
             _overlay.SelectionDragged -= SelectionDragged;
             _overlay.Dispose();
             _overlay = null;
@@ -99,7 +97,10 @@ public class SelectionTool : ITool
             lastSelection = _sheet.Selection.FirstOrDefault();
         }
 
-        _sheet.Selection.Clear();
+        if (!ModifierUtil.IsModifyingSelection())
+        {
+            _sheet.Selection.Clear();
+        }
         
         var hitList = new List<ISheetElement>(8);
         
@@ -130,8 +131,11 @@ public class SelectionTool : ITool
 
     private void BoundsSelected(UnitBounds bounds)
     {
-        _sheet.Selection.Clear();
-
+        if (!ModifierUtil.IsModifyingSelection())
+        {
+            _sheet.Selection.Clear();
+        }
+        
         for (int i = _context.SheetRenderer.Count - 1; i >= 0; --i)
         {
             var element = _context.SheetRenderer[i];

@@ -8,19 +8,14 @@ public class DragState<T>
     public readonly struct DragResult
     {
         public T DraggedElement { get; }
-        public Unit2D CurrentElementPosition { get; }
         public Unit2D TargetElementPosition { get; }
         public bool IsDragBeginning { get; }
 
-        public Unit2D ElementPositionDelta => TargetElementPosition - CurrentElementPosition;
-        
         public DragResult(T draggedElement,
-                          Unit2D currentElementPosition,
                           Unit2D targetElementPosition,
                           bool isDragBeginning)
         {
             DraggedElement = draggedElement;
-            CurrentElementPosition = currentElementPosition;
             TargetElementPosition = targetElementPosition;
             IsDragBeginning = isDragBeginning;
         }
@@ -61,10 +56,7 @@ public class DragState<T>
     }
 
     public DragResult? OnDragMove(IViewport viewport,
-                                  IUnitSnap unitSnap,
-                                  IUnitSnapContext unitSnapContext,
-                                  Point mousePosition,
-                                  Unit2D elementPosition)
+                                  Point mousePosition)
     {
         if (_initialMousePosition is null ||
             _initialElementPosition is null ||
@@ -89,15 +81,8 @@ public class DragState<T>
         if (_isDragging)
         {
             var elementTargetPosition = _initialElementPosition.Value + viewport.FromPixels(dragDelta.X, dragDelta.Y);
-            var snapPosition = unitSnap.UnitSnap(elementTargetPosition, unitSnapContext);
-
-            if (snapPosition.HasValue)
-            {
-                elementTargetPosition = snapPosition.Value;
-            }
 
             return new DragResult(_draggedElement,
-                                  elementPosition,
                                   elementTargetPosition,
                                   isDragBeginning);
         }

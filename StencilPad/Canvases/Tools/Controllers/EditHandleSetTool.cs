@@ -181,7 +181,7 @@ public class EditHandleSetTool : ITool
             return;
         }
 
-        var modifyingSelection = IsModifyingSelection();
+        var modifyingSelection = ModifierUtil.IsModifyingSelection();
 
         var selected = new List<IHandleMapEntry>();
         
@@ -214,7 +214,7 @@ public class EditHandleSetTool : ITool
     private void OnHandleSelected(IHandleSource source,
                                   Handle handle)
     {
-        var modifyingSelection = IsModifyingSelection();
+        var modifyingSelection = ModifierUtil.IsModifyingSelection();
 
         if (modifyingSelection)
         {
@@ -242,11 +242,6 @@ public class EditHandleSetTool : ITool
         _button.IsEnabled = _selection.Count > 0;
     }
 
-    private bool IsModifyingSelection()
-    {
-        return Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
-    }
-    
     private void ActionInvoked(ISheetElementAction action)
     {
         var editContext = new EditSheetElementContext(_sheet, _selection);

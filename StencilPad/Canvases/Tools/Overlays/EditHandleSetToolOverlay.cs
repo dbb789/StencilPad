@@ -155,10 +155,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         }
         
         var dragResult = _dragState.OnDragMove(_context.Viewport,
-                                               _context.UnitSnap,
-                                               this,
-                                               mousePosition,
-                                               _dragState.DraggedElement.Position);
+                                               mousePosition);
 
         if (dragResult is null)
         {
@@ -171,9 +168,13 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
                                     _dragState.DraggedElement.Handle);
         }
 
+        var snappedTarget = _context.UnitSnap.UnitSnap(dragResult.Value.TargetElementPosition, this);
+        var targetPosition = snappedTarget ?? dragResult.Value.TargetElementPosition;
+        var delta = targetPosition - _dragState.DraggedElement.Position;
+        
         HandleDragged?.Invoke(_dragState.DraggedElement.Source,
                               _dragState.DraggedElement.Handle,
-                              dragResult.Value.ElementPositionDelta);
+                              delta);
 
         e.Handled = true;
     }

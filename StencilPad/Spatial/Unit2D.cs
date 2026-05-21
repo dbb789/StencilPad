@@ -16,7 +16,15 @@ public readonly record struct Unit2D(Unit X, Unit Y)
             return Unit.FromMillimeters(Math.Sqrt((X.Millimeters * X.Millimeters) + (Y.Millimeters * Y.Millimeters)));
         }
     }
-        
+    
+    public Unit SqrMagnitude
+    {
+        get
+        {
+            return Unit.FromMillimeters((X.Millimeters * X.Millimeters) + (Y.Millimeters * Y.Millimeters));
+        }
+    }
+
     public Unit2D Normalized
     {
         get
@@ -38,6 +46,11 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         return new(Unit.Abs(u.X), Unit.Abs(u.Y));
     }
     
+    public static Unit2D Square(Unit side)
+    {
+        return new(side, side);
+    }
+
     public static Unit Determinant(Unit2D a, Unit2D b)
     {
         return (a.X * b.Y) - (a.Y * b.X);

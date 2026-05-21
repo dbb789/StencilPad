@@ -18,19 +18,14 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     private Sheet _sheet;
     private HashSet<IHandleSource> _selectedSources;
 
-    private Point? _dragPixelStart;
-    private Unit2D _dragUnitStart;
-    private UnitBounds _dragSelectionBounds;
-    private bool _draggingSelection;
-    
+    private DragState<ISheetElement> _dragState;
+
     private Pen _elementPen;
     private Brush _elementFill;
     private Pen _groupPen;
     private Brush _groupFill;
     
-    public event Action<Unit2D>? SelectionDragged;
-    public event Action<Unit2D>? PointSelected;
-    
+    public event Action<Unit2D>? SelectionDragged;    
     public event Action<ISheetElementAction>? ActionInvoked;
 
     public SelectionToolOverlay(IToolContext context,
@@ -41,7 +36,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         _sheet = sheet;
         _selectedSources = [];
         _sheet.Selection.CollectionChanged += SelectionChanged;
-
+        _dragState = new();
+        
         foreach (var selected in _sheet.Selection)
         {
             _selectedSources.Add(selected.HandleSource);
@@ -54,13 +50,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         _context.UnitSnapOverlay.Begin(this);
 
-        _elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 0.4);
+        _elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 2);
         _elementPen.Freeze();
 
         _elementFill = new SolidColorBrush(Color.FromArgb(10, 0, 0, 255));
         _elementFill.Freeze();
         
-        _groupPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 128, 255)), 0.4);
+        _groupPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 128, 255)), 2);
         _groupPen.Freeze();
 
         _groupFill = new SolidColorBrush(Color.FromArgb(10, 0, 128, 255));
@@ -106,133 +102,115 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     {
         var mousePosition = e.GetPosition(this);
 
-        if (PointIsOverSelection(_context.Viewport.FromPoint(mousePosition)))
+        var elementUnderMouse = PointOverSelection(_context.Viewport.FromPoint(mousePosition));
+
+        if (elementUnderMouse != null)
         {
-            var bounds = GetSelectionBounds();
+            var elementBounds = GetElementBounds(elementUnderMouse);
             
-            if (bounds.HasValue)
-            {
-                _dragPixelStart = mousePosition;
-                _dragUnitStart = _context.Viewport.FromPoint(mousePosition);
-                _dragSelectionBounds = bounds.Value;
-                e.Handled = true;
-            }
-            return;
+            _dragState.OnDragStart(mousePosition,
+                                   elementUnderMouse,
+                                   elementBounds.Center);
+
+            CaptureMouse();
+            e.Handled = true;
         }
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        if (_dragPixelStart.HasValue)
+        var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
+
+        if (!_dragState.DragStarted)
         {
-            var mousePosition = e.GetPosition(this);
-            var pixelDelta = mousePosition - _dragPixelStart.Value;
-
-            if (_draggingSelection ||
-                Math.Abs(pixelDelta.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                Math.Abs(pixelDelta.Y) > SystemParameters.MinimumVerticalDragDistance)
-            {
-                _draggingSelection = true;
-
-                var currentUnit = _context.Viewport.FromPoint(mousePosition);
-                var displacement = currentUnit - _dragUnitStart;
-
-                var currentBounds = GetSelectionBounds();
-                if (currentBounds.HasValue)
-                {
-                    var delta = SnapDelta(_dragSelectionBounds, displacement, currentBounds.Value);
-                    SelectionDragged?.Invoke(delta);
-                }
-
-                e.Handled = true;
-            }
+            return;
         }
+
+        var elementBounds = GetElementBounds(_dragState.DraggedElement);
+        var dragResult = _dragState.OnDragMove(_context.Viewport,
+                                               mousePosition);
+        
+        if (dragResult is null)
+        {
+            return;
+        }
+        
+        var targetPosition = dragResult.Value.TargetElementPosition;
+        var targetBounds = UnitBounds.FromCenterSize(targetPosition, elementBounds.Size);
+        var snappedCenter = SnapBoundsCenter(targetBounds);
+        var delta = snappedCenter - elementBounds.Center;
+        
+        SelectionDragged?.Invoke(delta);
+        e.Handled = true;
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
-        if (!_draggingSelection)
-        {
-            var mousePosition = _context.Viewport.FromPoint(e.GetPosition(this));
-            
-            PointSelected?.Invoke(mousePosition);
-            e.Handled = true;
-        }
-
-        if (_dragPixelStart.HasValue)
-        {
-            _dragPixelStart = null;
-            e.Handled = true;
-        }
+        _dragState.OnDragEnd();
         
-        _draggingSelection = false;
+        ReleaseMouseCapture();
+        e.Handled = true;
+
+        // Clear drag fill.
+        ForceRedraw();
     }
-    
-    private Unit2D SnapDelta(UnitBounds dragBounds, Unit2D displacement, UnitBounds currentBounds)
+
+    private Unit2D SnapBoundsCenter(UnitBounds bounds)
     {
-        // The 4 corners of the selection as they would be after applying the raw displacement.
-        // Each desired corner has a corresponding current corner (same index).
-        Span<Unit2D> desiredCorners =
+        Span<Unit2D> corners =
         [
-            dragBounds.Min + displacement,
-            new Unit2D(dragBounds.Max.X, dragBounds.Min.Y) + displacement,
-            new Unit2D(dragBounds.Min.X, dragBounds.Max.Y) + displacement,
-            dragBounds.Max + displacement,
+            bounds.NW, bounds.NE, bounds.SW, bounds.SE
         ];
 
-        Span<Unit2D> currentCorners =
-        [
-            currentBounds.Min,
-            new Unit2D(currentBounds.Max.X, currentBounds.Min.Y),
-            new Unit2D(currentBounds.Min.X, currentBounds.Max.Y),
-            currentBounds.Max,
-        ];
+        int closestIndex = -1;
+        Unit2D smallestDelta = Unit2D.Square(Unit.FromMillimeters(1000));
 
-        int bestIndex = 0;
-        double bestError = double.MaxValue;
-
-        for (int i = 0; i < desiredCorners.Length; i++)
+        for (int i = 0; i < corners.Length; ++i)
         {
-            var snapped = desiredCorners[i];
-            var snapPosition = _context.UnitSnap.UnitSnap(desiredCorners[i], this);
+            var snapPosition = _context.UnitSnap.UnitSnap(corners[i], this);
 
             if (snapPosition.HasValue)
             {
-                snapped = snapPosition.Value;
-            }
-            
-            var error = (snapped - desiredCorners[i]).Magnitude.Millimeters;
-            
-            if (error < bestError)
-            {
-                bestError = error;
-                bestIndex = i;
+                var delta = snapPosition.Value - corners[i];
+
+                if (delta.SqrMagnitude < smallestDelta.SqrMagnitude)
+                {
+                    smallestDelta = delta;
+                    closestIndex = i;
+                }
             }
         }
 
-        var desiredCorner = desiredCorners[bestIndex];
-        var snappedBest = _context.UnitSnap.UnitSnap(desiredCorners[bestIndex], this);
-        
-        if (snappedBest.HasValue)
+        if (closestIndex != -1)
         {
-            desiredCorner = snappedBest.Value;
+            return bounds.Center + smallestDelta;
         }
 
-        return desiredCorner - currentCorners[bestIndex];
+        return bounds.Center;
     }
 
-    private bool PointIsOverSelection(Unit2D point)
+    private ISheetElement? PointOverSelection(Unit2D point)
     {
         foreach (var selected in _sheet.Selection)
         {
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer) &&
                 renderer.HitTest(point))
             {
-                return true;
+                return selected;
             }
         }
 
-        return false;
+        return null;
+    }
+
+    private UnitBounds GetElementBounds(ISheetElement element)
+    {
+        if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
+        {
+            return renderer.SelectionBounds;
+        }
+
+        return UnitBounds.Empty;
     }
     
     private UnitBounds? GetSelectionBounds()
@@ -314,25 +292,28 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         base.OnRender(dc);
 
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
-        dc.PushTransform(_context.Viewport.MillimetersToPixelsTransform);
         
         foreach (var selected in _sheet.Selection)
         {
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
-                var bounds = renderer.SelectionBounds;
+                var selectionBounds = renderer.SelectionBounds;
+                var bounds = new Rect(_context.Viewport.ToPoint(selectionBounds.Min),
+                                      _context.Viewport.ToPoint(selectionBounds.Max));
 
-                if (selected is ElementGroup)
+                Pen pen = (selected is ElementGroup) ? _groupPen : _elementPen;
+                Brush? fill = null;
+
+                if (_dragState.DraggedElement == selected)
                 {
-                    dc.DrawRectangle(_groupFill, _groupPen, bounds.Millimeters);
+                    fill = (selected is ElementGroup) ? _groupFill : _elementFill;
                 }
-                else
-                {
-                    dc.DrawRectangle(_elementFill, _elementPen, bounds.Millimeters);
-                }
+
+                dc.DrawRectangle(fill, pen, bounds);
+
+                // dc.DrawRectangle(null, pen, new Rect(bounds.BottomRight, new Size(12, 12)));
+                // dc.DrawEllipse(null, pen, bounds.TopRight + new Vector(6, -6), 6, 6);
             }
         }
-
-        dc.Pop();
     }
 }
