@@ -67,22 +67,14 @@ public class GroupRenderer : SheetElementRenderer
     {
         if (e.PropertyName == nameof(ElementGroup.Transform))
         {
-            UpdateProperties();
+            _transform = _elementGroup.Transform.CreateGroupTransform();
         }
         InvokeRendererDirty();
     }
     
     private void UpdateProperties()
     {
-        var group = new TransformGroup();
-        if (_elementGroup.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_elementGroup.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_elementGroup.Transform.Position.X.Millimeters,
-                                                  _elementGroup.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        _transform = group;
+        _transform = _elementGroup.Transform.CreateGroupTransform();
     }
 
     private void RebuildRenderers()

@@ -117,27 +117,14 @@ public class ShapeRenderer : SheetElementRenderer
         _fill = new SolidColorBrush(_shape.FillColor);
         _fill.Freeze();
         
-        _transform = CreateTransform();
+        _transform = _shape.Transform.CreateGroupTransform();
     }
 
-    private Transform CreateTransform()
-    {
-        var group = new TransformGroup();
-        if (_shape.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_shape.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_shape.Transform.Position.X.Millimeters,
-                                                  _shape.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        return group;
-    }
-    
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Shape.Transform))
         {
-            _transform = CreateTransform();
+            _transform = _shape.Transform.CreateGroupTransform();
         }
         else
         {

@@ -1,10 +1,23 @@
 using System.Runtime.CompilerServices;
+using System.Windows.Media;
 
 namespace StencilPad.Spatial;
 
 public readonly record struct UnitTransform(Unit2D Position, decimal Angle)
 {
     public static readonly UnitTransform Identity = new(Unit2D.Zero, 0m);
+
+    public Transform CreateGroupTransform()
+    {
+        var group = new TransformGroup();
+        if (Angle != 0m)
+        {
+            group.Children.Add(new RotateTransform((double)Angle));
+        }
+        group.Children.Add(new TranslateTransform(Position.X.Millimeters, Position.Y.Millimeters));
+        group.Freeze();
+        return group;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Unit2D Apply(Unit2D point)

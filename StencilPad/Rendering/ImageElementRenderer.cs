@@ -70,23 +70,9 @@ public class ImageElementRenderer : SheetElementRenderer
             return;
         }
 
-        var transform = CreateTransform();
-        dc.PushTransform(transform);
+        dc.PushTransform(_imageElement.Transform.CreateGroupTransform());
         dc.DrawImage(_bitmap, rect);
         dc.Pop();
-    }
-
-    private Transform CreateTransform()
-    {
-        var group = new TransformGroup();
-        if (_imageElement.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_imageElement.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_imageElement.Transform.Position.X.Millimeters,
-                                                  _imageElement.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        return group;
     }
 
     private void RebuildBitmap()

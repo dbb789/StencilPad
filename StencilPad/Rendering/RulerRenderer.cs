@@ -157,22 +157,14 @@ public class RulerRenderer : SheetElementRenderer
     {
         if (e.PropertyName == nameof(Ruler.Transform))
         {
-            UpdateProperties();
+            _transform = _ruler.Transform.CreateGroupTransform();
         }
         InvokeRendererDirty();
     }
 
     private void UpdateProperties()
     {
-        var group = new TransformGroup();
-        if (_ruler.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_ruler.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_ruler.Transform.Position.X.Millimeters,
-                                                  _ruler.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        _transform = group;
+        _transform = _ruler.Transform.CreateGroupTransform();
     }
 
     private void GeometryChanged()

@@ -81,22 +81,14 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     {
         if (e.PropertyName == nameof(Shape.Transform))
         {
-            UpdateProperties();
+            _transform = _shape.Transform.CreateGroupTransform();
         }
         InvokeRendererDirty();
     }
 
     private void UpdateProperties()
     {
-        var group = new TransformGroup();
-        if (_shape.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_shape.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_shape.Transform.Position.X.Millimeters,
-                                                  _shape.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        _transform = group;
+        _transform = _shape.Transform.CreateGroupTransform();
     }
 
     private void RebuildGeometry()

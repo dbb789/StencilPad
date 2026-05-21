@@ -76,25 +76,11 @@ public class TextElementRenderer : SheetElementRenderer
         var bounds = UnitBounds.FromMinMax(_textElement.Min, _textElement.Max);
         var clipRect = bounds.Millimeters;
 
-        var transform = CreateTransform();
-        dc.PushTransform(transform);
+        dc.PushTransform(_textElement.Transform.CreateGroupTransform());
         dc.PushClip(new RectangleGeometry(clipRect));
         dc.DrawText(_formattedText, clipRect.TopLeft);
         dc.Pop();
         dc.Pop();
-    }
-
-    private Transform CreateTransform()
-    {
-        var group = new TransformGroup();
-        if (_textElement.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_textElement.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_textElement.Transform.Position.X.Millimeters,
-                                                  _textElement.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        return group;
     }
 
     private void RebuildFormattedText()

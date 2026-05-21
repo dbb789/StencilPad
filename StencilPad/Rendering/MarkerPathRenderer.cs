@@ -122,7 +122,7 @@ public class MarkerPathRenderer : SheetElementRenderer
         }
         else if (e.PropertyName == nameof(MarkerPath.Transform))
         {
-            UpdateProperties();
+            _transform = _markerPath.Transform.CreateGroupTransform();
         }
         
         InvokeRendererDirty();
@@ -130,15 +130,7 @@ public class MarkerPathRenderer : SheetElementRenderer
 
     private void UpdateProperties()
     {
-        var group = new TransformGroup();
-        if (_markerPath.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_markerPath.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_markerPath.Transform.Position.X.Millimeters,
-                                                  _markerPath.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        _transform = group;
+        _transform = _markerPath.Transform.CreateGroupTransform();
     }
     
     private void RebuildGeometry()
