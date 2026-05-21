@@ -83,7 +83,6 @@ public class TextElement : SheetElement<TextElement>
     {
         HandleSource = new BoundsHandleSource(UnitBounds.Empty);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
-        TransformChanged += () => GeometryChanged?.Invoke();
     }
 
     public TextElement(Unit2D start, string text)

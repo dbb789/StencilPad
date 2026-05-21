@@ -33,6 +33,7 @@ public class TextElementRenderer : SheetElementRenderer
     {
         _textElement = textElement;
         _textElement.GeometryChanged += GeometryChanged;
+        _textElement.TransformChanged += InvokeRendererDirty;
         _textElement.PropertyChanged += OnPropertyChanged;
         RebuildFormattedText();
     }
@@ -40,6 +41,7 @@ public class TextElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _textElement.GeometryChanged -= GeometryChanged;
+        _textElement.TransformChanged -= InvokeRendererDirty;
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 

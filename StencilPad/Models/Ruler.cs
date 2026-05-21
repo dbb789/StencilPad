@@ -26,14 +26,12 @@ public class Ruler : SheetElement<Ruler>
     {
         HandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
-        TransformChanged += () => GeometryChanged?.Invoke();
     }
     
     public Ruler(Unit2D start, Unit2D end)
     {
         HandleSource = new MinMaxHandleSource(start, end);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
-        TransformChanged += () => GeometryChanged?.Invoke();
     }
     
     public override void MirrorX(Unit centerY)

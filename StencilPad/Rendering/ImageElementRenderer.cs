@@ -22,6 +22,7 @@ public class ImageElementRenderer : SheetElementRenderer
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += InvokeRendererDirty;
+        _imageElement.TransformChanged += InvokeRendererDirty;
         _imageElement.PropertyChanged += OnPropertyChanged;
         
         RebuildBitmap();
@@ -30,6 +31,7 @@ public class ImageElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _imageElement.GeometryChanged -= InvokeRendererDirty;
+        _imageElement.TransformChanged -= InvokeRendererDirty;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 

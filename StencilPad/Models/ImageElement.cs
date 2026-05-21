@@ -35,14 +35,12 @@ public class ImageElement : SheetElement<ImageElement>
     {
         HandleSource = new BoundsHandleSource(UnitBounds.Empty);
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
-        TransformChanged += () => GeometryChanged?.Invoke();
     }
 
     public ImageElement(Unit2D min, Unit2D max, byte[] imageData)
     {
         HandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(min, max));
         HandleSource.HandleMoved += (_, _, _) => GeometryChanged?.Invoke();
-        TransformChanged += () => GeometryChanged?.Invoke();
         _imageData = imageData;
     }
 

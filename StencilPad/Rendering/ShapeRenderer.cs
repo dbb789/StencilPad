@@ -29,6 +29,7 @@ public class ShapeRenderer : SheetElementRenderer
         _shape = shape;
         _shape.PolygonSet.PolygonAdded += PolygonAdded;
         _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
+        _shape.TransformChanged += OnTransformChanged;
         _shape.PropertyChanged += PropertyChanged;
 
         foreach (var polygon in _shape.PolygonSet)
@@ -50,6 +51,7 @@ public class ShapeRenderer : SheetElementRenderer
         
         _shape.PolygonSet.PolygonAdded -= PolygonAdded;
         _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
+        _shape.TransformChanged -= OnTransformChanged;
         _shape.PropertyChanged -= PropertyChanged;
     }
 
@@ -122,19 +124,18 @@ public class ShapeRenderer : SheetElementRenderer
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Shape.Transform))
-        {
-            _transform = _shape.Transform.CreateGroupTransform();
-        }
-        else
-        {
-            _pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
-            _pen.Freeze();
-            
-            _fill = new SolidColorBrush(_shape.FillColor);
-            _fill.Freeze();
-        }
+        _pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
+        _pen.Freeze();
         
+        _fill = new SolidColorBrush(_shape.FillColor);
+        _fill.Freeze();
+        
+        InvokeRendererDirty();
+    }
+
+    private void OnTransformChanged()
+    {
+        _transform = _shape.Transform.CreateGroupTransform();
         InvokeRendererDirty();
     }
 

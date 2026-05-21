@@ -44,6 +44,7 @@ public class RulerRenderer : SheetElementRenderer
     {
         _ruler = ruler;
         _ruler.GeometryChanged += GeometryChanged;
+        _ruler.TransformChanged += OnTransformChanged;
         _ruler.PropertyChanged += PropertyChanged;
         
         _resourceService = resourceService;
@@ -53,6 +54,7 @@ public class RulerRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _ruler.GeometryChanged -= GeometryChanged;
+        _ruler.TransformChanged -= OnTransformChanged;
         _ruler.PropertyChanged -= PropertyChanged;
     }
 
@@ -155,10 +157,12 @@ public class RulerRenderer : SheetElementRenderer
 
     private void PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Ruler.Transform))
-        {
-            _transform = _ruler.Transform.CreateGroupTransform();
-        }
+        InvokeRendererDirty();
+    }
+
+    private void OnTransformChanged()
+    {
+        _transform = _ruler.Transform.CreateGroupTransform();
         InvokeRendererDirty();
     }
 
