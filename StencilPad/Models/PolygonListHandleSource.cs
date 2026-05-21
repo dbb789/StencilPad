@@ -9,8 +9,8 @@ public class PolygonListHandleSource : IHandleSource
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
-    private readonly List<EditablePolygon> _children;
-    private readonly Dictionary<HandleSourceId, EditablePolygon> _routing;
+    private readonly List<IHandleSource> _children;
+    private readonly Dictionary<HandleSourceId, IHandleSource> _routing;
 
     public PolygonListHandleSource()
     {
@@ -18,7 +18,7 @@ public class PolygonListHandleSource : IHandleSource
         _routing = [];
     }
 
-    public PolygonListHandleSource(IEnumerable<EditablePolygon> children)
+    public PolygonListHandleSource(IEnumerable<IHandleSource> children)
     {
         _children = [];
         _routing = [];
@@ -26,7 +26,7 @@ public class PolygonListHandleSource : IHandleSource
         SetChildren(children);
     }
 
-    public void SetChildren(IEnumerable<EditablePolygon> children)
+    public void SetChildren(IEnumerable<IHandleSource> children)
     {
         foreach (var child in _children.ToList())
         {
@@ -41,7 +41,7 @@ public class PolygonListHandleSource : IHandleSource
         }
     }
 
-    public void Add(EditablePolygon child)
+    public void Add(IHandleSource child)
     {
         _children.Add(child);
 
@@ -57,7 +57,7 @@ public class PolygonListHandleSource : IHandleSource
         });
     }
 
-    public void Remove(EditablePolygon child)
+    public void Remove(IHandleSource child)
     {
         _children.Remove(child);
 
@@ -97,7 +97,7 @@ public class PolygonListHandleSource : IHandleSource
 
     private void OnHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
     {
-        _routing[handle.HandleSetId] = (EditablePolygon)source;
+        _routing[handle.HandleSetId] = source;
         HandleAdded?.Invoke(this, handle, position, selected);
     }
 
