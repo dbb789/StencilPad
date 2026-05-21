@@ -33,7 +33,7 @@ public class TextElementRenderer : SheetElementRenderer
     {
         _textElement = textElement;
         _textElement.GeometryChanged += GeometryChanged;
-        _textElement.TransformChanged += InvokeRendererDirty;
+        _textElement.TransformChanged += TransformChanged;
         _textElement.PropertyChanged += OnPropertyChanged;
         RebuildFormattedText();
     }
@@ -41,7 +41,7 @@ public class TextElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _textElement.GeometryChanged -= GeometryChanged;
-        _textElement.TransformChanged -= InvokeRendererDirty;
+        _textElement.TransformChanged -= TransformChanged;
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -83,6 +83,11 @@ public class TextElementRenderer : SheetElementRenderer
         dc.DrawText(_formattedText, clipRect.TopLeft);
         dc.Pop();
         dc.Pop();
+    }
+    
+    private void TransformChanged(ISheetElement element)
+    {
+        InvokeRendererDirty();
     }
 
     private void RebuildFormattedText()

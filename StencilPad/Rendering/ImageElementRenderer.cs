@@ -22,7 +22,7 @@ public class ImageElementRenderer : SheetElementRenderer
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += InvokeRendererDirty;
-        _imageElement.TransformChanged += InvokeRendererDirty;
+        _imageElement.TransformChanged += TransformChanged;
         _imageElement.PropertyChanged += OnPropertyChanged;
         
         RebuildBitmap();
@@ -31,7 +31,7 @@ public class ImageElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _imageElement.GeometryChanged -= InvokeRendererDirty;
-        _imageElement.TransformChanged -= InvokeRendererDirty;
+        _imageElement.TransformChanged -= TransformChanged;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -104,6 +104,11 @@ public class ImageElementRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
+    private void TransformChanged(ISheetElement element)
+    {
+        InvokeRendererDirty();
+    }
+    
     /// <summary>
     /// Decodes the natural size of the image in millimetres, using the image's own DPI.
     /// Caps the larger dimension at <paramref name="maxMm"/> to keep placement sensible.

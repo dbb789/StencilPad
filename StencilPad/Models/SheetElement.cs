@@ -28,12 +28,12 @@ public abstract class SheetElement : ModelBase, ISheetElement
             if (_transform != value)
             {
                 _transform = value;
-                TransformChanged?.Invoke();
+                TransformChanged?.Invoke(this);
             }
         }
     }
 
-    public event Action? TransformChanged;
+    public event Action<ISheetElement>? TransformChanged;
 
     private IHandleSource? _handleSource;
     

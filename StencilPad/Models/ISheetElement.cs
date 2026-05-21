@@ -5,8 +5,10 @@ namespace StencilPad.Models;
 public interface ISheetElement
 {
     Guid Id { get; }
+
     UnitTransform Transform { get; set; }
-    event Action? TransformChanged;
+    event Action<ISheetElement>? TransformChanged;
+    
     IHandleSource HandleSource { get; }
 
     event Action<ISheetElement, Handle, Unit2D, bool>? HandleAdded;

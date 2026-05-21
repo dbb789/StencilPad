@@ -133,9 +133,10 @@ public class ShapeRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
-    private void OnTransformChanged()
+    private void OnTransformChanged(ISheetElement element)
     {
         _transform = _shape.Transform.CreateGroupTransform();
+        
         InvokeRendererDirty();
     }
 

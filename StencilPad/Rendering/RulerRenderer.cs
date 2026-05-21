@@ -160,7 +160,7 @@ public class RulerRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
-    private void OnTransformChanged()
+    private void OnTransformChanged(ISheetElement element)
     {
         _transform = _ruler.Transform.CreateGroupTransform();
         InvokeRendererDirty();
