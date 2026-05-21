@@ -8,9 +8,9 @@ public interface IHandleMap
     ReadOnlyFlatSet<IHandleMapEntry> SelectedHandles { get; }
 
     event Action? SheetSelectionChanged;
-    event Action<IHandleSource, Handle, Unit2D>? HandleAdded;
-    event Action<IHandleSource, Handle>? HandleRemoved;
-    event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
+    event Action<ISheetElement, Handle, Unit2D>? HandleAdded;
+    event Action<ISheetElement, Handle>? HandleRemoved;
+    event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
     event Action? HandleSelectionChanged;
 
     void QueryHandles(UnitBounds bounds, List<IHandleMapEntry> results);

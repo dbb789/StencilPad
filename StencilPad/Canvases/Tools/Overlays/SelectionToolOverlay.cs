@@ -16,7 +16,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 {
     private IToolContext _context;
     private Sheet _sheet;
-    private HashSet<IHandleSource> _selectedSources;
 
     private DragState<ISheetElement> _dragState;
 
@@ -34,14 +33,11 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     {
         _context = context;
         _sheet = sheet;
-        _selectedSources = [];
         _sheet.Selection.CollectionChanged += SelectionChanged;
         _dragState = new();
         
         foreach (var selected in _sheet.Selection)
         {
-            _selectedSources.Add(selected.HandleSource);
-
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
                 renderer.RendererDirty += ForceRedraw;
@@ -70,8 +66,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         foreach (var selected in _sheet.Selection)
         {
-            _selectedSources.Remove(selected.HandleSource);
-            
             if (_context.SheetRenderer.TryGetElementRenderer(selected, out var renderer))
             {
                 renderer.RendererDirty -= ForceRedraw;
@@ -239,8 +233,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             {
                 if (item is ISheetElement element)
                 {
-                    _selectedSources.Remove(element.HandleSource);
-
                     if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
                     {
                         renderer.RendererDirty -= ForceRedraw;
@@ -255,8 +247,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             {
                 if (item is ISheetElement element)
                 {
-                    _selectedSources.Add(element.HandleSource);
-
                     if (_context.SheetRenderer.TryGetElementRenderer(element, out var renderer))
                     {
                         renderer.RendererDirty += ForceRedraw;
@@ -268,9 +258,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         ForceRedraw();
     }
     
-    public bool CanUnitSnapTo(IHandleSource source)
+    public bool CanUnitSnapTo(ISheetElement element)
     {
-        return !_selectedSources.Contains(source);
+        return !_sheet.Selection.Contains(element);
     }
     
     public bool CanUnitSnapTo(Handle handle)

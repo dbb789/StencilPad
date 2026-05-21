@@ -106,7 +106,7 @@ public class EditHandleSetTool : ITool
         _context.RubberBand.PointSelected -= OnPointSelected;
     }
 
-    private void OnHandleDragBegin(IHandleSource source,
+    private void OnHandleDragBegin(ISheetElement element,
                                    Handle handle)
     {
         if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
@@ -121,13 +121,13 @@ public class EditHandleSetTool : ITool
         _editContext = new EditSheetElementContext(_sheet, _selection);
     }
 
-    private void OnHandleDragged(IHandleSource source,
+    private void OnHandleDragged(ISheetElement element,
                                  Handle handle,
                                  Unit2D delta)
     {
         if (!handle.CanGroupMove)
         {
-            source.SetPoint(handle, source.GetPoint(handle) + delta);
+            element.SetPoint(handle, element.Transform.Apply(element.GetPoint(handle)) + delta);
             return;
         }
 
@@ -211,7 +211,7 @@ public class EditHandleSetTool : ITool
         _context.HandleMap.ClearSelection();
     }
 
-    private void OnHandleSelected(IHandleSource source,
+    private void OnHandleSelected(ISheetElement element,
                                   Handle handle)
     {
         var modifyingSelection = ModifierUtil.IsModifyingSelection();

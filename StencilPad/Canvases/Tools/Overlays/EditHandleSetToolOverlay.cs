@@ -19,10 +19,10 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
     private record struct HandleEntry(ISheetElement Element, Handle Handle);
     private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
     
-    public event Action<IHandleSource, Handle>? HandleDragBegin;
-    public event Action<IHandleSource, Handle, Unit2D>? HandleDragged;
+    public event Action<ISheetElement, Handle>? HandleDragBegin;
+    public event Action<ISheetElement, Handle, Unit2D>? HandleDragged;
     public event Action? HandleDragEnd;
-    public event Action<IHandleSource, Handle>? HandleSelected;
+    public event Action<ISheetElement, Handle>? HandleSelected;
     public event Action<ISheetElementAction>? ActionInvoked;
 
     private readonly IToolContext _context;
@@ -126,7 +126,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         }
         else if (_dragState.DraggedElement is not null)
         {
-            HandleSelected?.Invoke(_dragState.DraggedElement.Source,
+            HandleSelected?.Invoke(_dragState.DraggedElement.Element,
                                    _dragState.DraggedElement.Handle);
         }
 
@@ -164,7 +164,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
         if (dragResult.Value.IsDragBeginning)
         {
-            HandleDragBegin?.Invoke(_dragState.DraggedElement.Source,
+            HandleDragBegin?.Invoke(_dragState.DraggedElement.Element,
                                     _dragState.DraggedElement.Handle);
         }
 
@@ -172,29 +172,29 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
         var targetPosition = snappedTarget ?? dragResult.Value.TargetElementPosition;
         var delta = targetPosition - _dragState.DraggedElement.Position;
         
-        HandleDragged?.Invoke(_dragState.DraggedElement.Source,
+        HandleDragged?.Invoke(_dragState.DraggedElement.Element,
                               _dragState.DraggedElement.Handle,
                               delta);
 
         e.Handled = true;
     }
 
-    private void OnHandleAdded(IHandleSource source, Handle handle, Unit2D position)
+    private void OnHandleAdded(ISheetElement element, Handle handle, Unit2D position)
     {
         ForceRedraw();
     }
 
-    private void OnHandleRemoved(IHandleSource source, Handle handle)
+    private void OnHandleRemoved(ISheetElement element, Handle handle)
     {
         ForceRedraw();
     }
 
-    private void OnHandleMoved(IHandleSource source, Handle handle, Unit2D position)
+    private void OnHandleMoved(ISheetElement element, Handle handle, Unit2D position)
     {
         ForceRedraw();
     }
 
-    public bool CanUnitSnapTo(IHandleSource source)
+    public bool CanUnitSnapTo(ISheetElement element)
     {
         return true;
     }
