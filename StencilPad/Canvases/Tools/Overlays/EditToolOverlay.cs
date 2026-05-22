@@ -130,6 +130,8 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         if (_dragState.IsDragging)
         {
             HandleDragEnd?.Invoke();
+            
+            _context.UnitSnapOverlay.End();
         }
         else if (_dragState.DraggedElement is not null)
         {
@@ -176,6 +178,8 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         {
             HandleDragBegin?.Invoke(_dragState.DraggedElement.Element,
                                     _dragState.DraggedElement.Handle);
+
+            _context.UnitSnapOverlay.Begin(this);
         }
 
         var snappedTarget = _context.UnitSnap.UnitSnap(dragResult.Value.TargetElementPosition, this);
