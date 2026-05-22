@@ -21,6 +21,7 @@ public class DragState<T>
         }
     }
 
+    public Unit2D InitialElementPosition => _initialElementPosition ?? Unit2D.Zero;
     public bool DragStarted => _initialMousePosition.HasValue;
     public bool IsDragging => _isDragging;
     public T DraggedElement => _draggedElement!;

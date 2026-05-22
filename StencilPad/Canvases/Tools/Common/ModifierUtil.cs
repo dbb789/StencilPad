@@ -18,4 +18,9 @@ public static class ModifierUtil
     {
         return IsAddingSelection() || IsTogglingSelection();
     }
+
+    public static bool IsLockToAxis()
+    {
+        return Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+    }
 }

@@ -30,7 +30,8 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
     private List<IHandleMapEntry> _queryResults;
     private DragState<IHandleMapEntry> _dragState;
-
+    private LockAxisState _lockAxisState;
+    
     private long _lastMouseMoveEvent;
     private Brush _moveBrush;
     private Brush _adjustBrush;
@@ -44,6 +45,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         _sheet = sheet;
         _queryResults = new(128);
         _dragState = new();
+        _lockAxisState = new();
         
         _context.Viewport.ViewportChanged += ForceRedraw;
         
@@ -113,6 +115,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         _dragState.OnDragStart(mousePosition,
                                handle,
                                handle.Position);
+        _lockAxisState.OnDragStart();
         
         CaptureMouse();
         e.Handled = true;
@@ -170,8 +173,14 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
 
         var snappedTarget = _context.UnitSnap.UnitSnap(dragResult.Value.TargetElementPosition, this);
         var targetPosition = snappedTarget ?? dragResult.Value.TargetElementPosition;
-        var delta = targetPosition - _dragState.DraggedElement.Position;
         
+        targetPosition = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
+                                                   _context.Viewport.FromPixels(12),
+                                                   _dragState.InitialElementPosition,
+                                                   targetPosition);
+
+        var delta = targetPosition - _dragState.DraggedElement.Position;
+
         HandleDragged?.Invoke(_dragState.DraggedElement.Element,
                               _dragState.DraggedElement.Handle,
                               delta);
