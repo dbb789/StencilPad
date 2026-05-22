@@ -99,18 +99,11 @@ public class SelectionTool : ITool
 
     private void PointSelected(Unit2D point)
     {
-        ISheetElement? lastSelection = null;
-
-        if (_sheet.Selection.Count == 1)
-        {
-            lastSelection = _sheet.Selection.FirstOrDefault();
-        }
-
-        if (!ModifierUtil.IsModifyingSelection())
-        {
-            _sheet.Selection.Clear();
-        }
-
+        // This needs to both cycle through everything under the mouse and also
+        // modify the selection based on modifier keys so the logic is a bit
+        // convoluted.
+        
+        // Firstly, let's find everything under the mouse and put it in a list.
         var hitList = new List<ISheetElement>(8);
 
         foreach (var element in _sheet.Elements)
@@ -120,12 +113,38 @@ public class SelectionTool : ITool
                 hitList.Add(element);
             }
         }
+        
+        ISheetElement? lastSelection = null;
 
-        if (hitList.Count == 0)
+        foreach (var hit in hitList)
         {
-            return;
+            if (_sheet.Selection.Contains(hit))
+            {
+                // Next we want to find the first available selected item that
+                // was under the mouse.
+                if (lastSelection is null)
+                {
+                    lastSelection = hit;
+                }
+
+                // And if we're modifying the selection, we want to remove
+                // everything else so that we can re-add the next item as
+                // necessary.
+                if (ModifierUtil.IsModifyingSelection())
+                {
+                    _sheet.Selection.Remove(hit);
+                }
+            }
         }
 
+        // But if we're not modifying the selection, just clear out the lot.
+        if (!ModifierUtil.IsModifyingSelection())
+        {
+            _sheet.Selection.Clear();
+        }
+
+        // Next find the next item in the hit list after the last selected item
+        // and select it.
         var currentIndex = (lastSelection != null) ? hitList.IndexOf(lastSelection) : -1;
 
         ++currentIndex;
