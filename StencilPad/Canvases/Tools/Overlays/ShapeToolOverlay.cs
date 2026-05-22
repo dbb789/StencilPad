@@ -17,8 +17,8 @@ public class ShapeToolOverlay : Canvas, IDisposable
     private readonly IUnitSnap _unitSnap;
     private readonly Polygon _polygon;
     private readonly WidgetContainer<HandleWidget> _vertexWidgets;
+    private readonly LockAxisState _lockAxisState;
 
-    private LockAxisState _lockAxisState;
     private Unit2D _currentSnappedMousePosition;
     
     public event Action<Polygon>? OnPolygonCompleted;
@@ -30,7 +30,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
         _polygon = new();
         _vertexWidgets = new(this);
         
-        _lockAxisState = new LockAxisState();
+        _lockAxisState = new();
         _polygon.GeometryChanged += RepositionWidgets;
         _viewport.ViewportChanged += RepositionWidgets;
 

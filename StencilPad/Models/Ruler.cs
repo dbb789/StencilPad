@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using StencilPad.Spatial;
 
 namespace StencilPad.Models;
@@ -5,6 +6,21 @@ namespace StencilPad.Models;
 public class Ruler : SheetElement<Ruler>
 {
     private MinMaxHandleSource _minMaxHandleSource;
+
+    private Color _color = Color.FromArgb(255, 0, 0, 0);
+
+    public Color Color
+    {
+        get => _color;
+        set
+        {
+            if (_color != value)
+            {
+                _color = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public Unit2D Min
     {
@@ -77,6 +93,7 @@ public class Ruler : SheetElement<Ruler>
     {
         _minMaxHandleSource.AssignFrom(other._minMaxHandleSource);
         Transform = other.Transform;
+        Color = other.Color;
     }
 
     public override Ruler DeepClone()

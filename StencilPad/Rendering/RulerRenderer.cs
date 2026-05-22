@@ -9,19 +9,13 @@ namespace StencilPad.Rendering;
 
 public class RulerRenderer : SheetElementRenderer
 {
-    private static Pen RulerPen;
-
-    static RulerRenderer()
-    {
-        RulerPen = new Pen(Brushes.Black, 0.2);
-        RulerPen.Freeze();
-    }
-
     public override Ruler Element => _ruler;
 
     private readonly Ruler _ruler;
     private readonly IResourceService _resourceService;
     private Transform? _transform;
+    private Pen _pen = new(Brushes.Black, 0.2);
+    private Brush _brush = Brushes.Black;
 
     public RulerRenderer(Ruler ruler, IResourceService resourceService)
     {
@@ -29,7 +23,7 @@ public class RulerRenderer : SheetElementRenderer
         _ruler.GeometryChanged += GeometryChanged;
         _ruler.TransformChanged += OnTransformChanged;
         _ruler.PropertyChanged += PropertyChanged;
-        
+
         _resourceService = resourceService;
         UpdateProperties();
     }
@@ -52,7 +46,7 @@ public class RulerRenderer : SheetElementRenderer
         var end = _ruler.Max.Millimeters;
 
         dc.PushTransform(_transform);
-        dc.DrawLine(RulerPen, start, end);
+        dc.DrawLine(_pen, start, end);
 
         DrawArrowhead(dc, end, start);
         DrawArrowhead(dc, start, end);
@@ -66,9 +60,9 @@ public class RulerRenderer : SheetElementRenderer
             FlowDirection.LeftToRight,
             new Typeface("Arial"),
             3.0,
-            Brushes.Black,
+            _brush,
             1.0);
-        
+
         var rotation = Math.Atan2(end.Y - start.Y, end.X - start.X) * 180.0 / Math.PI;
 
         dc.PushTransform(new TranslateTransform(mid.X, mid.Y));
@@ -85,11 +79,11 @@ public class RulerRenderer : SheetElementRenderer
         var rotation = Math.Atan2(from.Y - tip.Y, from.X - tip.X) * 180.0 / Math.PI;
 
         rotation -= 90.0;
-        
+
         dc.PushTransform(new TranslateTransform(tip.X, tip.Y));
         dc.PushTransform(new RotateTransform(rotation));
         dc.PushTransform(new ScaleTransform(0.25, 0.25));
-        dc.DrawGeometry(Brushes.Black, null, geometry);
+        dc.DrawGeometry(_brush, null, geometry);
         dc.Pop();
         dc.Pop();
         dc.Pop();
@@ -97,6 +91,7 @@ public class RulerRenderer : SheetElementRenderer
 
     private void PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        UpdateProperties();
         InvokeRendererDirty();
     }
 
@@ -109,6 +104,10 @@ public class RulerRenderer : SheetElementRenderer
     private void UpdateProperties()
     {
         _transform = _ruler.Transform.CreateGroupTransform();
+        _brush = new SolidColorBrush(_ruler.Color);
+        _brush.Freeze();
+        _pen = new Pen(_brush, 0.2);
+        _pen.Freeze();
     }
 
     private void GeometryChanged(ISheetElement _)

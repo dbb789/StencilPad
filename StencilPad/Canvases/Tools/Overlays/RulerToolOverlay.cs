@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
 using StencilPad.Rendering;
 using StencilPad.Services;
@@ -16,18 +17,22 @@ public class RulerToolOverlay : Canvas, IDisposable
     private readonly IUnitSnap _unitSnap;
     private readonly Ruler _previewRuler;
     private readonly RulerRenderer _previewRenderer;
+    private readonly LockAxisState _lockAxisState;
 
     private Unit2D? _start;
-    private Point _currentMousePosition;
+    private Unit2D _currentSnappedMousePosition;
 
     public event Action<Unit2D, Unit2D>? OnRulerPlaced;
 
-    public RulerToolOverlay(IViewport viewport, IUnitSnap unitSnap, IResourceService resourceService)
+    public RulerToolOverlay(IViewport viewport,
+                            IUnitSnap unitSnap,
+                            IResourceService resourceService)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
-        _previewRuler = new Ruler();
+        _previewRuler = new Ruler { Color = Color.FromArgb(128, 0, 0, 0) };
         _previewRenderer = new RulerRenderer(_previewRuler, resourceService);
+        _lockAxisState = new();
 
         _viewport.ViewportChanged += OnViewportChanged;
     }
@@ -40,26 +45,26 @@ public class RulerToolOverlay : Canvas, IDisposable
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
-        _currentMousePosition = e.GetPosition(this);
-
-        var unitPosition = Snap(_viewport.FromPoint(_currentMousePosition));
-
         if (_start is null)
         {
-            _start = unitPosition;
+            _start = _currentSnappedMousePosition;
         }
-        else
+        else if ((_start.Value - _currentSnappedMousePosition).Magnitude > Unit.FromMillimeters(1))
         {
-            OnRulerPlaced?.Invoke(_start.Value, unitPosition);
+            OnRulerPlaced?.Invoke(_start.Value, _currentSnappedMousePosition);
             _start = null;
         }
 
         InvalidateVisual();
+
+        e.Handled = true;
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        _currentMousePosition = e.GetPosition(this);
+        var mousePosition = e.GetPosition(this);
+
+        _currentSnappedMousePosition = CurrentSnappedMouseOverPosition(mousePosition);
 
         if (_start is not null)
         {
@@ -79,16 +84,32 @@ public class RulerToolOverlay : Canvas, IDisposable
         }
 
         _previewRuler.Min = _start.Value;
-        _previewRuler.Max = Snap(_viewport.FromPoint(_currentMousePosition));
+        _previewRuler.Max = _currentSnappedMousePosition;
 
         dc.PushTransform(_viewport.MillimetersToPixelsTransform);
         _previewRenderer.Render(dc);
         dc.Pop();
     }
 
-    private Unit2D Snap(Unit2D position)
+    private Unit2D CurrentSnappedMouseOverPosition(Point mousePosition)
     {
-        return _unitSnap.UnitSnap(position, EmptyUnitSnapContext.Instance) ?? position;
+        var unitPosition = _viewport.FromPoint(mousePosition);
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
+        
+        if (snapPosition.HasValue)
+        {
+            unitPosition = snapPosition.Value;
+        }
+        
+        if (_start is not null)
+        {
+            unitPosition = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
+                                                     _viewport.FromPixels(12),
+                                                     _start.Value,
+                                                     unitPosition);
+        }
+
+        return unitPosition;
     }
 
     private void OnViewportChanged()
