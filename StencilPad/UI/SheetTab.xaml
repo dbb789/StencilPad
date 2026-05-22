@@ -13,7 +13,6 @@
                       Background="#E0E0E0">
             <c:SheetCanvas x:Name="SheetCanvas"
                            Sheet="{Binding Sheet}"
-                           Zoom="{Binding Zoom}"
                            ShowGrid="{Binding ShowGrid}"
                            SnapToGrid="{Binding SnapToGrid}"
                            SnapToPoint="{Binding SnapToPoint}"/>

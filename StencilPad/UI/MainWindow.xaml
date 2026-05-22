@@ -36,7 +36,6 @@
                 <MenuItem Header="Save _As…"      Command="{Binding SaveProjectAsCommand}" InputGestureText="Ctrl+Shift+S"/>
                 <Separator/>
                 <MenuItem Header="_Import Image…" Command="{Binding ImportImageCommand}"/>
-                <MenuItem Header="_Export…"       Click="Export_Click"/>
                 <MenuItem Header="_Print…"        Command="{Binding PrintCommand}" InputGestureText="Ctrl+P"/>
                 <Separator/>
                 <MenuItem Header="E_xit"          Command="{Binding ExitCommand}"/>
@@ -53,14 +52,6 @@
                 <Separator/>
                 <MenuItem Header="Select _All"      Command="{x:Static common:GlobalCommands.SelectAll}"      InputGestureText="Ctrl+A"/>
                 <MenuItem Header="C_lear Selection" Command="{x:Static common:GlobalCommands.ClearSelection}"/>
-            </MenuItem>
-
-            <MenuItem Header="_View">
-                <MenuItem Header="Zoom _In"      Click="ZoomIn_Click"    InputGestureText="Ctrl++"/>
-                <MenuItem Header="Zoom _Out"     Click="ZoomOut_Click"   InputGestureText="Ctrl+-"/>
-                <MenuItem Header="_Fit to Window" Click="ZoomFit_Click"  InputGestureText="Ctrl+0"/>
-                <Separator/>
-                <MenuItem x:Name="MenuShowRulers" Header="Show _Rulers"  IsCheckable="True" IsChecked="True" Click="ShowRulers_Click"/>
             </MenuItem>
 
             <MenuItem Header="_Sheet">

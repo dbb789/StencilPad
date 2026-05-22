@@ -1,7 +1,9 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using StencilPad.Canvases.UI;
+using StencilPad.Spatial;
 using StencilPad.ViewModels;
 
 namespace StencilPad.UI;
@@ -19,13 +21,6 @@ public partial class SheetTab : UserControl
         set => _showGrid = value;
     }
 
-    private double _zoom = 1.0;
-    public double Zoom
-    {
-        get => _zoom;
-        set => _zoom = value;
-    }
-
     private bool _snapToGrid = true;
     public bool SnapToGrid
     {
@@ -39,7 +34,10 @@ public partial class SheetTab : UserControl
         get => _snapToPoint;
         set => _snapToPoint = value;
     }
-    
+
+    private SheetTabViewModel? _viewModel;
+    private bool _updatingZoom;
+
     private Point _lastMousePosition;
     private double _lastHorizontalOffset;
     private double _lastVerticalOffset;
@@ -54,23 +52,48 @@ public partial class SheetTab : UserControl
         Scroll.PreviewMouseDown += OnPreviewMouseDown;
         Scroll.PreviewMouseMove += OnPreviewMouseMove;
         Scroll.PreviewMouseUp += OnPreviewMouseUp;
+
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.OldValue is SheetTabViewModel oldVm)
+        {
+            oldVm.PropertyChanged -= OnViewModelPropertyChanged;
+            oldVm.DetachCanvas();
+        }
+
+        _viewModel = e.NewValue as SheetTabViewModel;
+
+        if (_viewModel is not null)
+        {
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _viewModel.AttachCanvas(SheetCanvas);
+
+            Dispatcher.BeginInvoke(() =>
+            {
+                ApplyZoomCentred(_viewModel.Zoom);
+            });
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SheetTabViewModel.Zoom) && !_updatingZoom)
+        {
+            ApplyZoomCentred(_viewModel!.Zoom);
+        }
     }
 
     private void SheetCanvasReady()
     {
-        (DataContext as SheetTabViewModel)?.AttachCanvas(SheetCanvas);
-        DataContextChanged += (s, e) =>
+        if (DataContext is SheetTabViewModel vm)
         {
-            if (e.OldValue is SheetTabViewModel oldVm)
-            {
-                oldVm.DetachCanvas();
-            }
-
-            if (e.NewValue is SheetTabViewModel newVm)
-            {
-                newVm.AttachCanvas(SheetCanvas);
-            }
-        };
+            vm.AttachCanvas(SheetCanvas);
+            _viewModel = vm;
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
 
         SheetCanvas.Viewport.ViewportChanged += () =>
         {
@@ -112,6 +135,57 @@ public partial class SheetTab : UserControl
         }
     }
 
+    private void ApplyZoomCentred(double targetZoom)
+    {
+        double hFraction = (Scroll.ScrollableWidth > 0) ? Scroll.HorizontalOffset / Scroll.ScrollableWidth  : 0.5;
+        double vFraction = (Scroll.ScrollableHeight > 0) ? Scroll.VerticalOffset / Scroll.ScrollableHeight : 0.5;
+
+        SetZoom(Math.Clamp(targetZoom, ZoomMin, ZoomMax));
+
+        void OnLayoutUpdated(object? s, EventArgs e)
+        {
+            Scroll.LayoutUpdated -= OnLayoutUpdated;
+            Scroll.ScrollToHorizontalOffset(hFraction * Scroll.ScrollableWidth);
+            Scroll.ScrollToVerticalOffset(vFraction* Scroll.ScrollableHeight);
+        }
+
+        Scroll.LayoutUpdated += OnLayoutUpdated;
+    }
+
+    private void ApplyZoom(double targetZoom, double anchorX, double anchorY)
+    {
+        double newZoom = Math.Clamp(targetZoom, ZoomMin, ZoomMax);
+        double actualFactor = newZoom / SheetCanvas.Zoom;
+
+        double newHOffset = (Scroll.HorizontalOffset + anchorX) * actualFactor - anchorX;
+        double newVOffset = (Scroll.VerticalOffset   + anchorY) * actualFactor - anchorY;
+
+        SetZoom(newZoom);
+
+        void OnLayoutUpdated(object? s, EventArgs e)
+        {
+            Scroll.LayoutUpdated -= OnLayoutUpdated;
+            Scroll.ScrollToHorizontalOffset(newHOffset);
+            Scroll.ScrollToVerticalOffset(newVOffset);
+        }
+
+        Scroll.LayoutUpdated += OnLayoutUpdated;
+    }
+
+    private void SetZoom(double zoom)
+    {
+        _updatingZoom = true;
+        
+        SheetCanvas.Zoom = zoom;
+
+        if (_viewModel is not null)
+        {
+            _viewModel.Zoom = zoom;
+        }
+        
+        _updatingZoom = false;
+    }
+
     private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (!Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
@@ -120,8 +194,9 @@ public partial class SheetTab : UserControl
         }
 
         double factor = e.Delta > 0 ? ZoomStep : 1.0 / ZoomStep;
+        var mousePos = e.GetPosition(Scroll);
         
-        SheetCanvas.Zoom = Math.Clamp(SheetCanvas.Zoom * factor, ZoomMin, ZoomMax);
+        ApplyZoom(SheetCanvas.Zoom * factor, mousePos.X, mousePos.Y);
 
         e.Handled = true;
     }

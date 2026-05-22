@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Media;
 
 namespace StencilPad.UI;
 
@@ -9,10 +10,41 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private void Export_Click(object sender, RoutedEventArgs e) { }
+    private SheetTab? GetActiveSheetTab()
+    {
+        if (SheetTabs.SelectedIndex < 0)
+        {
+            return null;
+        }
+        
+        var tabItem = SheetTabs.ItemContainerGenerator.ContainerFromIndex(SheetTabs.SelectedIndex) as System.Windows.Controls.TabItem;
+        
+        return FindVisualChild<SheetTab>(tabItem);
+    }
 
-    private void ZoomIn_Click(object sender, RoutedEventArgs e) { }
-    private void ZoomOut_Click(object sender, RoutedEventArgs e) { }
-    private void ZoomFit_Click(object sender, RoutedEventArgs e) { }
-    private void ShowRulers_Click(object sender, RoutedEventArgs e) { }
+    private static T? FindVisualChild<T>(DependencyObject? parent) where T : DependencyObject
+    {
+        if (parent == null)
+        {
+            return null;
+        }
+        
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+
+            if (child is T t)
+            {
+                return t;
+            }
+            
+            var result = FindVisualChild<T>(child);
+
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
+    }
 }

@@ -3,7 +3,6 @@ Snap to ruler
 Tidy up ruler layout
 Ruler should preview length on initial placement
 Page size configuration
-Tidy up pan/zoom
 Confirm exit without save
 Marker path selection region should include markers
 Line style (dotted lines / start + end caps)
