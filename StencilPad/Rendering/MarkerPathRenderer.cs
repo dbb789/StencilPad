@@ -26,16 +26,19 @@ public class MarkerPathRenderer : SheetElementRenderer
     {
         _markerPath = markerPath;
         _markerPath.Polygon.GeometryChanged += RebuildGeometry;
+        _markerPath.TransformChanged += OnTransformChanged;
         _markerPath.PropertyChanged += PropertyChanged;
         _markerCount = 0;
         
-        UpdateProperties();
+        _transform = _markerPath.Transform.CreateGroupTransform();
+        
         RebuildGeometry();
     }
 
     public override void Dispose()
     {
         _markerPath.Polygon.GeometryChanged -= RebuildGeometry;
+        _markerPath.TransformChanged -= OnTransformChanged;
         _markerPath.PropertyChanged -= PropertyChanged;
     }
 
@@ -61,24 +64,17 @@ public class MarkerPathRenderer : SheetElementRenderer
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MarkerPath.Spacing) ||
-            e.PropertyName == nameof(MarkerPath.Offset))
-        {
-            RebuildGeometry();
-        }
-        else if (e.PropertyName == nameof(MarkerPath.Transform))
-        {
-            _transform = _markerPath.Transform.CreateGroupTransform();
-        }
-        
+        RebuildGeometry();
         InvokeRendererDirty();
     }
 
-    private void UpdateProperties()
+    private void OnTransformChanged(ISheetElement element)
     {
         _transform = _markerPath.Transform.CreateGroupTransform();
+
+        InvokeRendererDirty();
     }
-    
+
     private void RebuildGeometry()
     {
         _geometry = new StreamGeometry
