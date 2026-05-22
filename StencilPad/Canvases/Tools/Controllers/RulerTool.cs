@@ -11,46 +11,37 @@ public class RulerTool : ITool
 {
     public class Factory(Sheet Sheet,
                          ToolOverlay ToolOverlay,
-                         IViewport Viewport,
-                         IUnitSnap UnitSnap,
                          IUnitSnapOverlay UnitSnapOverlay,
-                         IOperationService OperationService) : IToolFactory
+                         IOperationService OperationService,
+                         RulerToolOverlay.Factory OverlayFactory) : IToolFactory
     {
         public string IconResource => "RulerTool";
         public string Tooltip => "Ruler";
 
         public ITool Create(IToolButton button)
         {
-            return new RulerTool(Sheet,
-                                 ToolOverlay,
-                                 Viewport,
-                                 UnitSnap,
-                                 UnitSnapOverlay,
-                                 OperationService);
+            return new RulerTool(Sheet, ToolOverlay, UnitSnapOverlay, OperationService, OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
     private readonly ToolOverlay _toolOverlay;
-    private readonly IViewport _viewport;
-    private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
+    private readonly RulerToolOverlay.Factory _overlayFactory;
     private RulerToolOverlay? _overlay;
 
     private RulerTool(Sheet sheet,
                       ToolOverlay toolOverlay,
-                      IViewport viewport,
-                      IUnitSnap unitSnap,
                       IUnitSnapOverlay unitSnapOverlay,
-                      IOperationService operationService)
+                      IOperationService operationService,
+                      RulerToolOverlay.Factory overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;
-        _viewport = viewport;
-        _unitSnap = unitSnap;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
+        _overlayFactory = overlayFactory;
     }
 
     public void Dispose()
@@ -58,7 +49,7 @@ public class RulerTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new RulerToolOverlay(_viewport, _unitSnap);
+        _overlay = _overlayFactory.Create();
         _toolOverlay.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 

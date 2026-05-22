@@ -12,46 +12,37 @@ public class TextTool : ITool
 {
     public class Factory(Sheet Sheet,
                          ToolOverlay ToolOverlay,
-                         IViewport Viewport,
-                         IUnitSnap UnitSnap,
                          IUnitSnapOverlay UnitSnapOverlay,
-                         IOperationService OperationService) : IToolFactory
+                         IOperationService OperationService,
+                         TextToolOverlay.Factory OverlayFactory) : IToolFactory
     {
         public string IconResource => "TextTool";
         public string Tooltip => "Text";
 
         public ITool Create(IToolButton button)
         {
-            return new TextTool(Sheet,
-                                ToolOverlay,
-                                Viewport,
-                                UnitSnap,
-                                UnitSnapOverlay,
-                                OperationService);
+            return new TextTool(Sheet, ToolOverlay, UnitSnapOverlay, OperationService, OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
     private readonly ToolOverlay _toolOverlay;
-    private readonly IViewport _viewport;
-    private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
+    private readonly TextToolOverlay.Factory _overlayFactory;
     private TextToolOverlay? _overlay;
 
     private TextTool(Sheet sheet,
                      ToolOverlay toolOverlay,
-                     IViewport viewport,
-                     IUnitSnap unitSnap,
                      IUnitSnapOverlay unitSnapOverlay,
-                     IOperationService operationService)
+                     IOperationService operationService,
+                     TextToolOverlay.Factory overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;
-        _viewport = viewport;
-        _unitSnap = unitSnap;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
+        _overlayFactory = overlayFactory;
     }
 
     public void Dispose()
@@ -59,7 +50,7 @@ public class TextTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new TextToolOverlay(_viewport, _unitSnap);
+        _overlay = _overlayFactory.Create();
         _toolOverlay.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 

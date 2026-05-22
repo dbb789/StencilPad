@@ -36,6 +36,10 @@ public class ToolSet
         services.AddSingleton<TextTool.Factory>();
 
         services.AddSingleton<EditToolOverlay.Factory>();
+        services.AddSingleton<SelectionToolOverlay.Factory>();
+        services.AddSingleton<ShapeToolOverlay.Factory>();
+        services.AddSingleton<RulerToolOverlay.Factory>();
+        services.AddSingleton<TextToolOverlay.Factory>();
         
         services.AddSingleton<ToolSet>();
     }

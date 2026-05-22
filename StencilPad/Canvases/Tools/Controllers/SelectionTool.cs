@@ -13,10 +13,8 @@ public class SelectionTool : ITool
     public class Factory(Sheet Sheet,
                          ToolOverlay ToolOverlay,
                          IRubberBand RubberBand,
-                         IViewport Viewport,
-                         IUnitSnap UnitSnap,
                          IModelPropertiesService ModelPropertiesService,
-                         SheetElementActionSet SheetElementActionSet) : IToolFactory
+                         SelectionToolOverlay.Factory OverlayFactory) : IToolFactory
     {
         public string IconResource => "SelectionTool";
         public string Tooltip => "Select";
@@ -26,20 +24,16 @@ public class SelectionTool : ITool
             return new SelectionTool(Sheet,
                                      ToolOverlay,
                                      RubberBand,
-                                     Viewport,
-                                     UnitSnap,
                                      ModelPropertiesService,
-                                     SheetElementActionSet);
+                                     OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
     private readonly ToolOverlay _toolOverlay;
     private readonly IRubberBand _rubberBand;
-    private readonly IViewport _viewport;
-    private readonly IUnitSnap _unitSnap;
     private readonly IModelPropertiesService _modelPropertiesService;
-    private readonly SheetElementActionSet _sheetElementActionSet;
+    private readonly SelectionToolOverlay.Factory _overlayFactory;
 
     private SelectionToolOverlay? _overlay;
     private Dictionary<ISheetElement, UnitBounds> _resizeInitialBounds = new();
@@ -47,18 +41,14 @@ public class SelectionTool : ITool
     private SelectionTool(Sheet sheet,
                           ToolOverlay toolOverlay,
                           IRubberBand rubberBand,
-                          IViewport viewport,
-                          IUnitSnap unitSnap,
                           IModelPropertiesService modelPropertiesService,
-                          SheetElementActionSet sheetElementActionSet)
+                          SelectionToolOverlay.Factory overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;
         _rubberBand = rubberBand;
-        _viewport = viewport;
-        _unitSnap = unitSnap;
         _modelPropertiesService = modelPropertiesService;
-        _sheetElementActionSet = sheetElementActionSet;
+        _overlayFactory = overlayFactory;
     }
 
     public void Dispose()
@@ -66,10 +56,7 @@ public class SelectionTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new SelectionToolOverlay(_viewport,
-                                            _unitSnap,
-                                            _sheet,
-                                            _sheetElementActionSet.Actions);
+        _overlay = _overlayFactory.Create();
         _toolOverlay.ActiveOverlay = _overlay;
 
         _rubberBand.PointSelected += PointSelected;

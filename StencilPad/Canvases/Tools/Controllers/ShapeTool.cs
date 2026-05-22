@@ -11,46 +11,37 @@ public class ShapeTool : ITool
 {
     public class Factory(Sheet Sheet,
                          ToolOverlay ToolOverlay,
-                         IViewport Viewport,
-                         IUnitSnap UnitSnap,
                          IUnitSnapOverlay UnitSnapOverlay,
-                         IOperationService OperationService) : IToolFactory
+                         IOperationService OperationService,
+                         ShapeToolOverlay.Factory OverlayFactory) : IToolFactory
     {
         public string IconResource => "StraightLineTool";
         public string Tooltip => "Shape";
 
         public ITool Create(IToolButton button)
         {
-            return new ShapeTool(Sheet,
-                                 ToolOverlay,
-                                 Viewport,
-                                 UnitSnap,
-                                 UnitSnapOverlay,
-                                 OperationService);
+            return new ShapeTool(Sheet, ToolOverlay, UnitSnapOverlay, OperationService, OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
     private readonly ToolOverlay _toolOverlay;
-    private readonly IViewport _viewport;
-    private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
+    private readonly ShapeToolOverlay.Factory _overlayFactory;
     private ShapeToolOverlay? _overlay;
 
     private ShapeTool(Sheet sheet,
                       ToolOverlay toolOverlay,
-                      IViewport viewport,
-                      IUnitSnap unitSnap,
                       IUnitSnapOverlay unitSnapOverlay,
-                      IOperationService operationService)
+                      IOperationService operationService,
+                      ShapeToolOverlay.Factory overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;
-        _viewport = viewport;
-        _unitSnap = unitSnap;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
+        _overlayFactory = overlayFactory;
     }
 
     public void Dispose()
@@ -58,7 +49,7 @@ public class ShapeTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new ShapeToolOverlay(_viewport, _unitSnap);
+        _overlay = _overlayFactory.Create();
         _toolOverlay.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 

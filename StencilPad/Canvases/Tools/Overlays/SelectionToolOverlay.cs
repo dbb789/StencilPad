@@ -13,6 +13,17 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposable
 {
+    public class Factory(IViewport Viewport,
+                         IUnitSnap UnitSnap,
+                         Sheet Sheet,
+                         SheetElementActionSet ActionSet)
+    {
+        public SelectionToolOverlay Create()
+        {
+            return new SelectionToolOverlay(Viewport, UnitSnap, Sheet, ActionSet.Actions);
+        }
+    }
+
     private const double ResizeHandleSize = 12;
     private const double RotateHandleRadius = 6;
 

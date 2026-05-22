@@ -9,6 +9,11 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class TextToolOverlay : Canvas, IDisposable
 {
+    public class Factory(IViewport Viewport, IUnitSnap UnitSnap)
+    {
+        public TextToolOverlay Create() => new(Viewport, UnitSnap);
+    }
+
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private TextBox? _textBox;

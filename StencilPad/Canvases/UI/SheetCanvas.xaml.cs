@@ -14,7 +14,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.UI
 {
-    public partial class SheetCanvas : UserControl, IToolContext
+    public partial class SheetCanvas : UserControl
     {
         public static readonly DependencyProperty SheetProperty =
             DependencyProperty.Register(nameof(Sheet), typeof(Sheet), typeof(SheetCanvas),
