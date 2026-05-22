@@ -1,9 +1,11 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Overlays;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Rendering;
 using StencilPad.Services;
@@ -132,6 +134,16 @@ namespace StencilPad.Canvases.UI
 
             Focusable = true;
             PreviewMouseDown += (_, _) => Focus();
+
+            CommandBindings.Add(new CommandBinding(
+                GlobalCommands.SelectAll,
+                (_, _) => (_toolOverlay.ActiveOverlay as IGlobalCommandTarget)?.SelectAll(),
+                (_, e) => e.CanExecute = _toolOverlay.ActiveOverlay is IGlobalCommandTarget));
+            CommandBindings.Add(new CommandBinding(
+                GlobalCommands.ClearSelection,
+                (_, _) => (_toolOverlay.ActiveOverlay as IGlobalCommandTarget)?.ClearSelection(),
+                (_, e) => e.CanExecute = _toolOverlay.ActiveOverlay is IGlobalCommandTarget));
+
             _viewport.Visual = this;
 
             CanvasRoot.Children.Add(_canvasGrid);

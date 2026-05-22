@@ -12,7 +12,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposable
+public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
     public class Factory(IViewport Viewport,
                          IUnitSnap UnitSnap,
@@ -85,14 +85,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
 
-        CommandBindings.Add(new CommandBinding(
-            GlobalCommands.SelectAll,
-            (_, _) => SelectAll(),
-            (_, e) => e.CanExecute = true));
-        CommandBindings.Add(new CommandBinding(
-            GlobalCommands.ClearSelection,
-            (_, _) => ClearSelection(),
-            (_, e) => e.CanExecute = true));
 
         foreach (var element in _sheet.Selection)
         {
@@ -331,7 +323,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         ForceRedraw();
     }
 
-    private void SelectAll()
+    public void SelectAll()
     {
         _sheet.Selection.Clear();
 
@@ -341,7 +333,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         }
     }
 
-    private void ClearSelection()
+    public void ClearSelection()
     {
         _sheet.Selection.Clear();
     }

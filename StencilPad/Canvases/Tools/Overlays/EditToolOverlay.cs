@@ -14,7 +14,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
+public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
     public class Factory(Sheet Sheet,
                          IViewport Viewport,
@@ -106,17 +106,11 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
         
-        CommandBindings.Add(new CommandBinding(
-            GlobalCommands.SelectAll,
-            (_, _) => _handleMap.SelectAll(),
-            (_, e) => e.CanExecute = true));
-        CommandBindings.Add(new CommandBinding(
-            GlobalCommands.ClearSelection,
-            (_, _) => _handleMap.ClearSelection(),
-            (_, e) => e.CanExecute = true));
-
         _editOverlayRenderer.IsEnabled = true;
     }
+
+    public void SelectAll() => _handleMap.SelectAll();
+    public void ClearSelection() => _handleMap.ClearSelection();
 
     public void Dispose()
     {
