@@ -14,17 +14,6 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
-    public class Factory(IViewport Viewport,
-                         IUnitSnap UnitSnap,
-                         Sheet Sheet,
-                         SheetElementActionSet ActionSet)
-    {
-        public SelectionToolOverlay Create()
-        {
-            return new SelectionToolOverlay(Viewport, UnitSnap, Sheet, ActionSet.Actions);
-        }
-    }
-
     private const double ResizeHandleSize = 12;
     private const double RotateHandleRadius = 6;
 
@@ -57,7 +46,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     public SelectionToolOverlay(IViewport viewport,
                                 IUnitSnap unitSnap,
                                 Sheet sheet,
-                                IEnumerable<ISheetElementAction?> actions)
+                                SheetElementActionSet actionSet)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
@@ -83,7 +72,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         _handlePen.Freeze();
 
         ContextMenu = new ContextMenu();
-        ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
+        ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
 
 
         foreach (var element in _sheet.Selection)

@@ -1,6 +1,7 @@
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.Spatial;
@@ -13,7 +14,7 @@ public class SelectionTool : ITool
                          ToolOverlay ToolOverlay,
                          IRubberBand RubberBand,
                          IModelPropertiesService ModelPropertiesService,
-                         SelectionToolOverlay.Factory OverlayFactory) : IToolFactory
+                         Factory<SelectionToolOverlay> OverlayFactory) : IToolFactory
     {
         public string IconResource => "SelectionTool";
         public string Tooltip => "Select";
@@ -32,7 +33,7 @@ public class SelectionTool : ITool
     private readonly ToolOverlay _toolOverlay;
     private readonly IRubberBand _rubberBand;
     private readonly IModelPropertiesService _modelPropertiesService;
-    private readonly SelectionToolOverlay.Factory _overlayFactory;
+    private readonly Factory<SelectionToolOverlay> _overlayFactory;
 
     private SelectionToolOverlay? _overlay;
     private Dictionary<ISheetElement, UnitBounds> _resizeInitialBounds = new();
@@ -41,7 +42,7 @@ public class SelectionTool : ITool
                           ToolOverlay toolOverlay,
                           IRubberBand rubberBand,
                           IModelPropertiesService modelPropertiesService,
-                          SelectionToolOverlay.Factory overlayFactory)
+                          Factory<SelectionToolOverlay> overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;

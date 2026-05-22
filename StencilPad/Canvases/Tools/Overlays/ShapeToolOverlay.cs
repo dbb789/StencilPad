@@ -12,11 +12,6 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class ShapeToolOverlay : Canvas, IDisposable
 {
-    public class Factory(IViewport Viewport, IUnitSnap UnitSnap)
-    {
-        public ShapeToolOverlay Create() => new(Viewport, UnitSnap);
-    }
-
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly Polygon _polygon;

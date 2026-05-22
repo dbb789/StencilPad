@@ -1,5 +1,6 @@
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Rendering;
@@ -14,7 +15,7 @@ public class TextTool : ITool
                          ToolOverlay ToolOverlay,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         TextToolOverlay.Factory OverlayFactory) : IToolFactory
+                         Factory<TextToolOverlay> OverlayFactory) : IToolFactory
     {
         public string IconResource => "TextTool";
         public string Tooltip => "Text";
@@ -29,14 +30,14 @@ public class TextTool : ITool
     private readonly ToolOverlay _toolOverlay;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly TextToolOverlay.Factory _overlayFactory;
+    private readonly Factory<TextToolOverlay> _overlayFactory;
     private TextToolOverlay? _overlay;
 
     private TextTool(Sheet sheet,
                      ToolOverlay toolOverlay,
                      IUnitSnapOverlay unitSnapOverlay,
                      IOperationService operationService,
-                     TextToolOverlay.Factory overlayFactory)
+                     Factory<TextToolOverlay> overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;

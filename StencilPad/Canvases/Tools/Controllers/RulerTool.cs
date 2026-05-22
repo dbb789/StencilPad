@@ -1,5 +1,6 @@
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Services;
@@ -13,7 +14,7 @@ public class RulerTool : ITool
                          ToolOverlay ToolOverlay,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         RulerToolOverlay.Factory OverlayFactory) : IToolFactory
+                         Factory<RulerToolOverlay> OverlayFactory) : IToolFactory
     {
         public string IconResource => "RulerTool";
         public string Tooltip => "Ruler";
@@ -28,14 +29,14 @@ public class RulerTool : ITool
     private readonly ToolOverlay _toolOverlay;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly RulerToolOverlay.Factory _overlayFactory;
+    private readonly Factory<RulerToolOverlay> _overlayFactory;
     private RulerToolOverlay? _overlay;
 
     private RulerTool(Sheet sheet,
                       ToolOverlay toolOverlay,
                       IUnitSnapOverlay unitSnapOverlay,
                       IOperationService operationService,
-                      RulerToolOverlay.Factory overlayFactory)
+                      Factory<RulerToolOverlay> overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;

@@ -1,5 +1,6 @@
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Services;
@@ -13,7 +14,7 @@ public class MarkerPathTool : ITool
                          ToolOverlay ToolOverlay,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         ShapeToolOverlay.Factory OverlayFactory) : IToolFactory
+                         Factory<ShapeToolOverlay> OverlayFactory) : IToolFactory
     {
         public string IconResource => "MarkerPathTool";
         public string Tooltip => "Marker Path";
@@ -28,14 +29,14 @@ public class MarkerPathTool : ITool
     private readonly ToolOverlay _toolOverlay;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly ShapeToolOverlay.Factory _overlayFactory;
+    private readonly Factory<ShapeToolOverlay> _overlayFactory;
     private ShapeToolOverlay? _overlay;
 
     private MarkerPathTool(Sheet sheet,
                            ToolOverlay toolOverlay,
                            IUnitSnapOverlay unitSnapOverlay,
                            IOperationService operationService,
-                           ShapeToolOverlay.Factory overlayFactory)
+                           Factory<ShapeToolOverlay> overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;

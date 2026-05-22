@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Tools.Overlays;
+using StencilPad.Common;
 
 namespace StencilPad.Canvases.Tools.Controllers;
 
@@ -35,11 +36,20 @@ public class ToolSet
         services.AddSingleton<RulerTool.Factory>();
         services.AddSingleton<TextTool.Factory>();
 
-        services.AddSingleton<EditToolOverlay.Factory>();
-        services.AddSingleton<SelectionToolOverlay.Factory>();
-        services.AddSingleton<ShapeToolOverlay.Factory>();
-        services.AddSingleton<RulerToolOverlay.Factory>();
-        services.AddSingleton<TextToolOverlay.Factory>();
+        services.AddTransient<EditToolOverlay>();
+        services.AddSingleton<Factory<EditToolOverlay>>(sp => new(() => sp.GetRequiredService<EditToolOverlay>()));
+
+        services.AddTransient<SelectionToolOverlay>();
+        services.AddSingleton<Factory<SelectionToolOverlay>>(sp => new(() => sp.GetRequiredService<SelectionToolOverlay>()));
+
+        services.AddTransient<ShapeToolOverlay>();
+        services.AddSingleton<Factory<ShapeToolOverlay>>(sp => new(() => sp.GetRequiredService<ShapeToolOverlay>()));
+
+        services.AddTransient<RulerToolOverlay>();
+        services.AddSingleton<Factory<RulerToolOverlay>>(sp => new(() => sp.GetRequiredService<RulerToolOverlay>()));
+
+        services.AddTransient<TextToolOverlay>();
+        services.AddSingleton<Factory<TextToolOverlay>>(sp => new(() => sp.GetRequiredService<TextToolOverlay>()));
         
         services.AddSingleton<ToolSet>();
     }

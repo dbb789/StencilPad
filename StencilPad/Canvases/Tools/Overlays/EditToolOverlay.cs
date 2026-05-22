@@ -16,26 +16,6 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
-    public class Factory(Sheet Sheet,
-                         IViewport Viewport,
-                         IHandleMap HandleMap,
-                         IEditOverlayRenderer EditOverlayRenderer,
-                         IUnitSnap UnitSnap,
-                         IUnitSnapOverlay UnitSnapOverlay,
-                         PolygonSheetElementEditActionSet ActionSet)
-    {
-        public EditToolOverlay Create()
-        {
-            return new EditToolOverlay(Sheet,
-                                       Viewport,
-                                       HandleMap,
-                                       EditOverlayRenderer,
-                                       UnitSnap,
-                                       UnitSnapOverlay,
-                                       ActionSet);
-        }
-    }
-    
     // Limit mouse move event handling to 60hz so we don't clog up WPF.
     private const long MouseMoveEventThrottleMs = 16;
     
@@ -65,7 +45,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, I
     private Pen _selectedPen;
     private Pen _axisLockPen;
     
-    private EditToolOverlay(Sheet sheet,
+    public EditToolOverlay(Sheet sheet,
                             IViewport viewport,
                             IHandleMap handleMap,
                             IEditOverlayRenderer editOverlayRenderer,

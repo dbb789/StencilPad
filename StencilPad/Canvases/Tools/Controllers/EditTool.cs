@@ -2,6 +2,7 @@ using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Rendering;
@@ -18,7 +19,7 @@ public class EditTool : ITool
                          IEditOverlayRenderer EditOverlayRenderer,
                          IRubberBand RubberBand,
                          IOperationService OperationService,
-                         EditToolOverlay.Factory EditToolOverlayFactory) : IToolFactory
+                         Factory<EditToolOverlay> EditToolOverlayFactory) : IToolFactory
     {
         public string IconResource => "EditTool";
         public string Tooltip => "Edit Points";
@@ -43,7 +44,7 @@ public class EditTool : ITool
     private readonly IEditOverlayRenderer _editOverlayRenderer;
     private readonly IRubberBand _rubberBand;
     private readonly IOperationService _operationService;
-    private readonly EditToolOverlay.Factory _overlayFactory;
+    private readonly Factory<EditToolOverlay> _overlayFactory;
     
     private readonly List<ISheetElement> _selection;
     private readonly List<Unit2D> _originalPositions;
@@ -58,7 +59,7 @@ public class EditTool : ITool
                      IEditOverlayRenderer editOverlayRenderer,
                      IRubberBand rubberBand,
                      IOperationService operationService,
-                     EditToolOverlay.Factory overlayFactory)
+                     Factory<EditToolOverlay> overlayFactory)
     {
         _button = button;
         _sheet = sheet;
