@@ -35,6 +35,20 @@ public partial class ColorField : UserControl
             CommitHsv();
         };
 
+        SaturationSlider.ValueChanged += (_, _) =>
+        {
+            _saturation = SaturationSlider.Value;
+
+            CommitHsv();
+        };
+
+        BrightnessSlider.ValueChanged += (_, _) =>
+        {
+            _brightness = BrightnessSlider.Value;
+
+            CommitHsv();
+        };
+
         SvPicker.ValueChanged += (_, _) =>
         {
             _saturation = SvPicker.Saturation;
@@ -81,6 +95,8 @@ public partial class ColorField : UserControl
         
         UpdateSvPicker();
         UpdateHueSlider();
+        UpdateSaturationSlider();
+        UpdateBrightnessSlider();
         UpdateAlphaSlider(color);
         UpdateHexTextBox(color);
         UpdatePreview(color);
@@ -96,6 +112,8 @@ public partial class ColorField : UserControl
         
         UpdateSvPicker();
         UpdateHueSlider();
+        UpdateSaturationSlider();
+        UpdateBrightnessSlider();
         UpdateAlphaSlider(color);
         UpdateHexTextBox(color);
         UpdatePreview(color);
@@ -121,6 +139,8 @@ public partial class ColorField : UserControl
         
         UpdateSvPicker();
         UpdateHueSlider();
+        UpdateSaturationSlider();
+        UpdateBrightnessSlider();
         UpdateAlphaSlider(color);
         UpdatePreview(color);
     }
@@ -137,10 +157,24 @@ public partial class ColorField : UserControl
         HueSlider.Value = _hue;
     }
 
+    private void UpdateSaturationSlider()
+    {
+        SaturationSlider.Hue = _hue;
+        SaturationSlider.Brightness = _brightness;
+        SaturationSlider.Value = _saturation;
+    }
+
+    private void UpdateBrightnessSlider()
+    {
+        BrightnessSlider.Hue = _hue;
+        BrightnessSlider.Saturation = _saturation;
+        BrightnessSlider.Value = _brightness;
+    }
+
     private void UpdateAlphaSlider(Color color)
     {
         AlphaSlider.BaseColor = Color.FromArgb(255, color.R, color.G, color.B);
-        AlphaSlider.Value = color.A;
+        AlphaSlider.Value = (double)color.A / 255.0;
     }
 
     private void UpdateHexTextBox(Color color)

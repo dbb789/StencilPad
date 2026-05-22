@@ -10,6 +10,10 @@
             <RowDefinition Height="16"/>
             <RowDefinition Height="4"/>
             <RowDefinition Height="16"/>
+            <RowDefinition Height="4"/>
+            <RowDefinition Height="16"/>
+            <RowDefinition Height="4"/>
+            <RowDefinition Height="16"/>
             <RowDefinition Height="6"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -20,11 +24,17 @@
         <!-- Hue slider -->
         <widgets:ColorFieldHueSlider Grid.Row="2" x:Name="HueSlider"/>
 
+        <!-- Saturation slider -->
+        <widgets:ColorFieldSaturationSlider Grid.Row="4" x:Name="SaturationSlider"/>
+
+        <!-- Brightness slider -->
+        <widgets:ColorFieldBrightnessSlider Grid.Row="6" x:Name="BrightnessSlider"/>
+
         <!-- Alpha slider -->
-        <widgets:ColorFieldAlphaSlider Grid.Row="4" x:Name="AlphaSlider"/>
+        <widgets:ColorFieldAlphaSlider Grid.Row="8" x:Name="AlphaSlider"/>
 
         <!-- Preview + hex -->
-        <Grid Grid.Row="6">
+        <Grid Grid.Row="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="4"/>

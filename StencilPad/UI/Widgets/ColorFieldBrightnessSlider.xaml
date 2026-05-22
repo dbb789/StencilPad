@@ -1,0 +1,21 @@
+<UserControl x:Class="StencilPad.UI.Widgets.ColorFieldBrightnessSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="16">
+    <Grid ClipToBounds="True">
+        <!-- Black-to-colour gradient -->
+        <Rectangle x:Name="GradientRect"/>
+
+        <!-- Drag canvas with marker -->
+        <Canvas x:Name="DragCanvas" Background="Transparent"
+                MouseDown="DragCanvas_MouseDown"
+                MouseMove="DragCanvas_MouseMove"
+                MouseUp="DragCanvas_MouseUp">
+            <Rectangle x:Name="Marker"
+                       Width="4" Height="16"
+                       Stroke="Black" StrokeThickness="1"
+                       Fill="White" Opacity="0.8"
+                       IsHitTestVisible="False"/>
+        </Canvas>
+    </Grid>
+</UserControl>
