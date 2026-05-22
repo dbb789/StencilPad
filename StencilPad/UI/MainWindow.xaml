@@ -13,6 +13,7 @@
 
     <Window.InputBindings>
         <KeyBinding Command="{Binding DeleteCommand}" Key="Delete"/>
+        <KeyBinding Command="{Binding CutCommand}"    Key="X" Modifiers="Ctrl"/>
         <KeyBinding Command="{Binding CopyCommand}"  Key="C" Modifiers="Ctrl"/>
         <KeyBinding Command="{Binding PasteCommand}" Key="V" Modifiers="Ctrl"/>
         <KeyBinding Command="{Binding AddSheetCommand}" Key="T" Modifiers="Ctrl"/>
