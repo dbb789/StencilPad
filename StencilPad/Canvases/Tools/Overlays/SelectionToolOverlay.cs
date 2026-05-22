@@ -209,7 +209,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                 var currentVec = result.Value.TargetElementPosition - _rotateDragCenter;
                 var totalAngle = Unit2D.SignedAngle(initialVec, currentVec);
                 var angleDelta = totalAngle - _lastRotateAngle;
+                
                 _lastRotateAngle = totalAngle;
+                
                 SelectionRotated?.Invoke(angleDelta);
                 e.Handled = true;
             }

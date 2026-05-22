@@ -239,7 +239,8 @@ public class SelectionTool : ITool
 
         foreach (var selected in _sheet.Selection)
         {
-            selected.Transform = selected.Transform with { Angle = selected.Transform.Angle + effectiveDelta };
+            selected.Transform = selected.Transform with
+                { Angle = selected.Transform.Angle + effectiveDelta };
         }
     }
 
