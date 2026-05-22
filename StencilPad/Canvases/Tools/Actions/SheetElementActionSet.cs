@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using StencilPad.Canvases.Tools.Common;
 using StencilPad.Services;
 using StencilPad.Spatial;
 using StencilPad.Models;
@@ -18,7 +17,7 @@ public class SheetElementActionSet
             new MultiSheetElementAction<Shape>
             {
                 Name = "Shape Properties…",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     modelPropertiesService.ShowShapeProperties(elements);
                 }
@@ -26,7 +25,7 @@ public class SheetElementActionSet
             new MultiSheetElementAction<MarkerPath>
             {
                 Name = "Marker Path Properties…",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     modelPropertiesService.ShowMarkerPathProperties(elements);
                 }
@@ -35,7 +34,7 @@ public class SheetElementActionSet
             {
                 Name = "Combine Shapes",
                 Enabled = elements => elements.Count() > 1,
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     Shape? newShape = null;
 
@@ -82,7 +81,7 @@ public class SheetElementActionSet
             {
                 Name = "Group",
                 Enabled = elements => elements.Count() > 1,
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var operation = new BulkCommandOperation();
                     var children = new List<ISheetElement>();
@@ -122,7 +121,7 @@ public class SheetElementActionSet
             {
                 Name = "Ungroup",
                 Enabled = elements => elements.Any(e => e is ElementGroup),
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var groups = elements.OfType<ElementGroup>();
                     var operation = new BulkCommandOperation();
@@ -156,10 +155,10 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Mirror X",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
-                    var bounds = GetRenderedBounds(context, elements);
+                    var bounds = GetElementBounds(elements);
 
                     if (bounds is null)
                     {
@@ -179,10 +178,10 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Mirror Y",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
-                    var bounds = GetRenderedBounds(context, elements);
+                    var bounds = GetElementBounds(elements);
 
                     if (bounds is null)
                     {
@@ -203,11 +202,11 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Justify Top",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
                     
-                    Justify(context, elements,
+                    Justify(elements,
                             (selection, element) => new Unit2D(Unit.Zero, selection.Min.Y - element.Min.Y));
 
                     operationService.Push(editContext.FlushOperation());
@@ -216,11 +215,11 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Justify Middle",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
                     
-                    Justify(context, elements,
+                    Justify(elements,
                             (selection, element) => new Unit2D(Unit.Zero, selection.Center.Y - element.Center.Y));
 
                     operationService.Push(editContext.FlushOperation());
@@ -229,11 +228,11 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Justify Bottom",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
                     
-                    Justify(context, elements,
+                    Justify(elements,
                             (selection, element) => new Unit2D(Unit.Zero, selection.Max.Y - element.Max.Y));
 
                     operationService.Push(editContext.FlushOperation());
@@ -243,11 +242,11 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Justify Left",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
                     
-                    Justify(context, elements,
+                    Justify(elements,
                             (selection, element) => new Unit2D(selection.Min.X - element.Min.X, Unit.Zero));
 
                     operationService.Push(editContext.FlushOperation());
@@ -256,11 +255,11 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Justify Centre",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
                     
-                    Justify(context, elements,
+                    Justify(elements,
                             (selection, element) => new Unit2D(selection.Center.X - element.Center.X, Unit.Zero));
 
                     operationService.Push(editContext.FlushOperation());
@@ -269,11 +268,11 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Justify Right",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var editContext = new EditSheetElementContext(sheet, elements);
                     
-                    Justify(context, elements,
+                    Justify(elements,
                             (selection, element) => new Unit2D(selection.Max.X - element.Max.X, Unit.Zero));
 
                     operationService.Push(editContext.FlushOperation());
@@ -283,7 +282,7 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Bring to Front",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var operation = new BulkCommandOperation();
 
@@ -300,7 +299,7 @@ public class SheetElementActionSet
             new MultiSheetElementAction
             {
                 Name = "Send to Back",
-                Action = (context, sheet, elements) =>
+                Action = (sheet, elements) =>
                 {
                     var operation = new BulkCommandOperation();
 
@@ -317,34 +316,32 @@ public class SheetElementActionSet
         ];
     }
     
-    private static void Justify(IToolContext context,
-                                IEnumerable<ISheetElement> elements,
+    private static void Justify(IEnumerable<ISheetElement> elements,
                                 Func<UnitBounds, UnitBounds, Unit2D> getDelta)
     {
-        var renderedBounds = GetRenderedBounds(context, elements);
+        var bounds = GetElementBounds(elements);
         
-        if (renderedBounds is null)
+        if (bounds is null)
         {
             return;
         }
         
         foreach (var element in elements)
         {
-            element.Translate(getDelta(renderedBounds.Value, element.GetTransformedBounds()));
+            element.Translate(getDelta(bounds.Value, element.GetTransformedBounds()));
         }
     }
 
-    private static UnitBounds? GetRenderedBounds(IToolContext context,
-                                                 IEnumerable<ISheetElement> elements)
+    private static UnitBounds? GetElementBounds(IEnumerable<ISheetElement> elements)
     {
-        UnitBounds? renderedBounds = null;
+        UnitBounds? bounds = null;
 
         foreach (var element in elements)
         {
-            renderedBounds = UnitBounds.Union(renderedBounds, element.GetTransformedBounds());
+            bounds = UnitBounds.Union(bounds, element.GetTransformedBounds());
         }
 
-        return renderedBounds;
+        return bounds;
     }
 
     public static void ConfigureServices(IServiceCollection services)
