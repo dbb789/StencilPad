@@ -30,7 +30,7 @@ public partial class ColorField : UserControl
 
         HueSlider.ValueChanged += (_, _) =>
         {
-            _hue = HueSlider.Value;
+            _hue = HueSlider.Value * 360;
             
             CommitHsv();
         };
@@ -92,6 +92,7 @@ public partial class ColorField : UserControl
         _committedColor = color;
         
         ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+        _alpha = color.A / 255.0;
         
         UpdateSvPicker();
         UpdateHueSlider();
@@ -154,7 +155,7 @@ public partial class ColorField : UserControl
 
     private void UpdateHueSlider()
     {
-        HueSlider.Value = _hue;
+        HueSlider.Value = _hue / 360.0;
     }
 
     private void UpdateSaturationSlider()
