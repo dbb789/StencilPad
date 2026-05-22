@@ -1,4 +1,4 @@
-using StencilPad.Canvases.Tools.Common;
+using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
@@ -9,31 +9,39 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class RulerTool : ITool
 {
-    public class Factory(IOperationService OperationService) : IToolFactory
+    public class Factory(Sheet Sheet,
+                         ToolOverlay ToolOverlay,
+                         IUnitSnapOverlay UnitSnapOverlay,
+                         IOperationService OperationService,
+                         RulerToolOverlay.Factory OverlayFactory) : IToolFactory
     {
         public string IconResource => "RulerTool";
         public string Tooltip => "Ruler";
 
-        public ITool Create(IToolButton button,
-                            Sheet sheet,
-                            IToolContext context)
+        public ITool Create(IToolButton button)
         {
-            return new RulerTool(sheet, context, OperationService);
+            return new RulerTool(Sheet, ToolOverlay, UnitSnapOverlay, OperationService, OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
-    private readonly IToolContext _context;
+    private readonly ToolOverlay _toolOverlay;
+    private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
+    private readonly RulerToolOverlay.Factory _overlayFactory;
     private RulerToolOverlay? _overlay;
 
     private RulerTool(Sheet sheet,
-                      IToolContext context,
-                      IOperationService operationService)
+                      ToolOverlay toolOverlay,
+                      IUnitSnapOverlay unitSnapOverlay,
+                      IOperationService operationService,
+                      RulerToolOverlay.Factory overlayFactory)
     {
         _sheet = sheet;
-        _context = context;
+        _toolOverlay = toolOverlay;
+        _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
+        _overlayFactory = overlayFactory;
     }
 
     public void Dispose()
@@ -41,17 +49,17 @@ public class RulerTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new RulerToolOverlay(_context.Viewport, _context.UnitSnap);
-        _context.ToolOverlay.ActiveOverlay = _overlay;
-        _context.UnitSnapOverlay.Begin();
+        _overlay = _overlayFactory.Create();
+        _toolOverlay.ActiveOverlay = _overlay;
+        _unitSnapOverlay.Begin();
 
         _overlay.OnRulerPlaced += RulerPlaced;
     }
 
     public void ToolEnd()
     {
-        _context.ToolOverlay.ActiveOverlay = null;
-        _context.UnitSnapOverlay.End();
+        _toolOverlay.ActiveOverlay = null;
+        _unitSnapOverlay.End();
 
         if (_overlay is not null)
         {

@@ -9,5 +9,5 @@ public interface IToolFactory
     string IconResource { get; }
     string Tooltip { get; }
     
-    ITool Create(IToolButton button, Sheet sheet, IToolContext context);
+    ITool Create(IToolButton button);
 }

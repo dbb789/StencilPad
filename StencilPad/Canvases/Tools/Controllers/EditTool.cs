@@ -4,6 +4,7 @@ using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
+using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
@@ -11,44 +12,63 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class EditTool : ITool
 {
-    public class Factory(SheetElementEditActionSet SheetElementEditActions,
-                         IOperationService OperationService) : IToolFactory
+    public class Factory(Sheet Sheet,
+                         IHandleMap HandleMap,
+                         ToolOverlay ToolOverlay,
+                         IEditOverlayRenderer EditOverlayRenderer,
+                         IRubberBand RubberBand,
+                         IOperationService OperationService,
+                         EditToolOverlay.Factory EditToolOverlayFactory) : IToolFactory
     {
         public string IconResource => "EditTool";
         public string Tooltip => "Edit Points";
 
-        public ITool Create(IToolButton button, Sheet sheet, IToolContext context)
+        public ITool Create(IToolButton button)
         {
             return new EditTool(button,
-                                sheet,
-                                context,
-                                SheetElementEditActions,
-                                OperationService);
+                                Sheet,
+                                HandleMap,
+                                ToolOverlay,
+                                EditOverlayRenderer,
+                                RubberBand,
+                                OperationService,
+                                EditToolOverlayFactory);
         }
     }
 
     private readonly IToolButton _button;
     private readonly Sheet _sheet;
-    private readonly IToolContext _context;
-    private readonly SheetElementEditActionSet _sheetElementEditActions;
+    private readonly IHandleMap _handleMap;
+    private readonly ToolOverlay _toolOverlay;
+    private readonly IEditOverlayRenderer _editOverlayRenderer;
+    private readonly IRubberBand _rubberBand;
     private readonly IOperationService _operationService;
+    private readonly EditToolOverlay.Factory _overlayFactory;
+    
     private readonly List<ISheetElement> _selection;
     private readonly List<Unit2D> _originalPositions;
     
     private EditToolOverlay? _overlay;
     private EditSheetElementContext? _editContext;
-    
+
     private EditTool(IToolButton button,
                      Sheet sheet,
-                     IToolContext context,
-                     SheetElementEditActionSet sheetElementEditActions,
-                     IOperationService operationService)
+                     IHandleMap handleMap,
+                     ToolOverlay toolOverlay,
+                     IEditOverlayRenderer editOverlayRenderer,
+                     IRubberBand rubberBand,
+                     IOperationService operationService,
+                     EditToolOverlay.Factory overlayFactory)
     {
         _button = button;
         _sheet = sheet;
-        _context = context;
-        _sheetElementEditActions = sheetElementEditActions;
+        _handleMap = handleMap;
+        _toolOverlay = toolOverlay;
+        _editOverlayRenderer = editOverlayRenderer;
+        _rubberBand = rubberBand;
         _operationService = operationService;
+        _overlayFactory = overlayFactory;
+        
         _editContext = null;
         _selection = new(GetEditableSelection());
         _originalPositions = new(64);
@@ -68,12 +88,10 @@ public class EditTool : ITool
             return;
         }
         
-        _overlay = new EditToolOverlay(_context,
-                                                _sheet,
-                                                _sheetElementEditActions.Actions);
+        _overlay = _overlayFactory.Create();
         
-        _context.ToolOverlay.ActiveOverlay = _overlay;
-        _context.EditOverlayRenderer.IsEnabled = true;
+        _toolOverlay.ActiveOverlay = _overlay;
+        _editOverlayRenderer.IsEnabled = true;
 
         _overlay.HandleDragBegin += OnHandleDragBegin;
         _overlay.HandleDragged += OnHandleDragged;
@@ -81,14 +99,14 @@ public class EditTool : ITool
         _overlay.HandleSelected += OnHandleSelected;
         _overlay.ActionInvoked += ActionInvoked;
         
-        _context.RubberBand.BoundsSelected += OnBoundsSelected;
-        _context.RubberBand.PointSelected += OnPointSelected;
+        _rubberBand.BoundsSelected += OnBoundsSelected;
+        _rubberBand.PointSelected += OnPointSelected;
     }
 
     public void ToolEnd()
     {
-        _context.ToolOverlay.ActiveOverlay = null;
-        _context.EditOverlayRenderer.IsEnabled = false;
+        _toolOverlay.ActiveOverlay = null;
+        _editOverlayRenderer.IsEnabled = false;
 
         if (_overlay is not null)
         {
@@ -101,18 +119,18 @@ public class EditTool : ITool
             _overlay = null;
         }
 
-        _context.RubberBand.BoundsSelected -= OnBoundsSelected;
-        _context.RubberBand.PointSelected -= OnPointSelected;
+        _rubberBand.BoundsSelected -= OnBoundsSelected;
+        _rubberBand.PointSelected -= OnPointSelected;
     }
 
     private void OnHandleDragBegin(ISheetElement element,
                                    Handle handle)
     {
-        if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+        if (_handleMap.TryGetHandleEntry(handle, out var entry))
         {
             if (!entry.Selected)
             {
-                _context.HandleMap.ClearSelection();
+                _handleMap.ClearSelection();
                 entry.SetSelected(true);
             }
         }
@@ -126,7 +144,7 @@ public class EditTool : ITool
     {
         if (!handle.CanGroupMove)
         {
-            if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+            if (_handleMap.TryGetHandleEntry(handle, out var entry))
             {
                 entry.SetPosition(entry.Position + delta);
             }
@@ -140,7 +158,7 @@ public class EditTool : ITool
         // modified by another handle. And (hopefully) they won't fight each
         // other.
         
-        var selectedHandles = _context.HandleMap.SelectedHandles;
+        var selectedHandles = _handleMap.SelectedHandles;
         
         _originalPositions.Clear();
         
@@ -187,11 +205,11 @@ public class EditTool : ITool
 
         var selected = new List<IHandleMapEntry>();
         
-        _context.HandleMap.QueryHandles(bounds, selected);
+        _handleMap.QueryHandles(bounds, selected);
 
         if (!modifyingSelection)
         {
-            _context.HandleMap.ClearSelection();
+            _handleMap.ClearSelection();
         }
         
         foreach (var entry in selected)
@@ -210,7 +228,7 @@ public class EditTool : ITool
             return;
         }
 
-        _context.HandleMap.ClearSelection();
+        _handleMap.ClearSelection();
     }
 
     private void OnHandleSelected(ISheetElement element,
@@ -220,16 +238,16 @@ public class EditTool : ITool
 
         if (modifyingSelection)
         {
-            if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+            if (_handleMap.TryGetHandleEntry(handle, out var entry))
             {
                 entry.SetSelected(!entry.Selected);
             }
         }
         else
         {
-            _context.HandleMap.ClearSelection();
+            _handleMap.ClearSelection();
 
-            if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+            if (_handleMap.TryGetHandleEntry(handle, out var entry))
             {
                 entry.SetSelected(true);
             }
@@ -248,7 +266,7 @@ public class EditTool : ITool
     {
         var editContext = new EditSheetElementContext(_sheet, _selection);
         
-        action.Invoke(_context, _sheet, _selection);
+        action.Invoke(_sheet, _selection);
         
         _operationService.Push(editContext.FlushOperation());
     }

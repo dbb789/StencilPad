@@ -4,7 +4,6 @@ using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
-using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
@@ -14,7 +13,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.UI
 {
-    public partial class SheetCanvas : UserControl, IToolContext
+    public partial class SheetCanvas : UserControl
     {
         public static readonly DependencyProperty SheetProperty =
             DependencyProperty.Register(nameof(Sheet), typeof(Sheet), typeof(SheetCanvas),
@@ -89,8 +88,6 @@ namespace StencilPad.Canvases.UI
         private readonly CompositeUnitSnap _unitSnap;
         
         public event Action? CanvasReady;
-        public event Action? SelectAllRequested;
-        public event Action? ClearSelectionRequested;
 
         public SheetCanvas()
             : this(App.ServiceProvider.GetRequiredService<IResourceService>())
@@ -137,14 +134,15 @@ namespace StencilPad.Canvases.UI
 
             Focusable = true;
             PreviewMouseDown += (_, _) => Focus();
+
             CommandBindings.Add(new CommandBinding(
                 GlobalCommands.SelectAll,
-                (_, _) => SelectAllRequested?.Invoke(),
-                (_, e) => e.CanExecute = true));
+                (_, _) => (_toolOverlay.ActiveOverlay as IGlobalCommandTarget)?.SelectAll(),
+                (_, e) => e.CanExecute = _toolOverlay.ActiveOverlay is IGlobalCommandTarget));
             CommandBindings.Add(new CommandBinding(
                 GlobalCommands.ClearSelection,
-                (_, _) => ClearSelectionRequested?.Invoke(),
-                (_, e) => e.CanExecute = true));
+                (_, _) => (_toolOverlay.ActiveOverlay as IGlobalCommandTarget)?.ClearSelection(),
+                (_, e) => e.CanExecute = _toolOverlay.ActiveOverlay is IGlobalCommandTarget));
 
             _viewport.Visual = this;
 
@@ -160,6 +158,18 @@ namespace StencilPad.Canvases.UI
                 UpdateCanvasSize();
                 CanvasReady?.Invoke();
             };
+        }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<ToolOverlay>(_toolOverlay);
+            services.AddSingleton<CanvasGrid>(_canvasGrid);
+            services.AddSingleton<IEditOverlayRenderer>(_editOverlayRenderer);
+            services.AddSingleton<IViewport>(_viewport);
+            services.AddSingleton<IHandleMap>(_handleMap);
+            services.AddSingleton<IRubberBand>(_rubberBandEventPanel);
+            services.AddSingleton<IUnitSnap>(_unitSnap);
+            services.AddSingleton<IUnitSnapOverlay>(_unitSnapOverlay);
         }
         
         private static void OnSheetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

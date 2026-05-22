@@ -9,6 +9,11 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class RulerToolOverlay : Canvas, IDisposable
 {
+    public class Factory(IViewport Viewport, IUnitSnap UnitSnap)
+    {
+        public RulerToolOverlay Create() => new(Viewport, UnitSnap);
+    }
+
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
 

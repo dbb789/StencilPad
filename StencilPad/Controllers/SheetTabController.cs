@@ -1,34 +1,40 @@
+using Microsoft.Extensions.DependencyInjection;
 using StencilPad.ViewModels;
 using StencilPad.Canvases.Tools.Controllers;
 using StencilPad.Canvases.UI;
+using StencilPad.Models;
 using StencilPad.Services;
+using StencilPad.Canvases.Tools.Actions;
 
 namespace StencilPad.Controllers;
 
 public class SheetTabController : IDisposable
 {
-    public class Factory(ToolSet ToolSet, IModelPropertiesService ModelPropertiesService)
+    public class Factory(IModelPropertiesService ModelPropertiesService,
+                         IOperationService OperationService)
     {
         public SheetTabController Create(SheetTabViewModel tabViewModel)
         {
-            return new(tabViewModel, ToolSet, ModelPropertiesService);
+            return new(tabViewModel, OperationService, ModelPropertiesService);
         }
     }
 
     private readonly SheetTabViewModel _tabViewModel;
-    private readonly ToolSet _toolSet;
+    private readonly IOperationService _operationService;
     private readonly IModelPropertiesService _modelPropertiesService;
-    
+
+    private SheetCanvas? _currentCanvas;
     private ToolController? _toolController;
+    private ServiceProvider? _scopedServiceProvider;
 
     private SheetTabController(SheetTabViewModel tabViewModel,
-                               ToolSet toolSet,
+                               IOperationService operationService,
                                IModelPropertiesService modelPropertiesService)
     {
         _tabViewModel = tabViewModel;
-        _toolSet = toolSet;
+        _operationService = operationService;
         _modelPropertiesService = modelPropertiesService;
-        
+
         _tabViewModel.CanvasAttached += CanvasAttached;
         _tabViewModel.CanvasDetached += CanvasDetached;
     }
@@ -39,21 +45,27 @@ public class SheetTabController : IDisposable
         _tabViewModel.CanvasDetached -= CanvasDetached;
 
         _toolController?.Dispose();
+        _scopedServiceProvider?.Dispose();
     }
 
     private void CanvasAttached(SheetCanvas sheetCanvas)
     {
-        if (sheetCanvas != _toolController?.ToolContext)
+        if (_currentCanvas != sheetCanvas)
         {
             _toolController?.Dispose();
             _toolController = null;
+
+            _currentCanvas = sheetCanvas;
         }
-        
-        _toolController ??= new ToolController(_toolSet,
-                                               _tabViewModel.ToolPanelViewModel,
-                                               _tabViewModel.Sheet,
-                                               sheetCanvas,
-                                               _modelPropertiesService);
+
+        if (_toolController is null)
+        {
+            _scopedServiceProvider?.Dispose();
+            _scopedServiceProvider = CreateScopedServiceProvider(sheetCanvas);
+            
+            _toolController = _scopedServiceProvider.GetRequiredService<ToolController.Factory>()
+                .Create(_tabViewModel.ToolPanelViewModel);
+        }
 
         _tabViewModel.Viewport = sheetCanvas.Viewport;
         _toolController.ActivateCurrentTool();
@@ -63,5 +75,23 @@ public class SheetTabController : IDisposable
     {
         _tabViewModel.Viewport = null;
         _toolController?.DeactivateCurrentTool();
+    }
+
+    private ServiceProvider CreateScopedServiceProvider(SheetCanvas sheetCanvas)
+    {
+        var services = new ServiceCollection();
+
+        ToolSet.ConfigureServices(services);
+        SheetElementActionSet.ConfigureServices(services);
+        SheetElementEditActionSet.ConfigureServices(services);
+
+        sheetCanvas.ConfigureServices(services);
+
+        services.AddSingleton<Sheet>(_tabViewModel.Sheet);
+        services.AddSingleton<IOperationService>(_operationService);
+        services.AddSingleton<IModelPropertiesService>(_modelPropertiesService);
+        services.AddSingleton<ToolController.Factory>();
+
+        return services.BuildServiceProvider();
     }
 }

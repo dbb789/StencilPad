@@ -4,21 +4,33 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposable
+public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
+    public class Factory(IViewport Viewport,
+                         IUnitSnap UnitSnap,
+                         Sheet Sheet,
+                         SheetElementActionSet ActionSet)
+    {
+        public SelectionToolOverlay Create()
+        {
+            return new SelectionToolOverlay(Viewport, UnitSnap, Sheet, ActionSet.Actions);
+        }
+    }
+
     private const double ResizeHandleSize = 12;
     private const double RotateHandleRadius = 6;
 
-    private IToolContext _context;
-    private Sheet _sheet;
+    private readonly IViewport _viewport;
+    private readonly IUnitSnap _unitSnap;
+    private readonly Sheet _sheet;
 
     private DragState<ISheetElement> _dragState;
     private DragState<bool> _resizeDragState;
@@ -34,7 +46,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     private Pen _groupPen;
     private Brush _groupFill;
     private Pen _handlePen;
-    
+
     public event Action<Unit2D>? SelectionDragged;
     public event Action? SelectionResizeStarted;
     public event Action<Unit2D>? SelectionResized;
@@ -42,23 +54,25 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     public event Action<double>? SelectionRotated;
     public event Action<ISheetElementAction>? ActionInvoked;
 
-    public SelectionToolOverlay(IToolContext context,
+    public SelectionToolOverlay(IViewport viewport,
+                                IUnitSnap unitSnap,
                                 Sheet sheet,
                                 IEnumerable<ISheetElementAction?> actions)
     {
-        _context = context;
+        _viewport = viewport;
+        _unitSnap = unitSnap;
         _sheet = sheet;
         _sheet.Selection.CollectionChanged += SelectionChanged;
         _dragState = new();
         _resizeDragState = new();
         _rotateDragState = new();
-        
+
         _elementPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 2);
         _elementPen.Freeze();
 
         _elementFill = new SolidColorBrush(Color.FromArgb(10, 0, 0, 255));
         _elementFill.Freeze();
-        
+
         _groupPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 128, 255)), 2);
         _groupPen.Freeze();
 
@@ -67,9 +81,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         _handlePen = new Pen(new SolidColorBrush(Color.FromArgb(200, 0, 0, 200)), 1.5);
         _handlePen.Freeze();
-        
+
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
+
 
         foreach (var element in _sheet.Selection)
         {
@@ -88,13 +103,12 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             element.GeometryChanged -= OnTransformChanged;
         }
     }
-    
+
     private void RebuildContextMenu(object sender,
                                     ContextMenuEventArgs e,
                                     IEnumerable<ISheetElementAction?> actions)
     {
         if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
-                                                _context,
                                                 _sheet,
                                                 _sheet.Selection,
                                                 actions,
@@ -111,19 +125,19 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         foreach (var element in _sheet.Selection)
         {
             var bounds = element.GetTransformedBounds();
-            var screenBounds = new Rect(_context.Viewport.ToPoint(bounds.Min),
-                                        _context.Viewport.ToPoint(bounds.Max));
+            var screenBounds = new Rect(_viewport.ToPoint(bounds.Min),
+                                        _viewport.ToPoint(bounds.Max));
 
             var resizeRect = new Rect(screenBounds.BottomRight,
                                       new Size(ResizeHandleSize, ResizeHandleSize));
-            
+
             if (resizeRect.Contains(mousePosition))
             {
                 _resizeInitialSE = bounds.SE;
                 _resizeDragState.OnDragStart(mousePosition, true, _resizeInitialSE);
 
                 SelectionResizeStarted?.Invoke();
-                
+
                 CaptureMouse();
                 e.Handled = true;
                 return;
@@ -132,23 +146,23 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             var rotateCenter = screenBounds.TopRight + new Vector(RotateHandleRadius, -RotateHandleRadius);
             var dx = mousePosition.X - rotateCenter.X;
             var dy = mousePosition.Y - rotateCenter.Y;
-            
+
             if (dx * dx + dy * dy <= RotateHandleRadius * RotateHandleRadius)
             {
                 _rotateDragCenter = bounds.Center;
-                _rotateInitialHandlePos = _context.Viewport.FromPoint(rotateCenter);
+                _rotateInitialHandlePos = _viewport.FromPoint(rotateCenter);
                 _lastRotateAngle = 0;
                 _rotateDragState.OnDragStart(mousePosition, true, _rotateInitialHandlePos);
-                
+
                 SelectionRotateStarted?.Invoke();
-                
+
                 CaptureMouse();
                 e.Handled = true;
                 return;
             }
         }
 
-        var elementUnderMouse = PointOverSelection(_context.Viewport.FromPoint(mousePosition));
+        var elementUnderMouse = PointOverSelection(_viewport.FromPoint(mousePosition));
 
         if (elementUnderMouse != null)
         {
@@ -169,7 +183,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         if (_resizeDragState.DragStarted)
         {
-            var result = _resizeDragState.OnDragMove(_context.Viewport, mousePosition);
+            var result = _resizeDragState.OnDragMove(_viewport, mousePosition);
 
             if (result is not null)
             {
@@ -182,7 +196,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         if (_rotateDragState.DragStarted)
         {
-            var result = _rotateDragState.OnDragMove(_context.Viewport, mousePosition);
+            var result = _rotateDragState.OnDragMove(_viewport, mousePosition);
 
             if (result is not null)
             {
@@ -204,19 +218,19 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         }
 
         var elementBounds = _dragState.DraggedElement.GetTransformedBounds();
-        var dragResult = _dragState.OnDragMove(_context.Viewport,
+        var dragResult = _dragState.OnDragMove(_viewport,
                                                mousePosition);
-        
+
         if (dragResult is null)
         {
             return;
         }
-        
+
         var targetPosition = dragResult.Value.TargetElementPosition;
         var targetBounds = UnitBounds.FromCenterSize(targetPosition, elementBounds.Size);
         var snappedCenter = SnapBoundsCenter(targetBounds);
         var delta = snappedCenter - elementBounds.Center;
-        
+
         SelectionDragged?.Invoke(delta);
         e.Handled = true;
     }
@@ -226,7 +240,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         _dragState.OnDragEnd();
         _resizeDragState.OnDragEnd();
         _rotateDragState.OnDragEnd();
-        
+
         ReleaseMouseCapture();
         e.Handled = true;
 
@@ -246,7 +260,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         for (int i = 0; i < corners.Length; ++i)
         {
-            var snapPosition = _context.UnitSnap.UnitSnap(corners[i], this);
+            var snapPosition = _unitSnap.UnitSnap(corners[i], this);
 
             if (snapPosition.HasValue)
             {
@@ -280,7 +294,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         return null;
     }
-    
+
     private void SelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems != null)
@@ -300,7 +314,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
                 element.GeometryChanged -= OnTransformChanged;
             }
         }
-        
+
         ForceRedraw();
     }
 
@@ -308,12 +322,27 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     {
         ForceRedraw();
     }
-    
+
+    public void SelectAll()
+    {
+        _sheet.Selection.Clear();
+
+        foreach (var element in _sheet.Elements)
+        {
+            _sheet.Selection.Add(element);
+        }
+    }
+
+    public void ClearSelection()
+    {
+        _sheet.Selection.Clear();
+    }
+
     public bool CanUnitSnapTo(ISheetElement element)
     {
         return !_sheet.Selection.Contains(element);
     }
-    
+
     public bool CanUnitSnapTo(Handle handle)
     {
         return true;
@@ -329,21 +358,21 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         base.OnRender(dc);
 
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
-        
+
         foreach (var selected in _sheet.Selection)
         {
             var unitBounds = selected.GetTransformedBounds();
-            var bounds = new Rect(_context.Viewport.ToPoint(unitBounds.Min),
-                                  _context.Viewport.ToPoint(unitBounds.Max));
-            
+            var bounds = new Rect(_viewport.ToPoint(unitBounds.Min),
+                                  _viewport.ToPoint(unitBounds.Max));
+
             Pen pen = (selected is ElementGroup) ? _groupPen : _elementPen;
             Brush? fill = null;
-            
+
             if (_dragState.DraggedElement == selected)
             {
                 fill = (selected is ElementGroup) ? _groupFill : _elementFill;
             }
-            
+
             dc.DrawRectangle(fill, pen, bounds);
 
             dc.DrawRectangle(null, pen, new Rect(bounds.BottomRight, new Size(ResizeHandleSize, ResizeHandleSize)));

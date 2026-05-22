@@ -4,15 +4,38 @@ using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
+using StencilPad.Canvases.Tools.Controllers.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Rendering;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
+public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
+    public class Factory(Sheet Sheet,
+                         IViewport Viewport,
+                         IHandleMap HandleMap,
+                         IEditOverlayRenderer EditOverlayRenderer,
+                         IUnitSnap UnitSnap,
+                         IUnitSnapOverlay UnitSnapOverlay,
+                         PolygonSheetElementEditActionSet ActionSet)
+    {
+        public EditToolOverlay Create()
+        {
+            return new EditToolOverlay(Sheet,
+                                       Viewport,
+                                       HandleMap,
+                                       EditOverlayRenderer,
+                                       UnitSnap,
+                                       UnitSnapOverlay,
+                                       ActionSet);
+        }
+    }
+    
     // Limit mouse move event handling to 60hz so we don't clog up WPF.
     private const long MouseMoveEventThrottleMs = 16;
     
@@ -25,9 +48,13 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
     public event Action<ISheetElement, Handle>? HandleSelected;
     public event Action<ISheetElementAction>? ActionInvoked;
 
-    private readonly IToolContext _context;
     private readonly Sheet _sheet;
-
+    private readonly IViewport _viewport;
+    private readonly IHandleMap _handleMap;
+    private readonly IEditOverlayRenderer _editOverlayRenderer;
+    private readonly IUnitSnap _unitSnap;
+    private readonly IUnitSnapOverlay _unitSnapOverlay;
+    
     private List<IHandleMapEntry> _queryResults;
     private DragState<IHandleMapEntry> _dragState;
     private LockAxisState _lockAxisState;
@@ -38,23 +65,31 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
     private Pen _selectedPen;
     private Pen _axisLockPen;
     
-    public EditToolOverlay(IToolContext context,
-                           Sheet sheet,
-                           IEnumerable<ISheetElementAction?> editActions)
+    private EditToolOverlay(Sheet sheet,
+                            IViewport viewport,
+                            IHandleMap handleMap,
+                            IEditOverlayRenderer editOverlayRenderer,
+                            IUnitSnap unitSnap,
+                            IUnitSnapOverlay unitSnapOverlay,
+                            PolygonSheetElementEditActionSet actionSet)
     {
-        _context = context;
         _sheet = sheet;
+        _viewport = viewport;
+        _handleMap = handleMap;
+        _editOverlayRenderer = editOverlayRenderer;
+        _unitSnap = unitSnap;
+        _unitSnapOverlay = unitSnapOverlay;
+        
         _queryResults = new(128);
         _dragState = new();
         _lockAxisState = new();
         
-        _context.Viewport.ViewportChanged += ForceRedraw;
-        
-        _context.HandleMap.SheetSelectionChanged += ForceRedraw;
-        _context.HandleMap.HandleAdded += OnHandleAdded;
-        _context.HandleMap.HandleRemoved += OnHandleRemoved;
-        _context.HandleMap.HandleMoved += OnHandleMoved;
-        _context.HandleMap.HandleSelectionChanged += ForceRedraw;
+        _viewport.ViewportChanged += ForceRedraw;
+        _handleMap.SheetSelectionChanged += ForceRedraw;
+        _handleMap.HandleAdded += OnHandleAdded;
+        _handleMap.HandleRemoved += OnHandleRemoved;
+        _handleMap.HandleMoved += OnHandleMoved;
+        _handleMap.HandleSelectionChanged += ForceRedraw;
 
         _moveBrush = new SolidColorBrush(Color.FromArgb(128, 255, 128, 0));
         _moveBrush.Freeze();
@@ -69,21 +104,24 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         _axisLockPen.Freeze();
         
         ContextMenu = new ContextMenu();
-        ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
+        ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
         
-        _context.EditOverlayRenderer.IsEnabled = true;
+        _editOverlayRenderer.IsEnabled = true;
     }
+
+    public void SelectAll() => _handleMap.SelectAll();
+    public void ClearSelection() => _handleMap.ClearSelection();
 
     public void Dispose()
     {
-        _context.EditOverlayRenderer.IsEnabled = false;
-        _context.Viewport.ViewportChanged -= ForceRedraw;
+        _editOverlayRenderer.IsEnabled = false;
+        _viewport.ViewportChanged -= ForceRedraw;
 
-        _context.HandleMap.SheetSelectionChanged -= ForceRedraw;
-        _context.HandleMap.HandleAdded -= OnHandleAdded;
-        _context.HandleMap.HandleRemoved -= OnHandleRemoved;
-        _context.HandleMap.HandleMoved -= OnHandleMoved;
-        _context.HandleMap.HandleSelectionChanged += ForceRedraw;
+        _handleMap.SheetSelectionChanged -= ForceRedraw;
+        _handleMap.HandleAdded -= OnHandleAdded;
+        _handleMap.HandleRemoved -= OnHandleRemoved;
+        _handleMap.HandleMoved -= OnHandleMoved;
+        _handleMap.HandleSelectionChanged += ForceRedraw;
     }
 
     private void RebuildContextMenu(object sender,
@@ -91,7 +129,6 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
                                     IEnumerable<ISheetElementAction?> actions)
     {
         if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
-                                                _context,
                                                 _sheet,
                                                 _sheet.Selection,
                                                 actions,
@@ -105,11 +142,11 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
     {
         var mousePosition = e.GetPosition(VisualTreeHelper.GetParent(this) as UIElement);
 
-        var clickPosition = _context.Viewport.FromPoint(mousePosition);
-        var clickSizeUnit = _context.Viewport.FromPixels(16);
+        var clickPosition = _viewport.FromPoint(mousePosition);
+        var clickSizeUnit = _viewport.FromPixels(16);
         var clickSize = new Unit2D(clickSizeUnit, clickSizeUnit);
 
-        var handle = _context.HandleMap.GetClosestHandle(UnitBounds.FromCenterSize(clickPosition, clickSize));
+        var handle = _handleMap.GetClosestHandle(UnitBounds.FromCenterSize(clickPosition, clickSize));
 
         if (handle is null || !handle.Editing)
         {
@@ -131,7 +168,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         {
             HandleDragEnd?.Invoke();
             
-            _context.UnitSnapOverlay.End();
+            _unitSnapOverlay.End();
         }
         else if (_dragState.DraggedElement is not null)
         {
@@ -166,7 +203,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
             return;
         }
         
-        var dragResult = _dragState.OnDragMove(_context.Viewport,
+        var dragResult = _dragState.OnDragMove(_viewport,
                                                mousePosition);
 
         if (dragResult is null)
@@ -179,14 +216,14 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
             HandleDragBegin?.Invoke(_dragState.DraggedElement.Element,
                                     _dragState.DraggedElement.Handle);
 
-            _context.UnitSnapOverlay.Begin(this);
+            _unitSnapOverlay.Begin(this);
         }
 
-        var snappedTarget = _context.UnitSnap.UnitSnap(dragResult.Value.TargetElementPosition, this);
+        var snappedTarget = _unitSnap.UnitSnap(dragResult.Value.TargetElementPosition, this);
         var targetPosition = snappedTarget ?? dragResult.Value.TargetElementPosition;
         
         targetPosition = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
-                                                   _context.Viewport.FromPixels(12),
+                                                   _viewport.FromPixels(12),
                                                    _dragState.InitialElementPosition,
                                                    targetPosition);
 
@@ -221,7 +258,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
     
     public bool CanUnitSnapTo(Handle handle)
     {
-        if (_context.HandleMap.TryGetHandleEntry(handle, out var entry))
+        if (_handleMap.TryGetHandleEntry(handle, out var entry))
         {
             return !entry.Selected;
         }
@@ -241,8 +278,8 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
         _queryResults.Clear();
-        _context.HandleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero,
-                                                                  _context.Viewport.Size),
+        _handleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero,
+                                                                  _viewport.Size),
                                         _queryResults);
         
         foreach (var entry in _queryResults)
@@ -252,7 +289,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
                 continue;
             }
             
-            var point = _context.Viewport.ToPoint(entry.Position);
+            var point = _viewport.ToPoint(entry.Position);
             var pen = entry.Selected ? _selectedPen : null;
            
             if (entry.Handle.Type == HandleType.Move)
@@ -269,7 +306,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         {
             if (_lockAxisState.LockedAxis == UnitAxis.X)
             {
-                var lockPoint = _context.Viewport.ToPoint(new Unit2D(Unit.Zero, _lockAxisState.LockPosition.Value));
+                var lockPoint = _viewport.ToPoint(new Unit2D(Unit.Zero, _lockAxisState.LockPosition.Value));
                 
                 dc.DrawLine(_axisLockPen,
                             new Point(0, lockPoint.Y),
@@ -277,7 +314,7 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
             }
             else
             {
-                var lockPoint = _context.Viewport.ToPoint(new Unit2D(_lockAxisState.LockPosition.Value, Unit.Zero));
+                var lockPoint = _viewport.ToPoint(new Unit2D(_lockAxisState.LockPosition.Value, Unit.Zero));
 
                 dc.DrawLine(_axisLockPen,
                             new Point(lockPoint.X, 0),

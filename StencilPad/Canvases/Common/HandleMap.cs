@@ -97,6 +97,11 @@ public class HandleMap : IHandleMap, IUnitSnap
         
         if (_sheet is not null)
         {
+            foreach (var element in _sheet.Elements)
+            {
+                Remove(element);
+            }
+
             _sheet.Elements.CollectionChanged -= OnSheetElementsChanged;
             _sheet.Selection.CollectionChanged -= OnSheetSelectionChanged;
         }
@@ -112,6 +117,14 @@ public class HandleMap : IHandleMap, IUnitSnap
             
             _sheet.Elements.CollectionChanged += OnSheetElementsChanged;
             _sheet.Selection.CollectionChanged += OnSheetSelectionChanged;
+        }
+    }
+
+    public void SelectAll()
+    {
+        foreach (var entry in _byHandle.Values)
+        {
+            entry.SetSelected(entry.Editing);
         }
     }
 

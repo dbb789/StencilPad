@@ -1,4 +1,4 @@
-using StencilPad.Canvases.Tools.Common;
+using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
@@ -9,47 +9,57 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class MarkerPathTool : ITool
 {
-    public class Factory(IOperationService OperationService) : IToolFactory
+    public class Factory(Sheet Sheet,
+                         ToolOverlay ToolOverlay,
+                         IUnitSnapOverlay UnitSnapOverlay,
+                         IOperationService OperationService,
+                         ShapeToolOverlay.Factory OverlayFactory) : IToolFactory
     {
         public string IconResource => "MarkerPathTool";
         public string Tooltip => "Marker Path";
-        
-        public ITool Create(IToolButton _, Sheet sheet, IToolContext context)
+
+        public ITool Create(IToolButton button)
         {
-            return new MarkerPathTool(sheet, context, OperationService);
+            return new MarkerPathTool(Sheet, ToolOverlay, UnitSnapOverlay, OperationService, OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
-    private readonly IToolContext _context;
+    private readonly ToolOverlay _toolOverlay;
+    private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
+    private readonly ShapeToolOverlay.Factory _overlayFactory;
     private ShapeToolOverlay? _overlay;
 
     private MarkerPathTool(Sheet sheet,
-                           IToolContext context,
-                           IOperationService operationService)
+                           ToolOverlay toolOverlay,
+                           IUnitSnapOverlay unitSnapOverlay,
+                           IOperationService operationService,
+                           ShapeToolOverlay.Factory overlayFactory)
     {
         _sheet = sheet;
-        _context = context;
+        _toolOverlay = toolOverlay;
+        _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
+        _overlayFactory = overlayFactory;
     }
 
     public void Dispose()
     { }
-    
+
     public void ToolBegin()
     {
-        _overlay = new ShapeToolOverlay(_context.Viewport, _context.UnitSnap);
-        _context.ToolOverlay.ActiveOverlay = _overlay;
-        _context.UnitSnapOverlay.Begin();
+        _overlay = _overlayFactory.Create();
+        _toolOverlay.ActiveOverlay = _overlay;
+        _unitSnapOverlay.Begin();
 
         _overlay.OnPolygonCompleted += PolygonCompleted;
     }
 
     public void ToolEnd()
     {
-        _context.ToolOverlay.ActiveOverlay = null;
-        _context.UnitSnapOverlay.End();
+        _toolOverlay.ActiveOverlay = null;
+        _unitSnapOverlay.End();
 
         if (_overlay is not null)
         {
