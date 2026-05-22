@@ -46,12 +46,12 @@ public class PolygonSheetElementEditActionSet
             _modelPropertiesService = modelPropertiesService;
         }
         
-        public bool IsVisible(IToolContext c, Sheet sheet, IEnumerable<ISheetElement> elements)
+        public bool IsVisible(Sheet sheet, IEnumerable<ISheetElement> elements)
         {
             return elements.All(e => e is IPolygonSheetElement);
         }
 
-        public bool IsEnabled(IToolContext c, Sheet sheet, IEnumerable<ISheetElement> elements)
+        public bool IsEnabled(Sheet sheet, IEnumerable<ISheetElement> elements)
         {
             var polygonSheetElements = elements.OfType<IPolygonSheetElement>();
 
@@ -69,7 +69,7 @@ public class PolygonSheetElementEditActionSet
             return true;
         }
 
-        public void Invoke(IToolContext c, Sheet sheet, IEnumerable<ISheetElement> elements)
+        public void Invoke(Sheet sheet, IEnumerable<ISheetElement> elements)
         {
             var polygonSheetElements = elements.OfType<IPolygonSheetElement>();
             var targets = new List<VertexCornerTarget>();

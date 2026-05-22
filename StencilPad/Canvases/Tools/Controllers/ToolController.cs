@@ -1,9 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
-using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.ViewModels;
 
@@ -11,26 +9,28 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class ToolController : IDisposable
 {
-    public IToolContext ToolContext => _toolContext;
-    
+    public class Factory(ToolSet toolSet,
+                         IModelPropertiesService ModelPropertiesService)
+    {
+        public ToolController Create(ToolPanelViewModel toolPanelViewModel)
+        {
+            return new(toolSet, toolPanelViewModel, ModelPropertiesService);
+        }
+    }
+
     private readonly ToolSet _toolSet;
     private readonly ToolPanelViewModel _toolPanelViewModel;
-    private readonly Sheet _sheet;
-    private readonly IToolContext _toolContext;
     private readonly IModelPropertiesService _modelPropertiesService;
     private readonly Dictionary<IToolButton, ITool> _toolButtons;
+    
     private ITool? _selectedTool;
     
-    public ToolController(ToolSet toolset,
+    public ToolController(ToolSet toolSet,
                           ToolPanelViewModel toolPanelViewModel,
-                          Sheet sheet,
-                          IToolContext toolContext,
                           IModelPropertiesService modelPropertiesService)
     {
-        _toolSet = toolset;
+        _toolSet = toolSet;
         _toolPanelViewModel = toolPanelViewModel;
-        _sheet = sheet;
-        _toolContext = toolContext;
         _modelPropertiesService = modelPropertiesService;
         _toolButtons = [];
         _selectedTool = null;
@@ -72,7 +72,7 @@ public class ToolController : IDisposable
         {
             var button = CreateToolButton(tool.IconResource, tool.Tooltip);
             
-            AttachToolButton(tool.Create(button, _sheet, _toolContext), button);
+            AttachToolButton(tool.Create(button), button);
         }
     }
 

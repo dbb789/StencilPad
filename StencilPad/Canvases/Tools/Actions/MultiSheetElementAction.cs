@@ -10,19 +10,19 @@ public class MultiSheetElementAction<TInterface> : ISheetElementAction
     public Func<IEnumerable<TInterface>, bool>? Enabled { get; init; }
     public Action<IToolContext, Sheet, IEnumerable<TInterface>>? Action { get; init;  }
 
-    public bool IsVisible(IToolContext c, Sheet s, IEnumerable<ISheetElement> elements)
+    public bool IsVisible(Sheet s, IEnumerable<ISheetElement> elements)
     {
         return elements.All(e => e is TInterface);
     }
     
-    public bool IsEnabled(IToolContext c, Sheet s, IEnumerable<ISheetElement> elements)
+    public bool IsEnabled(Sheet s, IEnumerable<ISheetElement> elements)
     {
         return Enabled?.Invoke(elements.OfType<TInterface>()) ?? true;
     }
 
-    public void Invoke(IToolContext context, Sheet sheet, IEnumerable<ISheetElement> elements)
+    public void Invoke(Sheet sheet, IEnumerable<ISheetElement> elements)
     {
-        Action?.Invoke(context, sheet, elements.OfType<TInterface>());
+        Action?.Invoke(sheet, elements.OfType<TInterface>());
     }
 }
 

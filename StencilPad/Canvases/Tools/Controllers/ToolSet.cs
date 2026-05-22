@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using StencilPad.Canvases.Tools.Overlays;
 
 namespace StencilPad.Canvases.Tools.Controllers;
 
@@ -33,6 +34,9 @@ public class ToolSet
         services.AddSingleton<MarkerPathTool.Factory>();
         services.AddSingleton<RulerTool.Factory>();
         services.AddSingleton<TextTool.Factory>();
+
+        services.AddSingleton<EditToolOverlay.Factory>();
+        
         services.AddSingleton<ToolSet>();
     }
 }

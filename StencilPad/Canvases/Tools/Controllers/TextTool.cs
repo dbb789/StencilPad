@@ -1,4 +1,4 @@
-using StencilPad.Canvases.Tools.Common;
+using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
@@ -10,26 +10,47 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class TextTool : ITool
 {
-    public class Factory(IOperationService OperationService) : IToolFactory
+    public class Factory(Sheet Sheet,
+                         ToolOverlay ToolOverlay,
+                         IViewport Viewport,
+                         IUnitSnap UnitSnap,
+                         IUnitSnapOverlay UnitSnapOverlay,
+                         IOperationService OperationService) : IToolFactory
     {
         public string IconResource => "TextTool";
         public string Tooltip => "Text";
 
-        public ITool Create(IToolButton _, Sheet sheet, IToolContext context)
+        public ITool Create(IToolButton button)
         {
-            return new TextTool(sheet, context, OperationService);
+            return new TextTool(Sheet,
+                                ToolOverlay,
+                                Viewport,
+                                UnitSnap,
+                                UnitSnapOverlay,
+                                OperationService);
         }
     }
 
     private readonly Sheet _sheet;
-    private readonly IToolContext _context;
+    private readonly ToolOverlay _toolOverlay;
+    private readonly IViewport _viewport;
+    private readonly IUnitSnap _unitSnap;
+    private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
     private TextToolOverlay? _overlay;
 
-    private TextTool(Sheet sheet, IToolContext context, IOperationService operationService)
+    private TextTool(Sheet sheet,
+                     ToolOverlay toolOverlay,
+                     IViewport viewport,
+                     IUnitSnap unitSnap,
+                     IUnitSnapOverlay unitSnapOverlay,
+                     IOperationService operationService)
     {
         _sheet = sheet;
-        _context = context;
+        _toolOverlay = toolOverlay;
+        _viewport = viewport;
+        _unitSnap = unitSnap;
+        _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
     }
 
@@ -38,17 +59,17 @@ public class TextTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new TextToolOverlay(_context.Viewport, _context.UnitSnap);
-        _context.ToolOverlay.ActiveOverlay = _overlay;
-        _context.UnitSnapOverlay.Begin();
+        _overlay = new TextToolOverlay(_viewport, _unitSnap);
+        _toolOverlay.ActiveOverlay = _overlay;
+        _unitSnapOverlay.Begin();
 
         _overlay.OnTextPlaced += TextPlaced;
     }
 
     public void ToolEnd()
     {
-        _context.ToolOverlay.ActiveOverlay = null;
-        _context.UnitSnapOverlay.End();
+        _toolOverlay.ActiveOverlay = null;
+        _unitSnapOverlay.End();
 
         if (_overlay is not null)
         {

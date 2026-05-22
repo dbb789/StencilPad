@@ -1,6 +1,5 @@
 using System.Windows.Controls;
 using StencilPad.Canvases.Tools.Actions;
-using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
 
 namespace StencilPad.Canvases.Tools.Widgets;
@@ -8,7 +7,6 @@ namespace StencilPad.Canvases.Tools.Widgets;
 public static class ContextMenuUtil
 {
     public static bool RebuildContextMenu(ContextMenu contextMenu,
-                                          IToolContext context,
                                           Sheet sheet,
                                           IEnumerable<ISheetElement> selection,
                                           IEnumerable<ISheetElementAction?> actions,
@@ -24,14 +22,14 @@ public static class ContextMenuUtil
                 {
                     contextMenu.Items.Add(new Separator());
                 }
-                else if (action.IsVisible(context, sheet, selection))
+                else if (action.IsVisible(sheet, selection))
                 {
                     var menuItem = new MenuItem
                     {
                         Header = action.Name
                     };
 
-                    menuItem.IsEnabled = action.IsEnabled(context, sheet, selection);
+                    menuItem.IsEnabled = action.IsEnabled(sheet, selection);
                     menuItem.Click += (s, e) =>
                     {
                         actionInvoked?.Invoke(action);

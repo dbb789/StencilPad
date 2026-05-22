@@ -17,6 +17,7 @@ public interface IToolContext
     IUnitSnap UnitSnap { get; }
     IUnitSnapOverlay UnitSnapOverlay { get; }
     
-    event Action? SelectAllRequested;
-    event Action? ClearSelectionRequested;
+    // TODO: SelectAllRequested / ClearSelectionRequested need refactoring
+    // event Action? SelectAllRequested;
+    // event Action? ClearSelectionRequested;
 }

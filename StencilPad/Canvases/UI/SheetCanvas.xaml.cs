@@ -89,8 +89,9 @@ namespace StencilPad.Canvases.UI
         private readonly CompositeUnitSnap _unitSnap;
         
         public event Action? CanvasReady;
-        public event Action? SelectAllRequested;
-        public event Action? ClearSelectionRequested;
+        // TODO: SelectAllRequested / ClearSelectionRequested need refactoring
+        // public event Action? SelectAllRequested;
+        // public event Action? ClearSelectionRequested;
 
         public SheetCanvas()
             : this(App.ServiceProvider.GetRequiredService<IResourceService>())
@@ -137,14 +138,15 @@ namespace StencilPad.Canvases.UI
 
             Focusable = true;
             PreviewMouseDown += (_, _) => Focus();
-            CommandBindings.Add(new CommandBinding(
-                GlobalCommands.SelectAll,
-                (_, _) => SelectAllRequested?.Invoke(),
-                (_, e) => e.CanExecute = true));
-            CommandBindings.Add(new CommandBinding(
-                GlobalCommands.ClearSelection,
-                (_, _) => ClearSelectionRequested?.Invoke(),
-                (_, e) => e.CanExecute = true));
+            // TODO: SelectAllRequested / ClearSelectionRequested need refactoring
+            // CommandBindings.Add(new CommandBinding(
+            //     GlobalCommands.SelectAll,
+            //     (_, _) => SelectAllRequested?.Invoke(),
+            //     (_, e) => e.CanExecute = true));
+            // CommandBindings.Add(new CommandBinding(
+            //     GlobalCommands.ClearSelection,
+            //     (_, _) => ClearSelectionRequested?.Invoke(),
+            //     (_, e) => e.CanExecute = true));
 
             _viewport.Visual = this;
 
@@ -160,6 +162,18 @@ namespace StencilPad.Canvases.UI
                 UpdateCanvasSize();
                 CanvasReady?.Invoke();
             };
+        }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<ToolOverlay>(_toolOverlay);
+            services.AddSingleton<CanvasGrid>(_canvasGrid);
+            services.AddSingleton<IEditOverlayRenderer>(_editOverlayRenderer);
+            services.AddSingleton<IViewport>(_viewport);
+            services.AddSingleton<IHandleMap>(_handleMap);
+            services.AddSingleton<IRubberBand>(_rubberBandEventPanel);
+            services.AddSingleton<IUnitSnap>(_unitSnap);
+            services.AddSingleton<IUnitSnapOverlay>(_unitSnapOverlay);
         }
         
         private static void OnSheetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

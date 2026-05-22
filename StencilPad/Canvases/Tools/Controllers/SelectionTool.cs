@@ -1,3 +1,4 @@
+using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
@@ -9,45 +10,53 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class SelectionTool : ITool
 {
-    public class Factory : IToolFactory
+    public class Factory(Sheet Sheet,
+                         ToolOverlay ToolOverlay,
+                         IRubberBand RubberBand,
+                         IViewport Viewport,
+                         IUnitSnap UnitSnap,
+                         IModelPropertiesService ModelPropertiesService,
+                         SheetElementActionSet SheetElementActionSet) : IToolFactory
     {
         public string IconResource => "SelectionTool";
         public string Tooltip => "Select";
 
-        private readonly IModelPropertiesService _modelPropertiesService;
-        private readonly SheetElementActionSet _sheetElementActionSet;
-        
-        public Factory(IModelPropertiesService modelPropertiesService,
-                       SheetElementActionSet sheetElementActionSet)
+        public ITool Create(IToolButton button)
         {
-            _modelPropertiesService = modelPropertiesService;
-            _sheetElementActionSet = sheetElementActionSet;
-        }
-
-        public ITool Create(IToolButton _, Sheet sheet, IToolContext context)
-        {
-            return new SelectionTool(sheet,
-                                     context,
-                                     _modelPropertiesService,
-                                     _sheetElementActionSet);
+            return new SelectionTool(Sheet,
+                                     ToolOverlay,
+                                     RubberBand,
+                                     Viewport,
+                                     UnitSnap,
+                                     ModelPropertiesService,
+                                     SheetElementActionSet);
         }
     }
 
     private readonly Sheet _sheet;
-    private readonly IToolContext _context;
+    private readonly ToolOverlay _toolOverlay;
+    private readonly IRubberBand _rubberBand;
+    private readonly IViewport _viewport;
+    private readonly IUnitSnap _unitSnap;
     private readonly IModelPropertiesService _modelPropertiesService;
     private readonly SheetElementActionSet _sheetElementActionSet;
-    
+
     private SelectionToolOverlay? _overlay;
     private Dictionary<ISheetElement, UnitBounds> _resizeInitialBounds = new();
 
     private SelectionTool(Sheet sheet,
-                          IToolContext context,
+                          ToolOverlay toolOverlay,
+                          IRubberBand rubberBand,
+                          IViewport viewport,
+                          IUnitSnap unitSnap,
                           IModelPropertiesService modelPropertiesService,
                           SheetElementActionSet sheetElementActionSet)
     {
         _sheet = sheet;
-        _context = context;
+        _toolOverlay = toolOverlay;
+        _rubberBand = rubberBand;
+        _viewport = viewport;
+        _unitSnap = unitSnap;
         _modelPropertiesService = modelPropertiesService;
         _sheetElementActionSet = sheetElementActionSet;
     }
@@ -57,15 +66,17 @@ public class SelectionTool : ITool
 
     public void ToolBegin()
     {
-        _overlay = new SelectionToolOverlay(_context,
+        _overlay = new SelectionToolOverlay(_viewport,
+                                            _unitSnap,
                                             _sheet,
                                             _sheetElementActionSet.Actions);
-        _context.ToolOverlay.ActiveOverlay = _overlay;
+        _toolOverlay.ActiveOverlay = _overlay;
 
-        _context.RubberBand.PointSelected += PointSelected;
-        _context.RubberBand.BoundsSelected += BoundsSelected;
-        _context.SelectAllRequested += SelectAll;
-        _context.ClearSelectionRequested += ClearSelection;
+        _rubberBand.PointSelected += PointSelected;
+        _rubberBand.BoundsSelected += BoundsSelected;
+        // TODO: SelectAllRequested / ClearSelectionRequested need refactoring
+        // _context.SelectAllRequested += SelectAll;
+        // _context.ClearSelectionRequested += ClearSelection;
 
         _overlay.ActionInvoked += ActionInvoked;
         _overlay.SelectionDragged += SelectionDragged;
@@ -77,14 +88,12 @@ public class SelectionTool : ITool
 
     public void ToolEnd()
     {
-        _context.ToolOverlay.ActiveOverlay = null;
+        _toolOverlay.ActiveOverlay = null;
 
         if (_overlay is not null)
         {
-            _context.RubberBand.PointSelected -= PointSelected;
-            _context.RubberBand.BoundsSelected -= BoundsSelected;
-            _context.SelectAllRequested -= SelectAll;
-            _context.ClearSelectionRequested -= ClearSelection;
+            // _context.SelectAllRequested -= SelectAll;
+            // _context.ClearSelectionRequested -= ClearSelection;
 
             _overlay.ActionInvoked -= ActionInvoked;
             _overlay.SelectionDragged -= SelectionDragged;
@@ -95,6 +104,9 @@ public class SelectionTool : ITool
             _overlay.Dispose();
             _overlay = null;
         }
+
+        _rubberBand.PointSelected -= PointSelected;
+        _rubberBand.BoundsSelected -= BoundsSelected;
     }
 
     private void PointSelected(Unit2D point)
@@ -110,7 +122,7 @@ public class SelectionTool : ITool
         {
             _sheet.Selection.Clear();
         }
-        
+
         var hitList = new List<ISheetElement>(8);
 
         foreach (var element in _sheet.Elements)
@@ -129,11 +141,11 @@ public class SelectionTool : ITool
         var currentIndex = (lastSelection != null) ? hitList.IndexOf(lastSelection) : -1;
 
         ++currentIndex;
-        
+
         if (currentIndex >= 0 && currentIndex < hitList.Count)
         {
             _sheet.Selection.Add(hitList[currentIndex]);
-        }        
+        }
     }
 
     private void BoundsSelected(UnitBounds bounds)
@@ -218,6 +230,6 @@ public class SelectionTool : ITool
 
     private void ActionInvoked(ISheetElementAction action)
     {
-        action.Invoke(_context, _sheet, _sheet.Selection);
+        action.Invoke(_sheet, _sheet.Selection);
     }
 }
