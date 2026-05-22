@@ -33,13 +33,13 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="160"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="6"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="4"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="4"/>
             <RowDefinition Height="16"/>
-            <RowDefinition Height="6"/>
+            <RowDefinition Height="10"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -47,7 +47,7 @@
             <widgets:ColorFieldSVPicker Grid.Row="0" x:Name="SvPicker"/>
 
             <!-- Mode toggle -->
-            <UniformGrid Grid.Row="2" Rows="1">
+            <UniformGrid Grid.Row="2" Rows="1" Margin="4">
                 <RadioButton x:Name="HsvRadio" Content="HSV" IsChecked="True"
                              Style="{StaticResource ModeToggleStyle}"
                              Checked="HsvRadio_Checked"/>
@@ -60,33 +60,33 @@
             <Grid Grid.Row="4">
                 <StackPanel x:Name="HsvPanel">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Text="H" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Text="H" Width="16" VerticalAlignment="Center"/>
                         <widgets:ColorFieldHueSlider x:Name="HueSlider"/>
                     </DockPanel>
-                    <Border Height="4"/>
+                    <Border Height="6"/>
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Text="S" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Text="S" Width="16" VerticalAlignment="Center"/>
                         <widgets:ColorFieldSaturationSlider x:Name="SaturationSlider"/>
                     </DockPanel>
-                    <Border Height="4"/>
+                    <Border Height="6"/>
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Text="V" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Text="V" Width="16" VerticalAlignment="Center"/>
                         <widgets:ColorFieldBrightnessSlider x:Name="BrightnessSlider"/>
                     </DockPanel>
                 </StackPanel>
                 <StackPanel x:Name="RgbPanel" Visibility="Collapsed">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Text="R" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Text="R" Width="16" VerticalAlignment="Center"/>
                         <widgets:ColorFieldRGBSlider x:Name="RedSlider"   ChannelColor="Red"/>
                     </DockPanel>
-                    <Border Height="4"/>
+                    <Border Height="6"/>
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Text="G" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Text="G" Width="16" VerticalAlignment="Center"/>
                         <widgets:ColorFieldRGBSlider x:Name="GreenSlider" ChannelColor="Lime"/>
                     </DockPanel>
-                    <Border Height="4"/>
+                    <Border Height="6"/>
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Text="B" Width="12" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Text="B" Width="16" VerticalAlignment="Center"/>
                         <widgets:ColorFieldRGBSlider x:Name="BlueSlider"  ChannelColor="Blue"/>
                     </DockPanel>
                 </StackPanel>
@@ -94,12 +94,12 @@
 
             <!-- Alpha slider -->
             <DockPanel Grid.Row="6">
-                <TextBlock DockPanel.Dock="Left" Text="A" Width="12" VerticalAlignment="Center"/>
+                <TextBlock DockPanel.Dock="Left" Text="A" Width="16" VerticalAlignment="Center"/>
                 <widgets:ColorFieldAlphaSlider x:Name="AlphaSlider"/>
             </DockPanel>
 
             <!-- Preview + hex -->
-            <Grid Grid.Row="8">
+            <Grid Grid.Row="8" Margin="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="4"/>
