@@ -52,8 +52,6 @@ public class ShapeToolOverlay : Canvas, IDisposable
             return;
         }
 
-        CaptureMouse();
-        
         if (e.ClickCount == 1)
         {
             if (!MouseOverExistingVertex())
@@ -68,8 +66,6 @@ public class ShapeToolOverlay : Canvas, IDisposable
                 _polygon.Close();
             }
 
-            ReleaseMouseCapture();
-            
             OnPolygonCompleted?.Invoke(_polygon);
             _polygon.Clear();
         }
