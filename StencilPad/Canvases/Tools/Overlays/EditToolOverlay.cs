@@ -11,7 +11,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
+public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
 {
     // Limit mouse move event handling to 60hz so we don't clog up WPF.
     private const long MouseMoveEventThrottleMs = 16;
@@ -36,7 +36,7 @@ public class EditHandleSetToolOverlay : Canvas, IUnitSnapContext, IDisposable
     private Brush _adjustBrush;
     private Pen _selectedPen;
     
-    public EditHandleSetToolOverlay(IToolContext context,
+    public EditToolOverlay(IToolContext context,
                                     Sheet sheet,
                                     IEnumerable<ISheetElementAction?> editActions)
     {

@@ -10,7 +10,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Controllers;
 
-public class EditHandleSetTool : ITool
+public class EditTool : ITool
 {
     public class Factory(SheetElementEditActionSet SheetElementEditActions,
                          IOperationService OperationService) : IToolFactory
@@ -20,7 +20,7 @@ public class EditHandleSetTool : ITool
 
         public ITool Create(IToolButton button, Sheet sheet, IToolContext context)
         {
-            return new EditHandleSetTool(button,
+            return new EditTool(button,
                                          sheet,
                                          context,
                                          SheetElementEditActions,
@@ -36,10 +36,10 @@ public class EditHandleSetTool : ITool
     private readonly List<ISheetElement> _selection;
     private readonly List<Unit2D> _originalPositions;
     
-    private EditHandleSetToolOverlay? _overlay;
+    private EditToolOverlay? _overlay;
     private EditSheetElementContext? _editContext;
     
-    private EditHandleSetTool(IToolButton button,
+    private EditTool(IToolButton button,
                               Sheet sheet,
                               IToolContext context,
                               SheetElementEditActionSet sheetElementEditActions,
@@ -69,7 +69,7 @@ public class EditHandleSetTool : ITool
             return;
         }
         
-        _overlay = new EditHandleSetToolOverlay(_context,
+        _overlay = new EditToolOverlay(_context,
                                                 _sheet,
                                                 _sheetElementEditActions.Actions);
         

@@ -9,7 +9,7 @@ public class ToolSet
     private List<IToolFactory> _tools;
 
     public ToolSet(SelectionTool.Factory selectionToolFactory,
-                   EditHandleSetTool.Factory editHandleSetToolFactory,
+                   EditTool.Factory editHandleSetToolFactory,
                    ShapeTool.Factory shapeToolFactory,
                    MarkerPathTool.Factory markerPathToolFactory,
                    RulerTool.Factory rulerToolFactory,
@@ -28,7 +28,7 @@ public class ToolSet
     public static void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton<SelectionTool.Factory>();
-        services.AddSingleton<EditHandleSetTool.Factory>();
+        services.AddSingleton<EditTool.Factory>();
         services.AddSingleton<ShapeTool.Factory>();
         services.AddSingleton<MarkerPathTool.Factory>();
         services.AddSingleton<RulerTool.Factory>();
