@@ -128,7 +128,7 @@ namespace StencilPad.Canvases.UI
             _unitSnapOverlay.Content = _toolOverlay;
 
             _rubberBandRenderPanel = new RubberBandRenderPanel();
-            _rubberBandEventPanel.Updated += _rubberBandRenderPanel.Updated;
+            _rubberBandEventPanel.RenderPanel = _rubberBandRenderPanel;
             
             InitializeComponent();
 

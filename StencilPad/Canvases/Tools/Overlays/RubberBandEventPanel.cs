@@ -8,10 +8,31 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class RubberBandEventPanel : ContentControl, IRubberBand
 {
+    public RubberBandRenderPanel? RenderPanel;
+
+    public bool IsActive
+    {
+        get => _isActive;
+        set
+        {
+            if (_isActive != value)
+            {
+                _isActive = value;
+
+                if (!_isActive)
+                {
+                    _rubberBandHandle.DragEnd();
+                }
+                
+                UpdatePanel();
+            }
+        }
+    }
+    
     private readonly IViewport _viewport;
     private readonly RubberBandHandle _rubberBandHandle;
-
-    public event Action<Rect?>? Updated;
+    private bool _isActive;
+    
     public event Action<UnitBounds>? BoundsSelected;
     public event Action<Unit2D>? PointSelected;
 
@@ -19,10 +40,16 @@ public class RubberBandEventPanel : ContentControl, IRubberBand
     {
         _viewport = viewport;
         _rubberBandHandle = new RubberBandHandle();
+        _isActive = false;
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
+        if (!_isActive)
+        {
+            return;
+        }
+        
         var mousePosition = e.GetPosition(this);
 
         _rubberBandHandle.DragBegin(mousePosition);
@@ -33,11 +60,16 @@ public class RubberBandEventPanel : ContentControl, IRubberBand
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
+        if (!_isActive)
+        {
+            return;
+        }
+
         if (_rubberBandHandle.DragUpdate(e.GetPosition(this)))
         {
             if (_rubberBandHandle.IsDragging)
             {
-                InvokeUpdated();
+                UpdatePanel();
             }
 
             e.Handled = true;
@@ -46,6 +78,11 @@ public class RubberBandEventPanel : ContentControl, IRubberBand
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
+        if (!_isActive)
+        {
+            return;
+        }
+
         ReleaseMouseCapture();
 
         if (_rubberBandHandle.IsDragging)
@@ -63,13 +100,13 @@ public class RubberBandEventPanel : ContentControl, IRubberBand
         
         _rubberBandHandle.DragEnd();
 
-        InvokeUpdated();
+        UpdatePanel();
         e.Handled = true;
     }
 
-    private void InvokeUpdated()
+    private void UpdatePanel()
     {
-        Updated?.Invoke(GetDragRegion());
+        RenderPanel?.Updated(GetDragRegion());
     }
 
     private Rect? GetDragRegion()

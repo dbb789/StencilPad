@@ -59,6 +59,7 @@ public class SelectionTool : ITool
         _overlay = _overlayFactory.Create();
         _toolOverlay.ActiveOverlay = _overlay;
 
+        _rubberBand.IsActive = true;
         _rubberBand.PointSelected += PointSelected;
         _rubberBand.BoundsSelected += BoundsSelected;
 
@@ -72,6 +73,8 @@ public class SelectionTool : ITool
 
     public void ToolEnd()
     {
+        _rubberBand.IsActive = false;
+
         _toolOverlay.ActiveOverlay = null;
 
         if (_overlay is not null)

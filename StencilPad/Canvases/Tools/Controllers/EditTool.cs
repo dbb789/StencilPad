@@ -92,6 +92,7 @@ public class EditTool : ITool
         _overlay = _overlayFactory.Create();
         
         _toolOverlay.ActiveOverlay = _overlay;
+        _rubberBand.IsActive = true;
         _editOverlayRenderer.IsEnabled = true;
 
         _overlay.HandleDragBegin += OnHandleDragBegin;
@@ -106,7 +107,9 @@ public class EditTool : ITool
 
     public void ToolEnd()
     {
+
         _toolOverlay.ActiveOverlay = null;
+        _rubberBand.IsActive = false;
         _editOverlayRenderer.IsEnabled = false;
 
         if (_overlay is not null)
