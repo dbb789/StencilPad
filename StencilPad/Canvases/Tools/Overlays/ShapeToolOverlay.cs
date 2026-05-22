@@ -85,8 +85,6 @@ public class ShapeToolOverlay : Canvas, IDisposable
         }
 
         InvalidateVisual();
-
-        e.Handled = true;
     }
 
     protected override void OnRender(DrawingContext dc)

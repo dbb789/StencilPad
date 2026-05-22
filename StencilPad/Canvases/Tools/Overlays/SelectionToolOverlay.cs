@@ -248,13 +248,18 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
+        // Capture drag state before we clear everything out.
+        bool dragHandled = (_dragState.IsDragging ||
+                            _resizeDragState.IsDragging ||
+                            _rotateDragState.IsDragging);
+
         _dragState.OnDragEnd();
         _lockAxisState.OnDragEnd();
         _resizeDragState.OnDragEnd();
         _rotateDragState.OnDragEnd();
 
         ReleaseMouseCapture();
-        e.Handled = true;
+        e.Handled = dragHandled;
 
         // Clear drag fill.
         ForceRedraw();

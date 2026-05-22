@@ -4,33 +4,23 @@ namespace StencilPad.Canvases.Tools.Common;
 
 public static class ModifierUtil
 {
-    public static bool IsAddingSelection()
-    {
-        return Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-    }
-
-    public static bool IsTogglingSelection()
+    public static bool IsModifyingSelection()
     {
         return Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
     }
 
-    public static bool IsModifyingSelection()
-    {
-        return IsAddingSelection() || IsTogglingSelection();
-    }
-
     public static bool IsLockToAxis()
     {
-        return (Keyboard.Modifiers & ModifierKeys.Alt) != 0;
+        return Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
     }
 
     public static bool IsLockAspect()
     {
-        return Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+        return Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
     }
 
     public static bool IsAngleSnap()
     {
-        return Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+        return Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
     }
 }
