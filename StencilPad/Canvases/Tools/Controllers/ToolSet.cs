@@ -36,20 +36,11 @@ public class ToolSet
         services.AddSingleton<RulerTool.Factory>();
         services.AddSingleton<TextTool.Factory>();
 
-        services.AddTransient<EditToolOverlay>();
-        services.AddSingleton<Factory<EditToolOverlay>>(sp => new(() => sp.GetRequiredService<EditToolOverlay>()));
-
-        services.AddTransient<SelectionToolOverlay>();
-        services.AddSingleton<Factory<SelectionToolOverlay>>(sp => new(() => sp.GetRequiredService<SelectionToolOverlay>()));
-
-        services.AddTransient<ShapeToolOverlay>();
-        services.AddSingleton<Factory<ShapeToolOverlay>>(sp => new(() => sp.GetRequiredService<ShapeToolOverlay>()));
-
-        services.AddTransient<RulerToolOverlay>();
-        services.AddSingleton<Factory<RulerToolOverlay>>(sp => new(() => sp.GetRequiredService<RulerToolOverlay>()));
-
-        services.AddTransient<TextToolOverlay>();
-        services.AddSingleton<Factory<TextToolOverlay>>(sp => new(() => sp.GetRequiredService<TextToolOverlay>()));
+        FactoryUtil.AddFactory<EditToolOverlay>(services);
+        FactoryUtil.AddFactory<SelectionToolOverlay>(services);
+        FactoryUtil.AddFactory<ShapeToolOverlay>(services);
+        FactoryUtil.AddFactory<RulerToolOverlay>(services);
+        FactoryUtil.AddFactory<TextToolOverlay>(services);
         
         services.AddSingleton<ToolSet>();
     }

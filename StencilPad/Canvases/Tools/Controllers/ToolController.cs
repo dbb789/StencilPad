@@ -9,15 +9,6 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class ToolController : IDisposable
 {
-    public class Factory(ToolSet toolSet,
-                         IModelPropertiesService ModelPropertiesService)
-    {
-        public ToolController Create(ToolPanelViewModel toolPanelViewModel)
-        {
-            return new(toolSet, toolPanelViewModel, ModelPropertiesService);
-        }
-    }
-
     private readonly ToolSet _toolSet;
     private readonly ToolPanelViewModel _toolPanelViewModel;
     private readonly IModelPropertiesService _modelPropertiesService;

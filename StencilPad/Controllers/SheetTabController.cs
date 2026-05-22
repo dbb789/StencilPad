@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StencilPad.ViewModels;
 using StencilPad.Canvases.Tools.Controllers;
 using StencilPad.Canvases.UI;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.Canvases.Tools.Actions;
@@ -63,8 +64,8 @@ public class SheetTabController : IDisposable
             _scopedServiceProvider?.Dispose();
             _scopedServiceProvider = CreateScopedServiceProvider(sheetCanvas);
             
-            _toolController = _scopedServiceProvider.GetRequiredService<ToolController.Factory>()
-                .Create(_tabViewModel.ToolPanelViewModel);
+            _toolController = _scopedServiceProvider.GetRequiredService<Factory<ToolController>>()
+                .Create();
         }
 
         _tabViewModel.Viewport = sheetCanvas.Viewport;
@@ -88,9 +89,11 @@ public class SheetTabController : IDisposable
         sheetCanvas.ConfigureServices(services);
 
         services.AddSingleton<Sheet>(_tabViewModel.Sheet);
+        services.AddSingleton<ToolPanelViewModel>(_tabViewModel.ToolPanelViewModel);
         services.AddSingleton<IOperationService>(_operationService);
         services.AddSingleton<IModelPropertiesService>(_modelPropertiesService);
-        services.AddSingleton<ToolController.Factory>();
+
+        FactoryUtil.AddFactory<ToolController>(services);
 
         return services.BuildServiceProvider();
     }
