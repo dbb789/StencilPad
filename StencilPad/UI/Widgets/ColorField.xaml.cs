@@ -20,6 +20,9 @@ public partial class ColorField : UserControl
     private double _hue;
     private double _saturation;
     private double _brightness;
+    private double _red;
+    private double _green;
+    private double _blue;
     private double _alpha;
     private Color _committedColor;
     private string _hexValue = "";
@@ -31,21 +34,18 @@ public partial class ColorField : UserControl
         HueSlider.ValueChanged += (_, _) =>
         {
             _hue = HueSlider.Value * 360;
-            
             CommitHsv();
         };
 
         SaturationSlider.ValueChanged += (_, _) =>
         {
             _saturation = SaturationSlider.Value;
-
             CommitHsv();
         };
 
         BrightnessSlider.ValueChanged += (_, _) =>
         {
             _brightness = BrightnessSlider.Value;
-
             CommitHsv();
         };
 
@@ -53,21 +53,63 @@ public partial class ColorField : UserControl
         {
             _saturation = SvPicker.Saturation;
             _brightness = SvPicker.Brightness;
-            
             CommitHsv();
+        };
+
+        RedSlider.ValueChanged += (_, _) =>
+        {
+            _red = RedSlider.Value;
+            CommitRgb();
+        };
+
+        GreenSlider.ValueChanged += (_, _) =>
+        {
+            _green = GreenSlider.Value;
+            CommitRgb();
+        };
+
+        BlueSlider.ValueChanged += (_, _) =>
+        {
+            _blue = BlueSlider.Value;
+            CommitRgb();
         };
 
         AlphaSlider.ValueChanged += (_, _) =>
         {
             _alpha = AlphaSlider.Value;
-            
-            CommitHsv();
+
+            if (HsvRadio.IsChecked == true)
+                CommitHsv();
+            else
+                CommitRgb();
         };
 
         Loaded += (_, _) =>
         {
             UpdateFromValue(Value);
         };
+    }
+
+    private void HsvRadio_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded)
+        {
+            return;
+        }
+        
+        HsvPanel.Visibility = Visibility.Visible;
+        RgbPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void RgbRadio_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded)
+        {
+            return;
+        }
+        
+        HsvPanel.Visibility = Visibility.Collapsed;
+        RgbPanel.Visibility = Visibility.Visible;
     }
 
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -92,12 +134,16 @@ public partial class ColorField : UserControl
         _committedColor = color;
         
         ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+        _red   = color.R / 255.0;
+        _green = color.G / 255.0;
+        _blue  = color.B / 255.0;
         _alpha = color.A / 255.0;
         
         UpdateSvPicker();
         UpdateHueSlider();
         UpdateSaturationSlider();
         UpdateBrightnessSlider();
+        UpdateRgbSliders();
         UpdateAlphaSlider(color);
         UpdateHexTextBox(color);
         UpdatePreview(color);
@@ -107,14 +153,39 @@ public partial class ColorField : UserControl
     {
         var color = ColorUtil.HsvToRgb(_hue, _saturation, _brightness, _alpha);
         
+        _red   = color.R / 255.0;
+        _green = color.G / 255.0;
+        _blue  = color.B / 255.0;
         _committedColor = color;
-        
         Value = color;
         
         UpdateSvPicker();
         UpdateHueSlider();
         UpdateSaturationSlider();
         UpdateBrightnessSlider();
+        UpdateRgbSliders();
+        UpdateAlphaSlider(color);
+        UpdateHexTextBox(color);
+        UpdatePreview(color);
+    }
+
+    private void CommitRgb()
+    {
+        var color = Color.FromArgb(
+            (byte)(_alpha * 255),
+            (byte)(_red   * 255),
+            (byte)(_green * 255),
+            (byte)(_blue  * 255));
+
+        ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+        _committedColor = color;
+        Value = color;
+
+        UpdateSvPicker();
+        UpdateHueSlider();
+        UpdateSaturationSlider();
+        UpdateBrightnessSlider();
+        UpdateRgbSliders();
         UpdateAlphaSlider(color);
         UpdateHexTextBox(color);
         UpdatePreview(color);
@@ -135,6 +206,9 @@ public partial class ColorField : UserControl
         }
         
         ColorUtil.RgbToHsv(color, out _hue, out _saturation, out _brightness);
+        _red   = color.R / 255.0;
+        _green = color.G / 255.0;
+        _blue  = color.B / 255.0;
         _committedColor = color;
         Value = color;
         
@@ -142,6 +216,7 @@ public partial class ColorField : UserControl
         UpdateHueSlider();
         UpdateSaturationSlider();
         UpdateBrightnessSlider();
+        UpdateRgbSliders();
         UpdateAlphaSlider(color);
         UpdatePreview(color);
     }
@@ -170,6 +245,13 @@ public partial class ColorField : UserControl
         BrightnessSlider.Hue = _hue;
         BrightnessSlider.Saturation = _saturation;
         BrightnessSlider.Value = _brightness;
+    }
+
+    private void UpdateRgbSliders()
+    {
+        RedSlider.Value   = _red;
+        GreenSlider.Value = _green;
+        BlueSlider.Value  = _blue;
     }
 
     private void UpdateAlphaSlider(Color color)

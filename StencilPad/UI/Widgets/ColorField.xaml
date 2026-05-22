@@ -3,38 +3,103 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:widgets="clr-namespace:StencilPad.UI.Widgets"
              MinWidth="160">
+    <UserControl.Resources>
+        <Style x:Key="ModeToggleStyle" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Border" Padding="0,2,0,2"
+                                BorderThickness="0,0,0,2"
+                                BorderBrush="Transparent"
+                                Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush"
+                                        Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Opacity" Value="0.7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="160"/>
             <RowDefinition Height="6"/>
-            <RowDefinition Height="16"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="4"/>
-            <RowDefinition Height="16"/>
-            <RowDefinition Height="4"/>
-            <RowDefinition Height="16"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="4"/>
             <RowDefinition Height="16"/>
             <RowDefinition Height="6"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- SV picker -->
-        <widgets:ColorFieldSVPicker Grid.Row="0" x:Name="SvPicker"/>
+            <!-- SV picker -->
+            <widgets:ColorFieldSVPicker Grid.Row="0" x:Name="SvPicker"/>
 
-        <!-- Hue slider -->
-        <widgets:ColorFieldHueSlider Grid.Row="2" x:Name="HueSlider"/>
+            <!-- Mode toggle -->
+            <UniformGrid Grid.Row="2" Rows="1">
+                <RadioButton x:Name="HsvRadio" Content="HSV" IsChecked="True"
+                             Style="{StaticResource ModeToggleStyle}"
+                             Checked="HsvRadio_Checked"/>
+                <RadioButton x:Name="RgbRadio" Content="RGB"
+                             Style="{StaticResource ModeToggleStyle}"
+                             Checked="RgbRadio_Checked"/>
+            </UniformGrid>
 
-        <!-- Saturation slider -->
-        <widgets:ColorFieldSaturationSlider Grid.Row="4" x:Name="SaturationSlider"/>
+            <!-- Sliders area (HSV and RGB panels same height, swap visibility) -->
+            <Grid Grid.Row="4">
+                <StackPanel x:Name="HsvPanel">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="H" Width="12" VerticalAlignment="Center"/>
+                        <widgets:ColorFieldHueSlider x:Name="HueSlider"/>
+                    </DockPanel>
+                    <Border Height="4"/>
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="S" Width="12" VerticalAlignment="Center"/>
+                        <widgets:ColorFieldSaturationSlider x:Name="SaturationSlider"/>
+                    </DockPanel>
+                    <Border Height="4"/>
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="V" Width="12" VerticalAlignment="Center"/>
+                        <widgets:ColorFieldBrightnessSlider x:Name="BrightnessSlider"/>
+                    </DockPanel>
+                </StackPanel>
+                <StackPanel x:Name="RgbPanel" Visibility="Collapsed">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="R" Width="12" VerticalAlignment="Center"/>
+                        <widgets:ColorFieldRGBSlider x:Name="RedSlider"   ChannelColor="Red"/>
+                    </DockPanel>
+                    <Border Height="4"/>
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="G" Width="12" VerticalAlignment="Center"/>
+                        <widgets:ColorFieldRGBSlider x:Name="GreenSlider" ChannelColor="Lime"/>
+                    </DockPanel>
+                    <Border Height="4"/>
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="B" Width="12" VerticalAlignment="Center"/>
+                        <widgets:ColorFieldRGBSlider x:Name="BlueSlider"  ChannelColor="Blue"/>
+                    </DockPanel>
+                </StackPanel>
+            </Grid>
 
-        <!-- Brightness slider -->
-        <widgets:ColorFieldBrightnessSlider Grid.Row="6" x:Name="BrightnessSlider"/>
+            <!-- Alpha slider -->
+            <DockPanel Grid.Row="6">
+                <TextBlock DockPanel.Dock="Left" Text="A" Width="12" VerticalAlignment="Center"/>
+                <widgets:ColorFieldAlphaSlider x:Name="AlphaSlider"/>
+            </DockPanel>
 
-        <!-- Alpha slider -->
-        <widgets:ColorFieldAlphaSlider Grid.Row="8" x:Name="AlphaSlider"/>
-
-        <!-- Preview + hex -->
-        <Grid Grid.Row="10">
+            <!-- Preview + hex -->
+            <Grid Grid.Row="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="4"/>

@@ -78,7 +78,9 @@ public abstract class ColorFieldSliderBase : UserControl
 
     private void SetValueFromPoint(Point p)
     {
-        Value = Math.Clamp(p.X / _dragCanvas!.ActualWidth, 0, 1);
+        var halfMarker = _marker!.Width / 2;
+        var usable = _dragCanvas!.ActualWidth - _marker.Width;
+        Value = Math.Clamp((p.X - halfMarker) / usable, 0, 1);
         ValueChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -89,9 +91,11 @@ public abstract class ColorFieldSliderBase : UserControl
             return;
         }
 
-        var x = Value * _dragCanvas.ActualWidth;
+        var halfMarker = _marker.Width / 2;
+        var usable = _dragCanvas.ActualWidth - _marker.Width;
+        var x = halfMarker + Value * usable;
 
-        Canvas.SetLeft(_marker, x - _marker.Width / 2);
+        Canvas.SetLeft(_marker, x - halfMarker);
         Canvas.SetTop(_marker, (_dragCanvas.ActualHeight - _marker.Height) / 2);
     }
 }
