@@ -36,10 +36,11 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
     private Brush _moveBrush;
     private Brush _adjustBrush;
     private Pen _selectedPen;
+    private Pen _axisLockPen;
     
     public EditToolOverlay(IToolContext context,
-                                    Sheet sheet,
-                                    IEnumerable<ISheetElementAction?> editActions)
+                           Sheet sheet,
+                           IEnumerable<ISheetElementAction?> editActions)
     {
         _context = context;
         _sheet = sheet;
@@ -61,8 +62,11 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         _adjustBrush = new SolidColorBrush(Color.FromArgb(128, 0, 128, 0));
         _adjustBrush.Freeze();
 
-        _selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 2.0);
+        _selectedPen = new Pen(new SolidColorBrush(Color.FromArgb(255, 0, 0, 255)), 2);
         _selectedPen.Freeze();
+
+        _axisLockPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 0, 255)), 1);
+        _axisLockPen.Freeze();
         
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, editActions);
@@ -134,7 +138,10 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         }
 
         _dragState.OnDragEnd();
-        
+        _lockAxisState.OnDragEnd();
+
+        ForceRedraw();
+
         ReleaseMouseCapture();
         e.Handled = true;
     }
@@ -251,6 +258,26 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
             else
             {
                 dc.DrawEllipse(_adjustBrush, pen, point, 6, 6);
+            }
+        }
+
+        if (_lockAxisState.LockedAxis is not null && _lockAxisState.LockPosition is not null)
+        {
+            if (_lockAxisState.LockedAxis == UnitAxis.X)
+            {
+                var lockPoint = _context.Viewport.ToPoint(new Unit2D(Unit.Zero, _lockAxisState.LockPosition.Value));
+                
+                dc.DrawLine(_axisLockPen,
+                            new Point(0, lockPoint.Y),
+                            new Point(RenderSize.Width, lockPoint.Y));
+            }
+            else
+            {
+                var lockPoint = _context.Viewport.ToPoint(new Unit2D(_lockAxisState.LockPosition.Value, Unit.Zero));
+
+                dc.DrawLine(_axisLockPen,
+                            new Point(lockPoint.X, 0),
+                            new Point(lockPoint.X, RenderSize.Height));
             }
         }
     }

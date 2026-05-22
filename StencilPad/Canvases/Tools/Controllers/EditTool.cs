@@ -1,4 +1,3 @@
-using System.Windows.Input;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
@@ -21,10 +20,10 @@ public class EditTool : ITool
         public ITool Create(IToolButton button, Sheet sheet, IToolContext context)
         {
             return new EditTool(button,
-                                         sheet,
-                                         context,
-                                         SheetElementEditActions,
-                                         OperationService);
+                                sheet,
+                                context,
+                                SheetElementEditActions,
+                                OperationService);
         }
     }
 
@@ -40,10 +39,10 @@ public class EditTool : ITool
     private EditSheetElementContext? _editContext;
     
     private EditTool(IToolButton button,
-                              Sheet sheet,
-                              IToolContext context,
-                              SheetElementEditActionSet sheetElementEditActions,
-                              IOperationService operationService)
+                     Sheet sheet,
+                     IToolContext context,
+                     SheetElementEditActionSet sheetElementEditActions,
+                     IOperationService operationService)
     {
         _button = button;
         _sheet = sheet;

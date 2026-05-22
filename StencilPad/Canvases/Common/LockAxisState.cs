@@ -4,16 +4,20 @@ namespace StencilPad.Canvases.Common;
 
 public class LockAxisState
 {
+    public UnitAxis? LockedAxis => _lockedAxis;
+    public Unit? LockPosition => _lockPosition;
+    
     private UnitAxis? _lockedAxis;
-
+    private Unit? _lockPosition;
+    
     public LockAxisState()
     {
-        _lockedAxis = null;
+        Reset();
     }
 
     public void OnDragStart()
     {
-        _lockedAxis = null;
+        Reset();
     }
 
     public Unit2D OnDragMove(bool isLockAxisModifier,
@@ -40,6 +44,10 @@ public class LockAxisState
                     {
                         _lockedAxis = UnitAxis.Y;
                     }
+
+                    _lockPosition = _lockedAxis == UnitAxis.X
+                        ? initialElementPosition.Y
+                        : initialElementPosition.X;
                 }
             }
 
@@ -59,9 +67,20 @@ public class LockAxisState
         }
         else
         {
-            _lockedAxis = null;
+            Reset();
         }
 
         return targetPosition;
+    }
+
+    public void OnDragEnd()
+    {
+        Reset();
+    }
+    
+    private void Reset()
+    {
+        _lockedAxis = null;
+        _lockPosition = null;
     }
 }
