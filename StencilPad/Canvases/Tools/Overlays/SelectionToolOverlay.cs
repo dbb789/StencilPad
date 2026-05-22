@@ -176,7 +176,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
             if (result is not null)
             {
-                SelectionResized?.Invoke(result.Value.TargetElementPosition - _resizeInitialSE);
+                var targetSE = _unitSnap.UnitSnap(result.Value.TargetElementPosition, this)
+                               ?? result.Value.TargetElementPosition;
+                SelectionResized?.Invoke(targetSE - _resizeInitialSE);
                 e.Handled = true;
             }
 
