@@ -97,6 +97,11 @@ public class HandleMap : IHandleMap, IUnitSnap
         
         if (_sheet is not null)
         {
+            foreach (var element in _sheet.Elements)
+            {
+                Remove(element);
+            }
+
             _sheet.Elements.CollectionChanged -= OnSheetElementsChanged;
             _sheet.Selection.CollectionChanged -= OnSheetSelectionChanged;
         }
