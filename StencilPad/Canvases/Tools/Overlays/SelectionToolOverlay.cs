@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
+using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Common;
 using StencilPad.Models;
@@ -22,10 +23,12 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     private readonly Sheet _sheet;
 
     private DragState<ISheetElement> _dragState;
-    private DragState<bool> _resizeDragState;
+    private DragState<ISheetElement> _resizeDragState;
     private DragState<bool> _rotateDragState;
 
+    private Unit2D _resizeInitialNW;
     private Unit2D _resizeInitialSE;
+    private double _resizeAspectRatio;
     private Unit2D _rotateInitialHandlePos;
     private Unit2D _rotateDragCenter;
     private double _lastRotateAngle;
@@ -122,8 +125,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
             if (resizeRect.Contains(mousePosition))
             {
+                _resizeInitialNW = bounds.NW;
                 _resizeInitialSE = bounds.SE;
-                _resizeDragState.OnDragStart(mousePosition, true, _resizeInitialSE);
+                _resizeAspectRatio = bounds.Size.X.Millimeters / bounds.Size.Y.Millimeters;
+                _resizeDragState.OnDragStart(mousePosition, element, _resizeInitialSE);
 
                 SelectionResizeStarted?.Invoke();
 
@@ -178,6 +183,12 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
             {
                 var targetSE = _unitSnap.UnitSnap(result.Value.TargetElementPosition, this)
                                ?? result.Value.TargetElementPosition;
+
+                if (ModifierUtil.IsLockAspect())
+                {
+                    targetSE = LockAspect(targetSE);
+                }
+
                 SelectionResized?.Invoke(targetSE - _resizeInitialSE);
                 e.Handled = true;
             }
@@ -337,6 +348,24 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     public bool CanUnitSnapTo(Handle handle)
     {
         return true;
+    }
+
+    private Unit2D LockAspect(Unit2D targetSE)
+    {
+        var dxMm = (targetSE.X - _resizeInitialNW.X).Millimeters;
+        var dyMm = (targetSE.Y - _resizeInitialNW.Y).Millimeters;
+
+        var seAyMm = dxMm / _resizeAspectRatio;
+        var seBxMm = dyMm * _resizeAspectRatio;
+
+        if (Math.Abs(seAyMm - dyMm) <= Math.Abs(seBxMm - dxMm))
+        {
+            return new Unit2D(targetSE.X, _resizeInitialNW.Y + Unit.FromMillimeters(seAyMm));
+        }
+        else
+        {
+            return new Unit2D(_resizeInitialNW.X + Unit.FromMillimeters(seBxMm), targetSE.Y);
+        }
     }
 
     private void ForceRedraw()

@@ -23,4 +23,14 @@ public static class ModifierUtil
     {
         return Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
     }
+
+    public static bool IsLockAspect()
+    {
+        return Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+    }
+
+    public static bool IsAngleSnap()
+    {
+        return Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+    }
 }
