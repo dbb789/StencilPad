@@ -37,6 +37,10 @@ public class SelectionTool : ITool
 
     private SelectionToolOverlay? _overlay;
     private Dictionary<ISheetElement, UnitBounds> _resizeInitialBounds = new();
+    private decimal _rotateAccumulatedAngle;
+    private decimal _rotateLastSnappedAngle;
+
+    private const decimal AngleSnapDegrees = 15m;
 
     private SelectionTool(Sheet sheet,
                           ToolOverlay toolOverlay,
@@ -182,6 +186,9 @@ public class SelectionTool : ITool
 
     private void SelectionRotateStarted()
     {
+        _rotateAccumulatedAngle = 0m;
+        _rotateLastSnappedAngle = 0m;
+
         foreach (var selected in _sheet.Selection)
         {
             selected.NormalizePosition();
@@ -190,10 +197,30 @@ public class SelectionTool : ITool
 
     private void SelectionRotated(double deltaRadians)
     {
-        var deltaDegrees = (decimal)(deltaRadians * (180.0 / Math.PI));
+        _rotateAccumulatedAngle += (decimal)(deltaRadians * (180.0 / Math.PI));
+
+        decimal effectiveDelta;
+
+        if (ModifierUtil.IsAngleSnap())
+        {
+            var snapped = Math.Round(_rotateAccumulatedAngle / AngleSnapDegrees) * AngleSnapDegrees;
+            effectiveDelta = snapped - _rotateLastSnappedAngle;
+            _rotateLastSnappedAngle = snapped;
+        }
+        else
+        {
+            effectiveDelta = _rotateAccumulatedAngle - _rotateLastSnappedAngle;
+            _rotateLastSnappedAngle = _rotateAccumulatedAngle;
+        }
+
+        if (effectiveDelta == 0m)
+        {
+            return;
+        }
+
         foreach (var selected in _sheet.Selection)
         {
-            selected.Transform = selected.Transform with { Angle = selected.Transform.Angle + deltaDegrees };
+            selected.Transform = selected.Transform with { Angle = selected.Transform.Angle + effectiveDelta };
         }
     }
 
