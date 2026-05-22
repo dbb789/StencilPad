@@ -115,6 +115,14 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
+    public void SelectAll()
+    {
+        foreach (var entry in _byHandle.Values)
+        {
+            entry.SetSelected(entry.Editing);
+        }
+    }
+
     public void ClearSelection()
     {
         foreach (var entry in _byHandle.Values)

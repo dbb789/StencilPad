@@ -1,12 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Rendering;
-using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
-using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Rendering;
 using StencilPad.Services;
@@ -89,9 +86,6 @@ namespace StencilPad.Canvases.UI
         private readonly CompositeUnitSnap _unitSnap;
         
         public event Action? CanvasReady;
-        // TODO: SelectAllRequested / ClearSelectionRequested need refactoring
-        // public event Action? SelectAllRequested;
-        // public event Action? ClearSelectionRequested;
 
         public SheetCanvas()
             : this(App.ServiceProvider.GetRequiredService<IResourceService>())
@@ -138,16 +132,6 @@ namespace StencilPad.Canvases.UI
 
             Focusable = true;
             PreviewMouseDown += (_, _) => Focus();
-            // TODO: SelectAllRequested / ClearSelectionRequested need refactoring
-            // CommandBindings.Add(new CommandBinding(
-            //     GlobalCommands.SelectAll,
-            //     (_, _) => SelectAllRequested?.Invoke(),
-            //     (_, e) => e.CanExecute = true));
-            // CommandBindings.Add(new CommandBinding(
-            //     GlobalCommands.ClearSelection,
-            //     (_, _) => ClearSelectionRequested?.Invoke(),
-            //     (_, e) => e.CanExecute = true));
-
             _viewport.Visual = this;
 
             CanvasRoot.Children.Add(_canvasGrid);

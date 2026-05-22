@@ -6,6 +6,7 @@ using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
@@ -83,6 +84,15 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actions);
+
+        CommandBindings.Add(new CommandBinding(
+            GlobalCommands.SelectAll,
+            (_, _) => SelectAll(),
+            (_, e) => e.CanExecute = true));
+        CommandBindings.Add(new CommandBinding(
+            GlobalCommands.ClearSelection,
+            (_, _) => ClearSelection(),
+            (_, e) => e.CanExecute = true));
 
         foreach (var element in _sheet.Selection)
         {
@@ -319,6 +329,21 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     private void OnTransformChanged(ISheetElement element)
     {
         ForceRedraw();
+    }
+
+    private void SelectAll()
+    {
+        _sheet.Selection.Clear();
+
+        foreach (var element in _sheet.Elements)
+        {
+            _sheet.Selection.Add(element);
+        }
+    }
+
+    private void ClearSelection()
+    {
+        _sheet.Selection.Clear();
     }
 
     public bool CanUnitSnapTo(ISheetElement element)

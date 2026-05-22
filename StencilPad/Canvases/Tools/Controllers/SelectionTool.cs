@@ -1,4 +1,3 @@
-using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
@@ -61,9 +60,6 @@ public class SelectionTool : ITool
 
         _rubberBand.PointSelected += PointSelected;
         _rubberBand.BoundsSelected += BoundsSelected;
-        // TODO: SelectAllRequested / ClearSelectionRequested need refactoring
-        // _context.SelectAllRequested += SelectAll;
-        // _context.ClearSelectionRequested += ClearSelection;
 
         _overlay.ActionInvoked += ActionInvoked;
         _overlay.SelectionDragged += SelectionDragged;
@@ -79,9 +75,6 @@ public class SelectionTool : ITool
 
         if (_overlay is not null)
         {
-            // _context.SelectAllRequested -= SelectAll;
-            // _context.ClearSelectionRequested -= ClearSelection;
-
             _overlay.ActionInvoked -= ActionInvoked;
             _overlay.SelectionDragged -= SelectionDragged;
             _overlay.SelectionResizeStarted -= SelectionResizeStarted;
@@ -198,21 +191,6 @@ public class SelectionTool : ITool
         {
             selected.Transform = selected.Transform with { Angle = selected.Transform.Angle + deltaDegrees };
         }
-    }
-
-    private void SelectAll()
-    {
-        _sheet.Selection.Clear();
-
-        foreach (var element in _sheet.Elements)
-        {
-            _sheet.Selection.Add(element);
-        }
-    }
-
-    private void ClearSelection()
-    {
-        _sheet.Selection.Clear();
     }
 
     private void ActionInvoked(ISheetElementAction action)

@@ -7,6 +7,7 @@ using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Controllers.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Rendering;
 using StencilPad.Spatial;
@@ -105,6 +106,15 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IDisposable
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
         
+        CommandBindings.Add(new CommandBinding(
+            GlobalCommands.SelectAll,
+            (_, _) => _handleMap.SelectAll(),
+            (_, e) => e.CanExecute = true));
+        CommandBindings.Add(new CommandBinding(
+            GlobalCommands.ClearSelection,
+            (_, _) => _handleMap.ClearSelection(),
+            (_, e) => e.CanExecute = true));
+
         _editOverlayRenderer.IsEnabled = true;
     }
 

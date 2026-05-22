@@ -16,5 +16,6 @@ public interface IHandleMap
     void QueryHandles(UnitBounds bounds, List<IHandleMapEntry> results);
     HandleMapEntry? GetClosestHandle(UnitBounds bounds);
     bool TryGetHandleEntry(Handle handle, out IHandleMapEntry entry);
+    void SelectAll();
     void ClearSelection();
 }
