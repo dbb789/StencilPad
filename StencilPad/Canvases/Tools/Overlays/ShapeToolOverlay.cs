@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
 using StencilPad.Rendering;
 using StencilPad.Spatial;
@@ -17,8 +18,9 @@ public class ShapeToolOverlay : Canvas, IDisposable
     private readonly Polygon _polygon;
     private readonly WidgetContainer<HandleWidget> _vertexWidgets;
 
-    private Point _currentMousePosition;
-
+    private LockAxisState _lockAxisState;
+    private Unit2D _currentSnappedMousePosition;
+    
     public event Action<Polygon>? OnPolygonCompleted;
 
     public ShapeToolOverlay(IViewport viewport, IUnitSnap unitSnap)
@@ -27,7 +29,8 @@ public class ShapeToolOverlay : Canvas, IDisposable
         _unitSnap = unitSnap;
         _polygon = new();
         _vertexWidgets = new(this);
-
+        
+        _lockAxisState = new LockAxisState();
         _polygon.GeometryChanged += RepositionWidgets;
         _viewport.ViewportChanged += RepositionWidgets;
 
@@ -36,6 +39,8 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
     public void Dispose()
     {
+        ReleaseMouseCapture();
+
         _polygon.GeometryChanged -= RepositionWidgets;
         _viewport.ViewportChanged -= RepositionWidgets;
     }
@@ -47,47 +52,45 @@ public class ShapeToolOverlay : Canvas, IDisposable
             return;
         }
 
-        _currentMousePosition = e.GetPosition(this);
-
+        CaptureMouse();
+        
         if (e.ClickCount == 1)
         {
-            var unitPosition = _viewport.FromPoint(_currentMousePosition);
-            var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
-
-            if (snapPosition.HasValue)
+            if (!MouseOverExistingVertex())
             {
-                unitPosition = snapPosition.Value;
-            }
-
-            if (!MouseOverExistingVertex(_currentMousePosition))
-            {
-                _polygon.AddVertex(new Vertex(unitPosition));
+                _polygon.AddVertex(new Vertex(_currentSnappedMousePosition));
             }
         }
         else if (e.ClickCount == 2 && _polygon.Vertices.Count > 1)
         {
-            if (MouseOverFirstVertex(_currentMousePosition))
+            if (MouseOverFirstVertex())
             {
                 _polygon.Close();
             }
+
+            ReleaseMouseCapture();
             
             OnPolygonCompleted?.Invoke(_polygon);
             _polygon.Clear();
         }
 
         InvalidateVisual();
+
+        e.Handled = true;
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        _currentMousePosition = e.GetPosition(this);
-
+        _currentSnappedMousePosition = CurrentSnappedMouseOverPosition(e.GetPosition(this));
+        
         if (_polygon.Vertices.Count == 0)
         {
             return;
         }
 
         InvalidateVisual();
+
+        e.Handled = true;
     }
 
     protected override void OnRender(DrawingContext dc)
@@ -110,27 +113,41 @@ public class ShapeToolOverlay : Canvas, IDisposable
         if (!_polygon.Closed)
         {
             var lastPoint = _polygon.Vertices[^1].Position.Millimeters;
-            var unitPosition = _viewport.FromPoint(_currentMousePosition);
-            var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
 
-            if (snapPosition.HasValue)
-            {
-                unitPosition = snapPosition.Value;
-            }
-
-            dc.DrawLine(shapePen, lastPoint, unitPosition.Millimeters);
+            dc.DrawLine(shapePen, lastPoint, _currentSnappedMousePosition.Millimeters);
         }
 
         dc.Pop();
     }
 
-    private bool MouseOverExistingVertex(Point mousePosition)
+    private Unit2D CurrentSnappedMouseOverPosition(Point mousePosition)
+    {
+        var unitPosition = _viewport.FromPoint(mousePosition);
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
+        
+        if (snapPosition.HasValue)
+        {
+            unitPosition = snapPosition.Value;
+        }
+        
+        if (_polygon.Vertices.Count > 0)
+        {
+            unitPosition = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
+                                                     _viewport.FromPixels(12),
+                                                     _polygon.Vertices[^1].Position,
+                                                     unitPosition);
+        }
+
+        return unitPosition;
+    }
+
+    private bool MouseOverExistingVertex()
     {
         for (int i = 0; i < _polygon.Vertices.Count; ++i)
         {
             var vertex = _polygon.Vertices[i];
 
-            if (MouseOverVertex(vertex, mousePosition))
+            if (MouseOverVertex(vertex))
             {
                 return true;
             }
@@ -139,23 +156,26 @@ public class ShapeToolOverlay : Canvas, IDisposable
         return false;
     }
     
-    private bool MouseOverFirstVertex(Point mousePosition)
+    private bool MouseOverFirstVertex()
     {
         if (_polygon.Vertices.Count == 0)
         {
             return false;
         }
 
-        return MouseOverVertex(_polygon.Vertices[0], mousePosition);
+        return MouseOverVertex(_polygon.Vertices[0]);
     }
 
-    private bool MouseOverVertex(Vertex vertex, Point mousePosition)
+    private bool MouseOverVertex(Vertex vertex)
     {
         const double hitRadius = 5.0;
+        
         var hitRadiusSquared = hitRadius * hitRadius;
 
+        var mousePixelPosition = _viewport.ToPoint(_currentSnappedMousePosition);
+
         var vertexScreenPosition = _viewport.ToPoint(vertex.Position);
-        var distanceSquared = (vertexScreenPosition - mousePosition).LengthSquared;
+        var distanceSquared = (vertexScreenPosition - mousePixelPosition).LengthSquared;
 
         return (distanceSquared <= hitRadiusSquared);
     }

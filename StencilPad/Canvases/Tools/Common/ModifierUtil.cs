@@ -21,7 +21,7 @@ public static class ModifierUtil
 
     public static bool IsLockToAxis()
     {
-        return Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+        return (Keyboard.Modifiers & ModifierKeys.Alt) != 0;
     }
 
     public static bool IsLockAspect()

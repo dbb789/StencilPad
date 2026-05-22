@@ -1,6 +1,5 @@
 Grid size configuration
 Snap to ruler
-Lock axis on draw/drag
 Tidy up ruler layout
 Ruler should preview length on initial placement
 Page size configuration
@@ -8,5 +7,4 @@ Tidy up pan/zoom
 Confirm exit without save
 Marker path selection region should include markers
 Ctrl/Shift for multi selection not working
-Colour picker should allow manual selection of RGB/HSV values
 Line style (dotted lines / start + end caps)

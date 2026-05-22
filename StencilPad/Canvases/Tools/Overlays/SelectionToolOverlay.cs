@@ -23,6 +23,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     private readonly Sheet _sheet;
 
     private DragState<ISheetElement> _dragState;
+    private LockAxisState _lockAxisState;
     private DragState<ISheetElement> _resizeDragState;
     private DragState<bool> _rotateDragState;
 
@@ -56,6 +57,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         _sheet = sheet;
         _sheet.Selection.CollectionChanged += SelectionChanged;
         _dragState = new();
+        _lockAxisState = new();
         _resizeDragState = new();
         _rotateDragState = new();
 
@@ -165,6 +167,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
             _dragState.OnDragStart(mousePosition,
                                    elementUnderMouse,
                                    elementBounds.Center);
+            _lockAxisState.OnDragStart();
 
             CaptureMouse();
             e.Handled = true;
@@ -231,6 +234,12 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         var targetPosition = dragResult.Value.TargetElementPosition;
         var targetBounds = UnitBounds.FromCenterSize(targetPosition, elementBounds.Size);
         var snappedCenter = SnapBoundsCenter(targetBounds);
+
+        snappedCenter = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
+                                                  _viewport.FromPixels(12),
+                                                  _dragState.InitialElementPosition,
+                                                  snappedCenter);
+        
         var delta = snappedCenter - elementBounds.Center;
 
         SelectionDragged?.Invoke(delta);
@@ -240,6 +249,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         _dragState.OnDragEnd();
+        _lockAxisState.OnDragEnd();
         _resizeDragState.OnDragEnd();
         _rotateDragState.OnDragEnd();
 
