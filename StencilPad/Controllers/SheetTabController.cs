@@ -11,16 +11,21 @@ namespace StencilPad.Controllers;
 
 public class SheetTabController : IDisposable
 {
-    public class Factory(IModelPropertiesService ModelPropertiesService,
+    public class Factory(IResourceService ResourceService,
+                         IModelPropertiesService ModelPropertiesService,
                          IOperationService OperationService)
     {
         public SheetTabController Create(SheetTabViewModel tabViewModel)
         {
-            return new(tabViewModel, OperationService, ModelPropertiesService);
+            return new(tabViewModel,
+                       ResourceService,
+                       OperationService,
+                       ModelPropertiesService);
         }
     }
 
     private readonly SheetTabViewModel _tabViewModel;
+    private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
     private readonly IModelPropertiesService _modelPropertiesService;
 
@@ -29,10 +34,12 @@ public class SheetTabController : IDisposable
     private ServiceProvider? _scopedServiceProvider;
 
     private SheetTabController(SheetTabViewModel tabViewModel,
+                               IResourceService resourceService,
                                IOperationService operationService,
                                IModelPropertiesService modelPropertiesService)
     {
         _tabViewModel = tabViewModel;
+        _resourceService = resourceService;
         _operationService = operationService;
         _modelPropertiesService = modelPropertiesService;
 
@@ -90,6 +97,7 @@ public class SheetTabController : IDisposable
 
         services.AddSingleton<Sheet>(_tabViewModel.Sheet);
         services.AddSingleton<ToolPanelViewModel>(_tabViewModel.ToolPanelViewModel);
+        services.AddSingleton<IResourceService>(_resourceService);
         services.AddSingleton<IOperationService>(_operationService);
         services.AddSingleton<IModelPropertiesService>(_modelPropertiesService);
 

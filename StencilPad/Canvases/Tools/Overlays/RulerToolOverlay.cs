@@ -3,6 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Models;
+using StencilPad.Rendering;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
@@ -11,16 +14,20 @@ public class RulerToolOverlay : Canvas, IDisposable
 {
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
+    private readonly Ruler _previewRuler;
+    private readonly RulerRenderer _previewRenderer;
 
     private Unit2D? _start;
     private Point _currentMousePosition;
 
     public event Action<Unit2D, Unit2D>? OnRulerPlaced;
 
-    public RulerToolOverlay(IViewport viewport, IUnitSnap unitSnap)
+    public RulerToolOverlay(IViewport viewport, IUnitSnap unitSnap, IResourceService resourceService)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
+        _previewRuler = new Ruler();
+        _previewRenderer = new RulerRenderer(_previewRuler, resourceService);
 
         _viewport.ViewportChanged += OnViewportChanged;
     }
@@ -28,19 +35,14 @@ public class RulerToolOverlay : Canvas, IDisposable
     public void Dispose()
     {
         _viewport.ViewportChanged -= OnViewportChanged;
+        _previewRenderer.Dispose();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         _currentMousePosition = e.GetPosition(this);
 
-        var unitPosition = _viewport.FromPoint(_currentMousePosition);
-        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
-        
-        if (snapPosition.HasValue)
-        {
-            unitPosition = snapPosition.Value;
-        }
+        var unitPosition = Snap(_viewport.FromPoint(_currentMousePosition));
 
         if (_start is null)
         {
@@ -76,24 +78,17 @@ public class RulerToolOverlay : Canvas, IDisposable
             return;
         }
 
+        _previewRuler.Min = _start.Value;
+        _previewRuler.Max = Snap(_viewport.FromPoint(_currentMousePosition));
+
         dc.PushTransform(_viewport.MillimetersToPixelsTransform);
-
-        var pen = new Pen(Brushes.Gray, 0.2) { DashStyle = DashStyles.Dash };
-        var startPoint = _start.Value.Millimeters;
-
-        var unitPosition = _viewport.FromPoint(_currentMousePosition);
-        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
-        
-        if (snapPosition.HasValue)
-        {
-            unitPosition = snapPosition.Value;
-        }
-
-        var endPoint = unitPosition.Millimeters;
-        
-        dc.DrawLine(pen, startPoint, endPoint);
-
+        _previewRenderer.Render(dc);
         dc.Pop();
+    }
+
+    private Unit2D Snap(Unit2D position)
+    {
+        return _unitSnap.UnitSnap(position, EmptyUnitSnapContext.Instance) ?? position;
     }
 
     private void OnViewportChanged()
