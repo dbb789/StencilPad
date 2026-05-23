@@ -90,6 +90,21 @@ public abstract class SheetElement : ModelBase, ISheetElement
     {
         return GetBounds(Transform);
     }
+
+    public virtual bool ContainsPoint(Unit2D point)
+    {
+        var localPoint = Transform.InverseApply(point);
+        var bounds = GetBounds(UnitTransform.Identity);
+        
+        return bounds.Contains(localPoint);
+    }
+
+    public virtual bool IntersectsBounds(UnitBounds bounds)
+    {
+        var transformedBounds = GetTransformedBounds();
+        
+        return transformedBounds.Intersects(bounds);
+    }
     
     private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
     {

@@ -26,6 +26,8 @@ public interface ISheetElement
     void NormalizePosition();
     UnitBounds GetBounds(UnitTransform transform);
     UnitBounds GetTransformedBounds();
+    bool ContainsPoint(Unit2D point);
+    bool IntersectsBounds(UnitBounds bounds);
     void SetBounds(UnitBounds newBounds, UnitTransform transform);
     void AssignFromElement(ISheetElement other);
     ISheetElement DeepClone();

@@ -108,7 +108,7 @@ public class SelectionTool : ITool
 
         foreach (var element in _sheet.Elements)
         {
-            if (element.GetTransformedBounds().Contains(point))
+            if (element.ContainsPoint(point))
             {
                 hitList.Add(element);
             }
@@ -164,7 +164,7 @@ public class SelectionTool : ITool
 
         foreach (var element in _sheet.Elements)
         {
-            if (element.GetTransformedBounds().Intersects(bounds))
+            if (element.IntersectsBounds(bounds))
             {
                 _sheet.Selection.Add(element);
             }

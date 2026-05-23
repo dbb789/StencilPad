@@ -36,6 +36,7 @@
                 <MenuItem Header="Save _As…"      Command="{Binding SaveProjectAsCommand}" InputGestureText="Ctrl+Shift+S"/>
                 <Separator/>
                 <MenuItem Header="_Import Image…" Command="{Binding ImportImageCommand}"/>
+                <MenuItem Header="Export _PNG…"   Click="Export_Click"/>
                 <MenuItem Header="_Print…"        Command="{Binding PrintCommand}" InputGestureText="Ctrl+P"/>
                 <Separator/>
                 <MenuItem Header="E_xit"          Command="{Binding ExitCommand}"/>

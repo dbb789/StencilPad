@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using StencilPad.Canvases.UI;
-using StencilPad.Spatial;
 using StencilPad.ViewModels;
 
 namespace StencilPad.UI;

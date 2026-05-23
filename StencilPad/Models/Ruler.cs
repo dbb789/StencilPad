@@ -81,7 +81,10 @@ public class Ruler : SheetElement<Ruler>
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds(UnitTransform transform) => UnitBounds.FromMinMax(_minMaxHandleSource.Min, _minMaxHandleSource.Max).ApplyTransform(transform);
+    public override UnitBounds GetBounds(UnitTransform transform)
+    {
+        return UnitBounds.FromMinMax(_minMaxHandleSource.Min, _minMaxHandleSource.Max).ApplyTransform(transform);
+    }
 
     public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
     {
