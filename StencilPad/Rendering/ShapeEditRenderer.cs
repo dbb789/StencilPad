@@ -99,11 +99,13 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
         using (var ctx = _edgeOverlayGeometry.Open())
         {
+            var walker = new StreamGeometryWalker(ctx);
+            
             foreach (var polygon in polygonList)
             {
                 foreach (var edgeIndex in polygon.GetSelectedEdges())
                 {
-                    RendererUtil.AddEdgeToGeometry(ctx, polygon, edgeIndex);
+                    PolygonUtil.WalkEdge(polygon, walker, edgeIndex);
                 }
             }
         }
