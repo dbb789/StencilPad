@@ -17,11 +17,11 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         }
     }
     
-    public Unit SqrMagnitude
+    public double SqrMagnitude
     {
         get
         {
-            return Unit.FromMillimeters((X.Millimeters * X.Millimeters) + (Y.Millimeters * Y.Millimeters));
+            return (X.Millimeters * X.Millimeters) + (Y.Millimeters * Y.Millimeters);
         }
     }
 
