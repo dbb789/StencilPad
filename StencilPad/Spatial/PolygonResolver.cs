@@ -8,6 +8,8 @@ public class PolygonResolver : IDisposable
     private List<Unit> _scaledCornerTangents;
     private List<Unit2D> _edgeBegin;
     private List<Unit2D> _edgeEnd;
+    private List<Unit2D> _clippedC1;
+    private List<Unit2D> _clippedC2;
     
     public PolygonResolver()
     {
@@ -17,6 +19,8 @@ public class PolygonResolver : IDisposable
         _scaledCornerTangents = new();
         _edgeBegin = new();
         _edgeEnd = new();
+        _clippedC1 = new();
+        _clippedC2 = new();
     }
 
     public void Dispose()
@@ -105,22 +109,12 @@ public class PolygonResolver : IDisposable
         }
 
         index = NormalizeVertexIndex(index);
-        
-        var nextIndex = NormalizeVertexIndex(index + 1);
-        
+
         var edge = _polygon.Edges[index];
-        var nextVertex = _polygon.Vertices[nextIndex];
         
         if (edge.Type == EdgeType.Bezier)
         {
-            var prevVertex = _polygon.Vertices[index];
-            var c1 = (prevVertex.Position + edge.ControlBeginOffset);
-            var c2 = (nextVertex.Position + edge.ControlEndOffset);
-            var c3 = EdgeEnd(index);
-
-            // Seemingly necessary to stop GetFlattenedPathGeometry() from missing
-            // the adjoining vertex and creating a skew towards the bezier.
-            walker.Bezier(edgeBegin, c1, c2, c3);
+            walker.Bezier(edgeBegin, _clippedC1[index], _clippedC2[index], EdgeEnd(index));
         }
         else
         {
@@ -175,6 +169,8 @@ public class PolygonResolver : IDisposable
         _cornerTangents.Clear();
         _edgeBegin.Clear();
         _edgeEnd.Clear();
+        _clippedC1.Clear();
+        _clippedC2.Clear();
         
         if (_polygon is null)
         {
@@ -196,6 +192,13 @@ public class PolygonResolver : IDisposable
             _edgeBegin.Add(CalculateEdgeBegin(i));
             _edgeEnd.Add(CalculateEdgeEnd(i));
         }
+
+        for (int i = 0; i < _polygon.Vertices.Count; ++i)
+        {
+            var (c1, c2) = CalculateClippedBezierControls(i);
+            _clippedC1.Add(c1);
+            _clippedC2.Add(c2);
+        }
     }
 
     private int NormalizeVertexIndex(int index)
@@ -206,15 +209,26 @@ public class PolygonResolver : IDisposable
 
     private Unit2D CalculateEdgeBegin(int index)
     {
-        var nextIndex = NormalizeVertexIndex(index + 1);
         var vertex = _polygon.Vertices[index];
         var offset = _scaledCornerTangents[index];
 
         if (offset > Unit.Zero)
         {
-            var nextVertex = _polygon.Vertices[nextIndex];
+            // Use the control arm direction for bezier edges so the arc joining this
+            // corner is tangent to the curve rather than to the chord.
+            if (index < _polygon.Edges.Count)
+            {
+                var edge = _polygon.Edges[index];
 
-            return vertex.Position + (nextVertex.Position - vertex.Position).NormalizedTo(offset);
+                if (edge.Type == EdgeType.Bezier && edge.ControlBeginOffset.SqrMagnitude > 0)
+                {
+                    return vertex.Position + edge.ControlBeginOffset.NormalizedTo(offset);
+                }
+            }
+
+            var nextIndex = NormalizeVertexIndex(index + 1);
+
+            return vertex.Position + (_polygon.Vertices[nextIndex].Position - vertex.Position).NormalizedTo(offset);
         }
 
         return vertex.Position;
@@ -228,6 +242,20 @@ public class PolygonResolver : IDisposable
 
         if (offset > Unit.Zero)
         {
+            // Use the control arm direction for bezier edges so the arc joining the
+            // next corner is tangent to the curve rather than to the chord.
+            if (index < _polygon.Edges.Count)
+            {
+                var edge = _polygon.Edges[index];
+
+                if (edge.Type == EdgeType.Bezier && edge.ControlEndOffset.SqrMagnitude > 0)
+                {
+                    // ControlEndOffset points from nextVertex toward C2, which is
+                    // backward along the curve — exactly the direction we want.
+                    return nextVertex.Position + edge.ControlEndOffset.NormalizedTo(offset);
+                }
+            }
+
             var vertex = _polygon.Vertices[index];
 
             return nextVertex.Position - (nextVertex.Position - vertex.Position).NormalizedTo(offset);
@@ -327,12 +355,94 @@ public class PolygonResolver : IDisposable
     
     private double CornerAngle(int index)
     {
-        var prevVertex = _polygon.Vertices.At(index - 1);
-        var vertex = _polygon.Vertices.At(index);
-        var nextVertex = _polygon.Vertices.At(index + 1);
-        var edgeA = vertex.Position - prevVertex.Position;
-        var edgeB = nextVertex.Position - vertex.Position;
+        var prevIndex = NormalizeVertexIndex(index - 1);
+        var vertex    = _polygon.Vertices[index];
 
-        return Unit2D.SignedAngle(edgeA, edgeB);
+        var incomingEdge = _polygon.Edges.At(index - 1);
+        Unit2D incomingDir = incomingEdge.Type == EdgeType.Bezier && incomingEdge.ControlEndOffset.SqrMagnitude > 0
+            // Tangent at bezier end: P3 - C2 = -ControlEndOffset
+            ? -incomingEdge.ControlEndOffset
+            : vertex.Position - _polygon.Vertices[prevIndex].Position;
+
+        var nextIndex    = NormalizeVertexIndex(index + 1);
+        var outgoingEdge = _polygon.Edges.At(index);
+        Unit2D outgoingDir = outgoingEdge.Type == EdgeType.Bezier && outgoingEdge.ControlBeginOffset.SqrMagnitude > 0
+            // Tangent at bezier start: C1 - P0 = ControlBeginOffset
+            ? outgoingEdge.ControlBeginOffset
+            : _polygon.Vertices[nextIndex].Position - vertex.Position;
+
+        return Unit2D.SignedAngle(incomingDir, outgoingDir);
+    }
+
+    private (Unit2D c1, Unit2D c2) CalculateClippedBezierControls(int index)
+    {
+        if (index >= _polygon.Edges.Count)
+        {
+            return (Unit2D.Zero, Unit2D.Zero);
+        }
+
+        var edge = _polygon.Edges[index];
+
+        if (edge.Type != EdgeType.Bezier)
+        {
+            return (Unit2D.Zero, Unit2D.Zero);
+        }
+
+        var p0       = _polygon.Vertices[index].Position;
+        var nextIndex = NormalizeVertexIndex(index + 1);
+        var p3       = _polygon.Vertices[nextIndex].Position;
+        var c1       = p0 + edge.ControlBeginOffset;
+        var c2       = p3 + edge.ControlEndOffset;
+
+        var beginArmLength = edge.ControlBeginOffset.Magnitude;
+        var endArmLength   = edge.ControlEndOffset.Magnitude;
+
+        // t approximation: distance along control arm / arm length
+        double tBegin = beginArmLength > Unit.Epsilon
+            ? Math.Clamp(_scaledCornerTangents[index] / beginArmLength, 0.0, 1.0)
+            : 0.0;
+
+        double tEnd = endArmLength > Unit.Epsilon
+            ? Math.Clamp(1.0 - _scaledCornerTangents[nextIndex] / endArmLength, 0.0, 1.0)
+            : 1.0;
+
+        if (tBegin > 0)
+        {
+            (p0, c1, c2, p3) = SplitBezierRight(p0, c1, c2, p3, tBegin);
+            tEnd = tBegin < 1.0 ? (tEnd - tBegin) / (1.0 - tBegin) : 0.0;
+        }
+
+        if (tEnd < 1)
+        {
+            (_, c1, c2, _) = SplitBezierLeft(p0, c1, c2, p3, tEnd);
+        }
+
+        return (c1, c2);
+    }
+
+    private static (Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3) SplitBezierRight(
+        Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3, double t)
+    {
+        var p01   = p0  + (c1  - p0)  * t;
+        var p12   = c1  + (c2  - c1)  * t;
+        var p23   = c2  + (p3  - c2)  * t;
+        var p012  = p01 + (p12 - p01) * t;
+        var p123  = p12 + (p23 - p12) * t;
+        var p0123 = p012 + (p123 - p012) * t;
+
+        return (p0123, p123, p23, p3);
+    }
+
+    private static (Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3) SplitBezierLeft(
+        Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3, double t)
+    {
+        var p01   = p0  + (c1  - p0)  * t;
+        var p12   = c1  + (c2  - c1)  * t;
+        var p23   = c2  + (p3  - c2)  * t;
+        var p012  = p01 + (p12 - p01) * t;
+        var p123  = p12 + (p23 - p12) * t;
+        var p0123 = p012 + (p123 - p012) * t;
+
+        return (p0, p01, p012, p0123);
     }
 }
