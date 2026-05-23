@@ -66,8 +66,11 @@ public class EditablePolygonList : IEditablePolygonSet
         _handleSource.SetChildren(_polygons);
     }
 
-    public UnitBounds CalculateBounds() => CalculateBounds(UnitTransform.Identity);
-
+    public UnitBounds CalculateBounds()
+    {
+        return CalculateBounds(UnitTransform.Identity);
+    }
+    
     public UnitBounds CalculateBounds(UnitTransform transform)
     {
         UnitBounds? bounds = null;
@@ -105,6 +108,19 @@ public class EditablePolygonList : IEditablePolygonSet
         }
 
         return sum / _polygons.Count;
+    }
+
+    public bool ContainsPoint(Unit2D point, Unit tolerance)
+    {
+        foreach (var polygon in _polygons)
+        {
+            if (polygon.ContainsPoint(point, tolerance))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public List<EditablePolygon>.Enumerator GetEnumerator()

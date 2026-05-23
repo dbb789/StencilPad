@@ -167,6 +167,20 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         _cachedBounds = null;
     }
 
+    public override bool ContainsPoint(Unit2D point)
+    {
+        // Fast check against bounding box.
+        if (!base.ContainsPoint(point))
+        {
+            return false;
+        }
+        
+        var localPoint = Transform.InverseApply(point);
+        var tolerance = LineWidth / 2;
+
+        return _polygonList.ContainsPoint(localPoint, tolerance);
+    }
+
     public override void AssignFrom(Shape other)
     {
         _polygonList.AssignFrom(other._polygonList);
