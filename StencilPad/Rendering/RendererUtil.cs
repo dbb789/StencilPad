@@ -8,7 +8,7 @@ public static class RendererUtil
     public static void Render(DrawingContext dc,
                               Pen pen,
                               Brush? brush,
-                              IPolygon polygon)
+                              Polygon polygon)
     {
         var geometry = BuildGeometry(polygon);
 
@@ -18,7 +18,7 @@ public static class RendererUtil
         }
     }
 
-    public static Geometry? BuildGeometry(IPolygon polygon)
+    public static Geometry? BuildGeometry(Polygon polygon)
     {
         if (polygon.Vertices.Count < 2)
         {
@@ -41,17 +41,13 @@ public static class RendererUtil
     }
 
     public static void AddToGeometry(StreamGeometryContext ctx,
-                                     IPolygon polygon)
+                                     Polygon polygon)
     {
         if (polygon.Vertices.Count < 2)
         {
             return;
         }
 
-        using (var resolver = new PolygonResolver())
-        {
-            resolver.SetPolygon(polygon);
-            resolver.WalkPolygon(new StreamGeometryWalker(ctx));
-        }
+        polygon.Resolver.WalkPolygon(new StreamGeometryWalker(ctx));
     }
 }

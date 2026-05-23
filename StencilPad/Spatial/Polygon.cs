@@ -6,10 +6,14 @@ public class Polygon : IPolygon
     public IKeyedList<Edge> Edges => _edges;
     public bool Closed => _closed;
 
+    public IPolygonResolver Resolver => _resolver;
+    
     private readonly KeyedList<Vertex> _vertices;
     private readonly KeyedList<Edge> _edges;
     private bool _closed;
-
+    
+    private readonly PolygonResolver _resolver;
+    
     public event Action<int, ulong>? VertexAdded;
     public event Action<int, ulong>? VertexRemoved;
     public event Action<int, ulong>? EdgeAdded;
@@ -27,7 +31,8 @@ public class Polygon : IPolygon
     {
         _vertices = new(4);
         _edges = new(4);
-
+        _resolver = new(this);
+        
         _vertices.ItemReassigned += VertexReassigned;
         _edges.ItemReassigned += EdgeReassigned;
 
@@ -70,7 +75,7 @@ public class Polygon : IPolygon
             EdgeAdded?.Invoke(newEdgeIndex, _edges.KeyAt(newEdgeIndex));
         }
         
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
     
     public void DeleteVertex(int index)
@@ -111,7 +116,7 @@ public class Polygon : IPolygon
             }
         }
 
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
     
     public void Open(int index)
@@ -134,7 +139,7 @@ public class Polygon : IPolygon
         
         EdgeRemoved?.Invoke(edgeIndex, edgeKey);
         InvalidateAllPositions?.Invoke();
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     public void Close()
@@ -148,7 +153,7 @@ public class Polygon : IPolygon
         _closed = true;
 
         EdgeAdded?.Invoke(_edges.Count - 1, _edges.KeyAt(_edges.Count - 1));
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     public void SetControlBegin(int edgeIndex, Unit2D position)
@@ -342,7 +347,7 @@ public class Polygon : IPolygon
         }
 
         InvalidateAllPositions?.Invoke();
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     private static Unit2D RemapLocalPoint(Unit2D localPt,
@@ -546,7 +551,7 @@ public class Polygon : IPolygon
         _edges.Clear();
         _closed = false;
 
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     public void Translate(Unit2D delta)
@@ -559,7 +564,7 @@ public class Polygon : IPolygon
         }
 
         InvalidateAllPositions?.Invoke();
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     public void Transform(UnitTransform transform)
@@ -581,7 +586,7 @@ public class Polygon : IPolygon
         }
 
         InvalidateAllPositions?.Invoke();
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     public void MirrorX(Unit centerY)
@@ -606,7 +611,7 @@ public class Polygon : IPolygon
         }
 
         InvalidateAllPositions?.Invoke();
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     public void MirrorY(Unit centerX)
@@ -631,7 +636,7 @@ public class Polygon : IPolygon
         }
         
         InvalidateAllPositions?.Invoke();
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     protected void AssignFromPolygon(Polygon other)
@@ -640,7 +645,7 @@ public class Polygon : IPolygon
         _edges.AssignFrom(other._edges);
         _closed = other._closed;
 
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
     
     public Polygon DeepClone()
@@ -654,11 +659,17 @@ public class Polygon : IPolygon
 
     private void VertexReassigned(int index, ulong key, Vertex oldVertex, Vertex newVertex)
     {
-        GeometryChanged?.Invoke();
+        InvokeGeometryChanged();
     }
 
     private void EdgeReassigned(int index, ulong key, Edge oldEdge, Edge newEdge)
     {
+        InvokeGeometryChanged();
+    }
+
+    private void InvokeGeometryChanged()
+    {
+        _resolver.MarkGeometryDirty();
         GeometryChanged?.Invoke();
     }
 }

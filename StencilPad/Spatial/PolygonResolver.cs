@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public class PolygonResolver : IDisposable
+public class PolygonResolver : IPolygonResolver
 {
     private IPolygon _polygon;
     private bool _geometryDirty;
@@ -11,10 +11,10 @@ public class PolygonResolver : IDisposable
     private List<Unit2D> _clippedC1;
     private List<Unit2D> _clippedC2;
     
-    public PolygonResolver()
+    public PolygonResolver(IPolygon polygon)
     {
-        _polygon = null!;
-        _geometryDirty = false;
+        _polygon = polygon;
+        _geometryDirty = true;
         _cornerTangents = new();
         _scaledCornerTangents = new();
         _edgeBegin = new();
@@ -23,33 +23,7 @@ public class PolygonResolver : IDisposable
         _clippedC2 = new();
     }
 
-    public void Dispose()
-    {
-        ClearPolygon();
-    }
-
-    public void SetPolygon(IPolygon? polygon)
-    {
-        if (_polygon is not null)
-        {
-            _polygon.GeometryChanged -= MarkGeometryDirty;
-        }
-        
-        _polygon = polygon!;
-
-        if (_polygon is not null)
-        {
-            _geometryDirty = true;
-            _polygon.GeometryChanged += MarkGeometryDirty;
-        }
-    }
-
-    public void ClearPolygon()
-    {
-        SetPolygon(null);
-    }
-
-    private void MarkGeometryDirty()
+    public void MarkGeometryDirty()
     {
         _geometryDirty = true;
     }
