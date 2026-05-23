@@ -25,20 +25,17 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         }
     }
 
-    public Unit2D Normalized
+    public Unit2D NormalizedTo(Unit offset)
     {
-        get
+        var magnitude = Magnitude;
+        
+        if (magnitude == Unit.Zero)
         {
-            var magnitude = Magnitude;
-            
-            if (magnitude == Unit.Zero)
-            {
-                return Zero;
-            }
-
-            return new Unit2D(Unit.FromMillimeters(X.Millimeters / magnitude.Millimeters),
-                              Unit.FromMillimeters(Y.Millimeters / magnitude.Millimeters));
+            return Zero;
         }
+        
+        return new Unit2D(offset * (X / magnitude),
+                          offset * (Y / magnitude));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

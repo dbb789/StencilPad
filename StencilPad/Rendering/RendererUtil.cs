@@ -106,7 +106,7 @@ public static class RendererUtil
         var cornerType = polygon.Vertices.At(index).CornerType;
         var cornerTangent = GetCornerTangent(polygon, index);
 
-        if (cornerTangent <= 0.0001)
+        if (cornerTangent <= Unit.Epsilon)
         {
             return;
         }
@@ -118,7 +118,7 @@ public static class RendererUtil
             var arcRadius = cornerTangent / Math.Tan(Math.Abs(angle) / 2.0);
             
             ctx.ArcTo(point: EdgeBegin(polygon, index).Millimeters,
-                      size: new Size(arcRadius, arcRadius),
+                      size: new Size(arcRadius.Millimeters, arcRadius.Millimeters),
                       rotationAngle: 0,
                       isLargeArc: false,
                       sweepDirection: direction,
@@ -136,12 +136,11 @@ public static class RendererUtil
         var vertex = polygon.Vertices.At(index);
         var offset = GetCornerTangent(polygon, index);
 
-        if (offset > 0)
+        if (offset > Unit.Zero)
         {
             var nextVertex = polygon.Vertices.At(index + 1);
-            var direction = (nextVertex.Position - vertex.Position).Normalized;
 
-            return vertex.Position + direction * offset;
+            return vertex.Position + (nextVertex.Position - vertex.Position).NormalizedTo(offset);
         }
 
         return vertex.Position;
@@ -152,23 +151,22 @@ public static class RendererUtil
         var nextVertex = polygon.Vertices.At(index + 1);
         var offset = GetCornerTangent(polygon, index + 1);
 
-        if (offset > 0)
+        if (offset > Unit.Zero)
         {
             var vertex = polygon.Vertices.At(index);
-            var direction = (nextVertex.Position - vertex.Position).Normalized;
 
-            return nextVertex.Position - direction * offset;
+            return nextVertex.Position - (nextVertex.Position - vertex.Position).NormalizedTo(offset);
         }
 
         return nextVertex.Position;
     }
 
-    private static double GetCornerTangent(IPolygon polygon, int index)
+    private static Unit GetCornerTangent(IPolygon polygon, int index)
     {
         // Exit early - no need to calculate tangents for non-corner vertices.
         if (polygon.Vertices.At(index).CornerType == CornerType.None)
         {
-            return 0;
+            return Unit.Zero;
         }
 
         var offsetA = GetSingleCornerTangent(polygon, index - 1);
@@ -176,19 +174,19 @@ public static class RendererUtil
         var offsetC = GetSingleCornerTangent(polygon, index + 1);
         var offsetAB = offsetA + offsetB;
         var offsetBC = offsetB + offsetC;
-        var edgeAB = EdgeLength(polygon, index - 1).Millimeters;
-        var edgeBC = EdgeLength(polygon, index).Millimeters;
+        var edgeAB = EdgeLength(polygon, index - 1);
+        var edgeBC = EdgeLength(polygon, index);
         var scaleAB = 1.0;
         var scaleBC = 1.0;
 
         // Ensure offsetAB and offsetBC are greater than zero to avoid division
         // by zero
-        if (offsetAB > 0.0001 && offsetAB > edgeAB)
+        if (offsetAB > Unit.Epsilon && offsetAB > edgeAB)
         {
             scaleAB = edgeAB / offsetAB;
         }
 
-        if (offsetBC > 0.0001 && offsetBC > edgeBC)
+        if (offsetBC > Unit.Epsilon && offsetBC > edgeBC)
         {
             scaleBC = edgeBC / offsetBC;
         }
@@ -196,14 +194,14 @@ public static class RendererUtil
         return offsetB * Math.Min(scaleAB, scaleBC);
     }
     
-    private static double GetSingleCornerTangent(IPolygon polygon, int index)
+    private static Unit GetSingleCornerTangent(IPolygon polygon, int index)
     {
         var count = polygon.Vertices.Count;
 
         // A line cannot have corners.
         if (count <= 2)
         {
-            return 0;
+            return Unit.Zero;
         }
 
         // An open line does not have corners at the start and end vertices.
@@ -213,7 +211,7 @@ public static class RendererUtil
 
             if (normalizedIndex == 0 || normalizedIndex == count - 1)
             {
-                return 0;
+                return Unit.Zero;
             }
         }
 
@@ -222,26 +220,26 @@ public static class RendererUtil
         // A corner type of None never has a tangent.
         if (vertex.CornerType == CornerType.None)
         {
-            return 0;
+            return Unit.Zero;
         }
 
-        double radius = -1;
+        Unit radius = Unit.Zero;
 
         if (vertex.CornerSize.IsUnit)
         {
-            radius = vertex.CornerSize.Unit.Millimeters;
+            radius = vertex.CornerSize.Unit;
         }
         else if (vertex.CornerSize.IsProportion)
         {
             var edgeLength = Unit.Min(EdgeLength(polygon, index - 1), EdgeLength(polygon, index));
 
-            radius = (edgeLength * vertex.CornerSize.Proportion).Millimeters;
+            radius = edgeLength * vertex.CornerSize.Proportion;
         }
 
         // Case of unhandled size type will fall through with a radius of -1 below.
-        if (radius <= 0)
+        if (radius <= Unit.Zero)
         {
-            return 0;
+            return Unit.Zero;
         }
 
         return radius * Math.Tan(Math.Abs(CornerAngle(polygon, index)) / 2.0);

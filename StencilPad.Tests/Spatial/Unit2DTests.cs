@@ -15,19 +15,18 @@ public class Unit2DTests
     public void Normalized_ReturnsCorrectValue()
     {
         var u = new Unit2D(Unit.FromMillimeters(3), Unit.FromMillimeters(4));
-        var normalized = u.Normalized;
         Assert.Multiple(() =>
         {
-            Assert.That(normalized.X.Millimeters, Is.EqualTo(0.6).Within(0.000001));
-            Assert.That(normalized.Y.Millimeters, Is.EqualTo(0.8).Within(0.000001));
-            Assert.That(normalized.Magnitude.Millimeters, Is.EqualTo(1.0).Within(0.000001));
+            Assert.That(u.NormalizedTo(Unit.FromMillimeters(1)).X.Millimeters, Is.EqualTo(0.6).Within(0.000001));
+            Assert.That(u.NormalizedTo(Unit.FromMillimeters(1)).Y.Millimeters, Is.EqualTo(0.8).Within(0.000001));
+            Assert.That(u.NormalizedTo(Unit.FromMillimeters(1)).Magnitude.Millimeters, Is.EqualTo(1.0).Within(0.000001));
         });
     }
-
+        
     [Test]
     public void Normalized_ZeroVector_ReturnsZero()
     {
-        Assert.That(Unit2D.Zero.Normalized, Is.EqualTo(Unit2D.Zero));
+        Assert.That(Unit2D.Zero.NormalizedTo(Unit.FromMillimeters(1)), Is.EqualTo(Unit2D.Zero));
     }
 
     [Test]

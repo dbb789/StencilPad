@@ -128,5 +128,8 @@ public readonly record struct Unit
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator /(Unit u, double scalar) => new(u._value / (decimal)scalar);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double operator /(Unit a, Unit b) => (double)(a._value / b._value);
+
     public override string ToString() => _value.ToString(CultureInfo.InvariantCulture);
 }
