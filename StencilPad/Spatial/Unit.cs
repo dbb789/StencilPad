@@ -124,6 +124,9 @@ public readonly record struct Unit
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator *(Unit u, double scalar) => new(u._value * (decimal)scalar);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit operator *(double scalar, Unit u) => u * scalar;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator /(Unit u, double scalar) => new(u._value / (decimal)scalar);
