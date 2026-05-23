@@ -114,7 +114,7 @@ public class EditablePolygonList : IEditablePolygonSet
     {
         foreach (var polygon in _polygons)
         {
-            if (polygon.ContainsPoint(point, tolerance))
+            if (PolygonUtil.ContainsPoint(polygon, point, tolerance))
             {
                 return true;
             }
