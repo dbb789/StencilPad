@@ -35,8 +35,9 @@ public readonly record struct Unit2D(Unit X, Unit Y)
             {
                 return Zero;
             }
-            
-            return new Unit2D(X / magnitude, Y / magnitude);
+
+            return new Unit2D(Unit.FromMillimeters(X.Millimeters / magnitude.Millimeters),
+                              Unit.FromMillimeters(Y.Millimeters / magnitude.Millimeters));
         }
     }
 
@@ -51,19 +52,19 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         return new(side, side);
     }
 
-    public static Unit Determinant(Unit2D a, Unit2D b)
+    public static double Determinant(Unit2D a, Unit2D b)
     {
-        return (a.X * b.Y) - (a.Y * b.X);
+        return (a.X.Millimeters * b.Y.Millimeters) - (a.Y.Millimeters * b.X.Millimeters);
     }
     
-    public static Unit Dot(Unit2D a, Unit2D b)
+    public static double Dot(Unit2D a, Unit2D b)
     {
-        return (a.X * b.X) + (a.Y * b.Y);
+        return (a.X.Millimeters * b.X.Millimeters) + (a.Y.Millimeters * b.Y.Millimeters);
     }
         
     public static double SignedAngle(Unit2D a, Unit2D b)
     {
-        return Math.Atan2(Determinant(a, b).Millimeters, Dot(a, b).Millimeters);
+        return Math.Atan2(Determinant(a, b), Dot(a, b));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -76,14 +77,8 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     public static Unit2D operator -(Unit2D u)  => new(-u.X, -u.Y);
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Unit2D operator *(Unit2D u, Unit scalar) => new(u.X * scalar, u.Y * scalar);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator *(Unit2D u, double scalar) => new(u.X * scalar, u.Y * scalar);
     
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Unit2D operator /(Unit2D u, Unit scalar) => new(u.X / scalar, u.Y / scalar);
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator /(Unit2D u, double scalar) => new(u.X / scalar, u.Y / scalar);
 

@@ -123,13 +123,7 @@ public readonly record struct Unit
     public static Unit operator -(Unit u) => new(-u._value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Unit operator *(Unit u, Unit scalar) => new(u._value * scalar._value);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator *(Unit u, double scalar) => new(u._value * (decimal)scalar);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Unit operator /(Unit u, Unit scalar) => new(u._value / scalar._value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator /(Unit u, double scalar) => new(u._value / (decimal)scalar);

@@ -47,7 +47,7 @@ public class Unit2DTests
     {
         var a = new Unit2D(Unit.FromMillimeters(1), Unit.FromMillimeters(2));
         var b = new Unit2D(Unit.FromMillimeters(3), Unit.FromMillimeters(4));
-        Assert.That(Unit2D.Dot(a, b).Millimeters, Is.EqualTo(11));
+        Assert.That(Unit2D.Dot(a, b), Is.EqualTo(11));
     }
 
     [Test]
@@ -56,7 +56,7 @@ public class Unit2DTests
         var a = new Unit2D(Unit.FromMillimeters(1), Unit.FromMillimeters(2));
         var b = new Unit2D(Unit.FromMillimeters(3), Unit.FromMillimeters(4));
         // (1*4) - (2*3) = 4 - 6 = -2
-        Assert.That(Unit2D.Determinant(a, b).Millimeters, Is.EqualTo(-2));
+        Assert.That(Unit2D.Determinant(a, b), Is.EqualTo(-2));
     }
 
     [Test]

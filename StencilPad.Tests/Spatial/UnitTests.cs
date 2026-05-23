@@ -78,9 +78,7 @@ public class UnitTests
             Assert.That((a + b).Millimeters, Is.EqualTo(15));
             Assert.That((a - b).Millimeters, Is.EqualTo(5));
             Assert.That((-a).Millimeters, Is.EqualTo(-10));
-            Assert.That((a * b).Millimeters, Is.EqualTo(50));
             Assert.That((a * 2.0).Millimeters, Is.EqualTo(20));
-            Assert.That((a / b).Millimeters, Is.EqualTo(2));
             Assert.That((a / 2.0).Millimeters, Is.EqualTo(5));
         });
     }
