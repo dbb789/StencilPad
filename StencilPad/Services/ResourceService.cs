@@ -53,7 +53,7 @@ public class ResourceService : IResourceService
     
     public Geometry? Get(GeometryResourceId id)
     {
-        if (id == GeometryResourceLibrary.None)
+        if (id == GeometryResourceId.None)
         {
             return null;
         }

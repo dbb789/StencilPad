@@ -1,4 +1,4 @@
-namespace StencilPad.Rendering;
+namespace StencilPad.Models;
 
 public record ResourceId
 {

@@ -1,4 +1,4 @@
-using StencilPad.Rendering;
+using StencilPad.Models;
 using System.Windows.Media;
 
 namespace StencilPad.Services;

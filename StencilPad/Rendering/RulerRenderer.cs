@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
@@ -75,7 +76,13 @@ public class RulerRenderer : SheetElementRenderer
 
     private void DrawArrowhead(DrawingContext dc, Point tip, Point from)
     {
-        var geometry = _resourceService.Get(GeometryResourceLibrary.Arrow0);
+        var geometry = _resourceService.Get(GeometryResourceId.Arrow0);
+
+        if (geometry is null)
+        {
+            return;
+        }
+        
         var rotation = Math.Atan2(from.Y - tip.Y, from.X - tip.X) * 180.0 / Math.PI;
 
         rotation -= 90.0;
@@ -89,7 +96,7 @@ public class RulerRenderer : SheetElementRenderer
         dc.Pop();
     }
 
-    private void PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         UpdateProperties();
         InvokeRendererDirty();
