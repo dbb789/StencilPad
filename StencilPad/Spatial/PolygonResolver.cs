@@ -79,7 +79,7 @@ public class PolygonResolver : IPolygonResolver
         
         if (initial)
         {
-            walker.Begin(edgeBegin);
+            walker.Begin(edgeBegin, _polygon.Closed);
         }
 
         index = NormalizeVertexIndex(index);

@@ -234,7 +234,7 @@ public static class PolygonUtil
             _point = point;
         }
 
-        public void Begin(Unit2D startPoint) { }
+        public void Begin(Unit2D startPoint, bool closed) { }
 
         public void Line(Unit2D from, Unit2D to)
         {

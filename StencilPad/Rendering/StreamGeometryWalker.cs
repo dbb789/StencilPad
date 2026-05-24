@@ -8,9 +8,9 @@ public class StreamGeometryWalker() : IPolygonWalker
 {
     public StreamGeometryContext Context = null!;
 
-    public void Begin(Unit2D startPoint)
+    public void Begin(Unit2D startPoint, bool closed)
     {
-        Context.BeginFigure(startPoint.Millimeters, isFilled: true, isClosed: false);
+        Context.BeginFigure(startPoint.Millimeters, isFilled: true, isClosed: closed);
     }
 
     public void Line(Unit2D from, Unit2D to)
