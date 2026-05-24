@@ -72,7 +72,8 @@ public partial class SheetTab : UserControl
 
             Dispatcher.BeginInvoke(() =>
             {
-                ApplyZoomCentred(_viewModel.Zoom);
+                SetZoom(_viewModel.Zoom);
+                CentreScroll();
             });
         }
     }

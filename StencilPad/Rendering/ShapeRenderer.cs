@@ -32,6 +32,9 @@ public class ShapeRenderer : SheetElementRenderer
         }
 
         UpdateProperties();
+
+        _transform = _shape.Transform.CreateGroupTransform();
+
         RebuildGeometry();
         _geometryDirty = false;
     }
@@ -70,23 +73,18 @@ public class ShapeRenderer : SheetElementRenderer
 
     private void UpdateProperties()
     {
-        _pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
+        _pen = new Pen(new SolidColorBrush(_shape.LineColor),
+                       _shape.LineWidth.Millimeters);
+        _pen.LineJoin = PenLineJoin.Miter;
         _pen.Freeze();
         
         _fill = new SolidColorBrush(_shape.FillColor);
-        _fill.Freeze();
-        
-        _transform = _shape.Transform.CreateGroupTransform();
+        _fill.Freeze();        
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        _pen = new Pen(new SolidColorBrush(_shape.LineColor), _shape.LineWidth.Millimeters);
-        _pen.Freeze();
-        
-        _fill = new SolidColorBrush(_shape.FillColor);
-        _fill.Freeze();
-        
+        UpdateProperties();
         InvokeRendererDirty();
     }
 
