@@ -8,6 +8,7 @@ namespace StencilPad.Rendering;
 public class ShapeEditRenderer : SheetElementEditRenderer
 {
     private readonly Shape _shape;
+    private readonly StreamGeometryWalker _walker;
 
     private Pen? _edgeOverlayPen;
     private Pen? _controlStemPen;
@@ -24,6 +25,8 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         _shape.PolygonSet.HandleSource.HandleSelectionChanged += SelectionChanged;
         _shape.PropertyChanged += PropertyChanged;
 
+        _walker = new();
+        
         _edgeOverlayPen = new Pen(Brushes.Blue, 0.3);
         _edgeOverlayPen.Freeze();
 
@@ -99,13 +102,13 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
         using (var ctx = _edgeOverlayGeometry.Open())
         {
-            var walker = new StreamGeometryWalker(ctx);
+            _walker.Context = ctx;
             
             foreach (var polygon in polygonList)
             {
                 foreach (var edgeIndex in polygon.GetSelectedEdges())
                 {
-                    polygon.Resolver.WalkEdge(walker, edgeIndex);
+                    polygon.Resolver.WalkEdge(_walker, edgeIndex);
                 }
             }
         }

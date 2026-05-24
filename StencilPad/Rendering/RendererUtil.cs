@@ -48,6 +48,11 @@ public static class RendererUtil
             return;
         }
 
-        polygon.Resolver.WalkPolygon(new StreamGeometryWalker(ctx));
+        var walker = new StreamGeometryWalker
+        {
+            Context = ctx
+        };
+
+        polygon.Resolver.WalkPolygon(walker);
     }
 }

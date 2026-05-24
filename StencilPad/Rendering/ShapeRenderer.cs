@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using StencilPad.Models;
-using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
@@ -10,6 +9,7 @@ public class ShapeRenderer : SheetElementRenderer
     public override Shape Element => _shape;
 
     private readonly Shape _shape;
+    private readonly StreamGeometryWalker _walker;
     private Pen? _pen;
     private Brush? _fill;
     private Transform? _transform;
@@ -23,6 +23,8 @@ public class ShapeRenderer : SheetElementRenderer
         _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
         _shape.TransformChanged += OnTransformChanged;
         _shape.PropertyChanged += PropertyChanged;
+
+        _walker = new();
 
         foreach (var polygon in _shape.PolygonSet)
         {
@@ -115,9 +117,11 @@ public class ShapeRenderer : SheetElementRenderer
 
         using (var ctx = _geometry.Open())
         {
+            _walker.Context = ctx;
+            
             foreach (var polygon in _shape.PolygonSet)
             {
-                RendererUtil.AddToGeometry(ctx, polygon);
+                polygon.Resolver.WalkPolygon(_walker);
             }
         }
 
@@ -128,9 +132,14 @@ public class ShapeRenderer : SheetElementRenderer
     // know how to interpret a Shape object.
     public static void AddToGeometry(Shape shape, StreamGeometryContext ctx)
     {
+        var walker = new StreamGeometryWalker
+        {
+            Context = ctx
+        };
+        
         foreach (var polygon in shape.PolygonSet)
         {
-            RendererUtil.AddToGeometry(ctx, polygon);
+            polygon.Resolver.WalkPolygon(walker);
         }
     }
     

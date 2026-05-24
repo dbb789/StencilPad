@@ -16,6 +16,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly Polygon _polygon;
+    private readonly StreamGeometryWalker _walker;
     private readonly WidgetContainer<HandleWidget> _vertexWidgets;
     private readonly LockAxisState _lockAxisState;
 
@@ -28,6 +29,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
         _viewport = viewport;
         _unitSnap = unitSnap;
         _polygon = new();
+        _walker = new();
         _vertexWidgets = new(this);
         
         _lockAxisState = new();
@@ -100,10 +102,23 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
         dc.PushTransform(_viewport.MillimetersToPixelsTransform);
 
+        var geometry = new StreamGeometry
+        {
+            FillRule = FillRule.EvenOdd
+        };
+
+        using (var ctx = geometry.Open())
+        {
+            _walker.Context = ctx;
+            _polygon.Resolver.WalkPolygon(_walker);
+        }
+        
+        geometry.Freeze();
+        
         var shapePen = new Pen(Brushes.Black, 0.1);
 
-        RendererUtil.Render(dc, shapePen, Brushes.Transparent, _polygon);
-
+        dc.DrawGeometry(Brushes.Transparent, shapePen, geometry);
+        
         if (!_polygon.Closed)
         {
             var lastPoint = _polygon.Vertices[^1].Position.Millimeters;
