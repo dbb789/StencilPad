@@ -33,17 +33,41 @@
                                     Value="{Binding LineColor}"/>
             </TabItem>
             <TabItem Header="Line Style">
-                <Grid Margin="8">
+                <Grid Margin="8" MinWidth="200" MinHeight="200">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="12"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="Line Width:"
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Column="0" Grid.Row="0"
+                               Text="Line Width:"
                                VerticalAlignment="Center"/>
-                    <widgets:UnitField Grid.Column="2" MinWidth="180"
+                    <widgets:UnitField Grid.Column="2" Grid.Row="0"
+                                       MinWidth="180"
                                        Value="{Binding LineWidth}"/>
+
+                    <TextBlock Grid.Column="0" Grid.Row="2"
+                               Text="Start Cap:"
+                               VerticalAlignment="Center"/>
+                    <widgets:GeometryDropdown x:Name="StartCapDropdown"
+                                              Grid.Column="2" Grid.Row="2"
+                                              MinWidth="180"/>
+
+                    <TextBlock Grid.Column="0" Grid.Row="4"
+                               Text="End Cap:"
+                               VerticalAlignment="Center"/>
+                    <widgets:GeometryDropdown x:Name="EndCapDropdown"
+                                              Grid.Column="2" Grid.Row="4"
+                                              MinWidth="180"/>
                 </Grid>
             </TabItem>
         </TabControl>

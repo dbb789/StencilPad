@@ -44,8 +44,12 @@ public partial class App : Application
 
         services.AddSingleton<IModelPropertiesService>(sp =>
         {
+            var resourceService = sp.GetRequiredService<IResourceService>();
             var operationService = sp.GetRequiredService<IOperationService>();
-            return new WpfModelPropertiesService(mainWindow, operationService);
+
+            return new WpfModelPropertiesService(mainWindow,
+                                                 resourceService,
+                                                 operationService);
         });
 
         services.AddSingleton<IPrintService, PrintService>();

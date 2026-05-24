@@ -51,11 +51,11 @@ public class ResourceService : IResourceService
         }
     }
     
-    public Geometry? Get(GeometryResourceId id)
+    public Geometry Get(GeometryResourceId id)
     {
         if (id == GeometryResourceId.None)
         {
-            return null;
+            return Geometry.Empty;
         }
         
         if (_geometryCache.TryGetValue(id, out var geometry))

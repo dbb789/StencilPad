@@ -8,12 +8,16 @@ namespace StencilPad.UI;
 public class WpfModelPropertiesService : IModelPropertiesService
 {
     private readonly Window _owner;
+    private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
     private Window? _openWindow;
 
-    public WpfModelPropertiesService(Window owner, IOperationService operationService)
+    public WpfModelPropertiesService(Window owner,
+                                     IResourceService resourceService,
+                                     IOperationService operationService)
     {
         _owner = owner;
+        _resourceService = resourceService;
         _operationService = operationService;
     }
 
@@ -59,7 +63,8 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new ShapePropertiesWindow(shapes)
+        var window = new ShapePropertiesWindow(_resourceService,
+                                               shapes)
         {
             Owner = _owner
         };
