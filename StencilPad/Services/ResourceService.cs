@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using StencilPad.Models;
@@ -10,9 +9,6 @@ namespace StencilPad.Services;
 
 public class ResourceService : IResourceService
 {
-    private static readonly string ResourcesDirectory = "Resources";
-    private static readonly string GeometryDirectory = Path.Combine(ResourcesDirectory, "Geometry");
-
     private Dictionary<GeometryResourceId, Geometry> _geometryCache;
     private Geometry _placeholderGeometry;
     
@@ -26,7 +22,10 @@ public class ResourceService : IResourceService
 
     private void Load()
     {
-        Load(GeometryResourceId.Arrow0, Path.Combine(GeometryDirectory, "Arrow0.spad"));
+        foreach (var (id, path) in GeometryResourceLibrary.ResourceFiles)
+        {
+            Load(id, path);
+        }        
     }
 
     private void Load(GeometryResourceId id, string filename)
@@ -52,8 +51,13 @@ public class ResourceService : IResourceService
         }
     }
     
-    public Geometry Get(GeometryResourceId id)
+    public Geometry? Get(GeometryResourceId id)
     {
+        if (id == GeometryResourceLibrary.None)
+        {
+            return null;
+        }
+        
         if (_geometryCache.TryGetValue(id, out var geometry))
         {
             return geometry;
