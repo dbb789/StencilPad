@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public interface IPolygonWalker
+public interface IGeometryWalker
 {
     void Begin(Unit2D startPoint, bool closed);
     void Line(Unit2D from, Unit2D to);

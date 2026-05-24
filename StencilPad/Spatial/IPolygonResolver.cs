@@ -2,6 +2,6 @@ namespace StencilPad.Spatial;
 
 public interface IPolygonResolver
 {
-    void WalkPolygon(IPolygonWalker walker);
-    void WalkEdge(IPolygonWalker walker, int edgeIndex);
+    void WalkPolygon(IGeometryWalker walker);
+    void WalkEdge(IGeometryWalker walker, int edgeIndex);
 }

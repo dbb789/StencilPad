@@ -224,7 +224,7 @@ public static class PolygonUtil
             Unit.FromMillimeters((a.Y.Millimeters + b.Y.Millimeters) * 0.5));
     }
 
-    private sealed class WindingWalker : IPolygonWalker
+    private sealed class WindingWalker : IGeometryWalker
     {
         private readonly Unit2D _point;
         public int Winding { get; private set; }

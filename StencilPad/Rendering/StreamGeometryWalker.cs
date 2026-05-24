@@ -4,7 +4,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
-public class StreamGeometryWalker() : IPolygonWalker
+public class StreamGeometryWalker() : IGeometryWalker
 {
     public StreamGeometryContext Context = null!;
 

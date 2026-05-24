@@ -75,6 +75,8 @@ public class ShapeRenderer : SheetElementRenderer
     {
         _pen = new Pen(new SolidColorBrush(_shape.LineColor),
                        _shape.LineWidth.Millimeters);
+        _pen.StartLineCap = PenLineCap.Square;
+        _pen.EndLineCap = PenLineCap.Square;
         _pen.LineJoin = PenLineJoin.Miter;
         _pen.Freeze();
         

@@ -37,7 +37,7 @@ public class PolygonResolver : IPolygonResolver
         }
     }
 
-    public void WalkPolygon(IPolygonWalker walker)
+    public void WalkPolygon(IGeometryWalker walker)
     {
         if (_polygon is null)
         {
@@ -60,7 +60,7 @@ public class PolygonResolver : IPolygonResolver
         }
     }
     
-    public void WalkEdge(IPolygonWalker walker, int edgeIndex)
+    public void WalkEdge(IGeometryWalker walker, int edgeIndex)
     {
         if (_polygon is null)
         {
@@ -71,7 +71,7 @@ public class PolygonResolver : IPolygonResolver
         AddEdgeToGeometry(walker, edgeIndex, true);
     }
 
-    private void AddEdgeToGeometry(IPolygonWalker walker,
+    private void AddEdgeToGeometry(IGeometryWalker walker,
                                    int index,
                                    bool initial)
     {
@@ -96,7 +96,7 @@ public class PolygonResolver : IPolygonResolver
         }
     }
     
-    private void AddCornerToGeometry(IPolygonWalker walker,
+    private void AddCornerToGeometry(IGeometryWalker walker,
                                             int index)
     {
         var edgeBegin = EdgeBegin(index);
