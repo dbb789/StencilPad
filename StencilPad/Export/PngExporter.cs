@@ -5,36 +5,51 @@ using System.Windows.Media.Imaging;
 using StencilPad.Models;
 using StencilPad.Rendering;
 using StencilPad.Services;
+using StencilPad.Spatial;
 
 namespace StencilPad.Export;
 
 public static class PngExporter
 {
     private const double Dpi = 96.0;
-    private const double MmPerInch = 25.4;
-    private const double PixelsPerMm = Dpi / MmPerInch;
 
     public static void Export(Sheet sheet, string path, IResourceService resourceService)
     {
-        var size = sheet.Format.Size;
-        double widthMm  = size.X.Millimeters;
-        double heightMm = size.Y.Millimeters;
-        int widthPx  = (int)Math.Round(widthMm  * PixelsPerMm);
-        int heightPx = (int)Math.Round(heightMm * PixelsPerMm);
+        UnitBounds? sheetBounds = null;
 
+        foreach (var element in sheet.Elements)
+        {
+            sheetBounds = UnitBounds.Union(sheetBounds, element.GetTransformedBounds());
+        }
+
+        var bounds = sheetBounds ??
+            UnitBounds.FromCenterSize(Unit2D.Zero,
+                                      new Unit2D(Unit.FromMillimeters(98),
+                                                 Unit.FromMillimeters(98)));
+
+        bounds = bounds.Pad(Unit.FromMillimeters(1));
+        
+        var size = bounds.Size;
+        double width  = size.X.Millimeters;
+        double height = size.Y.Millimeters;
+        
         var factory  = new SheetElementRendererFactory(resourceService);
         var renderer = new SheetRenderer(factory);
         renderer.Sheet = sheet;
 
         var transform = new TransformGroup();
-        transform.Children.Add(new TranslateTransform(widthMm / 2.0, heightMm / 2.0));
-        transform.Children.Add(new ScaleTransform(PixelsPerMm, PixelsPerMm));
+        transform.Children.Add(new TranslateTransform(-bounds.Min.X.Millimeters,
+                                                      -bounds.Min.Y.Millimeters));
         transform.Freeze();
 
         var visual = new DrawingVisual();
+        
         using (var dc = visual.RenderOpen())
         {
-            dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, widthPx, heightPx));
+            // dc.DrawRectangle(Brushes.White,
+            //                  null,
+            //                  new Rect(0, 0, width, height));
+            
             dc.PushTransform(transform);
             renderer.Render(dc);
             dc.Pop();
@@ -42,7 +57,11 @@ public static class PngExporter
 
         renderer.Dispose();
 
-        var bitmap = new RenderTargetBitmap(widthPx, heightPx, Dpi, Dpi, PixelFormats.Pbgra32);
+        double scale = 10.0;
+        int widthPx  = (int)Math.Round(width * scale);
+        int heightPx = (int)Math.Round(height * scale);
+
+        var bitmap = new RenderTargetBitmap(widthPx, heightPx, Dpi * scale, Dpi * scale, PixelFormats.Pbgra32);
         bitmap.Render(visual);
 
         var encoder = new PngBitmapEncoder();

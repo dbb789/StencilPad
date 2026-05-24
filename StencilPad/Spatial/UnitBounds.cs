@@ -129,6 +129,12 @@ public readonly record struct UnitBounds
                                      Unit.Max(Unit.Max(nw.Y, ne.Y), Unit.Max(sw.Y, se.Y))));
     }
 
+    public UnitBounds Pad(Unit padding)
+    {
+        return new UnitBounds(_min - new Unit2D(padding, padding),
+                              _max + new Unit2D(padding, padding));
+    }
+    
     public override string ToString()
     {
         return $"[{_min}, {_max}]";
