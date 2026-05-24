@@ -50,6 +50,34 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
             }
         }
     }
+
+    public GeometryResourceId _startCap = GeometryResourceId.None;
+    public GeometryResourceId StartCap
+    {
+        get => _startCap;
+        set
+        {
+            if (_startCap != value)
+            {
+                _startCap = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public GeometryResourceId _endCap = GeometryResourceId.None;
+    public GeometryResourceId EndCap
+    {
+        get => _endCap;
+        set
+        {
+            if (_endCap != value)
+            {
+                _endCap = value;
+                OnPropertyChanged();
+            }
+        }
+    }
     
     private UnitBounds? _cachedBounds;
 

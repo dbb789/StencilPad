@@ -8,4 +8,9 @@ public record ResourceId
     {
         Id = id;
     }
+    
+    public int ToValue()
+    {
+        return Id;
+    }
 }

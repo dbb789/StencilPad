@@ -10,6 +10,8 @@ public class ShapeSchema : SheetElementSchema
     public Color FillColor { get; set; } = new();
     public Color LineColor { get; set; } = new();
     public Unit LineWidth { get; set; } = new();
+    public int StartCap { get; set; } = 0;
+    public int EndCap { get; set; } = 0;
     
     public static ShapeSchema Pack(Shape shape)
     {
@@ -19,7 +21,9 @@ public class ShapeSchema : SheetElementSchema
             Transform = shape.Transform,
             FillColor = shape.FillColor,
             LineColor = shape.LineColor,
-            LineWidth = shape.LineWidth
+            LineWidth = shape.LineWidth,
+            StartCap = shape.StartCap.ToValue(),
+            EndCap = shape.EndCap.ToValue()
         };
     }
 
@@ -30,7 +34,9 @@ public class ShapeSchema : SheetElementSchema
             Transform = Transform,
             FillColor = FillColor,
             LineColor = LineColor,
-            LineWidth = LineWidth
+            LineWidth = LineWidth,
+            StartCap = GeometryResourceId.FromValue(StartCap),
+            EndCap = GeometryResourceId.FromValue(EndCap)
         };
 
         // The constructor adds one empty polygon, so clear it.
