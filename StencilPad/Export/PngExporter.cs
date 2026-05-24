@@ -11,7 +11,8 @@ namespace StencilPad.Export;
 
 public static class PngExporter
 {
-    private const double Dpi = 96.0;
+    private const double Dpi = 960.0;
+    private const double BaseDpi = 96.0;
 
     public static void Export(Sheet sheet, string path, IResourceService resourceService)
     {
@@ -57,11 +58,11 @@ public static class PngExporter
 
         renderer.Dispose();
 
-        double scale = 10.0;
+        double scale = Dpi / BaseDpi;
         int widthPx  = (int)Math.Round(width * scale);
         int heightPx = (int)Math.Round(height * scale);
 
-        var bitmap = new RenderTargetBitmap(widthPx, heightPx, Dpi * scale, Dpi * scale, PixelFormats.Pbgra32);
+        var bitmap = new RenderTargetBitmap(widthPx, heightPx, BaseDpi * scale, BaseDpi * scale, PixelFormats.Pbgra32);
         bitmap.Render(visual);
 
         var encoder = new PngBitmapEncoder();
