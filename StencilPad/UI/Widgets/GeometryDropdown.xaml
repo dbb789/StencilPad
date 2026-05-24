@@ -6,14 +6,23 @@
               SelectedIndex="{Binding SelectedIndex, ElementName=Root}">
         <ComboBox.ItemTemplate>
             <DataTemplate>
-                <Viewbox Width="24" Height="16" Stretch="Uniform">
-                    <Path Data="{Binding}"
-                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ComboBox}}"
-                          StrokeThickness="1"
-                          Fill="Transparent"
-                          StrokeLineJoin="Round"
-                          StrokeStartLineCap="Round"
-                          StrokeEndLineCap="Round"/>
+                <Viewbox Width="128" Height="16" StretchDirection="DownOnly" Stretch="Fill">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <Path Grid.Column="0"
+                              Data="{Binding}"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                              StrokeThickness="1"
+                              Fill="Black"
+                              StrokeLineJoin="Round"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding}"/>
+                    </Grid>
                 </Viewbox>
             </DataTemplate>
         </ComboBox.ItemTemplate>
