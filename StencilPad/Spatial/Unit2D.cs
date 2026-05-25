@@ -77,6 +77,9 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     public static Unit2D operator *(Unit2D u, double scalar) => new(u.X * scalar, u.Y * scalar);
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit2D operator *(double scalar, Unit2D u) => u * scalar;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator /(Unit2D u, double scalar) => new(u.X / scalar, u.Y / scalar);
 
     public override string ToString() => $"[{X}, {Y}]";

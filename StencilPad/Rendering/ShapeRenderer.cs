@@ -171,7 +171,18 @@ public class ShapeRenderer : SheetElementRenderer
                 
                 if (polygon.Edges[0].Type == EdgeType.Bezier)
                 {
-                    startDirection = startPosition - (startPosition + polygon.Edges[0].ControlBeginOffset);
+                    var bezier = new Bezier2D(startPosition,
+                                              startPosition + polygon.Edges[0].ControlBeginOffset,
+                                              startPosition + polygon.Edges[0].ControlEndOffset,
+                                              polygon.Vertices[1].Position);
+                    if (bezier.WalkRadius(0, 1, 0.01, 0.0001, Unit.FromMillimeters(5), Unit.FromMillimeters(0.01), out var startT))
+                    {
+                        startDirection = startPosition - bezier.At(startT);
+                    }
+                    else
+                    {
+                        startDirection = startPosition - polygon.Vertices[1].Position;
+                    }
                 }
                 else
                 {
@@ -192,7 +203,18 @@ public class ShapeRenderer : SheetElementRenderer
 
                 if (polygon.Edges[^1].Type == EdgeType.Bezier)
                 {
-                    endDirection = endPosition - (endPosition + polygon.Edges[^1].ControlEndOffset);
+                    var bezier = new Bezier2D(endPosition,
+                                              endPosition + polygon.Edges[^1].ControlBeginOffset,
+                                              endPosition + polygon.Edges[^1].ControlEndOffset,
+                                              polygon.Vertices[^2].Position);
+                    if (bezier.WalkRadius(1, 0, -0.01, 0.0001, Unit.FromMillimeters(5), Unit.FromMillimeters(0.001), out var endT))
+                    {
+                        endDirection = endPosition - bezier.At(endT);
+                    }
+                    else
+                    {
+                        endDirection = endPosition - polygon.Vertices[^2].Position;
+                    }
                 }
                 else
                 {
