@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Services;
+using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
@@ -9,6 +11,7 @@ public class ShapeRenderer : SheetElementRenderer
     public override Shape Element => _shape;
 
     private readonly Shape _shape;
+    private readonly IResourceService _resourceService;
     private readonly StreamGeometryWalker _walker;
     private Pen? _pen;
     private Brush? _fill;
@@ -16,7 +19,7 @@ public class ShapeRenderer : SheetElementRenderer
     private StreamGeometry? _geometry;
     private bool _geometryDirty;
     
-    public ShapeRenderer(Shape shape)
+    public ShapeRenderer(Shape shape, IResourceService resourceService)
     {
         _shape = shape;
         _shape.PolygonSet.PolygonAdded += PolygonAdded;
@@ -24,6 +27,7 @@ public class ShapeRenderer : SheetElementRenderer
         _shape.TransformChanged += OnTransformChanged;
         _shape.PropertyChanged += PropertyChanged;
 
+        _resourceService = resourceService;
         _walker = new();
 
         foreach (var polygon in _shape.PolygonSet)
@@ -154,6 +158,58 @@ public class ShapeRenderer : SheetElementRenderer
         
         dc.PushTransform(_transform);
         dc.DrawGeometry(_fill, _pen, geometry);
+
+        var startCap =_resourceService.Get(_shape.StartCap);
+        var endCap = _resourceService.Get(_shape.EndCap);
+
+        foreach (var polygon in _shape.PolygonSet)
+        {
+            if (!polygon.Closed && polygon.Vertices.Count > 1)
+            {
+                var startPosition = polygon.Vertices[0].Position;
+                Unit2D startDirection;
+                
+                if (polygon.Edges[0].Type == EdgeType.Bezier)
+                {
+                    startDirection = startPosition - (startPosition + polygon.Edges[0].ControlBeginOffset);
+                }
+                else
+                {
+                    startDirection = startPosition - polygon.Vertices[1].Position;
+                }
+                
+                var startRotation = Math.Atan2(startDirection.Y.Millimeters, startDirection.X.Millimeters) * 180 / Math.PI;
+                
+                dc.PushTransform(new TranslateTransform(startPosition.X.Millimeters,
+                                                        startPosition.Y.Millimeters));
+                dc.PushTransform(new RotateTransform(startRotation + 90, 0, 0));
+                dc.DrawGeometry(_fill, _pen, startCap);
+                dc.Pop();
+                dc.Pop();
+
+                var endPosition = polygon.Vertices[^1].Position;
+                Unit2D endDirection;
+
+                if (polygon.Edges[^1].Type == EdgeType.Bezier)
+                {
+                    endDirection = endPosition - (endPosition + polygon.Edges[^1].ControlEndOffset);
+                }
+                else
+                {
+                    endDirection = endPosition - polygon.Vertices[^2].Position;
+                }
+                
+                var endRotation = Math.Atan2(endDirection.Y.Millimeters, endDirection.X.Millimeters) * 180 / Math.PI;
+
+                dc.PushTransform(new TranslateTransform(endPosition.X.Millimeters,
+                                                        endPosition.Y.Millimeters));
+                dc.PushTransform(new RotateTransform(endRotation + 90, 0, 0));
+                dc.DrawGeometry(_fill, _pen, endCap);
+                dc.Pop();
+                dc.Pop();
+            }
+        }
+        
         dc.Pop();
     }
 }

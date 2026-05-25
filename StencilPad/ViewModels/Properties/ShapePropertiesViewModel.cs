@@ -63,8 +63,52 @@ public class ShapePropertiesViewModel : ViewModelBase
         }
     }
 
+    private int _startCapIndex;
+    public int StartCapIndex
+    {
+        get => _startCapIndex;
+        set
+        {
+            _startCapIndex = value;
+
+            foreach (var shape in _shapes)
+            {
+                shape.StartCap = _capIds[value];
+            }
+
+            OnPropertyChanged();
+        }
+    }
+
+    private int _endCapIndex;
+    public int EndCapIndex
+    {
+        get => _endCapIndex;
+        set
+        {
+            _endCapIndex = value;
+
+            foreach (var shape in _shapes)
+            {
+                shape.EndCap = _capIds[value];
+            }
+
+            OnPropertyChanged();
+        }
+    }
+
+    public IReadOnlyList<GeometryResourceId> CapIds => _capIds;
+    
+    private List<GeometryResourceId> _capIds;
+
     public ShapePropertiesViewModel(IEnumerable<Shape> shapes)
     {
+        _capIds = new()
+        {
+            GeometryResourceId.None,
+            GeometryResourceId.Arrow0
+        };
+
         _shapes = shapes;
 
         var first = shapes.First();

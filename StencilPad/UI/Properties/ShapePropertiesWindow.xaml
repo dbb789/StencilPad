@@ -60,14 +60,16 @@
                                VerticalAlignment="Center"/>
                     <widgets:GeometryDropdown x:Name="StartCapDropdown"
                                               Grid.Column="2" Grid.Row="2"
-                                              MinWidth="180"/>
+                                              MinWidth="180"
+                                              SelectedIndex="{Binding StartCapIndex}"/>
 
                     <TextBlock Grid.Column="0" Grid.Row="4"
                                Text="End Cap:"
                                VerticalAlignment="Center"/>
                     <widgets:GeometryDropdown x:Name="EndCapDropdown"
                                               Grid.Column="2" Grid.Row="4"
-                                              MinWidth="180"/>
+                                              MinWidth="180"
+                                              SelectedIndex="{Binding EndCapIndex}"/>
                 </Grid>
             </TabItem>
         </TabControl>

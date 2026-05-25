@@ -9,7 +9,7 @@ namespace StencilPad.UI.Properties;
 public partial class ShapePropertiesWindow : Window
 {
     public ShapePropertiesViewModel ViewModel { get; }
-
+    
     public ShapePropertiesWindow(IResourceService resourceService,
                                  IEnumerable<Shape> shapes)
     {
@@ -18,19 +18,12 @@ public partial class ShapePropertiesWindow : Window
         ViewModel = new ShapePropertiesViewModel(shapes);
         DataContext = ViewModel;
 
-        var startCapItems = new List<Geometry>()
-        {
-            CreateCapGeometry(resourceService, GeometryResourceId.None, true),
-            CreateCapGeometry(resourceService, GeometryResourceId.Arrow0, true)
-        };
+        
+        var startCapItems = ViewModel.CapIds.Select(id => CreateCapGeometry(resourceService, id, true)).ToList();
 
         StartCapDropdown.Items = startCapItems;
 
-        var endCapItems = new List<Geometry>()
-        {
-            CreateCapGeometry(resourceService, GeometryResourceId.None, false),
-            CreateCapGeometry(resourceService, GeometryResourceId.Arrow0, false)
-        };
+        var endCapItems = ViewModel.CapIds.Select(id => CreateCapGeometry(resourceService, id, false)).ToList();
 
         EndCapDropdown.Items = endCapItems;
     }

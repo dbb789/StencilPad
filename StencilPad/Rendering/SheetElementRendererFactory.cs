@@ -18,7 +18,7 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
         
         if (element is Shape shape)
         {
-            renderer = new ShapeRenderer(shape);
+            renderer = new ShapeRenderer(shape, _resourceService);
         }
         else if (element is MarkerPath markerPath)
         {
