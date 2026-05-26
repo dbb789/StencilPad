@@ -23,8 +23,8 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         _shape.PolygonSet.PolygonAdded += PolygonAdded;
         _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
         _shape.PolygonSet.HandleSource.HandleSelectionChanged += SelectionChanged;
-        _shape.PropertyChanged += PropertyChanged;
-
+        _shape.TransformChanged += TransformChanged;
+        
         _walker = new();
         
         _edgeOverlayPen = new Pen(Brushes.Blue, 0.3);
@@ -38,7 +38,8 @@ public class ShapeEditRenderer : SheetElementEditRenderer
             polygon.GeometryChanged += MarkGeometryDirty;
         }
 
-        UpdateProperties();
+        _transform = _shape.Transform.CreateGroupTransform();
+
         RebuildGeometry();
         _geometryDirty = false;
     }
@@ -53,7 +54,7 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         _shape.PolygonSet.PolygonAdded -= PolygonAdded;
         _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
         _shape.PolygonSet.HandleSource.HandleSelectionChanged -= SelectionChanged;
-        _shape.PropertyChanged -= PropertyChanged;
+        _shape.TransformChanged -= TransformChanged;
     }
 
     private void PolygonAdded(EditablePolygon polygon)
@@ -79,21 +80,14 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         
         InvokeRendererDirty();
     }
-    
-    private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(Shape.Transform))
-        {
-            _transform = _shape.Transform.CreateGroupTransform();
-        }
-        InvokeRendererDirty();
-    }
 
-    private void UpdateProperties()
+    private void TransformChanged(ISheetElement element)
     {
         _transform = _shape.Transform.CreateGroupTransform();
+        
+        InvokeRendererDirty();
     }
-
+    
     private void RebuildGeometry()
     {
         var polygonList = _shape.PolygonSet;

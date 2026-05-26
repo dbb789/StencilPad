@@ -55,7 +55,7 @@ public class PolygonResolver : IPolygonResolver
 
         for (int i = 0; i < vertexCount; ++i)
         {
-            AddEdgeToGeometry(walker, i, i == 0);
+            AddEdgeToGeometry(walker, i, i == 0, _polygon.Closed);
             AddCornerToGeometry(walker, i + 1);
         }
     }
@@ -68,18 +68,19 @@ public class PolygonResolver : IPolygonResolver
         }
         
         UpdateGeometry();
-        AddEdgeToGeometry(walker, edgeIndex, true);
+        AddEdgeToGeometry(walker, edgeIndex, true, false);
     }
 
     private void AddEdgeToGeometry(IGeometryWalker walker,
                                    int index,
-                                   bool initial)
+                                   bool initial,
+                                   bool closed)
     {
         var edgeBegin = EdgeBegin(index);
         
         if (initial)
         {
-            walker.Begin(edgeBegin, _polygon.Closed);
+            walker.Begin(edgeBegin, closed);
         }
 
         index = NormalizeVertexIndex(index);
