@@ -1,6 +1,5 @@
 Grid size configuration
 Snap to ruler
-Page size configuration
 Confirm exit without save
 Marker path selection region should include markers
 Line style (dotted lines / start + end caps)
