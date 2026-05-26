@@ -2,7 +2,7 @@ namespace StencilPad.Spatial;
 
 public interface IKeyedList<T>
 {
-    T this[int index] { get; set; }
+    T this[Index index] { get; set; }
     int Count { get; }
 
     event Action<int, ulong, T, T>? ItemReassigned;

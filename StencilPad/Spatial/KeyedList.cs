@@ -2,7 +2,7 @@ namespace StencilPad.Spatial;
 
 public class KeyedList<T> : IKeyedList<T>
 {
-    public T this[int index]
+    public T this[Index index]
     {
         get => _data[index].Item1;
         set
@@ -12,7 +12,10 @@ public class KeyedList<T> : IKeyedList<T>
             if (!EqualityComparer<T>.Default.Equals(oldValue, value))
             {
                 _data[index] = (value, _data[index].Item2);
-                ItemReassigned?.Invoke(index, _data[index].Item2, oldValue, value);
+                
+                ItemReassigned?.Invoke(index.GetOffset(_data.Count),
+                                       _data[index].Item2,
+                                       oldValue, value);
             }
         }
     }

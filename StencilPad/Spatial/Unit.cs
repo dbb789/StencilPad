@@ -102,6 +102,24 @@ public readonly record struct Unit
         => new(Math.Clamp(value._value, min._value, max._value));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit Lerp(Unit a, Unit b, double t)
+    {
+        return (a + (b - a)) * t;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double InverseLerp(Unit a, Unit b, Unit value)
+    {
+        if (a._value == b._value)
+        {
+             // Avoid division by zero.
+            return 0.0;
+        }
+        
+        return (double)((value._value - a._value) / (b._value - a._value));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <(Unit a, Unit b) => a._value < b._value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

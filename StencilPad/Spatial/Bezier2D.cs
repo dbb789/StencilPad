@@ -2,6 +2,11 @@ using StencilPad.Spatial;
 
 public struct Bezier2D
 {
+    public Unit2D P0 => _p0;
+    public Unit2D P1 => _p1;
+    public Unit2D P2 => _p2;
+    public Unit2D P3 => _p3;
+    
     private Unit2D _p0;
     private Unit2D _p1;
     private Unit2D _p2;
@@ -18,10 +23,10 @@ public struct Bezier2D
     public Unit2D At(double t)
     {
         double t_2 = t * t;
-        double t_3 = t_2 * t;
+        double t_3 = t * t * t;
         double mt = 1 - t;
         double mt_2 = mt * mt;
-        double mt_3 = mt_2 * mt;
+        double mt_3 = mt * mt * mt;
 
         return (mt_3 * _p0) + (3 * mt_2 * t * _p1) + (3 * mt * t_2 * _p2) + (t_3 * _p3);
     }
@@ -74,11 +79,11 @@ public struct Bezier2D
         {
             var nextPosition = At(next);
             var nextRadius = (nextPosition - initialPosition).Magnitude;
-
+            
             if ((radius >= currentRadius && radius <= nextRadius)
                 || (radius >= nextRadius && radius <= currentRadius))
             {
-                t = ((radius - currentRadius) / (nextRadius - currentRadius)) * (next - start) + start;
+                t = Double.Lerp(start, next, Unit.InverseLerp(currentRadius, nextRadius, radius));
                 
                 return true;
             }

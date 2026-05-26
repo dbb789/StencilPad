@@ -171,11 +171,15 @@ public class ShapeRenderer : SheetElementRenderer
                 
                 if (polygon.Edges[0].Type == EdgeType.Bezier)
                 {
-                    var bezier = new Bezier2D(startPosition,
-                                              startPosition + polygon.Edges[0].ControlBeginOffset,
-                                              startPosition + polygon.Edges[0].ControlEndOffset,
-                                              polygon.Vertices[1].Position);
-                    if (bezier.WalkRadius(0, 1, 0.01, 0.0001, Unit.FromMillimeters(5), Unit.FromMillimeters(0.01), out var startT))
+                    var bezier = BezierUtil.FromPolygonEdge(polygon, 0);
+
+                    if (bezier.WalkRadius(0,
+                                          1,
+                                          0.1,
+                                          0.0001,
+                                          Unit.FromMillimeters(2.5),
+                                          Unit.FromMillimeters(0.000001),
+                                          out var startT))
                     {
                         startDirection = startPosition - bezier.At(startT);
                     }
@@ -189,7 +193,8 @@ public class ShapeRenderer : SheetElementRenderer
                     startDirection = startPosition - polygon.Vertices[1].Position;
                 }
                 
-                var startRotation = Math.Atan2(startDirection.Y.Millimeters, startDirection.X.Millimeters) * 180 / Math.PI;
+                var startRotation = Math.Atan2(startDirection.Y.Millimeters,
+                                               startDirection.X.Millimeters) * 180 / Math.PI;
                 
                 dc.PushTransform(new TranslateTransform(startPosition.X.Millimeters,
                                                         startPosition.Y.Millimeters));
@@ -203,11 +208,15 @@ public class ShapeRenderer : SheetElementRenderer
 
                 if (polygon.Edges[^1].Type == EdgeType.Bezier)
                 {
-                    var bezier = new Bezier2D(endPosition,
-                                              endPosition + polygon.Edges[^1].ControlBeginOffset,
-                                              endPosition + polygon.Edges[^1].ControlEndOffset,
-                                              polygon.Vertices[^2].Position);
-                    if (bezier.WalkRadius(1, 0, -0.01, 0.0001, Unit.FromMillimeters(5), Unit.FromMillimeters(0.001), out var endT))
+                    var bezier = BezierUtil.FromPolygonEdge(polygon, ^1);
+                    
+                    if (bezier.WalkRadius(1,
+                                          0,
+                                          -0.1,
+                                          0.0001,
+                                          Unit.FromMillimeters(2.5),
+                                          Unit.FromMillimeters(0.0000001),
+                                          out var endT))
                     {
                         endDirection = endPosition - bezier.At(endT);
                     }
