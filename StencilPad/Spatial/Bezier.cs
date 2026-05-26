@@ -82,7 +82,7 @@ public struct Bezier
         // number, which means there are no real roots and thus no extrema.
         //
         // If A is 0 this will be a division by zero.
-        if (discriminant < 1e-10 || Math.Abs(a) < 1e-10)
+        if (discriminant < 0 || Math.Abs(a) < 1e-10)
         {
             t0 = null;
             t1 = null;
