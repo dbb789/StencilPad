@@ -25,7 +25,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     private DragState<ISheetElement> _dragState;
     private LockAxisState _lockAxisState;
     private DragState<ISheetElement> _resizeDragState;
-    private DragState<bool> _rotateDragState;
+    private DragState<ISheetElement> _rotateDragState;
 
     private Unit2D _resizeInitialNW;
     private Unit2D _resizeInitialSE;
@@ -148,7 +148,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                 _rotateDragCenter = bounds.Center;
                 _rotateInitialHandlePos = _viewport.FromPoint(rotateCenter);
                 _lastRotateAngle = 0;
-                _rotateDragState.OnDragStart(mousePosition, true, _rotateInitialHandlePos);
+                _rotateDragState.OnDragStart(mousePosition, element, _rotateInitialHandlePos);
 
                 SelectionRotateStarted?.Invoke();
 
@@ -406,15 +406,24 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
             Pen pen = (selected is ElementGroup) ? _groupPen : _elementPen;
             Brush? fill = null;
 
-            if (_dragState.DraggedElement == selected)
+            if (_dragState.DraggedElement == selected ||
+                _rotateDragState.DraggedElement == selected ||
+                _resizeDragState.DraggedElement == selected)
             {
                 fill = (selected is ElementGroup) ? _groupFill : _elementFill;
             }
             
             dc.DrawRectangle(fill, pen, bounds);
 
-            dc.DrawRectangle(null, pen, new Rect(bounds.BottomRight, new Size(ResizeHandleSize, ResizeHandleSize)));
-            dc.DrawEllipse(null, pen, bounds.TopRight + new Vector(RotateHandleRadius, -RotateHandleRadius), RotateHandleRadius, RotateHandleRadius);
+            dc.DrawRectangle(null,
+                             pen,
+                             new Rect(bounds.BottomRight,
+                                      new Size(ResizeHandleSize, ResizeHandleSize)));
+            
+            dc.DrawEllipse(null,
+                           pen,
+                           bounds.TopRight + new Vector(RotateHandleRadius, -RotateHandleRadius),
+                           RotateHandleRadius, RotateHandleRadius);
         }
     }
 }
