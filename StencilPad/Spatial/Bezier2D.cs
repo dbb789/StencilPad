@@ -6,13 +6,19 @@ public struct Bezier2D
     public Unit2D P1 => _p1;
     public Unit2D P2 => _p2;
     public Unit2D P3 => _p3;
+
+    public Bezier X => new(P0.X, P1.X, P2.X, P3.X);
+    public Bezier Y => new(P0.Y, P1.Y, P2.Y, P3.Y);
     
     private Unit2D _p0;
     private Unit2D _p1;
     private Unit2D _p2;
     private Unit2D _p3;
 
-    public Bezier2D(Unit2D p0, Unit2D p1, Unit2D p2, Unit2D p3)
+    public Bezier2D(Unit2D p0,
+                    Unit2D p1,
+                    Unit2D p2,
+                    Unit2D p3)
     {
         _p0 = p0;
         _p1 = p1;
@@ -28,9 +34,22 @@ public struct Bezier2D
         double mt_2 = mt * mt;
         double mt_3 = mt * mt * mt;
 
+        // B(t) = (1-t)^3 * P0 + 3(1-t)^2 * t * P1 + 3(1-t) * t^2 * P2 + t^3 * P3
+        
         return (mt_3 * _p0) + (3 * mt_2 * t * _p1) + (3 * mt * t_2 * _p2) + (t_3 * _p3);
     }
 
+	public Unit2D Deriv(double t)
+	{
+		double t_2 = t * t;
+		double mt = 1 - t;
+		double mt_2 = mt * mt;
+
+        // B'(t) = 3(1-t)^2 * (P1 - P0) + 6(1-t) * t * (P2 - P1) + 3t^2 * (P3 - P2)
+        
+		return 3 * mt_2 * (_p1 - _p0) + 6 * mt * t * (_p2 - _p1) + 3 * t_2 * (_p3 - _p2);
+	}
+    
     public double Walk(double start,
                        double end,
                        double step,
