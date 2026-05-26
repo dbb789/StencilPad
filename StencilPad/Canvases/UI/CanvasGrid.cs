@@ -71,12 +71,12 @@ public class CanvasGrid : ContentControl, IUnitSnap
         
         Loaded += (s, e) =>
         {
-            _appConfigService.ConfigChanged += ConfigChanged;
+            _appConfigService.ConfigChanged += OnConfigChanged;
         };
 
         Unloaded += (s, e) =>
         {
-            _appConfigService.ConfigChanged -= ConfigChanged;
+            _appConfigService.ConfigChanged -= OnConfigChanged;
         };
     }
 
@@ -103,7 +103,7 @@ public class CanvasGrid : ContentControl, IUnitSnap
         _axisPen.Freeze();
     }
     
-    private void ConfigChanged()
+    private void OnConfigChanged()
     {
         BuildPens();
         InvalidateVisual();

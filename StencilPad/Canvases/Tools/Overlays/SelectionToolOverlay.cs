@@ -74,7 +74,20 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
             element.GeometryChanged += OnTransformChanged;
         }
 
-        _appConfigService.ConfigChanged += ConfigChanged;
+        _appConfigService.ConfigChanged += OnConfigChanged;
+    }
+    
+    public void Dispose()
+    {
+        _appConfigService.ConfigChanged -= OnConfigChanged;
+        
+        _sheet.Selection.CollectionChanged -= SelectionChanged;
+
+        foreach (var element in _sheet.Selection)
+        {
+            element.TransformChanged -= OnTransformChanged;
+            element.GeometryChanged -= OnTransformChanged;
+        }
     }
 
     private void BuildPens()
@@ -99,23 +112,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         _rotateHandleRadius = config.HandleSizePx / 2;
     }
     
-    private void ConfigChanged()
+    private void OnConfigChanged()
     {
         BuildPens();
         InvalidateVisual();
-    }
-
-    public void Dispose()
-    {
-        _appConfigService.ConfigChanged -= ConfigChanged;
-        
-        _sheet.Selection.CollectionChanged -= SelectionChanged;
-
-        foreach (var element in _sheet.Selection)
-        {
-            element.TransformChanged -= OnTransformChanged;
-            element.GeometryChanged -= OnTransformChanged;
-        }
     }
 
     private void RebuildContextMenu(object sender,
