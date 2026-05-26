@@ -188,7 +188,10 @@ public class Polygon : IPolygon
         }
     }
 
-    public UnitBounds CalculateBounds() => CalculateBounds(UnitTransform.Identity);
+    public UnitBounds CalculateBounds()
+    {
+        return CalculateBounds(UnitTransform.Identity);
+    }
 
     public UnitBounds CalculateBounds(UnitTransform transform)
     {
@@ -212,82 +215,38 @@ public class Polygon : IPolygon
                 continue;
             }
 
-            var p0 = transform.Apply(_vertices[i].Position);
-            var p3 = transform.Apply(_vertices[(i + 1) % _vertices.Count].Position);
-            var p1 = transform.Apply(_vertices[i].Position + _edges[i].ControlBeginOffset);
-            var p2 = transform.Apply(_vertices[(i + 1) % _vertices.Count].Position + _edges[i].ControlEndOffset);
+            var bezier = BezierUtil.FromPolygonEdge(this, transform, i);
 
-            double p0x = p0.X.Millimeters, p1x = p1.X.Millimeters, p2x = p2.X.Millimeters, p3x = p3.X.Millimeters;
-            double p0y = p0.Y.Millimeters, p1y = p1.Y.Millimeters, p2y = p2.Y.Millimeters, p3y = p3.Y.Millimeters;
+            var (minX, maxX) = CalculateBounds(bezier.X);
+            var (minY, maxY) = CalculateBounds(bezier.Y);
 
-            double minX = Math.Min(p0x, p3x), maxX = Math.Max(p0x, p3x);
-            double minY = Math.Min(p0y, p3y), maxY = Math.Max(p0y, p3y);
-
-            ExtendBezierAxis(p0x, p1x, p2x, p3x, ref minX, ref maxX);
-            ExtendBezierAxis(p0y, p1y, p2y, p3y, ref minY, ref maxY);
-
-            bounds = bounds.Extend(new Unit2D(Unit.FromMillimeters(minX), Unit.FromMillimeters(minY)));
-            bounds = bounds.Extend(new Unit2D(Unit.FromMillimeters(maxX), Unit.FromMillimeters(maxY)));
+            bounds = bounds.Extend(new Unit2D(minX, minY));
+            bounds = bounds.Extend(new Unit2D(maxX, maxY));            
         }
-
+        
         return bounds;
     }
 
-    private static void ExtendBezierAxis(double p0, double p1, double p2, double p3, ref double min, ref double max)
+    private (Unit, Unit) CalculateBounds(Bezier bezier)
     {
-        // Solve B'(t) = 0: 3[At² + Bt + C] = 0
-        // A = -p0 + 3p1 - 3p2 + p3
-        // B = 2(p0 - 2p1 + p2)
-        // C = p1 - p0
-        double a = -p0 + 3 * p1 - 3 * p2 + p3;
-        double b = 2 * (p0 - 2 * p1 + p2);
-        double c = p1 - p0;
+        var min = Unit.Min(bezier.P0, bezier.P3);
+        var max = Unit.Max(bezier.P0, bezier.P3);
 
-        if (Math.Abs(a) < 1e-12)
+        bezier.CalculateExtremaPoints(out var e0, out var e1);
+
+        if (e0 is not null)
         {
-            if (Math.Abs(b) > 1e-12)
-            {
-                GetBezierMinMax(p0, p1, p2, p3, -c / b, ref min, ref max);
-            }
-            return;
+            min = Unit.Min(min, e0.Value);
+            max = Unit.Max(max, e0.Value);
         }
 
-        double discriminant = b * b - 4 * a * c;
-
-        if (discriminant < 0)
+        if (e1 is not null)
         {
-            return;
+            min = Unit.Min(min, e1.Value);
+            max = Unit.Max(max, e1.Value);
         }
-
-        double sqrtD = Math.Sqrt(discriminant);
         
-        GetBezierMinMax(p0, p1, p2, p3, (-b + sqrtD) / (2 * a), ref min, ref max);
-        GetBezierMinMax(p0, p1, p2, p3, (-b - sqrtD) / (2 * a), ref min, ref max);
-    }
-
-    private static void GetBezierMinMax(double p0,
-                                        double p1,
-                                        double p2,
-                                        double p3,
-                                        double t,
-                                        ref double min,
-                                        ref double max)
-    {
-        if (t <= 0 || t >= 1)
-        {
-            return;
-        }
-
-        double t_2 = t * t;
-        double t_3 = t_2 * t;
-        double mt = 1 - t;
-        double mt_2 = mt * mt;
-        double mt_3 = mt_2 * mt;
-
-        double val = mt_3 * p0 + 3 * mt_2 * t * p1 + 3 * mt * t_2 * p2 + t_3 * p3;
-
-        min = Math.Min(min, val);
-        max = Math.Max(max, val);
+        return (min, max);
     }
 
     public void SetBounds(UnitBounds oldBounds,
@@ -339,9 +298,9 @@ public class Polygon : IPolygon
         
         double tX = Unit.InverseLerp(oldBounds.Min.X, oldBounds.Max.X, worldPoint.X);
         double tY = Unit.InverseLerp(oldBounds.Min.Y, oldBounds.Max.Y, worldPoint.Y);
-        
-        return new Unit2D(Unit.Lerp(newBounds.Min.X, newBounds.Max.X, tX),
-                          Unit.Lerp(newBounds.Min.Y, newBounds.Max.Y, tY));
+
+        return transform.InverseApply(new Unit2D(Unit.Lerp(newBounds.Min.X, newBounds.Max.X, tX),
+                                                 Unit.Lerp(newBounds.Min.Y, newBounds.Max.Y, tY)));
     }
 
     public Unit2D CalculateMidpoint()
@@ -408,6 +367,7 @@ public class Polygon : IPolygon
         for (int i = 0; i < _edges.Count; ++i)
         {
             var edge = _edges[i];
+            
             _edges.Set(i, edge with
             {
                 ControlBeginOffset = transform.Rotate(edge.ControlBeginOffset),

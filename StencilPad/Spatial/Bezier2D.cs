@@ -151,4 +151,9 @@ public struct Bezier2D
 
         return Iterate(start, end, step / 2.0, minStep, tolerance, out t);
     }
+
+    public override string ToString()
+    {
+        return $"[P0: {P0}, P1: {P1}, P2: {P2}, P3: {P3}]";
+    }
 }

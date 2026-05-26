@@ -47,7 +47,7 @@ public struct Bezier
 		return 3 * mt_2 * (_p1 - _p0) + 6 * mt * t * (_p2 - _p1) + 3 * t_2 * (_p3 - _p2);
 	}
 
-    public (double, double)? CalculateExtrema()
+    public void CalculateExtrema(out double? t0, out double? t1)
     {
         // The extrema of a bezier are the two values where B'(t) = 0 (ie the
         // gradient is flat).
@@ -80,10 +80,14 @@ public struct Bezier
 
         // If B^2 - 4AC is negative then this is going to be an imaginary
         // number, which means there are no real roots and thus no extrema.
-
-        if (discriminant < 0)
+        //
+        // If A is 0 this will be a division by zero.
+        if (discriminant < 1e-10 || Math.Abs(a) < 1e-10)
         {
-            return null;
+            t0 = null;
+            t1 = null;
+            
+            return;
         }
 
         var sqrtDiscriminant = Math.Sqrt(discriminant);
@@ -92,10 +96,43 @@ public struct Bezier
         // (-B + sqrt(B^2 - 4AC)) / 2A
         // and
         // (-B - sqrt(B^2 - 4AC)) / 2A
+
+        t0 = (-b + sqrtDiscriminant) / (2 * a);
+        t1 = (-b - sqrtDiscriminant) / (2 * a);
+
+        // Extrema can lie outside of the bounds of the bezier, so we need to
+        // check if they are between 0 and 1.
+        if (t0 < 0 || t0 > 1)
+        {
+            t0 = null;
+        }
+
+        if (t1 < 0 || t1 > 1)
+        {
+            t1 = null;
+        }
+    }
+
+    public void CalculateExtremaPoints(out Unit? e0, out Unit? e1)
+    {
+        CalculateExtrema(out var t0, out var t1);
+
+        e0 = null;
+        e1 = null;
         
-        return (
-            (-b + sqrtDiscriminant) / (2 * a),
-            (-b - sqrtDiscriminant) / (2 * a)
-        );
+        if (t0 is not null)
+        {
+            e0 = At(t0.Value);
+        }
+
+        if (t1 is not null)
+        {
+            e1 = At(t1.Value);
+        }
+    }
+
+    public override string ToString()
+    {
+        return $"[P0: {P0}, P1: {P1}, P2: {P2}, P3: {P3}]";
     }
 }
