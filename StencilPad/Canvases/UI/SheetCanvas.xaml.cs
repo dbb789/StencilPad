@@ -90,7 +90,8 @@ namespace StencilPad.Canvases.UI
         public event Action? CanvasReady;
 
         public SheetCanvas()
-            : this(App.ServiceProvider.GetRequiredService<IResourceService>())
+            : this(App.ServiceProvider.GetRequiredService<IAppConfigService>(),
+                   App.ServiceProvider.GetRequiredService<IResourceService>())
         {
             // Slightly nasty to do things this way but it avoids a ton of
             // component plumbing just to get the SheetRenderer into the
@@ -99,7 +100,8 @@ namespace StencilPad.Canvases.UI
             // funny machinery just to instantiate it.
         }
         
-        public SheetCanvas(IResourceService resourceService)
+        public SheetCanvas(IAppConfigService appConfigService,
+                           IResourceService resourceService)
         {   
             _viewport = new VisualViewport();
             _handleMap = new HandleMap();
@@ -110,7 +112,8 @@ namespace StencilPad.Canvases.UI
             
             _editOverlayRenderer = new EditOverlayRenderer();
 
-            _canvasGrid = new CanvasGrid(_viewport);
+            _canvasGrid = new CanvasGrid(appConfigService,
+                                         _viewport);
 
             _renderer = new SheetRenderPanel(_sheetRenderer,
                                              _editOverlayRenderer,

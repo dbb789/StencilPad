@@ -1,9 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Canvases.Common;
-using StencilPad.Models;
 using StencilPad.Spatial;
+using StencilPad.Services;
 
 namespace StencilPad.Canvases.UI;
 
@@ -20,21 +21,6 @@ public class CanvasGrid : ContentControl, IUnitSnap
     public static readonly DependencyProperty MajorSpacingProperty =
         DependencyProperty.Register(nameof(MajorSpacing), typeof(Unit), typeof(CanvasGrid),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(10), FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty MinorBrushProperty =
-        DependencyProperty.Register(nameof(MinorBrush), typeof(Brush), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(64, 0, 128, 255)),
-                FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty MajorBrushProperty =
-        DependencyProperty.Register(nameof(MajorBrush), typeof(Brush), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(128, 0, 128, 255)),
-                FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty AxisBrushProperty =
-        DependencyProperty.Register(nameof(AxisBrush), typeof(Brush), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(210, 0, 128, 255)),
-                FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty MinimumSpacingPixelsProperty =
         DependencyProperty.Register(nameof(MinimumSpacingPixels), typeof(double), typeof(CanvasGrid),
@@ -58,30 +44,13 @@ public class CanvasGrid : ContentControl, IUnitSnap
         set => SetValue(MajorSpacingProperty, value);
     }
 
-    public Brush MinorBrush
-    {
-        get => (Brush)GetValue(MinorBrushProperty);
-        set => SetValue(MinorBrushProperty, value);
-    }
-
-    public Brush MajorBrush
-    {
-        get => (Brush)GetValue(MajorBrushProperty);
-        set => SetValue(MajorBrushProperty, value);
-    }
-
-    public Brush AxisBrush
-    {
-        get => (Brush)GetValue(AxisBrushProperty);
-        set => SetValue(AxisBrushProperty, value);
-    }
-    
     public double MinimumSpacingPixels
     {
         get => (double)GetValue(MinimumSpacingPixelsProperty);
         set => SetValue(MinimumSpacingPixelsProperty, value);
     }
 
+    private readonly IAppConfigService _appConfigService;
     private readonly IViewport _viewport;
 
     private Pen _pageOutlinePen = null!;
@@ -89,21 +58,55 @@ public class CanvasGrid : ContentControl, IUnitSnap
     private Pen _majorPen = null!;
     private Pen _axisPen = null!;
     
-    public CanvasGrid(IViewport viewport)
+    public CanvasGrid(IAppConfigService appConfigService,
+                      IViewport viewport)
     {
+        _appConfigService = appConfigService;
         _viewport = viewport;
 
         _pageOutlinePen = new Pen(Brushes.LightGray, 1) { DashStyle = DashStyles.Solid };
         _pageOutlinePen.Freeze();
         
-        _minorPen = new Pen(MinorBrush, 0.5) { DashStyle = DashStyles.Solid };
+        BuildPens();
+        
+        Loaded += (s, e) =>
+        {
+            _appConfigService.ConfigChanged += ConfigChanged;
+        };
+
+        Unloaded += (s, e) =>
+        {
+            _appConfigService.ConfigChanged -= ConfigChanged;
+        };
+    }
+
+    private void BuildPens()
+    {
+        var gridLineColor = _appConfigService.Config.GridLineColor;
+        
+        var minorBrush = new SolidColorBrush(ColorUtil.WithAlpha(gridLineColor, 64));
+        minorBrush.Freeze();
+
+        var majorBrush = new SolidColorBrush(ColorUtil.WithAlpha(gridLineColor, 128));
+        majorBrush.Freeze();
+
+        var axisBrush = new SolidColorBrush(ColorUtil.WithAlpha(gridLineColor, 192));
+        axisBrush.Freeze();
+        
+        _minorPen = new Pen(minorBrush, 0.5) { DashStyle = DashStyles.Solid };
         _minorPen.Freeze();
         
-        _majorPen = new Pen(MajorBrush, 0.5) { DashStyle = DashStyles.Solid };
+        _majorPen = new Pen(majorBrush, 0.5) { DashStyle = DashStyles.Solid };
         _majorPen.Freeze();
         
-        _axisPen  = new Pen(AxisBrush, 1) { DashStyle = DashStyles.Solid };
+        _axisPen  = new Pen(axisBrush, 1) { DashStyle = DashStyles.Solid };
         _axisPen.Freeze();
+    }
+    
+    private void ConfigChanged()
+    {
+        BuildPens();
+        InvalidateVisual();
     }
     
     protected override void OnRender(DrawingContext dc)
