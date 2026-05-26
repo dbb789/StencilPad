@@ -63,7 +63,7 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     {
         return Math.Atan2(Determinant(a, b), Dot(a, b));
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator +(Unit2D a, Unit2D b) => new(a.X + b.X, a.Y + b.Y);
 

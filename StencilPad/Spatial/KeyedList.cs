@@ -176,4 +176,9 @@ public class KeyedList<T> : IKeyedList<T>
 
         return clone;
     }
+
+    public T[] ToArray()
+    {
+        return _data.Select(item => item.Item1).ToArray();
+    }
 }

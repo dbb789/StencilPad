@@ -104,7 +104,7 @@ public readonly record struct Unit
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit Lerp(Unit a, Unit b, double t)
     {
-        return (a + (b - a)) * t;
+        return a + ((b - a) * t);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

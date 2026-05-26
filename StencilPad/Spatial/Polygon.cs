@@ -290,87 +290,58 @@ public class Polygon : IPolygon
         max = Math.Max(max, val);
     }
 
-    public void SetBounds(UnitBounds oldBounds, UnitBounds newBounds, UnitTransform transform)
+    public void SetBounds(UnitBounds oldBounds,
+                          UnitBounds newBounds,
+                          UnitTransform transform)
     {
         if (_vertices.Count == 0)
         {
             return;
         }
 
-        var oldSize = oldBounds.Size;
-        var newSize = newBounds.Size;
-        bool hasScaleX = oldSize.X.Millimeters > 1e-10;
-        bool hasScaleY = oldSize.Y.Millimeters > 1e-10;
-
-        double sx = hasScaleX ? newSize.X.Millimeters / oldSize.X.Millimeters : 1.0;
-        double sy = hasScaleY ? newSize.Y.Millimeters / oldSize.Y.Millimeters : 1.0;
-        double cornerScale = Math.Sqrt(Math.Abs(sx * sy));
-
-        // Pre-compute new vertex positions before updating edges (offsets are relative to old positions)
-        var newVertexPositions = new Unit2D[_vertices.Count];
-        for (int i = 0; i < _vertices.Count; i++)
+        var oldVertices = _vertices.ToArray();
+        
+        for (int i = 0; i < _vertices.Count; ++i)
         {
-            newVertexPositions[i] = RemapLocalPoint(_vertices[i].Position, oldBounds, newSize, hasScaleX, hasScaleY, transform);
+            var vertex = _vertices[i];
+            var newPosition = RemapPoint(vertex.Position, oldBounds, newBounds, transform);
+            
+            _vertices.Set(i, vertex with { Position = newPosition });
         }
 
-        // Remap bezier control offsets using old vertex positions and new vertex positions
-        for (int i = 0; i < _edges.Count; i++)
+        for (int i = 0; i < _edges.Count; ++i)
         {
             var edge = _edges[i];
-            if (edge.Type != EdgeType.Bezier)
-            {
-                continue;
-            }
+            
+            var controlBegin = oldVertices[i].Position + edge.ControlBeginOffset;
+            var newControlBegin = RemapPoint(controlBegin, oldBounds, newBounds, transform);
 
-            var oldP1 = _vertices[i].Position + edge.ControlBeginOffset;
-            var oldP2 = _vertices[(i + 1) % _vertices.Count].Position + edge.ControlEndOffset;
-
-            var newP1 = RemapLocalPoint(oldP1, oldBounds, newSize, hasScaleX, hasScaleY, transform);
-            var newP2 = RemapLocalPoint(oldP2, oldBounds, newSize, hasScaleX, hasScaleY, transform);
+            var controlEnd = oldVertices[(i + 1) % _vertices.Count].Position + edge.ControlEndOffset;
+            var newControlEnd = RemapPoint(controlEnd, oldBounds, newBounds, transform);
 
             _edges.Set(i, edge with
             {
-                ControlBeginOffset = newP1 - newVertexPositions[i],
-                ControlEndOffset = newP2 - newVertexPositions[(i + 1) % _vertices.Count]
+                ControlBeginOffset = newControlBegin - _vertices[i].Position,
+                ControlEndOffset = newControlEnd - _vertices[(i + 1) % _vertices.Count].Position
             });
         }
-
-        // Update vertices
-        for (int i = 0; i < _vertices.Count; i++)
-        {
-            var v = _vertices[i];
-            CornerSize newCornerSize = v.CornerSize.IsUnit
-                ? CornerSize.FromUnit(Unit.FromMillimeters(v.CornerSize.Unit.Millimeters * cornerScale))
-                : v.CornerSize;
-
-            _vertices.Set(i, v with { Position = newVertexPositions[i], CornerSize = newCornerSize });
-        }
-
+        
         InvalidateAllPositions?.Invoke();
         InvokeGeometryChanged();
     }
 
-    private static Unit2D RemapLocalPoint(Unit2D localPt,
-                                          UnitBounds oldBounds,
-                                          Unit2D newSize,
-                                          bool hasScaleX,
-                                          bool hasScaleY,
-                                          UnitTransform transform)
+    private Unit2D RemapPoint(Unit2D localPoint,
+                              UnitBounds oldBounds,
+                              UnitBounds newBounds,
+                              UnitTransform transform)
     {
-        var worldPt = transform.Apply(localPt);
-
-        double relX = hasScaleX
-            ? (worldPt.X.Millimeters - oldBounds.Min.X.Millimeters) / oldBounds.Size.X.Millimeters
-            : 0.5;
-        double relY = hasScaleY
-            ? (worldPt.Y.Millimeters - oldBounds.Min.Y.Millimeters) / oldBounds.Size.Y.Millimeters
-            : 0.5;
-
-        var newWorldPt = new Unit2D(
-            oldBounds.Min.X + Unit.FromMillimeters(relX * newSize.X.Millimeters),
-            oldBounds.Min.Y + Unit.FromMillimeters(relY * newSize.Y.Millimeters));
-
-        return transform.InverseApply(newWorldPt);
+        var worldPoint = transform.Apply(localPoint);
+        
+        double tX = Unit.InverseLerp(oldBounds.Min.X, oldBounds.Max.X, worldPoint.X);
+        double tY = Unit.InverseLerp(oldBounds.Min.Y, oldBounds.Max.Y, worldPoint.Y);
+        
+        return new Unit2D(Unit.Lerp(newBounds.Min.X, newBounds.Max.X, tX),
+                          Unit.Lerp(newBounds.Min.Y, newBounds.Max.Y, tY));
     }
 
     public Unit2D CalculateMidpoint()

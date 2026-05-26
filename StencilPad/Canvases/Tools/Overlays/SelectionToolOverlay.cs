@@ -399,6 +399,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         foreach (var selected in _sheet.Selection)
         {
             var unitBounds = selected.GetTransformedBounds();
+
             var bounds = new Rect(_viewport.ToPoint(unitBounds.Min),
                                   _viewport.ToPoint(unitBounds.Max));
 
@@ -409,7 +410,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
             {
                 fill = (selected is ElementGroup) ? _groupFill : _elementFill;
             }
-
+            
             dc.DrawRectangle(fill, pen, bounds);
 
             dc.DrawRectangle(null, pen, new Rect(bounds.BottomRight, new Size(ResizeHandleSize, ResizeHandleSize)));
