@@ -7,7 +7,6 @@ using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
-using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
@@ -369,19 +368,19 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
     private Unit2D LockAspect(Unit2D targetSE)
     {
-        var dxMm = (targetSE.X - _resizeInitialNW.X).Millimeters;
-        var dyMm = (targetSE.Y - _resizeInitialNW.Y).Millimeters;
+        var dx = targetSE.X - _resizeInitialNW.X;
+        var dy = targetSE.Y - _resizeInitialNW.Y;
 
-        var seAyMm = dxMm / _resizeAspectRatio;
-        var seBxMm = dyMm * _resizeAspectRatio;
+        var seAy = dx / _resizeAspectRatio;
+        var seBx = dy * _resizeAspectRatio;
 
-        if (Math.Abs(seAyMm - dyMm) <= Math.Abs(seBxMm - dxMm))
+        if (Unit.Abs(seAy - dy) <= Unit.Abs(seBx - dx))
         {
-            return new Unit2D(targetSE.X, _resizeInitialNW.Y + Unit.FromMillimeters(seAyMm));
+            return new Unit2D(targetSE.X, _resizeInitialNW.Y + seAy);
         }
         else
         {
-            return new Unit2D(_resizeInitialNW.X + Unit.FromMillimeters(seBxMm), targetSE.Y);
+            return new Unit2D(_resizeInitialNW.X + seBx, targetSE.Y);
         }
     }
 
