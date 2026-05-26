@@ -22,7 +22,7 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
     
     static UnitSnapOverlay()
     {
-        IndicatorPen = new Pen(new SolidColorBrush(Color.FromArgb(64, 0, 0, 0)), 1.0);
+        IndicatorPen = new Pen(new SolidColorBrush(Color.FromArgb(210, 0, 128, 255)), 1.5);
         IndicatorPen.Freeze();
 
         DefaultContext = EmptyUnitSnapContext.Instance;

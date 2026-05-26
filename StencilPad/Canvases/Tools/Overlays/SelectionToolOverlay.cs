@@ -78,7 +78,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
 
-
         foreach (var element in _sheet.Selection)
         {
             element.TransformChanged += OnTransformChanged;
