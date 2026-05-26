@@ -11,19 +11,22 @@ namespace StencilPad.Controllers;
 
 public class SheetTabController : IDisposable
 {
-    public class Factory(IResourceService ResourceService,
+    public class Factory(IAppConfigService AppConfigService,
+                         IResourceService ResourceService,
                          IModelPropertiesService ModelPropertiesService,
                          IOperationService OperationService)
     {
         public SheetTabController Create(SheetTabViewModel tabViewModel)
         {
             return new(tabViewModel,
+                       AppConfigService,
                        ResourceService,
                        OperationService,
                        ModelPropertiesService);
         }
     }
 
+    private readonly IAppConfigService _appConfigService;
     private readonly SheetTabViewModel _tabViewModel;
     private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
@@ -34,11 +37,13 @@ public class SheetTabController : IDisposable
     private ServiceProvider? _scopedServiceProvider;
 
     private SheetTabController(SheetTabViewModel tabViewModel,
+                               IAppConfigService appConfigService,
                                IResourceService resourceService,
                                IOperationService operationService,
                                IModelPropertiesService modelPropertiesService)
     {
         _tabViewModel = tabViewModel;
+        _appConfigService = appConfigService;
         _resourceService = resourceService;
         _operationService = operationService;
         _modelPropertiesService = modelPropertiesService;
@@ -97,6 +102,7 @@ public class SheetTabController : IDisposable
 
         services.AddSingleton<Sheet>(_tabViewModel.Sheet);
         services.AddSingleton<ToolPanelViewModel>(_tabViewModel.ToolPanelViewModel);
+        services.AddSingleton<IAppConfigService>(_appConfigService);
         services.AddSingleton<IResourceService>(_resourceService);
         services.AddSingleton<IOperationService>(_operationService);
         services.AddSingleton<IModelPropertiesService>(_modelPropertiesService);
