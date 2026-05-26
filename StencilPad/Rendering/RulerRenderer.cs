@@ -71,6 +71,7 @@ public class RulerRenderer : SheetElementRenderer
         dc.DrawText(formattedText, new Point(-formattedText.Width / 2, 0.5));
         dc.Pop();
         dc.Pop();
+
         dc.Pop();
     }
 

@@ -8,7 +8,6 @@ public class Ruler : SheetElement<Ruler>
     private MinMaxHandleSource _minMaxHandleSource;
 
     private Color _color = Color.FromArgb(255, 0, 0, 0);
-
     public Color Color
     {
         get => _color;
@@ -17,6 +16,20 @@ public class Ruler : SheetElement<Ruler>
             if (_color != value)
             {
                 _color = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private bool _showGuides = true;
+    public bool ShowGuides
+    {
+        get => _showGuides;
+        set
+        {
+            if (_showGuides != value)
+            {
+                _showGuides = value;
                 OnPropertyChanged();
             }
         }
@@ -35,7 +48,7 @@ public class Ruler : SheetElement<Ruler>
     }
 
     public Unit Length => (Max - Min).Magnitude;
-
+        
     public Ruler()
     {
         _minMaxHandleSource = new MinMaxHandleSource(Unit2D.Zero, Unit2D.Zero);
