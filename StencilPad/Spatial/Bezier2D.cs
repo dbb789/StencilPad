@@ -152,6 +152,31 @@ public struct Bezier2D
         return Iterate(start, end, step / 2.0, minStep, tolerance, out t);
     }
 
+    // De Casteljau's algorithm.
+    public Bezier2D SplitLeft(double t)
+    {
+        var p01 = Unit2D.Lerp(P0, P1, t);
+        var p12 = Unit2D.Lerp(P1, P2, t);
+        var p23 = Unit2D.Lerp(P2, P3, t);
+        var p012 = Unit2D.Lerp(p01, p12, t);
+        var p123 = Unit2D.Lerp(p12, p23, t);
+        var p0123 = Unit2D.Lerp(p012, p123, t);
+
+        return new Bezier2D(P0, p01, p012, p0123);
+    }
+
+    public Bezier2D SplitRight(double t)
+    {
+        var p01 = Unit2D.Lerp(P0, P1, t);
+        var p12 = Unit2D.Lerp(P1, P2, t);
+        var p23 = Unit2D.Lerp(P2, P3, t);
+        var p012 = Unit2D.Lerp(p01, p12, t);
+        var p123 = Unit2D.Lerp(p12, p23, t);
+        var p0123 = Unit2D.Lerp(p012, p123, t);
+
+        return new Bezier2D(p0123, p123, p23, P3);
+    }
+    
     public override string ToString()
     {
         return $"[P0: {P0}, P1: {P1}, P2: {P2}, P3: {P3}]";
