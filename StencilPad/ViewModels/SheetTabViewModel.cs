@@ -38,6 +38,32 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
         get => _snapToPoint;
         set => SetProperty(ref _snapToPoint, value);
     }
+
+    private SheetSizeType _sizeType = SheetSizeType.A4;
+    public SheetSizeType SizeType
+    {
+        get => _sizeType;
+        set
+        {
+            if (SetProperty(ref _sizeType, value))
+            {
+                UpdateSheetSize();
+            }
+        }
+    }
+
+    private SheetOrientation _orientation = SheetOrientation.Portrait;
+    public SheetOrientation Orientation
+    {
+        get => _orientation;
+        set
+        {
+            if (SetProperty(ref _orientation, value))
+            {
+                UpdateSheetSize();
+            }
+        }
+    }
     
     public ToolPanelViewModel ToolPanelViewModel { get; }
 
@@ -79,5 +105,16 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
         {
             OnPropertyChanged(nameof(Header));
         }
+
+        if (e.PropertyName == nameof(Sheet.Format))
+        {
+            SizeType = Sheet.Format.SizeType;
+            Orientation = Sheet.Format.Orientation;
+        }
+    }
+
+    private void UpdateSheetSize()
+    {
+        Sheet.Format = new SheetFormat(SizeType, Orientation);
     }
 }

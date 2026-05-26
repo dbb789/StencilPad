@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StencilPad.UI"
         xmlns:common="clr-namespace:StencilPad.Common"
+        xmlns:models="clr-namespace:StencilPad.Models"
         xmlns:vm="clr-namespace:StencilPad.ViewModels"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
@@ -43,22 +44,59 @@
             </MenuItem>
 
             <MenuItem Header="_Edit">
-                <MenuItem Header="_Undo"       Command="{Binding UndoCommand}"      InputGestureText="Ctrl+Z"/>
-                <MenuItem Header="_Redo"       Command="{Binding RedoCommand}"      InputGestureText="Ctrl+Y"/>
+                <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z"/>
+                <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y"/>
                 <Separator/>
-                <MenuItem Header="Cu_t"        Command="{Binding CutCommand}"          InputGestureText="Ctrl+X"/>
-                <MenuItem Header="_Copy"       Command="{Binding CopyCommand}"         InputGestureText="Ctrl+C"/>
-                <MenuItem Header="_Paste"      Command="{Binding PasteCommand}"        InputGestureText="Ctrl+V"/>
-                <MenuItem Header="_Delete"     Command="{Binding DeleteCommand}"       InputGestureText="Del"/>
+                <MenuItem Header="Cu_t" Command="{Binding CutCommand}" InputGestureText="Ctrl+X"/>
+                <MenuItem Header="_Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
+                <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
+                <MenuItem Header="_Delete" Command="{Binding DeleteCommand}" InputGestureText="Del"/>
                 <Separator/>
-                <MenuItem Header="Select _All"      Command="{x:Static common:GlobalCommands.SelectAll}"      InputGestureText="Ctrl+A"/>
+                <MenuItem Header="Select _All" Command="{x:Static common:GlobalCommands.SelectAll}" InputGestureText="Ctrl+A"/>
                 <MenuItem Header="C_lear Selection" Command="{x:Static common:GlobalCommands.ClearSelection}"/>
             </MenuItem>
 
             <MenuItem Header="_Sheet">
-                <MenuItem Header="_Add Sheet"     Command="{Binding AddSheetCommand}" InputGestureText="Ctrl+T"/>
+                <MenuItem Header="_Add Sheet" Command="{Binding AddSheetCommand}" InputGestureText="Ctrl+T"/>
                 <MenuItem Header="_Rename Sheet…" Command="{Binding RenameSheetCommand}"/>
-                <MenuItem Header="_Delete Sheet"  Command="{Binding DeleteSheetCommand}"/>
+                <MenuItem Header="_Delete Sheet" Command="{Binding DeleteSheetCommand}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_Layout">
+                <MenuItem Header="Page Size">
+                    <MenuItem Header="A5" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.A5}}"/>
+                    <MenuItem Header="A4" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.A4}}"/>
+                    <MenuItem Header="A3" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.A3}}"/>
+                    <MenuItem Header="A2" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.A2}}"/>
+                    <MenuItem Header="A1" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.A1}}"/>
+                    <MenuItem Header="A0" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.A0}}"/>
+                    <MenuItem Header="Legal" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.Legal}}"/>
+                    <MenuItem Header="Letter" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.SizeType,
+                                         TargetValue={x:Static models:SheetSizeType.Letter}}"/>                    
+                </MenuItem>
+                <MenuItem Header="Orientation">
+                    <MenuItem Header="Portrait" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.Orientation,
+                                         TargetValue={x:Static models:SheetOrientation.Portrait}}"/>
+                    <MenuItem Header="Landscape" IsCheckable="True"
+                              IsChecked="{local:EnumBinding SelectedTab.Orientation,
+                                         TargetValue={x:Static models:SheetOrientation.Landscape}}"/>
+                </MenuItem>
             </MenuItem>
 
         </Menu>
