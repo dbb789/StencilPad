@@ -1,7 +1,5 @@
 Grid size configuration
 Snap to ruler
-Tidy up ruler layout
-Ruler should preview length on initial placement
 Page size configuration
 Confirm exit without save
 Marker path selection region should include markers
