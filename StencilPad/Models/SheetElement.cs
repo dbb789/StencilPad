@@ -36,8 +36,6 @@ public abstract class SheetElement : ModelBase, ISheetElement
     public event Action<ISheetElement>? TransformChanged;
     public event Action<ISheetElement>? GeometryChanged;
 
-    protected void FireGeometryChanged() => GeometryChanged?.Invoke(this);
-
     private IHandleSource? _elementHandleSource;
 
     public event Action<ISheetElement, Handle, Unit2D, bool>? HandleAdded;
@@ -125,7 +123,12 @@ public abstract class SheetElement : ModelBase, ISheetElement
     {
         HandleSelectionChanged?.Invoke(this, handle, selected);
     }
-    
+
+    protected void FireGeometryChanged()
+    {
+        GeometryChanged?.Invoke(this);
+    }
+
     public abstract void MirrorX(Unit centerY);
     public abstract void MirrorY(Unit centerX);
     public abstract void Translate(Unit2D delta);
