@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Services;
+using StencilPad.UI.Widgets;
 using StencilPad.ViewModels.Properties;
 
 namespace StencilPad.UI.Properties;
@@ -17,15 +18,22 @@ public partial class ShapePropertiesWindow : Window
 
         ViewModel = new ShapePropertiesViewModel(shapes);
         DataContext = ViewModel;
-
         
-        var startCapItems = ViewModel.CapIds.Select(id => CreateCapGeometry(resourceService, id, true)).ToList();
+        var startCapItems = ViewModel.CapIds.Select(
+            id => new GeometryDropdown.Entry(CreateCapGeometry(resourceService, id, true))).ToList();
 
         StartCapDropdown.Items = startCapItems;
 
-        var endCapItems = ViewModel.CapIds.Select(id => CreateCapGeometry(resourceService, id, false)).ToList();
+        var endCapItems = ViewModel.CapIds.Select(
+            id => new GeometryDropdown.Entry(CreateCapGeometry(resourceService, id, false))).ToList();
 
         EndCapDropdown.Items = endCapItems;
+
+        var lineStyleItems = ViewModel.LineStyleIds.Select(
+            id => new GeometryDropdown.Entry(CreateLineStyleGeometry(),
+                                             resourceService.Get(id))).ToList();
+
+        LineStyleDropdown.Items = lineStyleItems;
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)
@@ -79,5 +87,23 @@ public partial class ShapePropertiesWindow : Window
         group.Freeze();
         
         return group;
+    }
+
+    private Geometry CreateLineStyleGeometry()
+    {
+        var line = new StreamGeometry
+        {
+            FillRule = FillRule.EvenOdd
+        };
+
+        using (var ctx = line.Open())
+        {
+            ctx.BeginFigure(new Point(0, 0), true, false);
+            ctx.LineTo(new Point(40, 0), true, false);
+        }
+
+        line.Freeze();
+
+        return line;
     }
 }

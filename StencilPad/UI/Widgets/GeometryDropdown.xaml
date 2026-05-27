@@ -8,14 +8,15 @@
             <DataTemplate>
                 <Viewbox Height="16" StretchDirection="DownOnly" Stretch="Fill">
                     <Grid>
-                        <Path Grid.Column="0"
-                              Data="{Binding}"
+                        <Path Data="{Binding Geometry}"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                               StrokeThickness="1"
                               Fill="Black"
                               StrokeLineJoin="Round"
                               StrokeStartLineCap="Round"
-                              StrokeEndLineCap="Round"/>
+                              StrokeEndLineCap="Round"
+                              StrokeDashArray="{Binding DashStyle.Dashes}"
+                              StrokeDashOffset="{Binding DashStyle.Offset}"/>
                     </Grid>
                 </Viewbox>
             </DataTemplate>

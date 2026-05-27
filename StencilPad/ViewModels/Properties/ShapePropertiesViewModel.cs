@@ -97,10 +97,29 @@ public class ShapePropertiesViewModel : ViewModelBase
         }
     }
 
+    private int _lineStyleIndex;
+    public int LineStyleIndex
+    {
+        get => _lineStyleIndex;
+        set
+        {
+            _lineStyleIndex = value;
+
+            foreach (var shape in _shapes)
+            {
+                shape.LineStyle = _lineStyles[value];
+            }
+
+            OnPropertyChanged();
+        }
+    }
+    
     public IReadOnlyList<GeometryResourceId> CapIds => _capIds;
+    public IReadOnlyList<LineStyleResourceId> LineStyleIds => _lineStyles;
     
     private List<GeometryResourceId> _capIds;
-
+    private List<LineStyleResourceId> _lineStyles;
+    
     public ShapePropertiesViewModel(IEnumerable<Shape> shapes)
     {
         _capIds = new()
@@ -109,6 +128,12 @@ public class ShapePropertiesViewModel : ViewModelBase
             GeometryResourceId.Arrow0
         };
 
+        _lineStyles = new()
+        {
+            LineStyleResourceId.Solid,
+            LineStyleResourceId.Dashes
+        };
+        
         _shapes = shapes;
 
         var first = shapes.First();
