@@ -8,12 +8,6 @@ public static class GeometryResourceLibrary
     private static readonly string ResourcesDirectory = "Resources";
     private static readonly string GeometryDirectory = Path.Combine(ResourcesDirectory, "Geometry");
 
-    public static readonly IList<GeometryResourceId> Resources =
-        [
-            GeometryResourceId.None,
-            GeometryResourceId.Arrow0
-        ];
-    
     public static readonly IReadOnlyDictionary<GeometryResourceId, string> ResourceFiles =
         new Dictionary<GeometryResourceId, string>
         {

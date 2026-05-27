@@ -82,6 +82,8 @@ public class ShapeRenderer : SheetElementRenderer
         _pen.StartLineCap = PenLineCap.Square;
         _pen.EndLineCap = PenLineCap.Square;
         _pen.LineJoin = PenLineJoin.Miter;
+        _pen.DashStyle = _resourceService.Get(_shape.LineStyle);
+        
         _pen.Freeze();
         
         _fill = new SolidColorBrush(_shape.FillColor);

@@ -51,6 +51,20 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         }
     }
 
+    public LineStyleResourceId _lineStyle = LineStyleResourceId.Solid;
+    public LineStyleResourceId LineStyle
+    {
+        get => _lineStyle;
+        set
+        {
+            if (_lineStyle != value)
+            {
+                _lineStyle = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    
     public GeometryResourceId _startCap = GeometryResourceId.None;
     public GeometryResourceId StartCap
     {

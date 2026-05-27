@@ -66,7 +66,17 @@ public class ResourceService : IResourceService
         return _placeholderGeometry;
     }
 
-     // NOTE: Throws a variety of exceptions on failure.
+    public DashStyle Get(LineStyleResourceId id)
+    {
+        if (LineStyleResourceLibrary.ResourceMap.TryGetValue(id, out var style))
+        {
+            return style;
+        }
+
+        return DashStyles.Solid;
+    }
+
+    // NOTE: Throws a variety of exceptions on failure.
     private Geometry? LoadGeometry(string filename)
     {
         var schema = SchemaUtil.LoadProject(filename);
