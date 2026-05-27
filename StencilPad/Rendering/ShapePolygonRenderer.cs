@@ -199,7 +199,7 @@ public class ShapePolygonRenderer
         var position = _polygon.Vertices[0].Position;
         var offset = position - _geometryWalker.StartPosition;
 
-        position -= offset.NormalizedTo(_lineWidth / 2);
+        position -= offset.NormalizedTo(_lineWidth);
 
         var rotation = Math.Atan2(offset.Y.Millimeters,
                                   offset.X.Millimeters) * 180 / Math.PI;
@@ -233,7 +233,7 @@ public class ShapePolygonRenderer
         var position = _polygon.Vertices[^1].Position;
         var offset = position - _geometryWalker.EndPosition;
 
-        position -= offset.NormalizedTo(_lineWidth / 2);
+        position -= offset.NormalizedTo(_lineWidth);
         
         var rotation = Math.Atan2(offset.Y.Millimeters,
                                   offset.X.Millimeters) * 180 / Math.PI;

@@ -96,6 +96,7 @@ public class ShapeRenderer : SheetElementRenderer
         {
             renderer.StartCap = GetStartCapGeometry();
             renderer.EndCap = GetEndCapGeometry();
+            renderer.LineWidth = _shape.LineWidth;
         }
     }
 

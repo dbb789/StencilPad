@@ -30,7 +30,7 @@ public class StreamGeometryWalker() : IGeometryWalker
         
         Context.LineTo(to.Millimeters,
                        isStroked: true,
-                       isSmoothJoin: true);
+                       isSmoothJoin: false);
 
         return true;
     }
@@ -51,7 +51,7 @@ public class StreamGeometryWalker() : IGeometryWalker
                       isLargeArc: false,
                       sweepDirection: sweepDirection,
                       isStroked: true,
-                      isSmoothJoin: true);
+                      isSmoothJoin: false);
 
         return true;
     }
@@ -64,7 +64,7 @@ public class StreamGeometryWalker() : IGeometryWalker
                          c2.Millimeters,
                          to.Millimeters,
                          isStroked: true,
-                         isSmoothJoin: true);
+                         isSmoothJoin: false);
 
         return true;
     }
