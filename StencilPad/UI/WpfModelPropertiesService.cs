@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.UI.Properties;
@@ -37,41 +38,59 @@ public class WpfModelPropertiesService : IModelPropertiesService
         };
 
         _openWindow = window;
-
         window.Closed += (_, _) => _openWindow = null;
 
-        window.Show();
+        PositionAndShow(window);
     }
 
-    public void ShowMarkerPathProperties(IEnumerable<MarkerPath> MarkerPaths)
+    public void ShowMarkerPathProperties(IEnumerable<MarkerPath> markerPaths)
     {
         _openWindow?.Close();
 
-        var window = new MarkerPathPropertiesWindow(MarkerPaths)
+        var window = new MarkerPathPropertiesWindow(markerPaths)
         {
             Owner = _owner
         };
 
         _openWindow = window;
-
         window.Closed += (_, _) => _openWindow = null;
 
-        window.Show();
+        PositionAndShow(window);
     }
 
     public void ShowShapeProperties(IEnumerable<Shape> shapes)
     {
         _openWindow?.Close();
 
-        var window = new ShapePropertiesWindow(_resourceService,
-                                               shapes)
+        var window = new ShapePropertiesWindow(_resourceService, shapes)
         {
             Owner = _owner
         };
 
         _openWindow = window;
-
         window.Closed += (_, _) => _openWindow = null;
+
+        PositionAndShow(window);
+    }
+
+    private void PositionAndShow(Window window)
+    {
+        window.WindowStartupLocation = WindowStartupLocation.Manual;
+
+        // Capture mouse position in logical units now, before the window opens.
+        var devicePoint = _owner.PointToScreen(Mouse.GetPosition(_owner));
+        var source = PresentationSource.FromVisual(_owner);
+        var mousePos = source != null
+            ? source.CompositionTarget.TransformFromDevice.Transform(devicePoint)
+            : devicePoint;
+
+        window.Loaded += (_, _) =>
+        {
+            var workArea = SystemParameters.WorkArea;
+
+            window.Left = Math.Clamp(mousePos.X - window.ActualWidth * 0.25, workArea.Left, workArea.Right - window.ActualWidth);
+            window.Top  = Math.Clamp(mousePos.Y - window.ActualHeight * 0.25, workArea.Top, workArea.Bottom - window.ActualHeight);
+        };
 
         window.Show();
     }
