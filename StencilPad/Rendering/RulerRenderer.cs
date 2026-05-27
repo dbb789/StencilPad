@@ -91,7 +91,7 @@ public class RulerRenderer : SheetElementRenderer
         dc.PushTransform(new TranslateTransform(tip.X, tip.Y));
         dc.PushTransform(new RotateTransform(rotation));
         dc.PushTransform(new ScaleTransform(0.25, 0.25));
-        dc.DrawGeometry(_brush, null, geometry);
+        dc.DrawGeometry(_brush, null, geometry.Geometry);
         dc.Pop();
         dc.Pop();
         dc.Pop();

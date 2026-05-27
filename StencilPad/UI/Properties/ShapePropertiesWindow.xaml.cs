@@ -67,7 +67,7 @@ public partial class ShapePropertiesWindow : Window
             FillRule = FillRule.EvenOdd
         };
         
-        group.Children.Add(cap);
+        group.Children.Add(cap.Geometry);
         group.Children.Add(line);
 
         var transformGroup = new TransformGroup();

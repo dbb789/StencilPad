@@ -5,6 +5,6 @@ namespace StencilPad.Services;
 
 public interface IResourceService
 {
-    Geometry Get(GeometryResourceId id);
+    GeometryResource Get(GeometryResourceId id);
     DashStyle Get(LineStyleResourceId id);
 }

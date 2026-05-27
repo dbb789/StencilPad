@@ -1,11 +1,12 @@
 using System.Windows.Media;
+using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
 public class ShapePolygonRenderer
 {
-    public Geometry? StartCap
+    public GeometryResource? StartCap
     {
         get => _startCap;
         set
@@ -18,7 +19,7 @@ public class ShapePolygonRenderer
         }
     }
 
-    public Geometry? EndCap
+    public GeometryResource? EndCap
     {
         get => _endCap;
         set
@@ -37,8 +38,8 @@ public class ShapePolygonRenderer
     private CapDistanceWalker? _capWalker;
     private ClampedGeometryWalker? _clampedWalker;
     private Geometry _geometry;
-    private Geometry? _startCap;
-    private Geometry? _endCap;
+    private GeometryResource? _startCap;
+    private GeometryResource? _endCap;
     private Transform _startCapTransform = Transform.Identity;
     private Transform _endCapTransform = Transform.Identity;
     private bool _geometryDirty;
@@ -80,7 +81,7 @@ public class ShapePolygonRenderer
         if (_startCap is not null)
         {
             dc.PushTransform(_startCapTransform);
-            dc.DrawGeometry(pen.Brush, null, _startCap);
+            dc.DrawGeometry(null, pen, _startCap.Geometry);
             dc.Pop();
         }
     }
@@ -95,7 +96,7 @@ public class ShapePolygonRenderer
         if (_endCap is not null)
         {
             dc.PushTransform(_endCapTransform);
-            dc.DrawGeometry(pen.Brush, null, _endCap);
+            dc.DrawGeometry(null, pen, _endCap.Geometry);
             dc.Pop();
         }
     }
@@ -125,7 +126,7 @@ public class ShapePolygonRenderer
                 if (_startCap is not null)
                 {
                     _capWalker ??= new CapDistanceWalker();
-                    _capWalker.Reset(Unit.FromMillimeters(2));
+                    _capWalker.Reset(_startCap.Bounds.Size.Y);
 
                     polygon.Resolver.WalkPolygon(_capWalker);
 
@@ -135,7 +136,7 @@ public class ShapePolygonRenderer
                 if (_endCap is not null)
                 {
                     _capWalker ??= new CapDistanceWalker();
-                    _capWalker.Reset(Unit.FromMillimeters(2));
+                    _capWalker.Reset(_endCap.Bounds.Size.Y);
 
                     polygon.Resolver.WalkPolygonReverse(_capWalker);
 
@@ -175,6 +176,12 @@ public class ShapePolygonRenderer
     
     private Transform BuildStartCapTransform()
     {
+        if (_polygon.Vertices.Count == 0 ||
+            _polygon.Closed)
+        {
+            return Transform.Identity;
+        }
+        
         var position = _polygon.Vertices[0].Position;
         var offset = position - _geometryWalker.StartPosition;
         var rotation = Math.Atan2(offset.Y.Millimeters,
@@ -200,6 +207,12 @@ public class ShapePolygonRenderer
 
     private Transform BuildEndCapTransform()
     {
+        if (_polygon.Vertices.Count == 0 ||
+            _polygon.Closed)
+        {
+            return Transform.Identity;
+        }
+
         var position = _polygon.Vertices[^1].Position;
         var offset = position - _geometryWalker.EndPosition;
         var rotation = Math.Atan2(offset.Y.Millimeters,

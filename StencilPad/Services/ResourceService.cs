@@ -4,18 +4,17 @@ using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Rendering;
 using StencilPad.Schemas;
+using StencilPad.Spatial;
 
 namespace StencilPad.Services;
 
 public class ResourceService : IResourceService
 {
-    private Dictionary<GeometryResourceId, Geometry> _geometryCache;
-    private Geometry _placeholderGeometry;
+    private Dictionary<GeometryResourceId, GeometryResource> _geometryCache;
     
     public ResourceService()
     {
         _geometryCache = [];
-        _placeholderGeometry = CreatePlaceholderGeometry();
 
         Load();
     }
@@ -31,19 +30,21 @@ public class ResourceService : IResourceService
     private void Load(GeometryResourceId id, string filename)
     {
         Geometry? geometry = null;
-
+        UnitBounds bounds;
+        
         try
         {
-            geometry = LoadGeometry(filename);
+            (geometry, bounds) = LoadGeometry(filename);
         }
         catch (Exception e)
         {
             Debug.WriteLine($"Error loading geometry resource '{id}' from file '{filename}': {e.Message}");
+            return;
         }
-
+        
         if (geometry != null)
         {
-            _geometryCache[id] = geometry;
+            _geometryCache[id] = new GeometryResource(geometry, bounds);
         }
         else
         {
@@ -51,11 +52,11 @@ public class ResourceService : IResourceService
         }
     }
     
-    public Geometry Get(GeometryResourceId id)
+    public GeometryResource Get(GeometryResourceId id)
     {
         if (id == GeometryResourceId.None)
         {
-            return Geometry.Empty;
+            return GeometryResource.Empty;
         }
         
         if (_geometryCache.TryGetValue(id, out var geometry))
@@ -63,7 +64,7 @@ public class ResourceService : IResourceService
             return geometry;
         }
 
-        return _placeholderGeometry;
+        return GeometryResource.Empty;
     }
 
     public DashStyle Get(LineStyleResourceId id)
@@ -77,7 +78,7 @@ public class ResourceService : IResourceService
     }
 
     // NOTE: Throws a variety of exceptions on failure.
-    private Geometry? LoadGeometry(string filename)
+    private (Geometry?, UnitBounds) LoadGeometry(string filename)
     {
         var schema = SchemaUtil.LoadProject(filename);
 
@@ -92,12 +93,15 @@ public class ResourceService : IResourceService
             FillRule = FillRule.EvenOdd
         };
 
+        UnitBounds? bounds = null;
+        
         using (var ctx = geometry.Open())
         {
             foreach (var element in sheet.Elements)
             {
                 if (element is Shape shape)
                 {
+                    bounds = UnitBounds.Union(bounds, shape.GetBounds(UnitTransform.Identity));
                     ShapeRenderer.AddToGeometry(shape, ctx);
                 }
             }
@@ -105,15 +109,6 @@ public class ResourceService : IResourceService
 
         geometry.Freeze();
 
-        return geometry;
-    }
-
-    private Geometry CreatePlaceholderGeometry()
-    {
-        var geometry = new EllipseGeometry(new Point(0, 0), 10, 10);
-
-        geometry.Freeze();
-
-        return geometry;
+        return (geometry, bounds ?? UnitBounds.Empty);
     }
 }

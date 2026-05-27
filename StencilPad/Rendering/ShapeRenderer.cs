@@ -102,7 +102,7 @@ public class ShapeRenderer : SheetElementRenderer
         }
     }
 
-    private Geometry? GetStartCapGeometry()
+    private GeometryResource? GetStartCapGeometry()
     {
         if (_shape.StartCap == GeometryResourceId.None)
         {
@@ -112,7 +112,7 @@ public class ShapeRenderer : SheetElementRenderer
         return _resourceService.Get(_shape.StartCap);
     }
 
-    private Geometry? GetEndCapGeometry()
+    private GeometryResource? GetEndCapGeometry()
     {
         if (_shape.StartCap == GeometryResourceId.None)
         {
