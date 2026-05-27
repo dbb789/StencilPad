@@ -120,25 +120,28 @@ public class ShapeRenderer : SheetElementRenderer
 
             if (!polygon.Closed)
             {
-                var cdw = new CapDistanceWalker(Unit.FromMillimeters(2));
+                var cdw = new CapDistanceWalker();
+                
+                cdw.Reset(Unit.FromMillimeters(2));
 
                 polygon.Resolver.WalkPolygon(cdw);
 
-                var startSegment = cdw.SegmentIndex;
-                var startFraction = cdw.Fraction;
+                var startPoint = cdw.Point;
 
-                cdw.Reset();
+                cdw.Reset(Unit.FromMillimeters(2));
 
                 polygon.Resolver.WalkPolygonReverse(cdw);
 
-                var endSegment = cdw.SegmentIndex;
-                var endFraction = 1.0 - cdw.Fraction;
+                var endPoint = cdw.Point;
+
+                if (endPoint is not null)
+                {
+                    endPoint = endPoint.Value with { Fraction = 1.0 - endPoint.Value.Fraction };
+                }
 
                 var cgw = new ClampedGeometryWalker(_walker,
-                                                    startSegment,
-                                                    startFraction,
-                                                    endSegment,
-                                                    endFraction);
+                                                    startPoint,
+                                                    endPoint);
 
                 polygon.Resolver.WalkPolygon(cgw);
             }

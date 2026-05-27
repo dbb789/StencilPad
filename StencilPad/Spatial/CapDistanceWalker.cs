@@ -9,27 +9,24 @@ public sealed class CapDistanceWalker : IGeometryWalker
     private const double Step = 0.1;
     private const double MinStep = 0.0001;
 
-    private readonly Unit _distance;
+    private Unit _distance;
     private bool _started;
     private Unit2D _startPoint;
 
-    public int SegmentIndex { get; private set; }
-    public double Fraction { get; private set; }
+    public SegmentPoint? Point { get; private set; }
     
-    public CapDistanceWalker(Unit distance)
+    public CapDistanceWalker()
     {
-        _distance = distance;
-
-        SegmentIndex = 0;
-        Fraction = 0.0;
+        Reset(Unit.Zero);
     }
 
-    public void Reset()
+    public void Reset(Unit distance)
     {
+        _distance = distance;
         _started = false;
         _startPoint = Unit2D.Zero;
-        SegmentIndex = 0;
-        Fraction = 0.0;
+        
+        Point = null;
     }
     
     public bool Begin(int segmentCount, bool closed)
@@ -47,8 +44,8 @@ public sealed class CapDistanceWalker : IGeometryWalker
         if ((_distance >= dFrom && _distance <= dTo) ||
             (_distance >= dTo && _distance <= dFrom))
         {
-            SegmentIndex = segmentIndex;
-            Fraction = Unit.InverseLerp(dFrom, dTo, _distance);
+            Point = new SegmentPoint(segmentIndex,
+                                     Unit.InverseLerp(dFrom, dTo, _distance));
             return false;
         }
 
@@ -65,8 +62,8 @@ public sealed class CapDistanceWalker : IGeometryWalker
         if ((_distance >= dStart && _distance <= dEnd) ||
             (_distance >= dEnd && _distance <= dStart))
         {
-            SegmentIndex = segmentIndex;
-            Fraction = Unit.InverseLerp(dStart, dEnd, _distance);
+            Point = new SegmentPoint(segmentIndex,
+                                     Unit.InverseLerp(dStart, dEnd, _distance));
             return false;
         }
 
@@ -88,8 +85,7 @@ public sealed class CapDistanceWalker : IGeometryWalker
                               Tolerance,
                               out double t))
         {
-            SegmentIndex = segmentIndex;
-            Fraction = t;
+            Point = new SegmentPoint(segmentIndex, t);
             return false;
         }
 
