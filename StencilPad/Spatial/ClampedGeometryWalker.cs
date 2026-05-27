@@ -117,6 +117,10 @@ public sealed class ClampedGeometryWalker : IGeometryWalker
             bezier = bezier.SplitLeft(_endFraction);
         }
 
-        return _inner.Bezier(segmentIndex - _startSegment, bezier.P0, bezier.P1, bezier.P2, bezier.P3);
+        return _inner.Bezier(segmentIndex - _startSegment,
+                             bezier.P0,
+                             bezier.P1,
+                             bezier.P2,
+                             bezier.P3);
     }
 }

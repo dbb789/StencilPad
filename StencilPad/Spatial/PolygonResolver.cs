@@ -66,29 +66,29 @@ public class PolygonResolver : IPolygonResolver
 
         for (int i = 0; i < _edgeCount - 1; ++i)
         {
-            if (!AddEdgeToGeometry(walker, i, 1, ref segmentIndex))
+            if (!AddEdgeToGeometry(walker, i, ref segmentIndex))
             {
                 return;
             }
 
-            if (!AddCornerToGeometry(walker, i + 1, 1, ref segmentIndex))
+            if (!AddCornerToGeometry(walker, i + 1, ref segmentIndex))
             {
                 return;
             }   
         }
         
-        if (!AddEdgeToGeometry(walker, _edgeCount - 1, 1, ref segmentIndex))
+        if (!AddEdgeToGeometry(walker, _edgeCount - 1, ref segmentIndex))
         {
             return;
         }
         
         if (_polygon.Closed)
         {
-            AddCornerToGeometry(walker, _edgeCount, 1, ref segmentIndex);
+            AddCornerToGeometry(walker, _edgeCount, ref segmentIndex);
         }
     }
     
-    public void WalkPolygonReversed(IGeometryWalker walker)
+    public void WalkPolygonReverse(IGeometryWalker walker)
     {
         if (_polygon is null)
         {
@@ -113,7 +113,7 @@ public class PolygonResolver : IPolygonResolver
 
         if (_polygon.Closed)
         {
-            if (!AddCornerToGeometry(walker, 0, -1, ref segmentIndex))
+            if (!AddCornerToGeometryReverse(walker, 0, ref segmentIndex))
             {
                 return;
             }
@@ -121,18 +121,18 @@ public class PolygonResolver : IPolygonResolver
 
         for (int i = _edgeCount - 1; i >= 1; --i)
         {
-            if (!AddEdgeToGeometry(walker, i, -1, ref segmentIndex))
+            if (!AddEdgeToGeometryReverse(walker, i, ref segmentIndex))
             {
                 return;
             }
 
-            if (!AddCornerToGeometry(walker, i, -1, ref segmentIndex))
+            if (!AddCornerToGeometryReverse(walker, i, ref segmentIndex))
             {
                 return;
             }
         }
 
-        AddEdgeToGeometry(walker, 0, -1, ref segmentIndex);
+        AddEdgeToGeometryReverse(walker, 0, ref segmentIndex);
     }
 
     public void WalkEdge(IGeometryWalker walker, int edgeIndex)
@@ -148,12 +148,11 @@ public class PolygonResolver : IPolygonResolver
         
         int segmentIndex = 0;
         
-        AddEdgeToGeometry(walker, edgeIndex, 1, ref segmentIndex);
+        AddEdgeToGeometry(walker, edgeIndex, ref segmentIndex);
     }
 
     private bool AddEdgeToGeometry(IGeometryWalker walker,
                                    int index,
-                                   int segmentDirection,
                                    ref int segmentIndex)
     {
         bool next = true;
@@ -170,12 +169,12 @@ public class PolygonResolver : IPolygonResolver
                                  _clippedC1[index],
                                  _clippedC2[index],
                                  EdgeEnd(index));
-            segmentIndex += segmentDirection;
+            ++segmentIndex;
         }
         else
         {
             next = walker.Line(segmentIndex, edgeBegin, EdgeEnd(index));
-            segmentIndex += segmentDirection;
+            ++segmentIndex;
         }
 
         return next;
@@ -183,7 +182,6 @@ public class PolygonResolver : IPolygonResolver
 
     private bool AddCornerToGeometry(IGeometryWalker walker,
                                      int index,
-                                     int segmentDirection,
                                      ref int segmentIndex)
     {
         bool next = true;
@@ -202,12 +200,72 @@ public class PolygonResolver : IPolygonResolver
         if (cornerType == CornerType.Rounded)
         {
             next = walker.Arc(segmentIndex, edgeEnd, _polygon.Vertices.At(index).Position, edgeBegin);
-            segmentIndex += segmentDirection;
+            ++segmentIndex;
         }
         else if (cornerType == CornerType.Beveled)
         {
             next = walker.Line(segmentIndex, edgeEnd, edgeBegin);
-            segmentIndex += segmentDirection;
+            ++segmentIndex;
+        }
+
+        return next;
+    }
+    
+    private bool AddEdgeToGeometryReverse(IGeometryWalker walker,
+                                          int index,
+                                          ref int segmentIndex)
+    {
+        bool next = true;
+        var edgeBegin = EdgeBegin(index);
+
+        index = NormalizeVertexIndex(index);
+
+        var edge = _polygon.Edges[index];
+        
+        if (edge.Type == EdgeType.Bezier)
+        {
+            next = walker.Bezier(segmentIndex,
+                                 EdgeEnd(index),
+                                 _clippedC2[index],
+                                 _clippedC1[index],
+                                 edgeBegin);
+            --segmentIndex;
+        }
+        else
+        {
+            next = walker.Line(segmentIndex, EdgeEnd(index), edgeBegin);
+            --segmentIndex;
+        }
+
+        return next;
+    }
+
+    private bool AddCornerToGeometryReverse(IGeometryWalker walker,
+                                            int index,
+                                            ref int segmentIndex)
+    {
+        bool next = true;
+        var edgeBegin = EdgeBegin(index);
+
+        var cornerType = _polygon.Vertices.At(index).CornerType;
+        var cornerTangent = _scaledCornerTangents[NormalizeVertexIndex(index)];
+
+        if (cornerTangent <= Unit.Epsilon)
+        {
+            return next;
+        }
+
+        var edgeEnd = EdgeEnd(index - 1);
+        
+        if (cornerType == CornerType.Rounded)
+        {
+            next = walker.Arc(segmentIndex, edgeBegin, _polygon.Vertices.At(index).Position, edgeEnd);
+            --segmentIndex;
+        }
+        else if (cornerType == CornerType.Beveled)
+        {
+            next = walker.Line(segmentIndex, edgeBegin, edgeEnd);
+            --segmentIndex;
         }
 
         return next;

@@ -129,14 +129,11 @@ public class ShapeRenderer : SheetElementRenderer
 
                 cdw.Reset();
 
-                polygon.Resolver.WalkPolygonReversed(cdw);
+                polygon.Resolver.WalkPolygonReverse(cdw);
 
                 var endSegment = cdw.SegmentIndex;
                 var endFraction = 1.0 - cdw.Fraction;
 
-                System.Diagnostics.Debug.WriteLine($"Start cap: segment {startSegment}, fraction {startFraction}");
-                System.Diagnostics.Debug.WriteLine($"End cap: segment {endSegment}, fraction {endFraction}");
-                
                 var cgw = new ClampedGeometryWalker(_walker,
                                                     startSegment,
                                                     startFraction,
@@ -144,6 +141,10 @@ public class ShapeRenderer : SheetElementRenderer
                                                     endFraction);
 
                 polygon.Resolver.WalkPolygon(cgw);
+            }
+            else
+            {
+                polygon.Resolver.WalkPolygon(_walker);
             }
         }
         

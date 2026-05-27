@@ -5,9 +5,9 @@ namespace StencilPad.Spatial;
 // point. Feed WalkPolygon for start caps, WalkPolygonReversed for end caps.
 public sealed class CapDistanceWalker : IGeometryWalker
 {
-    private static readonly Unit Tolerance = Unit.FromMillimeters(0.01);
-    private const double Step    = 0.1;
-    private const double MinStep = 0.001;
+    private static readonly Unit Tolerance = Unit.FromMillimeters(0.000001);
+    private const double Step = 0.1;
+    private const double MinStep = 0.0001;
 
     private readonly Unit _distance;
     private bool _started;
