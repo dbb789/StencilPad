@@ -345,7 +345,8 @@ public class AppController
         
         foreach (var element in elements)
         {
-            element.Translate(pasteOffset);
+            element.Transform = element.Transform with
+                { Position = element.Transform.Position + pasteOffset };
         }
 
         var operations = elements

@@ -175,7 +175,8 @@ public class SelectionTool : ITool
     {
         foreach (var selected in _sheet.Selection)
         {
-            selected.Translate(delta);
+            selected.Transform = selected.Transform with
+                { Position = selected.Transform.Position + delta };
         }
     }
 

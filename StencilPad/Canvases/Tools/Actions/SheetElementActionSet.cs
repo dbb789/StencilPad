@@ -138,7 +138,7 @@ public class SheetElementActionSet
 
                         foreach (var element in added)
                         {
-                            element.Translate(group.Transform.Position);
+                            element.Transform = group.Transform * element.Transform;
                             operation.Add(new AddSheetElementOperation(sheet, element));
                         }
                     }
@@ -328,7 +328,10 @@ public class SheetElementActionSet
         
         foreach (var element in elements)
         {
-            element.Translate(getDelta(bounds.Value, element.GetTransformedBounds()));
+            var delta = getDelta(bounds.Value, element.GetTransformedBounds());
+            
+            element.Transform = element.Transform with
+                { Position = element.Transform.Position + delta };
         }
     }
 

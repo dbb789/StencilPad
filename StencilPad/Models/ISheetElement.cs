@@ -22,7 +22,6 @@ public interface ISheetElement
 
     void MirrorX(Unit centerY);
     void MirrorY(Unit centerX);
-    void Translate(Unit2D delta);
     void NormalizePosition();
     UnitBounds GetBounds(UnitTransform transform);
     UnitBounds GetTransformedBounds();
