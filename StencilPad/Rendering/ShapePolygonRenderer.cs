@@ -32,6 +32,19 @@ public class ShapePolygonRenderer
         }
     }
 
+    public Unit LineWidth
+    {
+        get => _lineWidth;
+        set
+        {
+            if (_lineWidth != value)
+            {
+                _lineWidth = value;
+                MarkGeometryDirty(_polygon);
+            }
+        }
+    }
+    
     private readonly IPolygon _polygon;
     private readonly StreamGeometryWalker _geometryWalker;
     
@@ -40,6 +53,7 @@ public class ShapePolygonRenderer
     private Geometry _geometry;
     private GeometryResource? _startCap;
     private GeometryResource? _endCap;
+    private Unit _lineWidth;
     private Transform _startCapTransform = Transform.Identity;
     private Transform _endCapTransform = Transform.Identity;
     private bool _geometryDirty;
@@ -126,7 +140,7 @@ public class ShapePolygonRenderer
                 if (_startCap is not null)
                 {
                     _capWalker ??= new CapDistanceWalker();
-                    _capWalker.Reset(_startCap.Bounds.Size.Y);
+                    _capWalker.Reset(_startCap.Bounds.Size.Y + _lineWidth);
 
                     polygon.Resolver.WalkPolygon(_capWalker);
 
@@ -136,7 +150,7 @@ public class ShapePolygonRenderer
                 if (_endCap is not null)
                 {
                     _capWalker ??= new CapDistanceWalker();
-                    _capWalker.Reset(_endCap.Bounds.Size.Y);
+                    _capWalker.Reset(_endCap.Bounds.Size.Y + _lineWidth);
 
                     polygon.Resolver.WalkPolygonReverse(_capWalker);
 
@@ -184,6 +198,9 @@ public class ShapePolygonRenderer
         
         var position = _polygon.Vertices[0].Position;
         var offset = position - _geometryWalker.StartPosition;
+
+        position -= offset.NormalizedTo(_lineWidth / 2);
+
         var rotation = Math.Atan2(offset.Y.Millimeters,
                                   offset.X.Millimeters) * 180 / Math.PI;
 
@@ -215,6 +232,9 @@ public class ShapePolygonRenderer
 
         var position = _polygon.Vertices[^1].Position;
         var offset = position - _geometryWalker.EndPosition;
+
+        position -= offset.NormalizedTo(_lineWidth / 2);
+        
         var rotation = Math.Atan2(offset.Y.Millimeters,
                                   offset.X.Millimeters) * 180 / Math.PI;
 
