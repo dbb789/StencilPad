@@ -257,7 +257,7 @@ public class PolygonTests
         polygon.VertexRemoved += (i, k) => vertexRemovedCount++;
         polygon.EdgeAdded += (i, k) => edgeAddedCount++;
         polygon.EdgeRemoved += (i, k) => edgeRemovedCount++;
-        polygon.GeometryChanged += () => geometryChangedCount++;
+        polygon.GeometryChanged += (p) => geometryChangedCount++;
 
         // Add first vertex
         polygon.AddVertex(new Vertex(U2(0, 0)));

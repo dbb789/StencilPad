@@ -40,14 +40,14 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     public MarkerPath()
     {
         _singlePolygon = new();
-        _singlePolygon.Polygon.GeometryChanged += () => FireGeometryChanged();
+        _singlePolygon.Polygon.GeometryChanged += _ => FireGeometryChanged();
         SetHandleSource(_singlePolygon.HandleSource);
     }
     
     public MarkerPath(Polygon polygon)
     {
         _singlePolygon = new(polygon);
-        _singlePolygon.Polygon.GeometryChanged += () => FireGeometryChanged();
+        _singlePolygon.Polygon.GeometryChanged += _ => FireGeometryChanged();
         SetHandleSource(_singlePolygon.HandleSource);
     }
     

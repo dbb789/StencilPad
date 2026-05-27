@@ -20,12 +20,14 @@ public partial class ShapePropertiesWindow : Window
         DataContext = ViewModel;
         
         var startCapItems = ViewModel.CapIds.Select(
-            id => new GeometryDropdown.Entry(CreateCapGeometry(resourceService, id, true))).ToList();
+            id => new GeometryDropdown.Entry(
+                CreateCapGeometry(resourceService, id, true))).ToList();
 
         StartCapDropdown.Items = startCapItems;
 
         var endCapItems = ViewModel.CapIds.Select(
-            id => new GeometryDropdown.Entry(CreateCapGeometry(resourceService, id, false))).ToList();
+            id => new GeometryDropdown.Entry(
+                CreateCapGeometry(resourceService, id, false))).ToList();
 
         EndCapDropdown.Items = endCapItems;
 

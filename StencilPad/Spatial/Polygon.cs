@@ -25,7 +25,7 @@ public class Polygon : IPolygon
     public event Action? InvalidateAllPositions;
 
     // Signals to the renderer that this polygon needs to be rebuilt.
-    public event Action? GeometryChanged;
+    public event Action<IPolygon>? GeometryChanged;
     
     public Polygon()
     {
@@ -460,7 +460,7 @@ public class Polygon : IPolygon
     private void InvokeGeometryChanged()
     {
         _resolver.MarkGeometryDirty();
-        GeometryChanged?.Invoke();
+        GeometryChanged?.Invoke(this);
     }
 }
 

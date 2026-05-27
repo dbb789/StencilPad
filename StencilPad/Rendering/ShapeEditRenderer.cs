@@ -74,10 +74,15 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         MarkGeometryDirty();
     }
     
+    private void MarkGeometryDirty(IPolygon polygon)
+    {
+        MarkGeometryDirty();
+    }
+
     private void MarkGeometryDirty()
     {
         _geometryDirty = true;
-        
+
         InvokeRendererDirty();
     }
 

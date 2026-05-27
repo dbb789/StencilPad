@@ -13,11 +13,10 @@ public class ShapeRenderer : SheetElementRenderer
     private readonly Shape _shape;
     private readonly IResourceService _resourceService;
     private readonly StreamGeometryWalker _walker;
+    private Dictionary<IPolygon, Geometry?> _geometryMap;
     private Pen? _pen;
     private Brush? _fill;
     private Transform? _transform;
-    private StreamGeometry? _geometry;
-    private bool _geometryDirty;
     
     public ShapeRenderer(Shape shape, IResourceService resourceService)
     {
@@ -29,18 +28,18 @@ public class ShapeRenderer : SheetElementRenderer
 
         _resourceService = resourceService;
         _walker = new();
+        
+        _geometryMap = new();
 
         foreach (var polygon in _shape.PolygonSet)
         {
             polygon.GeometryChanged += MarkGeometryDirty;
+            _geometryMap[polygon] = BuildGeometry(polygon);
         }
 
         UpdateProperties();
 
         _transform = _shape.Transform.CreateGroupTransform();
-
-        RebuildGeometry();
-        _geometryDirty = false;
     }
 
     public override void Dispose()
@@ -59,18 +58,19 @@ public class ShapeRenderer : SheetElementRenderer
     private void PolygonAdded(EditablePolygon polygon)
     {
         polygon.GeometryChanged += MarkGeometryDirty;
-        MarkGeometryDirty();
+        MarkGeometryDirty(polygon);
     }
 
     private void PolygonRemoved(EditablePolygon polygon)
     {
         polygon.GeometryChanged -= MarkGeometryDirty;
-        MarkGeometryDirty();
+        _geometryMap.Remove(polygon);
+        InvokeRendererDirty();
     }
 
-    private void MarkGeometryDirty()
+    private void MarkGeometryDirty(IPolygon polygon)
     {
-        _geometryDirty = true;
+        _geometryMap[polygon] = null;
         
         InvokeRendererDirty();
     }
@@ -103,35 +103,23 @@ public class ShapeRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
-    private Geometry GetGeometry()
+    private Geometry BuildGeometry(IPolygon polygon)
     {
-        if (_geometryDirty)
-        {
-            _geometryDirty = false;
-            RebuildGeometry();
-        }
-
-        return _geometry!;
-    }
-
-    private void RebuildGeometry()
-    {
-        _geometry = new StreamGeometry
+        var geometry = new StreamGeometry
         {
             FillRule = FillRule.EvenOdd
         };
 
-        using (var ctx = _geometry.Open())
+        using (var ctx = geometry.Open())
         {
             _walker.Context = ctx;
             
-            foreach (var polygon in _shape.PolygonSet)
-            {
-                polygon.Resolver.WalkPolygon(_walker);
-            }
+            polygon.Resolver.WalkPolygon(_walker);
         }
 
-        _geometry.Freeze();
+        geometry.Freeze();
+
+        return geometry;
     }
 
     // Exposed so that ResourceService can build Geometry without needing to
@@ -148,7 +136,7 @@ public class ShapeRenderer : SheetElementRenderer
             polygon.Resolver.WalkPolygon(walker);
         }
     }
-    
+
     public override void Render(DrawingContext dc)
     {
         if (_pen is null || _fill is null || _transform is null)
@@ -156,93 +144,131 @@ public class ShapeRenderer : SheetElementRenderer
             return;
         }
 
-        var geometry = GetGeometry();
-        
         dc.PushTransform(_transform);
-        dc.DrawGeometry(_fill, _pen, geometry);
 
-        var startCap =_resourceService.Get(_shape.StartCap);
-        var endCap = _resourceService.Get(_shape.EndCap);
-
-        foreach (var polygon in _shape.PolygonSet)
+        foreach (var entry in _geometryMap)
         {
+            var polygon = entry.Key;
+            var geometry = entry.Value;
+
+            if (geometry is null)
+            {
+                geometry = BuildGeometry(polygon);
+                _geometryMap[polygon] = geometry;
+            }
+
+            dc.DrawGeometry(polygon.Closed ? _fill : null, _pen, geometry);
+
             if (!polygon.Closed && polygon.Vertices.Count > 1)
             {
-                var startPosition = polygon.Vertices[0].Position;
-                Unit2D startDirection;
-                
-                if (polygon.Edges[0].Type == EdgeType.Bezier)
+                if (_shape.StartCap != GeometryResourceId.None)
                 {
-                    var bezier = BezierUtil.FromPolygonEdge(polygon, 0);
+                    var startCap = _resourceService.Get(_shape.StartCap);
+                    var (startPosition, startRotation) = GetStartCapTransform(polygon);
 
-                    if (bezier.WalkRadius(0,
-                                          1,
-                                          0.1,
-                                          0.0001,
-                                          Unit.FromMillimeters(2.5),
-                                          Unit.FromMillimeters(0.000001),
-                                          out var startT))
-                    {
-                        startDirection = startPosition - bezier.At(startT);
-                    }
-                    else
-                    {
-                        startDirection = startPosition - polygon.Vertices[1].Position;
-                    }
+                    RenderCap(dc, _shape.StartCap, startPosition, startRotation);
                 }
-                else
+
+                if (_shape.EndCap != GeometryResourceId.None)
                 {
-                    startDirection = startPosition - polygon.Vertices[1].Position;
-                }
-                
-                var startRotation = Math.Atan2(startDirection.Y.Millimeters,
-                                               startDirection.X.Millimeters) * 180 / Math.PI;
-                
-                dc.PushTransform(new TranslateTransform(startPosition.X.Millimeters,
-                                                        startPosition.Y.Millimeters));
-                dc.PushTransform(new RotateTransform(startRotation + 90, 0, 0));
-                dc.DrawGeometry(_fill, _pen, startCap);
-                dc.Pop();
-                dc.Pop();
+                    var endCap = _resourceService.Get(_shape.EndCap);
+                    var (endPosition, endRotation) = GetEndCapTransform(polygon);
 
-                var endPosition = polygon.Vertices[^1].Position;
-                Unit2D endDirection;
-
-                if (polygon.Edges[^1].Type == EdgeType.Bezier)
-                {
-                    var bezier = BezierUtil.FromPolygonEdge(polygon, ^1);
-                    
-                    if (bezier.WalkRadius(1,
-                                          0,
-                                          -0.1,
-                                          0.0001,
-                                          Unit.FromMillimeters(2.5),
-                                          Unit.FromMillimeters(0.0000001),
-                                          out var endT))
-                    {
-                        endDirection = endPosition - bezier.At(endT);
-                    }
-                    else
-                    {
-                        endDirection = endPosition - polygon.Vertices[^2].Position;
-                    }
+                    RenderCap(dc, _shape.EndCap, endPosition, endRotation);
                 }
-                else
-                {
-                    endDirection = endPosition - polygon.Vertices[^2].Position;
-                }
-                
-                var endRotation = Math.Atan2(endDirection.Y.Millimeters, endDirection.X.Millimeters) * 180 / Math.PI;
-
-                dc.PushTransform(new TranslateTransform(endPosition.X.Millimeters,
-                                                        endPosition.Y.Millimeters));
-                dc.PushTransform(new RotateTransform(endRotation + 90, 0, 0));
-                dc.DrawGeometry(_fill, _pen, endCap);
-                dc.Pop();
-                dc.Pop();
             }
         }
         
         dc.Pop();
+    }
+
+    private void RenderCap(DrawingContext dc,
+                           GeometryResourceId cap,
+                           Unit2D position,
+                           double rotationDegrees)
+    {
+        if (cap == GeometryResourceId.None)
+        {
+            return;
+        }
+
+        var geometry = _resourceService.Get(cap);
+        
+        dc.PushTransform(new TranslateTransform(position.X.Millimeters,
+                                                position.Y.Millimeters));
+        dc.PushTransform(new RotateTransform(rotationDegrees + 90, 0, 0));
+        dc.DrawGeometry(_fill, _pen, geometry);
+        dc.Pop();
+        dc.Pop();
+    }
+
+    private (Unit2D, double) GetStartCapTransform(IPolygon polygon)
+    {
+        var position = polygon.Vertices[0].Position;
+        Unit2D direction;
+        
+        if (polygon.Edges[0].Type == EdgeType.Bezier)
+        {
+            var bezier = BezierUtil.FromPolygonEdge(polygon, 0);
+            
+            if (bezier.WalkRadius(0,
+                                  1,
+                                  0.1,
+                                  0.0001,
+                                  Unit.FromMillimeters(2.5),
+                                  Unit.FromMillimeters(0.000001),
+                                  out var t))
+            {
+                direction = position - bezier.At(t);
+            }
+            else
+            {
+                direction = position - polygon.Vertices[1].Position;
+            }
+        }
+        else
+        {
+            direction = position - polygon.Vertices[1].Position;
+        }
+        
+        var rotation = Math.Atan2(direction.Y.Millimeters,
+                                  direction.X.Millimeters) * 180 / Math.PI;
+
+        return (position, rotation);
+    }
+
+    private (Unit2D, double) GetEndCapTransform(IPolygon polygon)
+    {
+        var position = polygon.Vertices[^1].Position;
+        Unit2D direction;
+
+        if (polygon.Edges[^1].Type == EdgeType.Bezier)
+        {
+            var bezier = BezierUtil.FromPolygonEdge(polygon, ^1);
+
+            if (bezier.WalkRadius(1,
+                                  0,
+                                  -0.1,
+                                  0.0001,
+                                  Unit.FromMillimeters(2.5),
+                                  Unit.FromMillimeters(0.0000001),
+                                  out var t))
+            {
+                direction = position - bezier.At(t);
+            }
+            else
+            {
+                direction = position - polygon.Vertices[^2].Position;
+            }
+        }
+        else
+        {
+            direction = position - polygon.Vertices[^2].Position;
+        }
+
+        var rotation = Math.Atan2(direction.Y.Millimeters,
+                                  direction.X.Millimeters) * 180 / Math.PI;
+
+        return (position, rotation);
     }
 }

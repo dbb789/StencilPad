@@ -74,7 +74,12 @@ public class MarkerPathRenderer : SheetElementRenderer
 
         InvokeRendererDirty();
     }
-
+    
+    private void RebuildGeometry(IPolygon polygon)
+    {
+        RebuildGeometry();
+    }
+    
     private void RebuildGeometry()
     {
         _geometry = new StreamGeometry

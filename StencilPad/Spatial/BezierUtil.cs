@@ -2,7 +2,8 @@ using StencilPad.Spatial;
 
 public static class BezierUtil
 {
-    public static Bezier2D FromPolygonEdge(Polygon polygon, Index edgeIndex)
+    public static Bezier2D FromPolygonEdge(IPolygon polygon,
+                                           Index edgeIndex)
     {
         if (polygon.Edges.Count < 1)
         {
@@ -20,7 +21,9 @@ public static class BezierUtil
         return new Bezier2D(p0, p1, p2, p3);
     }
 
-    public static Bezier2D FromPolygonEdge(Polygon polygon, UnitTransform transform, Index edgeIndex)
+    public static Bezier2D FromPolygonEdge(IPolygon polygon,
+                                           UnitTransform transform,
+                                           Index edgeIndex)
     {
         if (polygon.Edges.Count < 1)
         {

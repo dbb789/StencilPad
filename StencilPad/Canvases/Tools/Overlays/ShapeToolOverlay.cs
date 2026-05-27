@@ -33,7 +33,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
         _vertexWidgets = new(this);
         
         _lockAxisState = new();
-        _polygon.GeometryChanged += RepositionWidgets;
+        _polygon.GeometryChanged += GeometryChanged;
         _viewport.ViewportChanged += RepositionWidgets;
 
         RepositionWidgets();
@@ -43,7 +43,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
     {
         ReleaseMouseCapture();
 
-        _polygon.GeometryChanged -= RepositionWidgets;
+        _polygon.GeometryChanged -= GeometryChanged;
         _viewport.ViewportChanged -= RepositionWidgets;
     }
 
@@ -189,6 +189,11 @@ public class ShapeToolOverlay : Canvas, IDisposable
         return (distanceSquared <= hitRadiusSquared);
     }
 
+    private void GeometryChanged(IPolygon polygon)
+    {
+        RepositionWidgets();
+    }
+    
     private void RepositionWidgets()
     {
         _vertexWidgets.Resize(_polygon.Vertices.Count);

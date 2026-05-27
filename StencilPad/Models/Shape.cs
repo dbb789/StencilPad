@@ -133,7 +133,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         _cachedBounds = null;
     }
 
-    private void InvalidateBoundsCache()
+    private void InvalidateBoundsCache(IPolygon polygon)
     {
         _cachedBounds = null;
         FireGeometryChanged();
