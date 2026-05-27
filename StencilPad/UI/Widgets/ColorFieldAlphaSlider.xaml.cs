@@ -6,6 +6,7 @@ namespace StencilPad.UI.Widgets;
 
 public partial class ColorFieldAlphaSlider : ColorFieldSliderBase
 {
+    protected override double DisplayScale => 255;
     public static readonly DependencyProperty BaseColorProperty =
         DependencyProperty.Register(nameof(BaseColor), typeof(Color), typeof(ColorFieldAlphaSlider),
             new FrameworkPropertyMetadata(Colors.Black, OnBaseColorChanged));

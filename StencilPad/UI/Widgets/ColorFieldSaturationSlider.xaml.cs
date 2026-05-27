@@ -7,6 +7,7 @@ namespace StencilPad.UI.Widgets;
 
 public partial class ColorFieldSaturationSlider : ColorFieldSliderBase
 {
+    protected override double DisplayScale => 100;
     public static readonly DependencyProperty HueProperty =
         DependencyProperty.Register(nameof(Hue), typeof(double), typeof(ColorFieldSaturationSlider),
             new FrameworkPropertyMetadata(0.0, OnGradientChanged));

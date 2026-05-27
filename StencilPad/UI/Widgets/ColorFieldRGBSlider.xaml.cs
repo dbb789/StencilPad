@@ -6,6 +6,7 @@ namespace StencilPad.UI.Widgets;
 
 public partial class ColorFieldRGBSlider : ColorFieldSliderBase
 {
+    protected override double DisplayScale => 255;
     public static readonly DependencyProperty ChannelColorProperty =
         DependencyProperty.Register(nameof(ChannelColor), typeof(Color), typeof(ColorFieldRGBSlider),
             new FrameworkPropertyMetadata(Colors.Red, OnChannelColorChanged));

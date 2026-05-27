@@ -1,8 +1,7 @@
 <widgets:ColorFieldSliderBase x:Class="StencilPad.UI.Widgets.ColorFieldSaturationSlider"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:widgets="clr-namespace:StencilPad.UI.Widgets"
-             Height="16">
+             xmlns:widgets="clr-namespace:StencilPad.UI.Widgets">
     <Grid ClipToBounds="True">
         <!-- Desaturated-to-saturated gradient -->
         <Rectangle x:Name="GradientRect"/>
@@ -10,10 +9,11 @@
         <!-- Drag canvas with marker -->
         <Canvas x:Name="DragCanvas" Background="Transparent">
             <Rectangle x:Name="Marker"
-                       Width="4" Height="16"
+                       Width="4" Height="20"
                        Stroke="Black" StrokeThickness="1"
                        Fill="White" Opacity="0.8"
                        IsHitTestVisible="False"/>
         </Canvas>
     </Grid>
 </widgets:ColorFieldSliderBase>
+

@@ -10,7 +10,7 @@
         Title="{Binding Title}" SizeToContent="WidthAndHeight"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
         WindowStyle="ToolWindow"
-        MinWidth="260">
+        MinWidth="320">
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="{x:Static SystemCommands.CloseWindowCommand}"/>
     </Window.InputBindings>
@@ -24,13 +24,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0">
+        <TabControl Grid.Row="0" Height="400">
             <TabItem Header="Fill Colour">
-                <widgets:ColorField Margin="8" MinWidth="200"
+                <widgets:ColorField Margin="8"
                                     Value="{Binding FillColor}"/>
             </TabItem>
             <TabItem Header="Line Colour">
-                <widgets:ColorField Margin="8" MinWidth="200"
+                <widgets:ColorField Margin="8"
                                     Value="{Binding LineColor}"/>
             </TabItem>
             <TabItem Header="Line Style">
