@@ -34,18 +34,21 @@ public partial class ColorField : UserControl
         HueSlider.ValueChanged += (_, _) =>
         {
             _hue = HueSlider.Value * 360;
+            SnapAlpha();
             CommitHsv();
         };
 
         SaturationSlider.ValueChanged += (_, _) =>
         {
             _saturation = SaturationSlider.Value;
+            SnapAlpha();
             CommitHsv();
         };
 
         BrightnessSlider.ValueChanged += (_, _) =>
         {
             _brightness = BrightnessSlider.Value;
+            SnapAlpha();
             CommitHsv();
         };
 
@@ -53,24 +56,28 @@ public partial class ColorField : UserControl
         {
             _saturation = SvPicker.Saturation;
             _brightness = SvPicker.Brightness;
+            SnapAlpha();
             CommitHsv();
         };
 
         RedSlider.ValueChanged += (_, _) =>
         {
             _red = RedSlider.Value;
+            SnapAlpha();
             CommitRgb();
         };
 
         GreenSlider.ValueChanged += (_, _) =>
         {
             _green = GreenSlider.Value;
+            SnapAlpha();
             CommitRgb();
         };
 
         BlueSlider.ValueChanged += (_, _) =>
         {
             _blue = BlueSlider.Value;
+            SnapAlpha();
             CommitRgb();
         };
 
@@ -79,9 +86,13 @@ public partial class ColorField : UserControl
             _alpha = AlphaSlider.Value;
 
             if (HsvRadio.IsChecked == true)
+            {
                 CommitHsv();
+            }
             else
+            {
                 CommitRgb();
+            }
         };
 
         Loaded += (_, _) =>
@@ -269,5 +280,13 @@ public partial class ColorField : UserControl
     private void UpdatePreview(Color color)
     {
         PreviewRect.Fill = new SolidColorBrush(color);
+    }
+
+    private void SnapAlpha()
+    {
+        if (_alpha == 0)
+        {
+            _alpha = 1;
+        }
     }
 }

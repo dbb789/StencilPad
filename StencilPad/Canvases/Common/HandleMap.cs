@@ -172,19 +172,19 @@ public class HandleMap : IHandleMap, IUnitSnap
     
     private void OnSheetElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.NewItems is not null)
-        {
-            foreach (SheetElement element in e.NewItems)
-            {
-                Add(element);
-            }
-        }
-
         if (e.OldItems is not null)
         {
             foreach (SheetElement element in e.OldItems)
             {
                 Remove(element);
+            }
+        }
+
+        if (e.NewItems is not null)
+        {
+            foreach (SheetElement element in e.NewItems)
+            {
+                Add(element);
             }
         }
     }
