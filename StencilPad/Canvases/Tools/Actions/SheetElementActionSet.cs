@@ -285,12 +285,17 @@ public class SheetElementActionSet
                 Action = (sheet, elements) =>
                 {
                     var operation = new BulkCommandOperation();
-
-                    foreach (var element in elements)
+                    var orderedElements = elements.OrderBy(e => sheet.Elements.IndexOf(e));
+                    int offset = 0;
+                    
+                    foreach (var element in orderedElements)
                     {
                         int index = sheet.Elements.IndexOf(element);
-                        
+
+                        index -= offset;
                         operation.Add(new ReorderSheetElementOperation(sheet, index, sheet.Elements.Count - 1));
+
+                        ++offset;
                     }
                     
                     operationService.Push(operation);
@@ -302,12 +307,17 @@ public class SheetElementActionSet
                 Action = (sheet, elements) =>
                 {
                     var operation = new BulkCommandOperation();
+                    var orderedElements = elements.OrderBy(e => sheet.Elements.IndexOf(e)).Reverse();
+                    int offset = 0;
 
-                    foreach (var element in elements)
+                    foreach (var element in orderedElements)
                     {
                         int index = sheet.Elements.IndexOf(element);
-                        
+
+                        index += offset;
                         operation.Add(new ReorderSheetElementOperation(sheet, index, 0));
+
+                        ++offset;
                     }
                     
                     operationService.Push(operation);
