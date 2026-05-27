@@ -117,10 +117,36 @@ public class ShapeRenderer : SheetElementRenderer
         using (var ctx = geometry.Open())
         {
             _walker.Context = ctx;
-            
-            polygon.Resolver.WalkPolygon(_walker);
-        }
 
+            if (!polygon.Closed)
+            {
+                var cdw = new CapDistanceWalker(Unit.FromMillimeters(2));
+
+                polygon.Resolver.WalkPolygon(cdw);
+
+                var startSegment = cdw.SegmentIndex;
+                var startFraction = cdw.Fraction;
+
+                cdw.Reset();
+
+                polygon.Resolver.WalkPolygonReversed(cdw);
+
+                var endSegment = cdw.SegmentIndex;
+                var endFraction = 1.0 - cdw.Fraction;
+
+                System.Diagnostics.Debug.WriteLine($"Start cap: segment {startSegment}, fraction {startFraction}");
+                System.Diagnostics.Debug.WriteLine($"End cap: segment {endSegment}, fraction {endFraction}");
+                
+                var cgw = new ClampedGeometryWalker(_walker,
+                                                    startSegment,
+                                                    startFraction,
+                                                    endSegment,
+                                                    endFraction);
+
+                polygon.Resolver.WalkPolygon(cgw);
+            }
+        }
+        
         geometry.Freeze();
 
         return geometry;

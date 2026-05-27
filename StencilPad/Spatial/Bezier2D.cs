@@ -91,7 +91,18 @@ public struct Bezier2D
                            Unit tolerance,
                            out double t)
     {
-        var initialPosition = At(start);
+        return WalkRadius(At(start), start, end, step, minStep, radius, tolerance, out t);
+    }
+
+    public bool WalkRadius(Unit2D initialPosition,
+                           double start,
+                           double end,
+                           double step,
+                           double minStep,
+                           Unit radius,
+                           Unit tolerance,
+                           out double t)
+    {
         var currentRadius = Unit.Zero;
         
         while (Iterate(start, end, step, minStep, tolerance, out double next))
