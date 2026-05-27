@@ -10,6 +10,8 @@ public class PolygonResolver : IPolygonResolver
     private List<Unit2D> _edgeEnd;
     private List<Unit2D> _clippedC1;
     private List<Unit2D> _clippedC2;
+    private int _edgeCount;
+    private int _cornerCount;
     
     public PolygonResolver(IPolygon polygon)
     {
@@ -21,6 +23,8 @@ public class PolygonResolver : IPolygonResolver
         _edgeEnd = new();
         _clippedC1 = new();
         _clippedC2 = new();
+        _edgeCount = 0;
+        _cornerCount = 0;
     }
 
     public void MarkGeometryDirty()
@@ -51,15 +55,86 @@ public class PolygonResolver : IPolygonResolver
 
         UpdateGeometry();
         
-        int vertexCount = _polygon.Closed ? _polygon.Vertices.Count : _polygon.Vertices.Count - 1;
+        var segmentCount = _edgeCount + _cornerCount;
 
-        for (int i = 0; i < vertexCount; ++i)
+        if (!walker.Begin(segmentCount, _polygon.Closed))
         {
-            AddEdgeToGeometry(walker, i, i == 0, _polygon.Closed);
-            AddCornerToGeometry(walker, i + 1);
+            return;
+        }   
+
+        int segmentIndex = 0;
+
+        for (int i = 0; i < _edgeCount - 1; ++i)
+        {
+            if (!AddEdgeToGeometry(walker, i, 1, ref segmentIndex))
+            {
+                return;
+            }
+
+            if (!AddCornerToGeometry(walker, i + 1, 1, ref segmentIndex))
+            {
+                return;
+            }   
+        }
+        
+        if (!AddEdgeToGeometry(walker, _edgeCount - 1, 1, ref segmentIndex))
+        {
+            return;
+        }
+        
+        if (_polygon.Closed)
+        {
+            AddCornerToGeometry(walker, _edgeCount, 1, ref segmentIndex);
         }
     }
     
+    public void WalkPolygonReversed(IGeometryWalker walker)
+    {
+        if (_polygon is null)
+        {
+            return;
+        }
+
+        if (_polygon.Vertices.Count < 2)
+        {
+            return;
+        }
+
+        UpdateGeometry();
+
+        var segmentCount = _edgeCount + _cornerCount;
+        
+        if (!walker.Begin(segmentCount, _polygon.Closed))
+        {
+            return;
+        }
+
+        int segmentIndex = segmentCount - 1;
+
+        if (_polygon.Closed)
+        {
+            if (!AddCornerToGeometry(walker, 0, -1, ref segmentIndex))
+            {
+                return;
+            }
+        }
+
+        for (int i = _edgeCount - 1; i >= 1; --i)
+        {
+            if (!AddEdgeToGeometry(walker, i, -1, ref segmentIndex))
+            {
+                return;
+            }
+
+            if (!AddCornerToGeometry(walker, i, -1, ref segmentIndex))
+            {
+                return;
+            }
+        }
+
+        AddEdgeToGeometry(walker, 0, -1, ref segmentIndex);
+    }
+
     public void WalkEdge(IGeometryWalker walker, int edgeIndex)
     {
         if (_polygon is null)
@@ -68,20 +143,21 @@ public class PolygonResolver : IPolygonResolver
         }
         
         UpdateGeometry();
-        AddEdgeToGeometry(walker, edgeIndex, true, false);
+        
+        walker.Begin(1, false);
+        
+        int segmentIndex = 0;
+        
+        AddEdgeToGeometry(walker, edgeIndex, 1, ref segmentIndex);
     }
 
-    private void AddEdgeToGeometry(IGeometryWalker walker,
+    private bool AddEdgeToGeometry(IGeometryWalker walker,
                                    int index,
-                                   bool initial,
-                                   bool closed)
+                                   int segmentDirection,
+                                   ref int segmentIndex)
     {
+        bool next = true;
         var edgeBegin = EdgeBegin(index);
-        
-        if (initial)
-        {
-            walker.Begin(edgeBegin, closed);
-        }
 
         index = NormalizeVertexIndex(index);
 
@@ -89,17 +165,28 @@ public class PolygonResolver : IPolygonResolver
         
         if (edge.Type == EdgeType.Bezier)
         {
-            walker.Bezier(edgeBegin, _clippedC1[index], _clippedC2[index], EdgeEnd(index));
+            next = walker.Bezier(segmentIndex,
+                                 edgeBegin,
+                                 _clippedC1[index],
+                                 _clippedC2[index],
+                                 EdgeEnd(index));
+            segmentIndex += segmentDirection;
         }
         else
         {
-            walker.Line(edgeBegin, EdgeEnd(index));
+            next = walker.Line(segmentIndex, edgeBegin, EdgeEnd(index));
+            segmentIndex += segmentDirection;
         }
+
+        return next;
     }
-    
-    private void AddCornerToGeometry(IGeometryWalker walker,
-                                            int index)
+
+    private bool AddCornerToGeometry(IGeometryWalker walker,
+                                     int index,
+                                     int segmentDirection,
+                                     ref int segmentIndex)
     {
+        bool next = true;
         var edgeBegin = EdgeBegin(index);
 
         var cornerType = _polygon.Vertices.At(index).CornerType;
@@ -107,21 +194,23 @@ public class PolygonResolver : IPolygonResolver
 
         if (cornerTangent <= Unit.Epsilon)
         {
-            return;
+            return next;
         }
 
         var edgeEnd = EdgeEnd(index - 1);
         
         if (cornerType == CornerType.Rounded)
         {
-            walker.Arc(edgeEnd,
-                       _polygon.Vertices.At(index).Position,
-                       edgeBegin);
+            next = walker.Arc(segmentIndex, edgeEnd, _polygon.Vertices.At(index).Position, edgeBegin);
+            segmentIndex += segmentDirection;
         }
         else if (cornerType == CornerType.Beveled)
         {
-            walker.Line(edgeEnd, edgeBegin);
+            next = walker.Line(segmentIndex, edgeEnd, edgeBegin);
+            segmentIndex += segmentDirection;
         }
+
+        return next;
     }
 
     private Unit2D EdgeBegin(int index)
@@ -168,19 +257,42 @@ public class PolygonResolver : IPolygonResolver
             _edgeEnd.Add(CalculateEdgeEnd(i));
         }
 
+        _cornerCount = 0;
+
         for (int i = 0; i < _polygon.Vertices.Count; ++i)
         {
             var (c1, c2) = CalculateClippedBezierControls(i);
+            
             _clippedC1.Add(c1);
             _clippedC2.Add(c2);
         }
+
+        for (int i = 0; i < _polygon.Vertices.Count - 1; ++i)
+        {
+            if (HasCorner(i))
+            {
+                ++_cornerCount;
+            }
+        }
+
+        if (_polygon.Closed && HasCorner(_polygon.Vertices.Count - 1))
+        {
+            ++_cornerCount;
+        }
+        
+        _edgeCount = _polygon.Closed ? _polygon.Vertices.Count : _polygon.Vertices.Count - 1;
+    }
+
+    private bool HasCorner(int index)
+    {
+        return _polygon.Vertices.At(index).CornerType != CornerType.None &&
+                _scaledCornerTangents[NormalizeVertexIndex(index)] > Unit.Epsilon;
     }
 
     private int NormalizeVertexIndex(int index)
     {
         return ((index + _polygon.Vertices.Count) % _polygon.Vertices.Count);
     }
-
 
     private Unit2D CalculateEdgeBegin(int index)
     {

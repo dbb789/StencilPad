@@ -16,6 +16,7 @@ public class ShapeRenderer : SheetElementRenderer
     private Dictionary<IPolygon, Geometry?> _geometryMap;
     private Pen? _pen;
     private Brush? _fill;
+    private Brush? _capFill;
     private Transform? _transform;
     
     public ShapeRenderer(Shape shape, IResourceService resourceService)
@@ -79,15 +80,18 @@ public class ShapeRenderer : SheetElementRenderer
     {
         _pen = new Pen(new SolidColorBrush(_shape.LineColor),
                        _shape.LineWidth.Millimeters);
-        _pen.StartLineCap = PenLineCap.Square;
-        _pen.EndLineCap = PenLineCap.Square;
+        _pen.StartLineCap = PenLineCap.Flat;
+        _pen.EndLineCap = PenLineCap.Flat;
         _pen.LineJoin = PenLineJoin.Miter;
         _pen.DashStyle = _resourceService.Get(_shape.LineStyle);
         
         _pen.Freeze();
         
         _fill = new SolidColorBrush(_shape.FillColor);
-        _fill.Freeze();        
+        _fill.Freeze();
+
+        _capFill = new SolidColorBrush(_shape.LineColor);
+        _capFill.Freeze();
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -146,6 +150,11 @@ public class ShapeRenderer : SheetElementRenderer
 
         dc.PushTransform(_transform);
 
+        var gg = new GeometryGroup
+        {
+            FillRule = FillRule.EvenOdd
+        };
+        
         foreach (var entry in _geometryMap)
         {
             var polygon = entry.Key;
@@ -157,27 +166,33 @@ public class ShapeRenderer : SheetElementRenderer
                 _geometryMap[polygon] = geometry;
             }
 
-            dc.DrawGeometry(polygon.Closed ? _fill : null, _pen, geometry);
+            gg.Children.Add(geometry);
 
             if (!polygon.Closed && polygon.Vertices.Count > 1)
             {
+                var capScale = _shape.LineWidth.Millimeters / 0.2;
+                
                 if (_shape.StartCap != GeometryResourceId.None)
                 {
                     var startCap = _resourceService.Get(_shape.StartCap);
                     var (startPosition, startRotation) = GetStartCapTransform(polygon);
 
-                    RenderCap(dc, _shape.StartCap, startPosition, startRotation);
+                    RenderCap(dc, _shape.StartCap, startPosition, startRotation, capScale);
                 }
 
                 if (_shape.EndCap != GeometryResourceId.None)
                 {
                     var endCap = _resourceService.Get(_shape.EndCap);
                     var (endPosition, endRotation) = GetEndCapTransform(polygon);
-
-                    RenderCap(dc, _shape.EndCap, endPosition, endRotation);
+                    
+                    RenderCap(dc, _shape.EndCap, endPosition, endRotation, capScale);
                 }
             }
         }
+
+        gg.Freeze();
+        
+        dc.DrawGeometry(_fill, _pen, gg);
         
         dc.Pop();
     }
@@ -185,7 +200,8 @@ public class ShapeRenderer : SheetElementRenderer
     private void RenderCap(DrawingContext dc,
                            GeometryResourceId cap,
                            Unit2D position,
-                           double rotationDegrees)
+                           double rotationDegrees,
+                           double scale)
     {
         if (cap == GeometryResourceId.None)
         {
@@ -197,7 +213,9 @@ public class ShapeRenderer : SheetElementRenderer
         dc.PushTransform(new TranslateTransform(position.X.Millimeters,
                                                 position.Y.Millimeters));
         dc.PushTransform(new RotateTransform(rotationDegrees + 90, 0, 0));
-        dc.DrawGeometry(_fill, _pen, geometry);
+        dc.PushTransform(new ScaleTransform(scale, scale, 0, 0));
+        dc.DrawGeometry(_capFill, null, geometry);
+        dc.Pop();
         dc.Pop();
         dc.Pop();
     }

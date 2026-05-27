@@ -5,8 +5,10 @@ public static class PolygonUtil
     public static bool ContainsPoint(Polygon polygon, Unit2D point, Unit tolerance)
     {
         if (polygon.Vertices.Count < 2)
+        {
             return false;
-
+        }
+        
         if (polygon.Vertices.Count == 2)
         {
             return IsNearSegment(
@@ -234,26 +236,37 @@ public static class PolygonUtil
             _point = point;
         }
 
-        public void Begin(Unit2D startPoint, bool closed) { }
-
-        public void Line(Unit2D from, Unit2D to)
+        public bool Begin(int segmentCount, bool closed)
         {
-            Winding += WindingSegment(from, to, _point);
+            return true;
         }
 
-        public void Arc(Unit2D start, Unit2D mid, Unit2D end)
+        public bool Line(int segmentIndex, Unit2D from, Unit2D to)
+        {
+            Winding += WindingSegment(from, to, _point);
+
+            return true;
+        }
+
+        public bool Arc(int segmentIndex, Unit2D start, Unit2D mid, Unit2D end)
         {
             Winding += WindingArc(start, mid, end, _point);
+
+            return true;
         }
 
-        public void Bezier(Unit2D from, Unit2D c1, Unit2D c2, Unit2D to)
+        public bool Bezier(int segmentIndex, Unit2D from, Unit2D c1, Unit2D c2, Unit2D to)
         {
             Winding += WindingBezier(from, c1, c2, to, _point, 0);
+
+            return true;
         }
 
-        public void AddLine(Unit2D from, Unit2D to)
+        public bool AddLine(Unit2D from, Unit2D to)
         {
             Winding += WindingSegment(from, to, _point);
+
+            return true;
         }
     }
 }
