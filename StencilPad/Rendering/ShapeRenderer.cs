@@ -13,7 +13,9 @@ public class ShapeRenderer : SheetElementRenderer
     private readonly Shape _shape;
     private readonly IResourceService _resourceService;
     private readonly StreamGeometryWalker _walker;
-    private Dictionary<IPolygon, Geometry?> _geometryMap;
+    private Dictionary<IPolygon, ShapePolygonRenderer> _rendererMap;
+    private GeometryGroup? _geometryGroup;
+    private bool _geometryGroupDirty;
     private Pen? _pen;
     private Brush? _fill;
     private Brush? _capFill;
@@ -22,20 +24,19 @@ public class ShapeRenderer : SheetElementRenderer
     public ShapeRenderer(Shape shape, IResourceService resourceService)
     {
         _shape = shape;
-        _shape.PolygonSet.PolygonAdded += PolygonAdded;
-        _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
+        _shape.PolygonSet.PolygonAdded += AddPolygon;
+        _shape.PolygonSet.PolygonRemoved += RemovePolygon;
         _shape.TransformChanged += OnTransformChanged;
         _shape.PropertyChanged += PropertyChanged;
 
         _resourceService = resourceService;
         _walker = new();
         
-        _geometryMap = new();
+        _rendererMap = new();
 
         foreach (var polygon in _shape.PolygonSet)
         {
-            polygon.GeometryChanged += MarkGeometryDirty;
-            _geometryMap[polygon] = BuildGeometry(polygon);
+            AddPolygon(polygon);
         }
 
         UpdateProperties();
@@ -45,35 +46,36 @@ public class ShapeRenderer : SheetElementRenderer
 
     public override void Dispose()
     {
-        foreach (var polygon in _shape.PolygonSet)
+        foreach (var (polygon, _) in _rendererMap.ToList())
         {
-            polygon.GeometryChanged -= MarkGeometryDirty;
+            RemovePolygon(polygon);
         }
-        
-        _shape.PolygonSet.PolygonAdded -= PolygonAdded;
-        _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
+
+        _shape.PolygonSet.PolygonAdded -= AddPolygon;
+        _shape.PolygonSet.PolygonRemoved -= RemovePolygon;
         _shape.TransformChanged -= OnTransformChanged;
         _shape.PropertyChanged -= PropertyChanged;
     }
 
-    private void PolygonAdded(EditablePolygon polygon)
+    private void AddPolygon(IPolygon polygon)
     {
-        polygon.GeometryChanged += MarkGeometryDirty;
-        MarkGeometryDirty(polygon);
-    }
+        var renderer = new ShapePolygonRenderer(polygon);
 
-    private void PolygonRemoved(EditablePolygon polygon)
-    {
-        polygon.GeometryChanged -= MarkGeometryDirty;
-        _geometryMap.Remove(polygon);
-        InvokeRendererDirty();
-    }
-
-    private void MarkGeometryDirty(IPolygon polygon)
-    {
-        _geometryMap[polygon] = null;
+        renderer.StartCap = GetStartCapGeometry();
+        renderer.EndCap = GetEndCapGeometry();
+        renderer.RendererDirty += PolygonDirty;
         
-        InvokeRendererDirty();
+        _rendererMap.Add(polygon, renderer);
+    }
+
+    private void RemovePolygon(IPolygon polygon)
+    {
+        if (_rendererMap.TryGetValue(polygon, out var renderer))
+        {
+            renderer.RendererDirty -= InvokeRendererDirty;
+            renderer.Dispose();
+            _rendererMap.Remove(polygon);
+        }
     }
 
     private void UpdateProperties()
@@ -92,6 +94,38 @@ public class ShapeRenderer : SheetElementRenderer
 
         _capFill = new SolidColorBrush(_shape.LineColor);
         _capFill.Freeze();
+
+        foreach (var renderer in _rendererMap.Values)
+        {
+            renderer.StartCap = GetStartCapGeometry();
+            renderer.EndCap = GetEndCapGeometry();
+        }
+    }
+
+    private Geometry? GetStartCapGeometry()
+    {
+        if (_shape.StartCap == GeometryResourceId.None)
+        {
+            return null;
+        }
+
+        return _resourceService.Get(_shape.StartCap);
+    }
+
+    private Geometry? GetEndCapGeometry()
+    {
+        if (_shape.StartCap == GeometryResourceId.None)
+        {
+            return null;
+        }
+
+        return _resourceService.Get(_shape.EndCap);
+    }
+
+    private void PolygonDirty()
+    {
+        _geometryGroupDirty = true;
+         InvokeRendererDirty();
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -107,53 +141,47 @@ public class ShapeRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
-    private Geometry BuildGeometry(IPolygon polygon)
+    private void UpdateGeometryGroup()
     {
-        var geometry = new StreamGeometry
+        if (!_geometryGroupDirty && _geometryGroup is not null)
+        {
+            return;
+        }
+
+        _geometryGroupDirty = false;
+        
+        _geometryGroup = new GeometryGroup
         {
             FillRule = FillRule.EvenOdd
         };
-
-        using (var ctx = geometry.Open())
+        
+        foreach (var (polygon, renderer) in _rendererMap)
         {
-            _walker.Context = ctx;
+            _geometryGroup.Children.Add(renderer.GetGeometry());
+        }
 
-            if (!polygon.Closed)
-            {
-                var cdw = new CapDistanceWalker();
-                
-                cdw.Reset(Unit.FromMillimeters(2));
+        _geometryGroup.Freeze();
+    }
+    
+    public override void Render(DrawingContext dc)
+    {
+        if (_pen is null || _fill is null || _transform is null)
+        {
+            return;
+        }
 
-                polygon.Resolver.WalkPolygon(cdw);
+        UpdateGeometryGroup();
+        
+        dc.PushTransform(_transform);
+        dc.DrawGeometry(_fill, _pen, _geometryGroup);
 
-                var startPoint = cdw.Point;
-
-                cdw.Reset(Unit.FromMillimeters(2));
-
-                polygon.Resolver.WalkPolygonReverse(cdw);
-
-                var endPoint = cdw.Point;
-
-                if (endPoint is not null)
-                {
-                    endPoint = endPoint.Value with { Fraction = 1.0 - endPoint.Value.Fraction };
-                }
-
-                var cgw = new ClampedGeometryWalker(_walker,
-                                                    startPoint,
-                                                    endPoint);
-
-                polygon.Resolver.WalkPolygon(cgw);
-            }
-            else
-            {
-                polygon.Resolver.WalkPolygon(_walker);
-            }
+        foreach (var (polygon, renderer) in _rendererMap)
+        {
+            renderer.RenderStartCap(dc, _pen);
+            renderer.RenderEndCap(dc, _pen);
         }
         
-        geometry.Freeze();
-
-        return geometry;
+        dc.Pop();
     }
 
     // Exposed so that ResourceService can build Geometry without needing to
@@ -169,154 +197,5 @@ public class ShapeRenderer : SheetElementRenderer
         {
             polygon.Resolver.WalkPolygon(walker);
         }
-    }
-
-    public override void Render(DrawingContext dc)
-    {
-        if (_pen is null || _fill is null || _transform is null)
-        {
-            return;
-        }
-
-        dc.PushTransform(_transform);
-
-        var gg = new GeometryGroup
-        {
-            FillRule = FillRule.EvenOdd
-        };
-        
-        foreach (var entry in _geometryMap)
-        {
-            var polygon = entry.Key;
-            var geometry = entry.Value;
-
-            if (geometry is null)
-            {
-                geometry = BuildGeometry(polygon);
-                _geometryMap[polygon] = geometry;
-            }
-
-            gg.Children.Add(geometry);
-
-            if (!polygon.Closed && polygon.Vertices.Count > 1)
-            {
-                var capScale = _shape.LineWidth.Millimeters / 0.2;
-                
-                if (_shape.StartCap != GeometryResourceId.None)
-                {
-                    var startCap = _resourceService.Get(_shape.StartCap);
-                    var (startPosition, startRotation) = GetStartCapTransform(polygon);
-
-                    RenderCap(dc, _shape.StartCap, startPosition, startRotation, capScale);
-                }
-
-                if (_shape.EndCap != GeometryResourceId.None)
-                {
-                    var endCap = _resourceService.Get(_shape.EndCap);
-                    var (endPosition, endRotation) = GetEndCapTransform(polygon);
-                    
-                    RenderCap(dc, _shape.EndCap, endPosition, endRotation, capScale);
-                }
-            }
-        }
-
-        gg.Freeze();
-        
-        dc.DrawGeometry(_fill, _pen, gg);
-        
-        dc.Pop();
-    }
-
-    private void RenderCap(DrawingContext dc,
-                           GeometryResourceId cap,
-                           Unit2D position,
-                           double rotationDegrees,
-                           double scale)
-    {
-        if (cap == GeometryResourceId.None)
-        {
-            return;
-        }
-
-        var geometry = _resourceService.Get(cap);
-        
-        dc.PushTransform(new TranslateTransform(position.X.Millimeters,
-                                                position.Y.Millimeters));
-        dc.PushTransform(new RotateTransform(rotationDegrees + 90, 0, 0));
-        dc.PushTransform(new ScaleTransform(scale, scale, 0, 0));
-        dc.DrawGeometry(_capFill, null, geometry);
-        dc.Pop();
-        dc.Pop();
-        dc.Pop();
-    }
-
-    private (Unit2D, double) GetStartCapTransform(IPolygon polygon)
-    {
-        var position = polygon.Vertices[0].Position;
-        Unit2D direction;
-        
-        if (polygon.Edges[0].Type == EdgeType.Bezier)
-        {
-            var bezier = BezierUtil.FromPolygonEdge(polygon, 0);
-            
-            if (bezier.WalkRadius(0,
-                                  1,
-                                  0.1,
-                                  0.0001,
-                                  Unit.FromMillimeters(2.5),
-                                  Unit.FromMillimeters(0.000001),
-                                  out var t))
-            {
-                direction = position - bezier.At(t);
-            }
-            else
-            {
-                direction = position - polygon.Vertices[1].Position;
-            }
-        }
-        else
-        {
-            direction = position - polygon.Vertices[1].Position;
-        }
-        
-        var rotation = Math.Atan2(direction.Y.Millimeters,
-                                  direction.X.Millimeters) * 180 / Math.PI;
-
-        return (position, rotation);
-    }
-
-    private (Unit2D, double) GetEndCapTransform(IPolygon polygon)
-    {
-        var position = polygon.Vertices[^1].Position;
-        Unit2D direction;
-
-        if (polygon.Edges[^1].Type == EdgeType.Bezier)
-        {
-            var bezier = BezierUtil.FromPolygonEdge(polygon, ^1);
-
-            if (bezier.WalkRadius(1,
-                                  0,
-                                  -0.1,
-                                  0.0001,
-                                  Unit.FromMillimeters(2.5),
-                                  Unit.FromMillimeters(0.0000001),
-                                  out var t))
-            {
-                direction = position - bezier.At(t);
-            }
-            else
-            {
-                direction = position - polygon.Vertices[^2].Position;
-            }
-        }
-        else
-        {
-            direction = position - polygon.Vertices[^2].Position;
-        }
-
-        var rotation = Math.Atan2(direction.Y.Millimeters,
-                                  direction.X.Millimeters) * 180 / Math.PI;
-
-        return (position, rotation);
     }
 }

@@ -9,15 +9,19 @@ public class ClampedGeometryWalker : IGeometryWalker
     private SegmentPoint _startPoint;
     private SegmentPoint _endPoint;
 
-    public ClampedGeometryWalker(IGeometryWalker inner,
-                                 SegmentPoint? startPoint,
-                                 SegmentPoint? endPoint)
+    public ClampedGeometryWalker(IGeometryWalker inner)
     {
         _inner = inner;
+        _startPoint = new SegmentPoint(0, 0.0);
+        _endPoint = new SegmentPoint(int.MaxValue, 1.0);
+    }
+
+    public void SetStartEnd(SegmentPoint? startPoint, SegmentPoint? endPoint)
+    {
         _startPoint = startPoint ?? new SegmentPoint(0, 0.0);
         _endPoint = endPoint ?? new SegmentPoint(int.MaxValue, 1.0);
     }
-
+    
     public bool Begin(int segmentCount, bool closed)
     {
         _endPoint = _endPoint with { Index = Math.Min(_endPoint.Index, segmentCount - 1) };
