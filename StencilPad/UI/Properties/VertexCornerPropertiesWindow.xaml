@@ -9,6 +9,7 @@
         d:DataContext="{d:DesignInstance Type=vm:VertexCornerPropertiesViewModel}"
         Title="{Binding Title}" SizeToContent="WidthAndHeight"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        WindowStyle="ToolWindow"
         MinWidth="260">
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="{x:Static SystemCommands.CloseWindowCommand}"/>
