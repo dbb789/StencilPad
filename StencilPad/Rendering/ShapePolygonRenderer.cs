@@ -85,7 +85,7 @@ public class ShapePolygonRenderer
         return _geometry;
     }
 
-    public void RenderStartCap(DrawingContext dc, Pen pen)
+    public void RenderStartCap(DrawingContext dc, Brush fill, Pen pen)
     {
         if (_polygon.Vertices.Count == 0 || _polygon.Closed)
         {
@@ -95,12 +95,12 @@ public class ShapePolygonRenderer
         if (_startCap is not null)
         {
             dc.PushTransform(_startCapTransform);
-            dc.DrawGeometry(null, pen, _startCap.Geometry);
+            dc.DrawGeometry(fill, pen, _startCap.Geometry);
             dc.Pop();
         }
     }
     
-    public void RenderEndCap(DrawingContext dc, Pen pen)
+    public void RenderEndCap(DrawingContext dc, Brush fill, Pen pen)
     {
         if (_polygon.Vertices.Count == 0 || _polygon.Closed)
         {
@@ -110,7 +110,7 @@ public class ShapePolygonRenderer
         if (_endCap is not null)
         {
             dc.PushTransform(_endCapTransform);
-            dc.DrawGeometry(null, pen, _endCap.Geometry);
+            dc.DrawGeometry(fill, pen, _endCap.Geometry);
             dc.Pop();
         }
     }

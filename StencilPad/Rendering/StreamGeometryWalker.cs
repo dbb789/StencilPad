@@ -79,7 +79,7 @@ public class StreamGeometryWalker() : IGeometryWalker
         }
 
         _startPosition = from;
-        Context.BeginFigure(from.Millimeters, isFilled: true, isClosed: _closed);
+        Context.BeginFigure(from.Millimeters, isFilled: _closed, isClosed: _closed);
         _figureStarted = true;
     }
 }

@@ -18,7 +18,6 @@ public class ShapeRenderer : SheetElementRenderer
     private bool _geometryGroupDirty;
     private Pen? _pen;
     private Brush? _fill;
-    private Brush? _capFill;
     private Transform? _transform;
     
     public ShapeRenderer(Shape shape, IResourceService resourceService)
@@ -93,9 +92,6 @@ public class ShapeRenderer : SheetElementRenderer
         _fill = new SolidColorBrush(_shape.FillColor);
         _fill.Freeze();
 
-        _capFill = new SolidColorBrush(_shape.LineColor);
-        _capFill.Freeze();
-
         foreach (var renderer in _rendererMap.Values)
         {
             renderer.StartCap = GetStartCapGeometry();
@@ -115,7 +111,7 @@ public class ShapeRenderer : SheetElementRenderer
 
     private GeometryResource? GetEndCapGeometry()
     {
-        if (_shape.StartCap == GeometryResourceId.None)
+        if (_shape.EndCap == GeometryResourceId.None)
         {
             return null;
         }
@@ -178,8 +174,8 @@ public class ShapeRenderer : SheetElementRenderer
 
         foreach (var (polygon, renderer) in _rendererMap)
         {
-            renderer.RenderStartCap(dc, _pen);
-            renderer.RenderEndCap(dc, _pen);
+            renderer.RenderStartCap(dc, _fill, _pen);
+            renderer.RenderEndCap(dc, _fill, _pen);
         }
         
         dc.Pop();
