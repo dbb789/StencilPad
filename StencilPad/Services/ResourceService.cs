@@ -10,15 +10,18 @@ namespace StencilPad.Services;
 
 public class ResourceService : IResourceService
 {
-    private Dictionary<GeometryResourceId, GeometryResource> _geometryCache;
+    private Dictionary<GeometryResourceId, GeometryResource> _geometryMap;
     private Dictionary<GeometryResourceType, List<GeometryResourceId>> _byType;
+    private Dictionary<LineStyleResourceId, DashStyle> _lineStyleMap;
 
     public ResourceService()
     {
-        _geometryCache = [];
+        _geometryMap = [];
         _byType = [];
-
-        Load();
+        _lineStyleMap = [];
+        
+        LoadGeometry();
+        LoadLineStyles();
     }
 
     public IEnumerable<GeometryResourceId> GetGeometryResourceIds(GeometryResourceType type)
@@ -31,7 +34,12 @@ public class ResourceService : IResourceService
         return Enumerable.Empty<GeometryResourceId>();
     }
 
-    private void Load()
+    public IEnumerable<LineStyleResourceId> GetLineStyleResourceIds()
+    {
+        return LineStyleResourceLibrary.ResourceList.Select(entry => entry.Item1);
+    }
+
+    private void LoadGeometry()
     {
         foreach (var entry in GeometryResourceLibrary.Load())
         {
@@ -47,6 +55,14 @@ public class ResourceService : IResourceService
 
             list.Add(entry.Id);
         }        
+    }
+
+    private void LoadLineStyles()
+    {
+        foreach (var entry in LineStyleResourceLibrary.ResourceList)
+        {
+            _lineStyleMap[entry.Item1] = entry.Item2;
+        }
     }
 
     private void Load(GeometryResourceId id, string filename, Unit2D? size)
@@ -67,7 +83,7 @@ public class ResourceService : IResourceService
         
         if (geometry != null)
         {
-            _geometryCache[id] = new GeometryResource(geometry, size ?? geometrySize);
+            _geometryMap[id] = new GeometryResource(geometry, size ?? geometrySize);
         }
         else
         {
@@ -82,7 +98,7 @@ public class ResourceService : IResourceService
             return GeometryResource.Empty;
         }
         
-        if (_geometryCache.TryGetValue(id, out var geometry))
+        if (_geometryMap.TryGetValue(id, out var geometry))
         {
             return geometry;
         }
@@ -92,7 +108,7 @@ public class ResourceService : IResourceService
 
     public DashStyle Get(LineStyleResourceId id)
     {
-        if (LineStyleResourceLibrary.ResourceMap.TryGetValue(id, out var style))
+        if (_lineStyleMap.TryGetValue(id, out var style))
         {
             return style;
         }

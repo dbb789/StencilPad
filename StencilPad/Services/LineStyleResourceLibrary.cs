@@ -5,10 +5,10 @@ namespace StencilPad.Services;
 
 public static class LineStyleResourceLibrary
 {
-    public static readonly IReadOnlyDictionary<LineStyleResourceId, DashStyle> ResourceMap =
-        new Dictionary<LineStyleResourceId, DashStyle>
+    public static readonly IReadOnlyList<(LineStyleResourceId, DashStyle)> ResourceList =
+        new List<(LineStyleResourceId, DashStyle)>
         {
-            { LineStyleResourceId.Solid, DashStyles.Solid },
-            { LineStyleResourceId.Dashes, DashStyles.Dash }
+            ( LineStyleResourceId.Solid, DashStyles.Solid ),
+            ( LineStyleResourceId.Dashes, DashStyles.Dash )
         };
 }

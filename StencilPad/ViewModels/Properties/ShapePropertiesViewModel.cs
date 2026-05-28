@@ -127,11 +127,8 @@ public class ShapePropertiesViewModel : ViewModelBase
         _capIds = [ GeometryResourceId.None ];
         _capIds.AddRange(resourceService.GetGeometryResourceIds(GeometryResourceType.Cap));
 
-        _lineStyles = new()
-        {
-            LineStyleResourceId.Solid,
-            LineStyleResourceId.Dashes
-        };
+        _lineStyles = [];
+        _lineStyles.AddRange(resourceService.GetLineStyleResourceIds());
         
         _shapes = shapes;
 
