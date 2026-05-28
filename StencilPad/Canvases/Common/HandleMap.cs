@@ -191,6 +191,27 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     private void OnSheetSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        if (e.OldItems is not null)
+        {
+            foreach (SheetElement element in e.OldItems)
+            {
+                element.QueryHandles((handle, localPosition, selected) =>
+                {
+                    if (_byHandle.TryGetValue(handle, out var entry))
+                    {
+                        entry.Editing = false;
+                        entry.Selected = false;
+
+                        element.SetHandleSelected(handle, false);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"HandleMap: Failed to clear selection for handle {handle} from element {element}");
+                    }
+                });
+            }
+        }
+
         if (e.NewItems is not null)
         {
             foreach (SheetElement element in e.NewItems)
@@ -204,24 +225,6 @@ public class HandleMap : IHandleMap, IUnitSnap
                     else
                     {
                         Debug.WriteLine($"HandleMap: Failed to set selection for handle {handle} from element {element}");
-                    }
-                });
-            }
-        }
-
-        if (e.OldItems is not null)
-        {
-            foreach (SheetElement element in e.OldItems)
-            {
-                element.QueryHandles((handle, localPosition, selected) =>
-                {
-                    if (_byHandle.TryGetValue(handle, out var entry))
-                    {
-                        entry.Editing = false;
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"HandleMap: Failed to clear selection for handle {handle} from element {element}");
                     }
                 });
             }
