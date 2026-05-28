@@ -44,8 +44,25 @@
                       Text="{Binding FontName, UpdateSourceTrigger=PropertyChanged}"
                       ItemsSource="{x:Static Fonts.SystemFontFamilies}"
                       DisplayMemberPath="Source"/>
-            <TextBox Grid.Column="4"
-                     Text="{Binding FontSize, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.##}}"/>
+            <ComboBox Grid.Column="4"
+                      IsEditable="True"
+                      Text="{Binding FontSize, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.##}}">
+                <ComboBoxItem>8</ComboBoxItem>
+                <ComboBoxItem>9</ComboBoxItem>
+                <ComboBoxItem>10</ComboBoxItem>
+                <ComboBoxItem>11</ComboBoxItem>
+                <ComboBoxItem>12</ComboBoxItem>
+                <ComboBoxItem>14</ComboBoxItem>
+                <ComboBoxItem>16</ComboBoxItem>
+                <ComboBoxItem>18</ComboBoxItem>
+                <ComboBoxItem>20</ComboBoxItem>
+                <ComboBoxItem>24</ComboBoxItem>
+                <ComboBoxItem>28</ComboBoxItem>
+                <ComboBoxItem>32</ComboBoxItem>
+                <ComboBoxItem>36</ComboBoxItem>
+                <ComboBoxItem>40</ComboBoxItem>
+                <ComboBoxItem>48</ComboBoxItem>
+            </ComboBox>
         </Grid>
 
         <!-- Colour label -->

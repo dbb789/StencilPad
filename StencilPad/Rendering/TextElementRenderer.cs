@@ -70,7 +70,7 @@ public class TextElementRenderer : SheetElementRenderer
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-            _textElement.FontSize,
+            Unit.FromFontSizePoints(_textElement.FontSize).Millimeters,
             new SolidColorBrush(_textElement.Color),
             1.0)
         {

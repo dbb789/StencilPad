@@ -14,10 +14,7 @@ public class TextToolOverlay : Canvas, IDisposable
     private TextBox? _textBox;
     private Unit2D? _pendingPosition;
 
-    /// <summary>Font size in millimeters — must match the default TextElement.FontSize.</summary>
-    public double FontSizeMm { get; set; } = 5.0;
-
-    /// <summary>Font family name — must match the default TextElement.FontName.</summary>
+    public double FontSize { get; set; } = 12.0;
     public string FontFamilyName { get; set; } = "Arial";
 
     public event Action<Unit2D, string>? OnTextPlaced;
@@ -73,10 +70,10 @@ public class TextToolOverlay : Canvas, IDisposable
         {
             Background = Brushes.White,
             BorderBrush = Brushes.CornflowerBlue,
-            BorderThickness = new Thickness(1),
             MinWidth = 100,
+            Padding = new Thickness(0),
             FontFamily = new FontFamily(FontFamilyName),
-            FontSize = _viewport.ToPixels(Unit.FromMillimeters(FontSizeMm)),
+            FontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize)),
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
         };
@@ -131,9 +128,10 @@ public class TextToolOverlay : Canvas, IDisposable
     {
         if (_textBox is not null && _pendingPosition.HasValue)
         {
-            _textBox.FontSize = _viewport.ToPixels(Unit.FromMillimeters(FontSizeMm));
+            _textBox.FontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize));
 
             var newScreenPos = _viewport.ToPoint(_pendingPosition.Value);
+            
             SetLeft(_textBox, newScreenPos.X);
             SetTop(_textBox, newScreenPos.Y);
         }

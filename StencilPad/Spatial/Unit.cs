@@ -9,7 +9,7 @@ public readonly record struct Unit
     
     public static readonly Unit Zero = new(0);
     public static readonly Unit Epsilon = new(0.0000001m);
-
+    
     public static Unit FromMillimeters(double millimeters)
     {
         return new Unit((decimal)millimeters);
@@ -38,6 +38,11 @@ public readonly record struct Unit
     public static Unit FromInches(decimal inches)
     {
         return new Unit(inches * InchesToMillimeters);
+    }
+    
+    public static Unit FromFontSizePoints(double points)
+    {
+        return new Unit((decimal)points * (InchesToMillimeters / 72m));
     }
 
     public static Unit FromType(decimal value, UnitType type)

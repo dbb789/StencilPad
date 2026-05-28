@@ -49,7 +49,7 @@ public class TextElement : SheetElement<TextElement>
         }
     }
 
-    private double _fontSize = 5.0;
+    private double _fontSize = 12.0;
     public double FontSize
     {
         get => _fontSize;
