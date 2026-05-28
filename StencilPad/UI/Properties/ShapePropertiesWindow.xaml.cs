@@ -16,7 +16,8 @@ public partial class ShapePropertiesWindow : Window
     {
         InitializeComponent();
 
-        ViewModel = new ShapePropertiesViewModel(shapes);
+        ViewModel = new ShapePropertiesViewModel(resourceService,
+                                                 shapes);
         DataContext = ViewModel;
         
         var startCapItems = ViewModel.CapIds.Select(
@@ -82,6 +83,8 @@ public partial class ShapePropertiesWindow : Window
             transformGroup.Children.Add(new TranslateTransform(5, -40));
             transformGroup.Children.Add(new RotateTransform(90, 0, 0));
         }
+
+        transformGroup.Children.Add(new ScaleTransform(2, 2));
 
         transformGroup.Freeze();
         

@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Geometry\Arrow0.spad" />
     <None Remove="Resources\Icons\MarkerPathTool.png" />
     <None Remove="Resources\Icons\RulerTool.png" />
     <None Remove="Resources\Icons\SelectionTool.png" />
@@ -20,15 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UI\Dialogs\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Canvases\Tools\Actions\PolygonSheetElementEditActionSet.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Resources\Geometry\Arrow0.spad">
+      <Content Include="Resources\Geometry\Index.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Geometry\*.spad">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Resource Include="Resources\Icons\EditTool.png">

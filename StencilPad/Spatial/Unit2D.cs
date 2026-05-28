@@ -7,6 +7,8 @@ public readonly record struct Unit2D(Unit X, Unit Y)
 {
     public static readonly Unit2D Zero = new(Unit.Zero, Unit.Zero);
 
+    public static Unit2D FromMillimeters(double x, double y) => new(Unit.FromMillimeters(x), Unit.FromMillimeters(y));
+    
     public Point Millimeters => new(X.Millimeters, Y.Millimeters);
 
     public Unit Magnitude

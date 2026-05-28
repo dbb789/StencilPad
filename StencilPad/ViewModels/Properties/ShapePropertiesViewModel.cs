@@ -1,5 +1,6 @@
 using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.ViewModels.Properties;
@@ -120,13 +121,11 @@ public class ShapePropertiesViewModel : ViewModelBase
     private List<GeometryResourceId> _capIds;
     private List<LineStyleResourceId> _lineStyles;
     
-    public ShapePropertiesViewModel(IEnumerable<Shape> shapes)
+    public ShapePropertiesViewModel(IResourceService resourceService,
+                                    IEnumerable<Shape> shapes)
     {
-        _capIds = new()
-        {
-            GeometryResourceId.None,
-            GeometryResourceId.Arrow0
-        };
+        _capIds = [ GeometryResourceId.None ];
+        _capIds.AddRange(resourceService.GetResourceIds(GeometryResourceType.Cap));
 
         _lineStyles = new()
         {

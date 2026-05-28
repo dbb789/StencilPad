@@ -11,19 +11,41 @@ namespace StencilPad.Services;
 public class ResourceService : IResourceService
 {
     private Dictionary<GeometryResourceId, GeometryResource> _geometryCache;
-    
+    private Dictionary<GeometryResourceType, List<GeometryResourceId>> _byType;
+
     public ResourceService()
     {
         _geometryCache = [];
+        _byType = [];
 
         Load();
     }
 
+    public IEnumerable<GeometryResourceId> GetResourceIds(GeometryResourceType type)
+    {
+        if (_byType.TryGetValue(type, out var list))
+        {
+            return list;
+        }
+
+        return Enumerable.Empty<GeometryResourceId>();
+    }
+
     private void Load()
     {
-        foreach (var (id, entry) in GeometryResourceLibrary.ResourceFiles)
+        foreach (var entry in GeometryResourceLibrary.Load())
         {
-            Load(id, entry.Filename, entry.Size);
+            Load(entry.Id, entry.Filename, entry.Size);
+
+            List<GeometryResourceId> list;
+            
+            if (!_byType.TryGetValue(entry.Type, out list!))
+            {
+                list = [];
+                _byType[entry.Type] = list;
+            }
+
+            list.Add(entry.Id);
         }        
     }
 
