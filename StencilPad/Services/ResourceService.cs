@@ -72,7 +72,6 @@ public class ResourceService : IResourceService
         
         try
         {
-            
             (geometry, geometrySize) = LoadGeometry(filename);
         }
         catch (Exception e)
