@@ -58,11 +58,11 @@ public class WpfModelPropertiesService : IModelPropertiesService
         PositionAndShow(window);
     }
 
-    public void ShowShapeProperties(IEnumerable<Shape> shapes)
+    public void ShowShapeProperties(Sheet sheet)
     {
         _openWindow?.Close();
 
-        var window = new ShapePropertiesWindow(_resourceService, shapes)
+        var window = new ShapePropertiesWindow(_resourceService, sheet)
         {
             Owner = _owner
         };

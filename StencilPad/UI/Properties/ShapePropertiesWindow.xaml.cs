@@ -12,12 +12,11 @@ public partial class ShapePropertiesWindow : Window
     public ShapePropertiesViewModel ViewModel { get; }
     
     public ShapePropertiesWindow(IResourceService resourceService,
-                                 IEnumerable<Shape> shapes)
+                                 Sheet sheet)
     {
         InitializeComponent();
 
-        ViewModel = new ShapePropertiesViewModel(resourceService,
-                                                 shapes);
+        ViewModel = new ShapePropertiesViewModel(resourceService, sheet);
         DataContext = ViewModel;
         
         var startCapItems = ViewModel.CapIds.Select(

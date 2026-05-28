@@ -17,9 +17,9 @@ public class SheetElementActionSet
             new MultiSheetElementAction<Shape>
             {
                 Name = "Shape Properties…",
-                Action = (sheet, elements) =>
+                Action = (sheet, _) =>
                 {
-                    modelPropertiesService.ShowShapeProperties(elements);
+                    modelPropertiesService.ShowShapeProperties(sheet);
                 }
             },
             new MultiSheetElementAction<MarkerPath>

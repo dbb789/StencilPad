@@ -5,13 +5,11 @@ using StencilPad.Spatial;
 
 namespace StencilPad.ViewModels.Properties;
 
-public class ShapePropertiesViewModel : ViewModelBase
+public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
 {
-    private readonly IEnumerable<Shape> _shapes;
-
-    public string Title => _shapes.Count() == 1
+    public string Title => Elements.Count() == 1
         ? "Shape Properties"
-        : $"Shape Properties ({_shapes.Count()} selected)";
+        : $"Shape Properties ({Elements.Count()} selected)";
 
     private Color _fillColor;
     public Color FillColor
@@ -21,7 +19,7 @@ public class ShapePropertiesViewModel : ViewModelBase
         {
             _fillColor = value;
 
-            foreach (var shape in _shapes)
+            foreach (var shape in Elements)
             {
                 shape.FillColor = value;
             }
@@ -38,7 +36,7 @@ public class ShapePropertiesViewModel : ViewModelBase
         {
             _lineColor = value;
 
-            foreach (var shape in _shapes)
+            foreach (var shape in Elements)
             {
                 shape.LineColor = value;
             }
@@ -55,7 +53,7 @@ public class ShapePropertiesViewModel : ViewModelBase
         {
             _lineWidth = value;
 
-            foreach (var shape in _shapes)
+            foreach (var shape in Elements)
             {
                 shape.LineWidth = value;
             }
@@ -72,7 +70,7 @@ public class ShapePropertiesViewModel : ViewModelBase
         {
             _startCapIndex = value;
 
-            foreach (var shape in _shapes)
+            foreach (var shape in Elements)
             {
                 shape.StartCap = _capIds[value];
             }
@@ -89,7 +87,7 @@ public class ShapePropertiesViewModel : ViewModelBase
         {
             _endCapIndex = value;
 
-            foreach (var shape in _shapes)
+            foreach (var shape in Elements)
             {
                 shape.EndCap = _capIds[value];
             }
@@ -106,7 +104,7 @@ public class ShapePropertiesViewModel : ViewModelBase
         {
             _lineStyleIndex = value;
 
-            foreach (var shape in _shapes)
+            foreach (var shape in Elements)
             {
                 shape.LineStyle = _lineStyles[value];
             }
@@ -122,20 +120,36 @@ public class ShapePropertiesViewModel : ViewModelBase
     private List<LineStyleResourceId> _lineStyles;
     
     public ShapePropertiesViewModel(IResourceService resourceService,
-                                    IEnumerable<Shape> shapes)
+                                    Sheet sheet)
+        : base(sheet)
     {
         _capIds = [ GeometryResourceId.None ];
         _capIds.AddRange(resourceService.GetGeometryResourceIds(GeometryResourceType.Cap));
 
         _lineStyles = [];
         _lineStyles.AddRange(resourceService.GetLineStyleResourceIds());
-        
-        _shapes = shapes;
 
-        var first = shapes.First();
+        OnElementsChanged();
+    }
 
-        _fillColor = first.FillColor;
-        _lineColor = first.LineColor;
-        _lineWidth = first.LineWidth;
+    protected override void OnElementsChanged()
+    {
+        _fillColor = Mode(shape => shape.FillColor);
+        OnPropertyChanged(nameof(FillColor));
+
+        _lineColor = Mode(shape => shape.LineColor);
+        OnPropertyChanged(nameof(LineColor));
+
+        _lineWidth = Mode(shape => shape.LineWidth);
+        OnPropertyChanged(nameof(LineWidth));
+
+        _startCapIndex = Mode(shape => _capIds.IndexOf(shape.StartCap));
+        OnPropertyChanged(nameof(StartCapIndex));
+
+        _endCapIndex = Mode(shape => _capIds.IndexOf(shape.EndCap));
+        OnPropertyChanged(nameof(EndCapIndex));
+
+        _lineStyleIndex = Mode(shape => _lineStyles.IndexOf(shape.LineStyle));
+        OnPropertyChanged(nameof(LineStyleIndex));
     }
 }
