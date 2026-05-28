@@ -3,7 +3,7 @@ namespace StencilPad.Models;
 public record GeometryResourceId : ResourceId
 {
     public static readonly GeometryResourceId None = new(0);
-    public static readonly GeometryResourceId Arrow0 = new(1);
+    public static readonly GeometryResourceId First = new(1);
 
     public static GeometryResourceId FromValue(int id)
     {

@@ -46,7 +46,7 @@ public class RulerRenderer : SheetElementRenderer
         var start = _ruler.Min;
         var end = _ruler.Max;
 
-        var geometry = _resourceService.Get(GeometryResourceId.Arrow0);
+        var geometry = _resourceService.Get(GeometryResourceId.First);
         var offset = end - start;
         
         dc.PushTransform(_transform);
@@ -71,8 +71,8 @@ public class RulerRenderer : SheetElementRenderer
             _brush,
             1.0);
 
-        var rotation = Math.Atan2(end.Y.Millimeters - start.Y.Millimeters,
-                                  end.X.Millimeters - start.X.Millimeters) * 180.0 / Math.PI;
+        var rotation = Math.Atan2((end.Y - start.Y).Millimeters,
+                                  (end.X - start.X).Millimeters) * 180.0 / Math.PI;
 
         dc.PushTransform(new TranslateTransform(mid.X.Millimeters, mid.Y.Millimeters));
         dc.PushTransform(new RotateTransform(rotation));
