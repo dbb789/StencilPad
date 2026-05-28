@@ -43,16 +43,23 @@ public class RulerRenderer : SheetElementRenderer
             return;
         }
 
-        var start = _ruler.Min.Millimeters;
-        var end = _ruler.Max.Millimeters;
+        var start = _ruler.Min;
+        var end = _ruler.Max;
 
+        var geometry = _resourceService.Get(GeometryResourceId.Arrow0);
+        var offset = end - start;
+        
         dc.PushTransform(_transform);
-        dc.DrawLine(_pen, start, end);
+        
+        DrawCap(dc, geometry.Geometry, end, start);
+        DrawCap(dc, geometry.Geometry, start, end);
 
-        DrawArrowhead(dc, end, start);
-        DrawArrowhead(dc, start, end);
+        start += offset.NormalizedTo(geometry.Size.Y);
+        end -= offset.NormalizedTo(geometry.Size.Y);
 
-        var mid = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0);
+        dc.DrawLine(_pen, start.Millimeters, end.Millimeters);
+        
+        var mid = new Unit2D((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0);
         var label = $"{_ruler.Length.Millimeters:F1} mm";
 
         var formattedText = new FormattedText(
@@ -64,9 +71,10 @@ public class RulerRenderer : SheetElementRenderer
             _brush,
             1.0);
 
-        var rotation = Math.Atan2(end.Y - start.Y, end.X - start.X) * 180.0 / Math.PI;
+        var rotation = Math.Atan2(end.Y.Millimeters - start.Y.Millimeters,
+                                  end.X.Millimeters - start.X.Millimeters) * 180.0 / Math.PI;
 
-        dc.PushTransform(new TranslateTransform(mid.X, mid.Y));
+        dc.PushTransform(new TranslateTransform(mid.X.Millimeters, mid.Y.Millimeters));
         dc.PushTransform(new RotateTransform(rotation));
         dc.DrawText(formattedText, new Point(-formattedText.Width / 2, 0.5));
         dc.Pop();
@@ -75,24 +83,17 @@ public class RulerRenderer : SheetElementRenderer
         dc.Pop();
     }
 
-    private void DrawArrowhead(DrawingContext dc, Point tip, Point from)
+    private void DrawCap(DrawingContext dc, Geometry geometry, Unit2D tipUnits, Unit2D fromUnits)
     {
-        var geometry = _resourceService.Get(GeometryResourceId.Arrow0);
-
-        if (geometry is null)
-        {
-            return;
-        }
-        
+        var tip = tipUnits.Millimeters;
+        var from = fromUnits.Millimeters;
         var rotation = Math.Atan2(from.Y - tip.Y, from.X - tip.X) * 180.0 / Math.PI;
 
         rotation -= 90.0;
 
         dc.PushTransform(new TranslateTransform(tip.X, tip.Y));
         dc.PushTransform(new RotateTransform(rotation));
-        dc.PushTransform(new ScaleTransform(0.25, 0.25));
-        dc.DrawGeometry(_brush, null, geometry.Geometry);
-        dc.Pop();
+        dc.DrawGeometry(_brush, null, geometry);
         dc.Pop();
         dc.Pop();
     }

@@ -325,7 +325,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     {
         foreach (var selected in _sheet.Selection)
         {
-            if (selected.GetTransformedBounds().Contains(point))
+            if (selected.ContainsPoint(point))
             {
                 return selected;
             }
@@ -335,22 +335,22 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     }
 
     private void SelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.NewItems != null)
-        {
-            foreach (ISheetElement element in e.NewItems)
-            {
-                element.TransformChanged += OnTransformChanged;
-                element.GeometryChanged += OnTransformChanged;
-            }
-        }
-
+    {       
         if (e.OldItems != null)
         {
             foreach (ISheetElement element in e.OldItems)
             {
                 element.TransformChanged -= OnTransformChanged;
                 element.GeometryChanged -= OnTransformChanged;
+            }
+        }
+
+        if (e.NewItems != null)
+        {
+            foreach (ISheetElement element in e.NewItems)
+            {
+                element.TransformChanged += OnTransformChanged;
+                element.GeometryChanged += OnTransformChanged;
             }
         }
 

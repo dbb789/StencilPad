@@ -93,6 +93,13 @@ public abstract class SheetElement : ModelBase, ISheetElement
     {
         var localPoint = Transform.InverseApply(point);
         var bounds = GetBounds(UnitTransform.Identity);
+
+        var size = bounds.Size;
+
+        size = new Unit2D(Unit.Max(size.X, Unit.FromMillimeters(1)),
+                          Unit.Max(size.Y, Unit.FromMillimeters(1)));
+
+        bounds = UnitBounds.FromCenterSize(bounds.Center, size);
         
         return bounds.Contains(localPoint);
     }

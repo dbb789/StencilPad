@@ -1,5 +1,5 @@
-using StencilPad.Models;
 using System.Windows.Media;
+using StencilPad.Models;
 
 namespace StencilPad.Services;
 

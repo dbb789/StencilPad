@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Windows;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Rendering;
