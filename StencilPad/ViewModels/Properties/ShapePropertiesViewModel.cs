@@ -125,7 +125,7 @@ public class ShapePropertiesViewModel : ViewModelBase
                                     IEnumerable<Shape> shapes)
     {
         _capIds = [ GeometryResourceId.None ];
-        _capIds.AddRange(resourceService.GetResourceIds(GeometryResourceType.Cap));
+        _capIds.AddRange(resourceService.GetGeometryResourceIds(GeometryResourceType.Cap));
 
         _lineStyles = new()
         {

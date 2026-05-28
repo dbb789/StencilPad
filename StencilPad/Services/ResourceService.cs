@@ -21,7 +21,7 @@ public class ResourceService : IResourceService
         Load();
     }
 
-    public IEnumerable<GeometryResourceId> GetResourceIds(GeometryResourceType type)
+    public IEnumerable<GeometryResourceId> GetGeometryResourceIds(GeometryResourceType type)
     {
         if (_byType.TryGetValue(type, out var list))
         {
