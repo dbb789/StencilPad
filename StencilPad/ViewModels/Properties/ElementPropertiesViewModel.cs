@@ -6,6 +6,17 @@ namespace StencilPad.ViewModels.Properties;
 public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDisposable
     where TElement : ISheetElement
 {
+    private bool _hasElements;
+    public bool HasElements
+    {
+        get => _hasElements;
+        private set
+        {
+            _hasElements = value;
+            OnPropertyChanged();
+        }
+    }
+    
     protected IEnumerable<TElement> Elements => _elements;
     
     private readonly Sheet _sheet;
@@ -15,6 +26,8 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
     {
         _sheet = sheet;
         _elements = _sheet.Selection.OfType<TElement>().ToList();
+
+        HasElements = _elements.Count > 0;
 
         _sheet.Selection.CollectionChanged += SelectionChanged;
     }
@@ -48,6 +61,7 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
             }
         }
 
+        HasElements = _elements.Count > 0;
         OnElementsChanged();
     }
 

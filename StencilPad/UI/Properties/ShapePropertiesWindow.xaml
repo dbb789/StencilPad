@@ -24,7 +24,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0" Height="400">
+        <TabControl Grid.Row="0" Height="400" IsEnabled="{Binding HasElements}">
             <TabItem Header="Fill Colour">
                 <widgets:ColorField Margin="8"
                                     Value="{Binding FillColor}"/>
