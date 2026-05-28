@@ -18,7 +18,7 @@ public class ImageElementSchema : SheetElementSchema
             Min = element.Min,
             Max = element.Max,
             ImageData = element.ImageData,
-            Transform = element.Transform
+            Transform = UnitTransformSchema.Pack(element.Transform)
         };
     }
 
@@ -26,7 +26,7 @@ public class ImageElementSchema : SheetElementSchema
     {
         return new ImageElement(Min, Max, ImageData)
         {
-            Transform = Transform
+            Transform = UnitTransformSchema.Unpack(Transform)
         };
     }
 }

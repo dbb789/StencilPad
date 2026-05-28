@@ -140,7 +140,7 @@ public class ShapePolygonRenderer
                 if (_startCap is not null)
                 {
                     _capWalker ??= new CapDistanceWalker();
-                    _capWalker.Reset(_startCap.Bounds.Size.Y + _lineWidth);
+                    _capWalker.Reset(_startCap.Size.Y + _lineWidth);
 
                     polygon.Resolver.WalkPolygon(_capWalker);
 
@@ -150,7 +150,7 @@ public class ShapePolygonRenderer
                 if (_endCap is not null)
                 {
                     _capWalker ??= new CapDistanceWalker();
-                    _capWalker.Reset(_endCap.Bounds.Size.Y + _lineWidth);
+                    _capWalker.Reset(_endCap.Size.Y + _lineWidth);
 
                     polygon.Resolver.WalkPolygonReverse(_capWalker);
 

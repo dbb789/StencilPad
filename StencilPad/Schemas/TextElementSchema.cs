@@ -23,7 +23,7 @@ public class TextElementSchema : SheetElementSchema
             FontName = element.FontName,
             FontSize = element.FontSize,
             Color = element.Color,
-            Transform = element.Transform
+            Transform = UnitTransformSchema.Pack(element.Transform)
         };
     }
 
@@ -35,7 +35,7 @@ public class TextElementSchema : SheetElementSchema
             FontName = FontName,
             FontSize = FontSize,
             Color = Color,
-            Transform = Transform
+            Transform = UnitTransformSchema.Unpack(Transform)
         };
     }
 }

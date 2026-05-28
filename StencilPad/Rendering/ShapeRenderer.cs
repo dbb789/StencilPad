@@ -181,19 +181,4 @@ public class ShapeRenderer : SheetElementRenderer
         
         dc.Pop();
     }
-
-    // Exposed so that ResourceService can build Geometry without needing to
-    // know how to interpret a Shape object.
-    public static void AddToGeometry(Shape shape, StreamGeometryContext ctx)
-    {
-        var walker = new StreamGeometryWalker
-        {
-            Context = ctx
-        };
-        
-        foreach (var polygon in shape.PolygonSet)
-        {
-            polygon.Resolver.WalkPolygon(walker);
-        }
-    }
 }

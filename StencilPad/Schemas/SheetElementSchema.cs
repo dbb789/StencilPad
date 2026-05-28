@@ -4,16 +4,16 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Schemas;
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(ElementGroupSchema), "group")]
-[JsonDerivedType(typeof(ShapeSchema), "shape")]
-[JsonDerivedType(typeof(MarkerPathSchema), "markerpath")]
-[JsonDerivedType(typeof(RulerSchema), "ruler")]
-[JsonDerivedType(typeof(TextElementSchema), "text")]
-[JsonDerivedType(typeof(ImageElementSchema), "image")]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
+[JsonDerivedType(typeof(ElementGroupSchema), "Group")]
+[JsonDerivedType(typeof(ShapeSchema), "Shape")]
+[JsonDerivedType(typeof(MarkerPathSchema), "MarkerPath")]
+[JsonDerivedType(typeof(RulerSchema), "Ruler")]
+[JsonDerivedType(typeof(TextElementSchema), "Text")]
+[JsonDerivedType(typeof(ImageElementSchema), "Image")]
 public abstract class SheetElementSchema
 {
-    public UnitTransform Transform { get; set; } = UnitTransform.Identity;
+    public UnitTransformSchema Transform { get; set; } = new();
 
     public abstract ISheetElement Unpack();
 

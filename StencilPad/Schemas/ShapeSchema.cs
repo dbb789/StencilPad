@@ -7,8 +7,8 @@ namespace StencilPad.Schemas;
 public class ShapeSchema : SheetElementSchema
 {
     public PolygonSchema [] Polygons { get; set; } = [];
-    public Color FillColor { get; set; } = new();
-    public Color LineColor { get; set; } = new();
+    public ColorSchema FillColor { get; set; } = new();
+    public ColorSchema LineColor { get; set; } = new();
     public Unit LineWidth { get; set; } = new();
     public int StartCap { get; set; } = 0;
     public int EndCap { get; set; } = 0;
@@ -18,9 +18,9 @@ public class ShapeSchema : SheetElementSchema
         return new ShapeSchema
         {
             Polygons = shape.PolygonSet.Select(p => PolygonSchema.Pack(p)).ToArray(),
-            Transform = shape.Transform,
-            FillColor = shape.FillColor,
-            LineColor = shape.LineColor,
+            Transform = UnitTransformSchema.Pack(shape.Transform),
+            FillColor = ColorSchema.Pack(shape.FillColor),
+            LineColor = ColorSchema.Pack(shape.LineColor),
             LineWidth = shape.LineWidth,
             StartCap = shape.StartCap.ToValue(),
             EndCap = shape.EndCap.ToValue()
@@ -31,9 +31,9 @@ public class ShapeSchema : SheetElementSchema
     {
         var shape = new Shape()
         {
-            Transform = Transform,
-            FillColor = FillColor,
-            LineColor = LineColor,
+            Transform = UnitTransformSchema.Unpack(Transform),
+            FillColor = ColorSchema.Unpack(FillColor),
+            LineColor = ColorSchema.Unpack(LineColor),
             LineWidth = LineWidth,
             StartCap = GeometryResourceId.FromValue(StartCap),
             EndCap = GeometryResourceId.FromValue(EndCap)

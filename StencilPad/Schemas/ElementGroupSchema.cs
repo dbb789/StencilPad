@@ -13,7 +13,8 @@ public class ElementGroupSchema : SheetElementSchema
         {
             Children = elementGroup.Children
                 .Select(Pack).Where(c => c is not null).ToArray()!,
-            Transform = elementGroup.Transform
+                
+            Transform = UnitTransformSchema.Pack(elementGroup.Transform)
         };
     }
 
@@ -22,8 +23,9 @@ public class ElementGroupSchema : SheetElementSchema
         var children = Children.Select(c => c.Unpack()).ToArray();
         
         var group = new ElementGroup(children);
-        group.Transform = Transform;
         
+        group.Transform = UnitTransformSchema.Unpack(Transform);
+
         return group;
     }
 }

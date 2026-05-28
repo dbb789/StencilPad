@@ -5,15 +5,15 @@ namespace StencilPad.Models;
 
 public record GeometryResource
 {
-    public static readonly GeometryResource Empty = new GeometryResource(Geometry.Empty, UnitBounds.Empty);
+    public static readonly GeometryResource Empty = new GeometryResource(Geometry.Empty, Unit2D.Zero);
     
     public Geometry Geometry { get; init; }
-    public UnitBounds Bounds { get; init; }
+    public Unit2D Size { get; init; }
 
     public GeometryResource(Geometry geometry,
-                            UnitBounds bounds)
+                            Unit2D size)
     {
         Geometry = geometry;
-        Bounds = bounds;
+        Size = size;
     }
 }

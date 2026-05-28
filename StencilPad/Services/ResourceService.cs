@@ -21,20 +21,21 @@ public class ResourceService : IResourceService
 
     private void Load()
     {
-        foreach (var (id, path) in GeometryResourceLibrary.ResourceFiles)
+        foreach (var (id, entry) in GeometryResourceLibrary.ResourceFiles)
         {
-            Load(id, path);
+            Load(id, entry.Filename, entry.Size);
         }        
     }
 
-    private void Load(GeometryResourceId id, string filename)
+    private void Load(GeometryResourceId id, string filename, Unit2D? size)
     {
         Geometry? geometry = null;
-        UnitBounds bounds;
+        Unit2D geometrySize = Unit2D.Zero;
         
         try
         {
-            (geometry, bounds) = LoadGeometry(filename);
+            
+            (geometry, geometrySize) = LoadGeometry(filename);
         }
         catch (Exception e)
         {
@@ -44,7 +45,7 @@ public class ResourceService : IResourceService
         
         if (geometry != null)
         {
-            _geometryCache[id] = new GeometryResource(geometry, bounds);
+            _geometryCache[id] = new GeometryResource(geometry, size ?? geometrySize);
         }
         else
         {
@@ -78,7 +79,7 @@ public class ResourceService : IResourceService
     }
 
     // NOTE: Throws a variety of exceptions on failure.
-    private (Geometry?, UnitBounds) LoadGeometry(string filename)
+    private (Geometry?, Unit2D) LoadGeometry(string filename)
     {
         var schema = SchemaUtil.LoadProject(filename);
 
@@ -101,14 +102,24 @@ public class ResourceService : IResourceService
             {
                 if (element is Shape shape)
                 {
-                    bounds = UnitBounds.Union(bounds, shape.GetBounds(UnitTransform.Identity));
-                    ShapeRenderer.AddToGeometry(shape, ctx);
+                    var walker = new StreamGeometryWalker
+                    {
+                        Context = ctx
+                    };
+                    
+                    foreach (var polygon in shape.PolygonSet)
+                    {
+                        polygon.Transform(shape.Transform);
+                        bounds = UnitBounds.Union(bounds, polygon.CalculateBounds());
+
+                        polygon.Resolver.WalkPolygon(walker);
+                    }
                 }
             }
         }
 
         geometry.Freeze();
 
-        return (geometry, bounds ?? UnitBounds.Empty);
+        return (geometry, bounds?.Size ?? Unit2D.Zero);
     }
 }

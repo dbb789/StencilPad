@@ -231,6 +231,9 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         FillColor = other.FillColor;
         LineColor = other.LineColor;
         LineWidth = other.LineWidth;
+        LineStyle = other.LineStyle;
+        StartCap = other.StartCap;
+        EndCap = other.EndCap;
     }
     
     public override Shape DeepClone()

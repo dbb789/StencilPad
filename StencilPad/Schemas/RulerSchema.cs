@@ -14,7 +14,7 @@ public class RulerSchema : SheetElementSchema
         {
             Min = ruler.Min,
             Max = ruler.Max,
-            Transform = ruler.Transform
+            Transform = UnitTransformSchema.Pack(ruler.Transform)
         };
     }
 
@@ -24,7 +24,7 @@ public class RulerSchema : SheetElementSchema
         {
             Min = Min,
             Max = Max,
-            Transform = Transform
+            Transform = UnitTransformSchema.Unpack(Transform)
         };
     }
 }
