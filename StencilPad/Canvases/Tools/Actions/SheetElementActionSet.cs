@@ -30,6 +30,14 @@ public class SheetElementActionSet
                     modelPropertiesService.ShowMarkerPathProperties(elements);
                 }
             },
+            new MultiSheetElementAction<TextElement>
+            {
+                Name = "Text Properties…",
+                Action = (sheet, _) =>
+                {
+                    modelPropertiesService.ShowTextProperties(sheet);
+                }
+            },
             new MultiSheetElementAction<Shape>
             {
                 Name = "Combine Shapes",

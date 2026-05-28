@@ -22,6 +22,7 @@ public class TextElementRenderer : SheetElementRenderer
         _textElement.GeometryChanged += GeometryChanged;
         _textElement.TransformChanged += TransformChanged;
         _textElement.PropertyChanged += OnPropertyChanged;
+        
         RebuildFormattedText();
     }
 

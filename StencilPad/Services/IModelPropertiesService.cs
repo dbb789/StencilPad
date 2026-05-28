@@ -8,4 +8,5 @@ public interface IModelPropertiesService
     void ShowVertexCornerProperties(Sheet sheet, IEnumerable<VertexCornerTarget> targets);
     void ShowMarkerPathProperties(IEnumerable<MarkerPath> MarkerPaths);
     void ShowShapeProperties(Sheet sheet);
+    void ShowTextProperties(Sheet sheet);
 }

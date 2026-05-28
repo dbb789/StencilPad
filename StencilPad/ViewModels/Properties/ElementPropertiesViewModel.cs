@@ -67,7 +67,7 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
 
     protected virtual void OnElementsChanged()
     {
-        
+        // ...
     }
 
     protected T? Mode<T>(Func<TElement, T> selector) where T : notnull

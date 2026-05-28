@@ -72,6 +72,21 @@ public class WpfModelPropertiesService : IModelPropertiesService
 
         PositionAndShow(window);
     }
+    
+    public void ShowTextProperties(Sheet sheet)
+    {
+        _openWindow?.Close();
+
+        var window = new TextPropertiesWindow(sheet)
+        {
+            Owner = _owner
+        };
+
+        _openWindow = window;
+        window.Closed += (_, _) => _openWindow = null;
+
+        PositionAndShow(window);
+    }
 
     private void PositionAndShow(Window window)
     {

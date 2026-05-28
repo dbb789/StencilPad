@@ -38,6 +38,12 @@ public partial class ShapePropertiesWindow : Window
         LineStyleDropdown.Items = lineStyleItems;
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        ViewModel.Dispose();
+    }
+
     private void Close_Click(object sender, RoutedEventArgs e)
     {
         Close();

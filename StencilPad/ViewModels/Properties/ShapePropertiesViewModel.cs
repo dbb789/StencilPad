@@ -7,9 +7,7 @@ namespace StencilPad.ViewModels.Properties;
 
 public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
 {
-    public string Title => Elements.Count() == 1
-        ? "Shape Properties"
-        : $"Shape Properties ({Elements.Count()} selected)";
+    public string Title => "Shape Properties";
 
     private Color _fillColor;
     public Color FillColor
