@@ -24,6 +24,19 @@ public class OperationService : IOperationService
 
         return _currentEditContext;
     }
+    
+    public IDisposable CreateEditContext(Sheet sheet,
+                                         ISheetElement element)
+    {
+        if (_currentEditContext is not null)
+        {
+            throw new InvalidOperationException("Cannot create a new edit context while another one is active");
+        }
+
+        _currentEditContext = new EditSheetElementContext(sheet, element, this);
+
+        return _currentEditContext;
+    }
 
     public void FlushEditContext()
     {

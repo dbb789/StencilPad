@@ -11,6 +11,9 @@ public interface IOperationService : IFlushEditContext
 
     IDisposable CreateEditContext(Sheet sheet,
                                   IEnumerable<ISheetElement> elements);
+
+    IDisposable CreateEditContext(Sheet sheet, ISheetElement element);
+
     void FlushEditContext();
     void DiscardEditContext();
 
