@@ -6,7 +6,7 @@ public interface IModelPropertiesService
 {
     void CloseAll();
     void ShowVertexCornerProperties(Sheet sheet, IEnumerable<VertexCornerTarget> targets);
-    void ShowMarkerPathProperties(IEnumerable<MarkerPath> MarkerPaths);
+    void ShowMarkerPathProperties(Sheet sheet);
     void ShowShapeProperties(Sheet sheet);
     void ShowTextProperties(Sheet sheet);
     void ShowRulerProperties(Sheet sheet);

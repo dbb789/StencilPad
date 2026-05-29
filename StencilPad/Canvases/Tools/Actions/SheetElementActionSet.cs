@@ -25,9 +25,9 @@ public class SheetElementActionSet
             new MultiSheetElementAction<MarkerPath>
             {
                 Name = "Marker Path Properties…",
-                Action = (sheet, elements) =>
+                Action = (sheet, _) =>
                 {
-                    modelPropertiesService.ShowMarkerPathProperties(elements);
+                    modelPropertiesService.ShowMarkerPathProperties(sheet);
                 }
             },
             new MultiSheetElementAction<TextElement>

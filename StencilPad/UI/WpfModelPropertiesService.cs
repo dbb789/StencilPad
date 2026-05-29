@@ -43,11 +43,11 @@ public class WpfModelPropertiesService : IModelPropertiesService
         PositionAndShow(window);
     }
 
-    public void ShowMarkerPathProperties(IEnumerable<MarkerPath> markerPaths)
+    public void ShowMarkerPathProperties(Sheet sheet)
     {
         _openWindow?.Close();
 
-        var window = new MarkerPathPropertiesWindow(markerPaths)
+        var window = new MarkerPathPropertiesWindow(_resourceService, sheet)
         {
             Owner = _owner
         };

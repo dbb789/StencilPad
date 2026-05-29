@@ -1,15 +1,12 @@
 using StencilPad.Models;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.ViewModels.Properties;
 
-public class MarkerPathPropertiesViewModel : ViewModelBase
+public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPath>
 {
-    private readonly IEnumerable<MarkerPath> _markerPaths;
-
-    public string Title => _markerPaths.Count() == 1
-        ? "Marker Path Properties"
-        : $"Marker Path Properties ({_markerPaths.Count()} selected)";
+    public string Title => "Marker Path Properties";
 
     private Unit _spacing;
     public Unit Spacing
@@ -19,7 +16,7 @@ public class MarkerPathPropertiesViewModel : ViewModelBase
         {
             _spacing = value;
             
-            foreach (var markerPath in _markerPaths)
+            foreach (var markerPath in Elements)
             {
                 markerPath.Spacing = value;
             }
@@ -36,7 +33,7 @@ public class MarkerPathPropertiesViewModel : ViewModelBase
         {
             _offset = value;
             
-            foreach (var markerPath in _markerPaths)
+            foreach (var markerPath in Elements)
             {
                 markerPath.Offset = value;
             }
@@ -45,13 +42,19 @@ public class MarkerPathPropertiesViewModel : ViewModelBase
         }
     }
 
-    public MarkerPathPropertiesViewModel(IEnumerable<MarkerPath> markerPaths)
-    {   
-        _markerPaths = markerPaths;
+    public MarkerPathPropertiesViewModel(IResourceService resourceService,
+                                         Sheet sheet)
+        : base(sheet)
+    {
+        OnElementsChanged();
+    }
 
-        var first = markerPaths.First();
+    protected override void OnElementsChanged()
+    {
+        _spacing = Mode(e => e.Spacing);
+        OnPropertyChanged(nameof(Spacing));
 
-        _spacing = first.Spacing;
-        _offset = first.Offset;
+        _offset = Mode(e => e.Offset);
+        OnPropertyChanged(nameof(Offset));
     }
 }
