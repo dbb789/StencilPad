@@ -122,31 +122,56 @@ public class MarkerPathRenderer : SheetElementRenderer
             return null;
         }
 
-        var markerData = GenerateMarkerPoints(points, spacing, offset);        
-        bool balanced = false;
+        // var markerData = GenerateMarkerPoints(points, spacing, offset);        
+        // bool balanced = false;
         
-        if (_markerPath.Polygon.Closed)
-        {
-            balanced = BalanceClosingMarker(markerData, points);
-        }
+        // if (_markerPath.Polygon.Closed)
+        // {
+        //     balanced = BalanceClosingMarker(markerData, points);
+        // }
 
-        _markerCount = markerData.Count;
+        // _markerCount = markerData.Count;
         
         var geo = new StreamGeometry { FillRule = FillRule.EvenOdd };
         using var ctx = geo.Open();
 
-        for (int i = 0; i < markerData.Count; i++)
-        {
-            var marker = markerData[i];
-            var perpendicular = GetPerpendicularAt(points, marker.SegmentIndex);
+        // for (int i = 0; i < markerData.Count; i++)
+        // {
+        //     var marker = markerData[i];
+        //     var perpendicular = GetPerpendicularAt(points, marker.SegmentIndex);
             
-            AddLineToContext(ctx, marker.Position, perpendicular, MarkerHalfLengthMm);
+        //     AddLineToContext(ctx, marker.Position, perpendicular, MarkerHalfLengthMm);
 
-            if (i == markerData.Count - 1 && balanced)
+        //     if (i == markerData.Count - 1 && balanced)
+        //     {
+        //         AddCircleToContext(ctx, marker.Position, MarkerHalfLengthMm);
+        //     }
+        // }
+
+
+        foreach (var point in _markerPath.PointList.Points)
+        {
+            var position = new Point(point.Position.X.Millimeters, point.Position.Y.Millimeters);
+            
+            AddCircleToContext(ctx, position, 0.5);
+        }
+
+        var worstError = Unit.Zero;
+        var worstDiff = Unit.Zero;
+        
+        for (int i = 1; i < _markerPath.PointList.Points.Count; i++)
+        {
+            var diff = (_markerPath.PointList.Points[i].Position - _markerPath.PointList.Points[i - 1].Position).Magnitude;
+            var error = Unit.Abs(diff - spacing);
+
+            if (error > worstError)
             {
-                AddCircleToContext(ctx, marker.Position, MarkerHalfLengthMm);
+                worstError = error;
+                worstDiff = diff;
             }
         }
+
+        System.Diagnostics.Debug.WriteLine($"Worst marker spacing error: {worstError.Millimeters}mm (diff: {worstDiff.Millimeters}mm, target: {spacing.Millimeters}mm)");
 
         geo.Freeze();
 

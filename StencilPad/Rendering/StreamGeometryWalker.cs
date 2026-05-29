@@ -55,7 +55,7 @@ public class StreamGeometryWalker() : IGeometryWalker
 
         return true;
     }
-
+    
     public bool Bezier(int segmentIndex, Unit2D from, Unit2D c1, Unit2D c2, Unit2D to)
     {
         EnsureFigure(from, to);

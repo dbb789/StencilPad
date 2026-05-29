@@ -1,0 +1,188 @@
+namespace StencilPad.Spatial;
+
+public static class MathUtil
+{
+    public static (double?, double?) GetCircleLineIntersectionFractions(Unit2D center,
+                                                                        Unit radius,
+                                                                        Unit2D p0,
+                                                                        Unit2D p1)
+    {
+        radius = Unit.Abs(radius);
+        
+        Unit2D d = p1 - p0;
+        double dx = d.X.Millimeters;
+        double dy = d.Y.Millimeters;
+        double centerX = center.X.Millimeters;
+        double centerY = center.Y.Millimeters;
+        double radiusMm = radius.Millimeters;
+        double p0X = p0.X.Millimeters;
+        double p0Y = p0.Y.Millimeters;
+
+        double a = d.SqrMagnitude;
+        double b = 2 * (dx * (p0X - centerX) + dy * (p0Y - centerY));
+        double c = (p0X - centerX) * (p0X - centerX) + (p0Y - centerY) * (p0Y - centerY) - (radiusMm * radiusMm);
+
+        return SolveQuadratic01(a, b, c);
+    }
+    
+    public static (Unit2D?, Unit2D?) GetCircleLineIntersection(Unit2D center,
+                                                               Unit radius,
+                                                               Unit2D p0,
+                                                               Unit2D p1)
+    {
+        Unit2D d = p1 - p0;
+        double dx = d.X.Millimeters;
+        double dy = d.Y.Millimeters;
+        double p0X = p0.X.Millimeters;
+        double p0Y = p0.Y.Millimeters;
+
+        var (t0, t1) = GetCircleLineIntersectionFractions(center, radius, p0, p1);
+        
+        Unit2D? i0 = null;
+        Unit2D? i1 = null;
+
+        if (t0 is not null)
+        {
+            i0 = Unit2D.FromMillimeters(p0X + t0.Value * dx, p0Y + t0.Value * dy);
+        }
+
+        if (t1 is not null)
+        {
+            i1 = Unit2D.FromMillimeters(p0X + t1.Value * dx, p0Y + t1.Value * dy);
+        }
+        
+        return (i0, i1);
+    }
+
+    public static (Unit2D center, Unit radius) CircleFromArc(Unit2D start, Unit2D mid, Unit2D end)
+    {
+        var offsetA = start - mid;
+        var offsetB = end - mid;
+        var angle = Unit2D.SignedAngle(offsetA, offsetB);
+        var radius = Unit.Min(offsetA.Magnitude, offsetB.Magnitude) * Math.Tan(Math.Abs(angle) / 2.0);
+        
+        var chordMid = (end + start) / 2;
+        var diagonal = (end - start).Magnitude / 2.0;
+
+        var sqrCenterDistance = (radius.Millimeters * radius.Millimeters) - (diagonal.Millimeters * diagonal.Millimeters);
+        var centerDistance = Unit.FromMillimeters(Math.Sqrt(Math.Abs(sqrCenterDistance)));
+
+        if (sqrCenterDistance < 0)
+        {
+            return (chordMid, radius);
+        }
+        
+        var centerDirection = chordMid - mid;
+        var center = chordMid + centerDirection.NormalizedTo(centerDistance);
+
+        return (center, radius);
+    }
+
+    public static (Unit2D?, Unit2D?) GetCircleCircleIntersection(Unit2D c0, Unit r0, Unit2D c1, Unit r1)
+    {
+        double dx = (c1.X - c0.X).Millimeters;
+        double dy = (c1.Y - c0.Y).Millimeters;
+        double d2 = dx*dx + dy*dy;
+        double d = Math.Sqrt(d2);
+        double r0mm = r0.Millimeters;
+        double r1mm = r1.Millimeters;
+
+        if (d < 1e-10 || d > r0mm + r1mm || d < Math.Abs(r0mm - r1mm))
+            return (null, null);
+
+        double a = (r0mm*r0mm - r1mm*r1mm + d2) / (2 * d);
+        double h2 = r0mm*r0mm - a*a;
+
+        if (h2 < 0)
+            return (null, null);
+
+        double px = c0.X.Millimeters + a * dx / d;
+        double py = c0.Y.Millimeters + a * dy / d;
+
+        if (h2 < 1e-20)
+            return (Unit2D.FromMillimeters(px, py), null);
+
+        double h = Math.Sqrt(h2);
+        double perpX = -dy / d;
+        double perpY =  dx / d;
+
+        return (Unit2D.FromMillimeters(px + h * perpX, py + h * perpY),
+                Unit2D.FromMillimeters(px - h * perpX, py - h * perpY));
+    }
+
+    public static (double?, double?) SolveQuadratic(double a, double b, double c)
+    {
+        // t = (-b +- sqrt(b^2 - 4ac)) / 2a
+        
+        double discriminant = b * b - 4 * a * c;
+
+        if (discriminant < 0 || Math.Abs(a) < 1e-10)
+        {
+            return (null, null);
+        }
+
+        if (discriminant == 0)
+        {
+            return (-b / (2 * a), null);
+        }
+        
+        var sqrtDiscriminant = Math.Sqrt(discriminant);
+        var t0 = (-b + sqrtDiscriminant) / (2 * a);
+        var t1 = (-b - sqrtDiscriminant) / (2 * a);
+
+        if (t0 > t1)
+        {
+            (t0, t1) = (t1, t0);
+        }
+        
+        return (t0, t1);
+    }
+
+    public static (double?, double?) SolveQuadratic01(double a, double b, double c)
+    {
+        var (t0, t1) = SolveQuadratic(a, b, c);
+
+        if (t0 < 0 || t0 > 1)
+        {
+            t0 = null;
+        }
+
+        if (t1 < 0 || t1 > 1)
+        {
+            t1 = null;
+        }
+
+        return (t0, t1);
+    }
+
+    public static double NormalizeAngle(double angleRadians)
+    {
+        return ((angleRadians % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    }
+
+    public static double SignedAngleDifference(double a, double b)
+    {
+        return ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+    }
+
+    public static double AngleDifference(double a, double b)
+    {
+        return Math.Abs(SignedAngleDifference(a, b));
+    }
+    
+    public static bool IsAngleBetween(double angle, double startAngle, double endAngle)
+    {
+        angle = NormalizeAngle(angle);
+        startAngle = NormalizeAngle(startAngle);
+        endAngle = NormalizeAngle(endAngle);
+
+        if (startAngle < endAngle)
+        {
+            return angle >= startAngle && angle <= endAngle;
+        }
+        else
+        {
+            return angle >= startAngle || angle <= endAngle;
+        }
+    }
+}

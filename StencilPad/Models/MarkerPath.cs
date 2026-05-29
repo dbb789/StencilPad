@@ -5,6 +5,7 @@ namespace StencilPad.Models;
 public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 {
     public IEditablePolygonSet PolygonSet => _singlePolygon;
+    public MarkerPathPointList PointList => _pointList;
 
     public EditablePolygon Polygon => _singlePolygon.Polygon;
     private SingleEditablePolygon _singlePolygon;
@@ -18,6 +19,8 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
             if (_spacing != value)
             {
                 _spacing = value;
+                
+                UpdateGeometry();
                 OnPropertyChanged();
             }
         }
@@ -32,22 +35,30 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
             if (_offset != value)
             {
                 _offset = value;
+                
+                UpdateGeometry();
                 OnPropertyChanged();
             }
         }
     }
-    
+
+    private MarkerPathPointList _pointList;
+
     public MarkerPath()
     {
         _singlePolygon = new();
-        _singlePolygon.Polygon.GeometryChanged += _ => FireGeometryChanged();
+        _singlePolygon.Polygon.GeometryChanged += _ => UpdateGeometry();
+        _pointList = new();
+        
         SetHandleSource(_singlePolygon.HandleSource);
     }
     
     public MarkerPath(Polygon polygon)
     {
         _singlePolygon = new(polygon);
-        _singlePolygon.Polygon.GeometryChanged += _ => FireGeometryChanged();
+        _singlePolygon.Polygon.GeometryChanged += _ => UpdateGeometry();
+        _pointList = new();
+
         SetHandleSource(_singlePolygon.HandleSource);
     }
     
@@ -80,8 +91,11 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds(UnitTransform transform) => Polygon.CalculateBounds(transform);
-
+    public override UnitBounds GetBounds(UnitTransform transform)
+    {
+        return Polygon.CalculateBounds(transform);
+    }
+    
     public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
     {
         var oldBounds = Polygon.CalculateBounds(transform);
@@ -91,6 +105,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
     public override void AssignFrom(MarkerPath other)
     {
         _singlePolygon.AssignFrom(other._singlePolygon);
+        
         Transform = other.Transform;
         Spacing = other.Spacing;
         Offset = other.Offset;
@@ -104,5 +119,12 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         clone.AssignFrom(this);
         
         return clone;
+    }
+
+    private void UpdateGeometry()
+    {
+        _pointList.CalculatePath(Polygon, Spacing, Offset);
+        
+        FireGeometryChanged();
     }
 }

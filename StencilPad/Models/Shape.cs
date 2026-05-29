@@ -93,8 +93,6 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         }
     }
     
-    private UnitBounds? _cachedBounds;
-
     public Shape()
     {
         _polygonList = new();
@@ -124,18 +122,15 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
     private void OnPolygonAdded(EditablePolygon polygon)
     {
         polygon.GeometryChanged += InvalidateBoundsCache;
-        _cachedBounds = null;
     }
 
     private void OnPolygonRemoved(EditablePolygon polygon)
     {
         polygon.GeometryChanged -= InvalidateBoundsCache;
-        _cachedBounds = null;
     }
 
     private void InvalidateBoundsCache(IPolygon polygon)
     {
-        _cachedBounds = null;
         FireGeometryChanged();
     }
 
@@ -190,18 +185,12 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     public override UnitBounds GetBounds(UnitTransform transform)
     {
-        if (transform == UnitTransform.Identity)
-        {
-            return _cachedBounds ??= _polygonList.CalculateBounds();
-        }
-
         return _polygonList.CalculateBounds(transform);
     }
 
     public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
     {
         _polygonList.SetBounds(newBounds, transform);
-        _cachedBounds = null;
     }
 
     public override bool ContainsPoint(Unit2D point)

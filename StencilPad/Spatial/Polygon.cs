@@ -232,7 +232,7 @@ public class Polygon : IPolygon
         var min = Unit.Min(bezier.P0, bezier.P3);
         var max = Unit.Max(bezier.P0, bezier.P3);
 
-        bezier.CalculateExtremaPoints(out var e0, out var e1);
+        var (e0, e1) = bezier.CalculateExtremaPoints();
 
         if (e0 is not null)
         {
