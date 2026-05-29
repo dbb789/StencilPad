@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
@@ -46,7 +47,7 @@ public class SelectionTool : ITool
     private decimal _rotateAccumulatedAngle;
     private decimal _rotateLastSnappedAngle;
 
-    private EditSheetElementContext? _editContext;
+    private IDisposable? _editContext;
     
     private SelectionTool(Sheet sheet,
                           ToolOverlay toolOverlay,
@@ -92,6 +93,8 @@ public class SelectionTool : ITool
 
     public void ToolEnd()
     {
+        _operationService.FlushEditContext();
+        
         _rubberBand.IsActive = false;
 
         _toolOverlay.ActiveOverlay = null;
@@ -303,14 +306,25 @@ public class SelectionTool : ITool
 
     private void StartEditContext()
     {
-        _editContext = new EditSheetElementContext(_sheet, _sheet.Selection);
+        if (_editContext is not null)
+        {
+            // This would generally indicate that click events are firing in a funny order.
+            Debug.WriteLine("Warning: Starting new edit context without flushing previous one. This should never happen.");
+
+            // _sheet.Selection has possibly changed since the last edit context
+            // was created, so we should probably just flush it before starting
+            // a new one to avoid losing changes.
+            FlushEditContext();
+        }
+        
+        _editContext = _operationService.CreateEditContext(_sheet, _sheet.Selection);
     }
 
     private void FlushEditContext()
     {
         if (_editContext is not null)
         {
-            _operationService.Push(_editContext.FlushOperation());
+            _editContext.Dispose();
             _editContext = null;
         }
     }

@@ -165,7 +165,8 @@ public class SheetElementActionSet
                 Name = "Mirror X",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+                    
                     var bounds = GetElementBounds(elements);
 
                     if (bounds is null)
@@ -179,8 +180,6 @@ public class SheetElementActionSet
                     {
                         element.MirrorX(centerY);
                     }
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             new MultiSheetElementAction
@@ -188,7 +187,8 @@ public class SheetElementActionSet
                 Name = "Mirror Y",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+                    
                     var bounds = GetElementBounds(elements);
 
                     if (bounds is null)
@@ -202,8 +202,6 @@ public class SheetElementActionSet
                     {
                         element.MirrorY(centerX);
                     }
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             null,
@@ -212,12 +210,10 @@ public class SheetElementActionSet
                 Name = "Justify Top",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
-                    
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+
                     Justify(elements,
                             (selection, element) => new Unit2D(Unit.Zero, selection.Min.Y - element.Min.Y));
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             new MultiSheetElementAction
@@ -225,12 +221,10 @@ public class SheetElementActionSet
                 Name = "Justify Middle",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
-                    
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+
                     Justify(elements,
                             (selection, element) => new Unit2D(Unit.Zero, selection.Center.Y - element.Center.Y));
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             new MultiSheetElementAction
@@ -238,12 +232,10 @@ public class SheetElementActionSet
                 Name = "Justify Bottom",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
-                    
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+
                     Justify(elements,
                             (selection, element) => new Unit2D(Unit.Zero, selection.Max.Y - element.Max.Y));
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             null,
@@ -252,12 +244,10 @@ public class SheetElementActionSet
                 Name = "Justify Left",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
-                    
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+
                     Justify(elements,
                             (selection, element) => new Unit2D(selection.Min.X - element.Min.X, Unit.Zero));
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             new MultiSheetElementAction
@@ -265,12 +255,10 @@ public class SheetElementActionSet
                 Name = "Justify Centre",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
-                    
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+
                     Justify(elements,
                             (selection, element) => new Unit2D(selection.Center.X - element.Center.X, Unit.Zero));
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             new MultiSheetElementAction
@@ -278,12 +266,10 @@ public class SheetElementActionSet
                 Name = "Justify Right",
                 Action = (sheet, elements) =>
                 {
-                    var editContext = new EditSheetElementContext(sheet, elements);
-                    
+                    using var editContext = operationService.CreateEditContext(sheet, elements);
+
                     Justify(elements,
                             (selection, element) => new Unit2D(selection.Max.X - element.Max.X, Unit.Zero));
-
-                    operationService.Push(editContext.FlushOperation());
                 }
             },
             null,

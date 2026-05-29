@@ -1,8 +1,10 @@
+using System.Diagnostics;
+
 namespace StencilPad.Models.Operations;
 
 // This is a bit heavyweight but it allows us to reliably track any operation(s)
 // on sheet element(s) without having thousands of different operation types
-public class EditSheetElementContext
+public class EditSheetElementContext : IEditContext
 {
     private class BulkMementoOperation : IMementoOperation
     {
@@ -30,19 +32,40 @@ public class EditSheetElementContext
     private readonly Sheet _sheet;
     private readonly List<ISheetElement> _prevElements;
     private readonly List<ISheetElement> _nextElements;
+    private IFlushEditContext? _target;
 
     public EditSheetElementContext(Sheet sheet,
-                                   IEnumerable<ISheetElement> elements)
+                                   IEnumerable<ISheetElement> elements,
+                                   IFlushEditContext target)
     {
         _sheet = sheet;
         _prevElements = elements.Select(e => e.DeepClone()).ToList();
         _nextElements = elements.ToList();
+        _target = target;
     }
 
     public EditSheetElementContext(Sheet sheet,
-                                   ISheetElement element)
-        : this(sheet, [element])
+                                   ISheetElement element,
+                                   IFlushEditContext target)
+        : this(sheet, [element], target)
     { }
+
+    public void Dispose()
+    {
+        if (_target is null)
+        {
+            Debug.WriteLine("EditSheetElementContext disposed multiple times");
+            return;
+        }
+        
+        _target.Flush(this, FlushOperation());
+        _target = null;
+    }
+
+    public void Discard()
+    {
+        _target = null;
+    }
     
     public IMementoOperation? FlushOperation()
     {

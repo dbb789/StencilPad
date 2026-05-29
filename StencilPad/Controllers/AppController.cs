@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using Microsoft.Win32;
@@ -103,6 +104,9 @@ public class AppController
 
     private void NewProject()
     {
+        _undoStack.Clear();
+        _operationService.DiscardEditContext();
+        
         _project.Clear();
         SetCurrentFilePath(null);
         AddNewSheet();
@@ -116,6 +120,8 @@ public class AppController
 
             if (path is not null)
             {
+                _undoStack.Clear();
+                _operationService.DiscardEditContext();
                 SetCurrentFilePath(path);
             }
         }
@@ -267,11 +273,23 @@ public class AppController
 
     private void Undo()
     {
+        if (_operationService.HasEditContext)
+        {
+            Debug.WriteLine("Trying to undo while an edit context is active");
+            return;
+        }
+        
         _undoStack.Undo(_project);
     }
 
     private void Redo()
     {
+        if (_operationService.HasEditContext)
+        {
+            Debug.WriteLine("Trying to redo while an edit context is active");
+            return;
+        }
+
         _undoStack.Redo(_project);
     }
 

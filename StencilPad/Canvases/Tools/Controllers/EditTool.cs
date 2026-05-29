@@ -50,7 +50,7 @@ public class EditTool : ITool
     private readonly List<Unit2D> _originalPositions;
     
     private EditToolOverlay? _overlay;
-    private EditSheetElementContext? _editContext;
+    private IDisposable? _editContext;
 
     private EditTool(IToolButton button,
                      Sheet sheet,
@@ -107,7 +107,8 @@ public class EditTool : ITool
 
     public void ToolEnd()
     {
-
+        _operationService.FlushEditContext();
+        
         _toolOverlay.ActiveOverlay = null;
         _rubberBand.IsActive = false;
         _editOverlayRenderer.IsEnabled = false;
@@ -139,7 +140,7 @@ public class EditTool : ITool
             }
         }
         
-        _editContext = new EditSheetElementContext(_sheet, _selection);
+        _editContext = _operationService.CreateEditContext(_sheet, _selection);
     }
 
     private void OnHandleDragged(ISheetElement element,
@@ -194,7 +195,7 @@ public class EditTool : ITool
             return;
         }
         
-        _operationService.Push(_editContext.FlushOperation());
+        _editContext.Dispose();
         _editContext = null;
     }
     
@@ -268,11 +269,7 @@ public class EditTool : ITool
 
     private void ActionInvoked(ISheetElementAction action)
     {
-        var editContext = new EditSheetElementContext(_sheet, _selection);
-        
         action.Invoke(_sheet, _selection);
-        
-        _operationService.Push(editContext.FlushOperation());
     }
     
     private IEnumerable<ISheetElement> GetEditableSelection()

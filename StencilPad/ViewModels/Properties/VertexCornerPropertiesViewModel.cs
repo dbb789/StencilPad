@@ -34,7 +34,7 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         {
             SetProperty(ref _cornerType, value);
 
-            var context = new EditSheetElementContext(_sheet, _elements);
+            using var context = _operationService.CreateEditContext(_sheet, _elements);
             
             foreach (var target in _targets)
             {
@@ -43,8 +43,6 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
 
                 polygon.Vertices[target.VertexIndex] = vertex with { CornerType = value };
             }
-
-            _operationService.Push(context.FlushOperation());
         }
     }
 
@@ -55,7 +53,7 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         {
             SetProperty(ref _cornerSize, value);
 
-            var context = new EditSheetElementContext(_sheet, _elements);
+            using var context = _operationService.CreateEditContext(_sheet, _elements);
 
             foreach (var target in _targets)
             {
@@ -64,8 +62,6 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
 
                 polygon.Vertices[target.VertexIndex] = vertex with { CornerSize = value };
             }
-
-            _operationService.Push(context.FlushOperation());
         }
     }
 

@@ -57,4 +57,10 @@ public class UndoStack
         
         _stack[_index].Execute(project);
     }
+
+    public void Clear()
+    {
+        _stack.Clear();
+        _index = -1;
+    }
 }
