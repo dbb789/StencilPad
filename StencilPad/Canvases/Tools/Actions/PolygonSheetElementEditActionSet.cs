@@ -90,12 +90,13 @@ public class PolygonSheetElementEditActionSet
     }
  
     
-    public PolygonSheetElementEditActionSet(IModelPropertiesService modelPropertiesService)
+    public PolygonSheetElementEditActionSet(IModelPropertiesService modelPropertiesService,
+                                            IOperationService operationService)
     {
         Actions = [
             new CornerPropertiesAction(modelPropertiesService),
             null,
-            new SheetElementAction<IPolygonSheetElement>
+            new SheetElementAction<IPolygonSheetElement>(operationService)
             {
                 Name = "Insert Point",
                 Enabled = OneOrMoreEdgesSelected,
@@ -114,7 +115,7 @@ public class PolygonSheetElementEditActionSet
                     }
                 }
             },
-            new SheetElementAction<IPolygonSheetElement>
+            new SheetElementAction<IPolygonSheetElement>(operationService)
             {
                 Name = "Delete Points",
                 Enabled = e => OneOrMoreVerticesSelected(e) && CanDeleteVertices(e),
@@ -139,7 +140,7 @@ public class PolygonSheetElementEditActionSet
                 }
             },
             null,
-            new SheetElementAction<IPolygonSheetElement>
+            new SheetElementAction<IPolygonSheetElement>(operationService)
             {
                 Name = "Open Path",
                 Enabled = e => CanOpenPolygon(e),
@@ -154,7 +155,7 @@ public class PolygonSheetElementEditActionSet
                     }
                 }
             },
-            new SheetElementAction<IPolygonSheetElement>
+            new SheetElementAction<IPolygonSheetElement>(operationService)
             {
                 Name = "Close Path",
                 Enabled = PolygonOpen,
@@ -169,7 +170,7 @@ public class PolygonSheetElementEditActionSet
                     }
                 }
             },
-            new SheetElementAction<IPolygonSheetElement>
+            new SheetElementAction<IPolygonSheetElement>(operationService)
             {
                 Name = "Set As Straight",
                 Enabled = OneOrMoreEdgesSelected,
@@ -184,7 +185,7 @@ public class PolygonSheetElementEditActionSet
                     }
                 }
             },
-            new SheetElementAction<IPolygonSheetElement>
+            new SheetElementAction<IPolygonSheetElement>(operationService)
             {
                 Name = "Set As Curve",
                 Enabled = OneOrMoreEdgesSelected,
