@@ -4,6 +4,11 @@
              x:Name="Root">
     <ComboBox IsEditable="True"
               Text="{Binding Value, ElementName=Root, UpdateSourceTrigger=PropertyChanged}"
-              ItemsSource="{Binding SortedFonts, ElementName=Root}"
-              DisplayMemberPath="Source"/>
+              ItemsSource="{Binding SortedFonts, ElementName=Root}">
+        <ComboBox.ItemTemplate>
+            <DataTemplate>
+                <TextBlock Text="{Binding Source}" FontFamily="{Binding}"/>
+            </DataTemplate>
+        </ComboBox.ItemTemplate>
+    </ComboBox>
 </UserControl>
