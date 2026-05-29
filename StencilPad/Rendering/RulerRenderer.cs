@@ -66,8 +66,8 @@ public class RulerRenderer : SheetElementRenderer
             label,
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
-            new Typeface("Arial"),
-            Unit.FromFontSizePoints(8).Millimeters,
+            new Typeface(_ruler.FontName),
+            Unit.FromFontSizePoints(_ruler.FontSize).Millimeters,
             _brush,
             1.0);
 

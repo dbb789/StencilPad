@@ -7,6 +7,34 @@ public class Ruler : SheetElement<Ruler>
 {
     private MinMaxHandleSource _minMaxHandleSource;
 
+    private string _fontName = "Arial";
+    public string FontName
+    {
+        get => _fontName;
+        set
+        {
+            if (_fontName != value)
+            {
+                _fontName = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private double _fontSize = 8.0;
+    public double FontSize
+    {
+        get => _fontSize;
+        set
+        {
+            if (_fontSize != value)
+            {
+                _fontSize = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private Color _color = Color.FromArgb(255, 0, 0, 0);
     public Color Color
     {
@@ -16,20 +44,6 @@ public class Ruler : SheetElement<Ruler>
             if (_color != value)
             {
                 _color = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    private bool _showGuides = true;
-    public bool ShowGuides
-    {
-        get => _showGuides;
-        set
-        {
-            if (_showGuides != value)
-            {
-                _showGuides = value;
                 OnPropertyChanged();
             }
         }
