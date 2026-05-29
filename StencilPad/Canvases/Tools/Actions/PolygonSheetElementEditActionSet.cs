@@ -88,7 +88,6 @@ public class PolygonSheetElementEditActionSet
             _modelPropertiesService.ShowVertexCornerProperties(sheet, targets);
         }
     }
- 
     
     public PolygonSheetElementEditActionSet(IModelPropertiesService modelPropertiesService,
                                             IOperationService operationService)
