@@ -75,11 +75,6 @@ public class ElementGroup : SheetElement<ElementGroup>
         }
     }
     
-    public override void Translate(Unit2D delta)
-    {
-        Transform = Transform with { Position = Transform.Position + delta };
-    }
-
     public override void NormalizePosition()
     {
         if (_children.Count == 0)

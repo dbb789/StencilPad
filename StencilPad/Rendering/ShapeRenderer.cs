@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Services;
@@ -66,15 +67,23 @@ public class ShapeRenderer : SheetElementRenderer
         renderer.RendererDirty += PolygonDirty;
         
         _rendererMap.Add(polygon, renderer);
+
+        PolygonDirty();
     }
 
     private void RemovePolygon(IPolygon polygon)
     {
         if (_rendererMap.TryGetValue(polygon, out var renderer))
         {
-            renderer.RendererDirty -= InvokeRendererDirty;
+            renderer.RendererDirty -= PolygonDirty;
             renderer.Dispose();
             _rendererMap.Remove(polygon);
+
+            PolygonDirty();
+        }
+        else
+        {
+            Debug.WriteLine($"Attempted to remove polygon that was not in the renderer map: {polygon}");
         }
     }
 
@@ -123,7 +132,7 @@ public class ShapeRenderer : SheetElementRenderer
     private void PolygonDirty()
     {
         _geometryGroupDirty = true;
-         InvokeRendererDirty();
+        InvokeRendererDirty();
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)

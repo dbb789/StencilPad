@@ -49,13 +49,22 @@ public class EditablePolygonList : IEditablePolygonSet
     
     public void AssignFrom(EditablePolygonList other)
     {
-        Clear();
+        // Reuse existing objects where possible to avoid additional heap allocations.
 
-        int polygonCount = other._polygons.Count;
-        
-        _polygons.Capacity = polygonCount;
+        // First, if we've got more polygons than our target, chop them out.
+        while (_polygons.Count > other._polygons.Count)
+        {
+            Remove(_polygons[^1]);
+        }
 
-        for (int i = 0; i < polygonCount; ++i)
+        // Now copy the polygons from our target into our existing polygons.
+        for (int i = 0; i < _polygons.Count; ++i)
+        {
+            _polygons[i].AssignFrom(other._polygons[i]);
+        }
+
+        // Add any additional polygons from our target that we don't have yet.
+        for (int i = _polygons.Count; i < other._polygons.Count; ++i)
         {
             var polygon = other._polygons[i].DeepClone();
             
@@ -63,6 +72,7 @@ public class EditablePolygonList : IEditablePolygonSet
             PolygonAdded?.Invoke(polygon);
         }
 
+        // Finally update the handle source to match our new list of polygons.
         _handleSource.SetChildren(_polygons);
     }
 

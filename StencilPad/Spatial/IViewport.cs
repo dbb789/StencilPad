@@ -14,6 +14,7 @@ public interface IViewport
     event Action? ViewportChanged;
     
     Point ToPoint(Unit2D position);
+    Rect ToRect(UnitBounds bounds);
     double ToPixels(Unit unit);
     Unit2D FromPixels(double pixelsX, double pixelsY);
     Unit2D FromPoint(Point point);

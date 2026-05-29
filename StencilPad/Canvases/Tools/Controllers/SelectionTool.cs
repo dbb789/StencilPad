@@ -3,6 +3,7 @@ using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Models.Operations;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
@@ -10,10 +11,13 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class SelectionTool : ITool
 {
+    private const decimal AngleSnapDegrees = 15m;
+
     public class Factory(Sheet Sheet,
                          ToolOverlay ToolOverlay,
                          IRubberBand RubberBand,
                          IModelPropertiesService ModelPropertiesService,
+                         IOperationService OperationService,
                          Factory<SelectionToolOverlay> OverlayFactory) : IToolFactory
     {
         public string IconResource => "SelectionTool";
@@ -25,6 +29,7 @@ public class SelectionTool : ITool
                                      ToolOverlay,
                                      RubberBand,
                                      ModelPropertiesService,
+                                     OperationService,
                                      OverlayFactory);
         }
     }
@@ -33,6 +38,7 @@ public class SelectionTool : ITool
     private readonly ToolOverlay _toolOverlay;
     private readonly IRubberBand _rubberBand;
     private readonly IModelPropertiesService _modelPropertiesService;
+    private readonly IOperationService _operationService;
     private readonly Factory<SelectionToolOverlay> _overlayFactory;
 
     private SelectionToolOverlay? _overlay;
@@ -40,18 +46,20 @@ public class SelectionTool : ITool
     private decimal _rotateAccumulatedAngle;
     private decimal _rotateLastSnappedAngle;
 
-    private const decimal AngleSnapDegrees = 15m;
-
+    private EditSheetElementContext? _editContext;
+    
     private SelectionTool(Sheet sheet,
                           ToolOverlay toolOverlay,
                           IRubberBand rubberBand,
                           IModelPropertiesService modelPropertiesService,
+                          IOperationService operationService,
                           Factory<SelectionToolOverlay> overlayFactory)
     {
         _sheet = sheet;
         _toolOverlay = toolOverlay;
         _rubberBand = rubberBand;
         _modelPropertiesService = modelPropertiesService;
+        _operationService = operationService;
         _overlayFactory = overlayFactory;
     }
 
@@ -68,11 +76,18 @@ public class SelectionTool : ITool
         _rubberBand.BoundsSelected += BoundsSelected;
 
         _overlay.ActionInvoked += ActionInvoked;
+        
+        _overlay.SelectionDragStarted += SelectionDragStarted;
         _overlay.SelectionDragged += SelectionDragged;
+        _overlay.SelectionDragEnded += SelectionDragEnded;
+        
         _overlay.SelectionResizeStarted += SelectionResizeStarted;
         _overlay.SelectionResized += SelectionResized;
+        _overlay.SelectionResizeEnded += SelectionResizeEnded;
+        
         _overlay.SelectionRotateStarted += SelectionRotateStarted;
         _overlay.SelectionRotated += SelectionRotated;
+        _overlay.SelectionRotateEnded += SelectionRotateEnded;
     }
 
     public void ToolEnd()
@@ -84,11 +99,19 @@ public class SelectionTool : ITool
         if (_overlay is not null)
         {
             _overlay.ActionInvoked -= ActionInvoked;
+            
+            _overlay.SelectionDragStarted -= SelectionDragStarted;
             _overlay.SelectionDragged -= SelectionDragged;
+            _overlay.SelectionDragEnded -= SelectionDragEnded;
+
             _overlay.SelectionResizeStarted -= SelectionResizeStarted;
             _overlay.SelectionResized -= SelectionResized;
+            _overlay.SelectionResizeEnded -= SelectionResizeEnded;
+            
             _overlay.SelectionRotateStarted -= SelectionRotateStarted;
             _overlay.SelectionRotated -= SelectionRotated;
+            _overlay.SelectionRotateEnded -= SelectionRotateEnded;
+            
             _overlay.Dispose();
             _overlay = null;
         }
@@ -171,6 +194,13 @@ public class SelectionTool : ITool
         }
     }
 
+    ////////////////////////////////////////
+    
+    private void SelectionDragStarted()
+    {
+        StartEditContext();
+    }
+    
     private void SelectionDragged(Unit2D delta)
     {
         foreach (var selected in _sheet.Selection)
@@ -179,9 +209,18 @@ public class SelectionTool : ITool
                 { Position = selected.Transform.Position + delta };
         }
     }
+    
+    private void SelectionDragEnded()
+    {
+        FlushEditContext();
+    }
 
+    ////////////////////////////////////////
+    
     private void SelectionResizeStarted()
     {
+        StartEditContext();
+
         _resizeInitialBounds.Clear();
 
         foreach (var selected in _sheet.Selection)
@@ -203,9 +242,18 @@ public class SelectionTool : ITool
             selected.SetBounds(newBounds, selected.Transform);
         }
     }
+    
+    private void SelectionResizeEnded()
+    {
+        FlushEditContext();
+    }
 
+    ////////////////////////////////////////
+    
     private void SelectionRotateStarted()
     {
+        StartEditContext();
+
         _rotateAccumulatedAngle = 0m;
         _rotateLastSnappedAngle = 0m;
 
@@ -224,6 +272,7 @@ public class SelectionTool : ITool
         if (ModifierUtil.IsAngleSnap())
         {
             var snapped = Math.Round(_rotateAccumulatedAngle / AngleSnapDegrees) * AngleSnapDegrees;
+            
             effectiveDelta = snapped - _rotateLastSnappedAngle;
             _rotateLastSnappedAngle = snapped;
         }
@@ -245,6 +294,27 @@ public class SelectionTool : ITool
         }
     }
 
+    private void SelectionRotateEnded()
+    {
+        FlushEditContext();
+    }
+
+    ////////////////////////////////////////
+
+    private void StartEditContext()
+    {
+        _editContext = new EditSheetElementContext(_sheet, _sheet.Selection);
+    }
+
+    private void FlushEditContext()
+    {
+        if (_editContext is not null)
+        {
+            _operationService.Push(_editContext.FlushOperation());
+            _editContext = null;
+        }
+    }
+    
     private void ActionInvoked(ISheetElementAction action)
     {
         action.Invoke(_sheet, _sheet.Selection);

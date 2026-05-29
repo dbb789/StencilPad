@@ -118,6 +118,14 @@ public class VisualViewport : IViewport
                          ToPixels(position.Y) + ToPixels(Size.Y) / 2.0);
     }
 
+    public Rect ToRect(UnitBounds bounds)
+    {
+        var topLeft = ToPoint(bounds.Min);
+        var bottomRight = ToPoint(bounds.Max);
+
+        return new Rect(topLeft, bottomRight);
+    }
+    
     public Unit FromPixels(double pixels)
     {
         return Unit.FromMillimeters(pixels * MmPerInch / _dpi / Zoom);

@@ -176,11 +176,6 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         }
     }
 
-    public override void Translate(Unit2D delta)
-    {
-        Transform = Transform with { Position = Transform.Position + delta };
-    }
-
     public override void NormalizePosition()
     {
         var midpoint = _polygonList.CalculateMidpoint();

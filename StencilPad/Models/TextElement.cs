@@ -110,11 +110,6 @@ public class TextElement : SheetElement<TextElement>
         };
     }
 
-    public override void Translate(Unit2D delta)
-    {
-        Transform = Transform with { Position = Transform.Position + delta };
-    }
-
     public override void NormalizePosition()
     {
         var midpoint = _boundsHandleSource.Bounds.Center;

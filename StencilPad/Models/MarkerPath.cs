@@ -73,11 +73,6 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         Polygon.MirrorY(Unit.Zero);
     }
 
-    public override void Translate(Unit2D delta)
-    {
-        Transform = Transform with { Position = Transform.Position + delta };
-    }
-
     public override void NormalizePosition()
     {
         var midpoint = Polygon.CalculateMidpoint();

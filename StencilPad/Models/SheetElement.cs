@@ -138,7 +138,6 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public abstract void MirrorX(Unit centerY);
     public abstract void MirrorY(Unit centerX);
-    public abstract void Translate(Unit2D delta);
     public abstract void NormalizePosition();
     public abstract UnitBounds GetBounds(UnitTransform transform);
     public abstract void SetBounds(UnitBounds newBounds, UnitTransform transform);

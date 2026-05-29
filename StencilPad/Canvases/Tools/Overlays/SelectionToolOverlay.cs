@@ -40,11 +40,18 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     private Pen _groupPen = null!;
     private Brush _groupFill = null!;
 
+    public event Action? SelectionDragStarted;
     public event Action<Unit2D>? SelectionDragged;
+    public event Action? SelectionDragEnded;
+    
     public event Action? SelectionResizeStarted;
     public event Action<Unit2D>? SelectionResized;
+    public event Action? SelectionResizeEnded;
+    
     public event Action? SelectionRotateStarted;
     public event Action<double>? SelectionRotated;
+    public event Action? SelectionRotateEnded;
+    
     public event Action<ISheetElementAction>? ActionInvoked;
 
     public SelectionToolOverlay(IAppConfigService appConfigService,
@@ -138,39 +145,30 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var element in _sheet.Selection)
         {
-            var bounds = element.GetTransformedBounds();
-            var screenBounds = new Rect(_viewport.ToPoint(bounds.Min),
-                                        _viewport.ToPoint(bounds.Max));
-
-            var resizeRect = new Rect(screenBounds.BottomRight,
-                                      new Size(_resizeHandleSize, _resizeHandleSize));
+            var unitBounds = element.GetTransformedBounds();
+            var screenBounds = _viewport.ToRect(unitBounds);
+            var resizeRect = ResizeHandleRect(screenBounds);
 
             if (resizeRect.Contains(mousePosition))
             {
-                _resizeInitialNW = bounds.NW;
-                _resizeInitialSE = bounds.SE;
-                _resizeAspectRatio = bounds.Size.X.Millimeters / bounds.Size.Y.Millimeters;
+                _resizeInitialNW = unitBounds.NW;
+                _resizeInitialSE = unitBounds.SE;
+                _resizeAspectRatio = unitBounds.Size.X.Millimeters / unitBounds.Size.Y.Millimeters;
                 _resizeDragState.OnDragStart(mousePosition, element, _resizeInitialSE);
-
-                SelectionResizeStarted?.Invoke();
 
                 CaptureMouse();
                 e.Handled = true;
                 return;
             }
 
-            var rotateCenter = screenBounds.TopRight + new Vector(_rotateHandleRadius, -_rotateHandleRadius);
-            var dx = mousePosition.X - rotateCenter.X;
-            var dy = mousePosition.Y - rotateCenter.Y;
+            var rotateRect = RotateHandleRect(screenBounds);
 
-            if (dx * dx + dy * dy <= _rotateHandleRadius * _rotateHandleRadius)
+            if (rotateRect.Contains(mousePosition))
             {
-                _rotateDragCenter = bounds.Center;
-                _rotateInitialHandlePos = _viewport.FromPoint(rotateCenter);
+                _rotateDragCenter = unitBounds.Center;
+                _rotateInitialHandlePos = _viewport.FromPoint(mousePosition);
                 _lastRotateAngle = 0;
                 _rotateDragState.OnDragStart(mousePosition, element, _rotateInitialHandlePos);
-
-                SelectionRotateStarted?.Invoke();
 
                 CaptureMouse();
                 e.Handled = true;
@@ -180,7 +178,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         var elementUnderMouse = PointOverSelection(_viewport.FromPoint(mousePosition));
 
-        if (elementUnderMouse != null)
+        if (elementUnderMouse is not null)
         {
             var elementBounds = elementUnderMouse.GetTransformedBounds();
 
@@ -188,9 +186,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                                    elementUnderMouse,
                                    elementBounds.Center);
             _lockAxisState.OnDragStart();
-
+            
             CaptureMouse();
             e.Handled = true;
+            return;
         }
     }
 
@@ -204,6 +203,11 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
             if (result is not null)
             {
+                if (result.Value.IsDragBeginning)
+                {
+                    SelectionResizeStarted?.Invoke();
+                }
+                
                 var targetSE = _unitSnap.UnitSnap(result.Value.TargetElementPosition, this)
                                ?? result.Value.TargetElementPosition;
 
@@ -225,6 +229,11 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
             if (result is not null)
             {
+                if (result.Value.IsDragBeginning)
+                {
+                    SelectionRotateStarted?.Invoke();
+                }
+
                 var initialVec = _rotateInitialHandlePos - _rotateDragCenter;
                 var currentVec = result.Value.TargetElementPosition - _rotateDragCenter;
                 var totalAngle = Unit2D.SignedAngle(initialVec, currentVec);
@@ -239,42 +248,64 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
             return;
         }
 
-        if (!_dragState.DragStarted)
+        if (_dragState.DragStarted)
         {
+            var elementBounds = _dragState.DraggedElement.GetTransformedBounds();
+            var result = _dragState.OnDragMove(_viewport,
+                                                   mousePosition);
+
+            if (result is not null)
+            {
+                if (result.Value.IsDragBeginning)
+                {
+                    SelectionDragStarted?.Invoke();
+                }
+                
+                var targetPosition = result.Value.TargetElementPosition;
+                var targetBounds = UnitBounds.FromCenterSize(targetPosition, elementBounds.Size);
+                var snappedCenter = SnapBoundsCenter(targetBounds);
+
+                snappedCenter = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
+                                                          _viewport.FromPixels(_resizeHandleSize),
+                                                          _dragState.InitialElementPosition,
+                                                          snappedCenter);
+
+                var delta = snappedCenter - elementBounds.Center;
+
+                SelectionDragged?.Invoke(delta);
+                e.Handled = true;
+            }
+            
             return;
         }
-
-        var elementBounds = _dragState.DraggedElement.GetTransformedBounds();
-        var dragResult = _dragState.OnDragMove(_viewport,
-                                               mousePosition);
-
-        if (dragResult is null)
-        {
-            return;
-        }
-
-        var targetPosition = dragResult.Value.TargetElementPosition;
-        var targetBounds = UnitBounds.FromCenterSize(targetPosition, elementBounds.Size);
-        var snappedCenter = SnapBoundsCenter(targetBounds);
-
-        snappedCenter = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
-                                                  _viewport.FromPixels(_resizeHandleSize),
-                                                  _dragState.InitialElementPosition,
-                                                  snappedCenter);
-        
-        var delta = snappedCenter - elementBounds.Center;
-
-        SelectionDragged?.Invoke(delta);
-        e.Handled = true;
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         // Capture drag state before we clear everything out.
-        bool dragHandled = (_dragState.IsDragging ||
-                            _resizeDragState.IsDragging ||
-                            _rotateDragState.IsDragging);
+        bool dragHandled = false;
 
+        if (_dragState.IsDragging)
+        {
+            dragHandled = true;
+            SelectionDragEnded?.Invoke();
+        }
+
+        if (_resizeDragState.IsDragging)
+        {
+            dragHandled = true;
+            SelectionResizeEnded?.Invoke();
+        }
+
+        if (_rotateDragState.IsDragging)
+        {
+            dragHandled = true;
+            SelectionRotateEnded?.Invoke();
+        }
+
+        // Holding down the left button over a draggable item without actually
+        // moving the mouse can start the drag state, so make sure these are all
+        // cleared out regardless.
         _dragState.OnDragEnd();
         _lockAxisState.OnDragEnd();
         _resizeDragState.OnDragEnd();
@@ -419,9 +450,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         foreach (var selected in _sheet.Selection)
         {
             var unitBounds = selected.GetTransformedBounds();
-
-            var bounds = new Rect(_viewport.ToPoint(unitBounds.Min),
-                                  _viewport.ToPoint(unitBounds.Max));
+            var screenBounds = _viewport.ToRect(unitBounds);
 
             Pen pen = (selected is ElementGroup) ? _groupPen : _elementPen;
             Brush? fill = null;
@@ -433,17 +462,31 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                 fill = (selected is ElementGroup) ? _groupFill : _elementFill;
             }
             
-            dc.DrawRectangle(fill, pen, bounds);
+            dc.DrawRectangle(fill, pen, screenBounds);
 
             dc.DrawRectangle(null,
                              pen,
-                             new Rect(bounds.BottomRight,
-                                      new Size(_resizeHandleSize, _resizeHandleSize)));
-            
+                             ResizeHandleRect(screenBounds));
+
+            var rotateHandleRect = RotateHandleRect(screenBounds);
+
             dc.DrawEllipse(null,
                            pen,
-                           bounds.TopRight + new Vector(_rotateHandleRadius, -_rotateHandleRadius),
-                           _rotateHandleRadius, _rotateHandleRadius);
+                           new Point(rotateHandleRect.Left + rotateHandleRect.Width / 2,
+                                     rotateHandleRect.Top + rotateHandleRect.Height / 2),
+                           rotateHandleRect.Width / 2, rotateHandleRect.Height / 2);
         }
+    }
+
+    private Rect RotateHandleRect(Rect screenBounds)
+    {
+        return new Rect(screenBounds.TopRight + new Vector(0, -_resizeHandleSize),
+                        new Size(_resizeHandleSize, _resizeHandleSize));
+    }
+
+    private Rect ResizeHandleRect(Rect screenBounds)
+    {
+        return new Rect(screenBounds.BottomRight,
+                        new Size(_resizeHandleSize, _resizeHandleSize));
     }
 }
