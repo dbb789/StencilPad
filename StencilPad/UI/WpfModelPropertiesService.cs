@@ -87,6 +87,21 @@ public class WpfModelPropertiesService : IModelPropertiesService
 
         PositionAndShow(window);
     }
+    
+    public void ShowRulerProperties(Sheet sheet)
+    {
+        _openWindow?.Close();
+
+        var window = new RulerPropertiesWindow(sheet)
+        {
+            Owner = _owner
+        };
+
+        _openWindow = window;
+        window.Closed += (_, _) => _openWindow = null;
+
+        PositionAndShow(window);
+    }
 
     private void PositionAndShow(Window window)
     {

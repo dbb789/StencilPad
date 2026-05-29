@@ -38,6 +38,14 @@ public class SheetElementActionSet
                     modelPropertiesService.ShowTextProperties(sheet);
                 }
             },
+            new MultiSheetElementAction<Ruler>
+            {
+                Name = "Ruler Properties…",
+                Action = (sheet, _) =>
+                {
+                    modelPropertiesService.ShowRulerProperties(sheet);
+                }
+            },
             new MultiSheetElementAction<Shape>
             {
                 Name = "Combine Shapes",

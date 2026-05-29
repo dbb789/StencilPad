@@ -9,4 +9,5 @@ public interface IModelPropertiesService
     void ShowMarkerPathProperties(IEnumerable<MarkerPath> MarkerPaths);
     void ShowShapeProperties(Sheet sheet);
     void ShowTextProperties(Sheet sheet);
+    void ShowRulerProperties(Sheet sheet);
 }
