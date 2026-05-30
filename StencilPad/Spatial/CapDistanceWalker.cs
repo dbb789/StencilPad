@@ -52,8 +52,11 @@ public sealed class CapDistanceWalker : IGeometryWalker
         return true;
     }
 
-    public bool Arc(int segmentIndex, Unit2D start, Unit2D mid, Unit2D end)
+    public bool Arc(int segmentIndex, Arc arc)
     {
+        var start = arc.Start;
+        var end = arc.End;
+        
         CheckStarted(start);
 
         var dStart = (start - _startPoint).Magnitude;
@@ -70,12 +73,10 @@ public sealed class CapDistanceWalker : IGeometryWalker
         return true;
     }
 
-    public bool Bezier(int segmentIndex, Unit2D from, Unit2D c1, Unit2D c2, Unit2D to)
+    public bool Bezier(int segmentIndex, Bezier2D bezier)
     {
-        CheckStarted(from);
+        CheckStarted(bezier.P0);
 
-        var bezier = new Bezier2D(from, c1, c2, to);
-        
         if (bezier.WalkRadius(_startPoint,
                               0.0,
                               1.0,

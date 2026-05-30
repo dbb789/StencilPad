@@ -70,6 +70,41 @@ public static class PolygonUtil
         return 0;
     }
 
+    private static int WindingArc(Arc arc, Unit2D point)
+    {
+        var lineStart = point;
+        var lineEnd = new Unit2D(point.X + Unit.FromMillimeters(1000000), point.Y);
+
+        var (i0, i1) = MathUtil.GetCircleLineIntersection(arc.Center,
+                                                          arc.Radius,
+                                                          lineStart,
+                                                          lineEnd);
+
+        if (i0 is not null)
+        {
+            var i0Angle = Math.Atan2(i0.Value.Y.Millimeters - arc.Center.Y.Millimeters,
+                                     i0.Value.X.Millimeters - arc.Center.X.Millimeters);
+
+            if (MathUtil.IsAngleBetween(i0Angle, arc.StartAngle, arc.EndAngle))
+            {
+                return 1;
+            }
+        }
+
+        if (i1 is not null)
+        {
+            var i1Angle = Math.Atan2(i1.Value.Y.Millimeters - arc.Center.Y.Millimeters,
+                                     i1.Value.X.Millimeters - arc.Center.X.Millimeters);
+
+            if (MathUtil.IsAngleBetween(i1Angle, arc.StartAngle, arc.EndAngle))
+            {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+    
     // Arc(start, mid, end) where mid is the corner vertex (not on arc).
     // Finds the circle from tangent perpendiculars at start and end, then
     // counts winding contributions from horizontal ray crossings within
@@ -169,8 +204,13 @@ public static class PolygonUtil
         return angle;
     }
 
-    private static int WindingBezier(Unit2D p0, Unit2D p1, Unit2D p2, Unit2D p3, Unit2D point, int depth)
+    private static int WindingBezier(Bezier2D bezier, Unit2D point, int depth)
     {
+        var p0 = bezier.P0;
+        var p1 = bezier.P1;
+        var p2 = bezier.P2;
+        var p3 = bezier.P3;
+        
         double py = point.Y.Millimeters;
         double minY = Math.Min(Math.Min(p0.Y.Millimeters, p1.Y.Millimeters),
                                Math.Min(p2.Y.Millimeters, p3.Y.Millimeters));
@@ -193,8 +233,8 @@ public static class PolygonUtil
         var m123  = Midpoint(m12, m23);
         var m0123 = Midpoint(m012, m123);
 
-        return WindingBezier(p0, m01, m012, m0123, point, depth + 1)
-             + WindingBezier(m0123, m123, m23, p3, point, depth + 1);
+        return WindingBezier(new Bezier2D(p0, m01, m012, m0123), point, depth + 1)
+            + WindingBezier(new Bezier2D(m0123, m123, m23, p3), point, depth + 1);
     }
 
     private static double BezierFlatness(Unit2D p0, Unit2D p1, Unit2D p2, Unit2D p3)
@@ -248,16 +288,16 @@ public static class PolygonUtil
             return true;
         }
 
-        public bool Arc(int segmentIndex, Unit2D start, Unit2D mid, Unit2D end)
+        public bool Arc(int segmentIndex, Arc arc)
         {
-            Winding += WindingArc(start, mid, end, _point);
+            Winding += WindingArc(arc, _point);
 
             return true;
         }
 
-        public bool Bezier(int segmentIndex, Unit2D from, Unit2D c1, Unit2D c2, Unit2D to)
+        public bool Bezier(int segmentIndex, Bezier2D bezier)
         {
-            Winding += WindingBezier(from, c1, c2, to, _point, 0);
+            Winding += WindingBezier(bezier, _point, 0);
 
             return true;
         }

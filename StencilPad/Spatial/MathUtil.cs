@@ -2,6 +2,9 @@ namespace StencilPad.Spatial;
 
 public static class MathUtil
 {
+    public static double Deg2Rad => Math.PI / 180.0;
+    public static double Rad2Deg => 180.0 / Math.PI;
+    
     public static (double?, double?) GetCircleLineIntersectionFractions(Unit2D center,
                                                                         Unit radius,
                                                                         Unit2D p0,
