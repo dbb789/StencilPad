@@ -176,4 +176,11 @@ public static class MathUtil
     {
         return Math.Abs(SignedAngleDifference(a, b));
     }
+
+    public static double LerpAngle(double a, double b, double t)
+    {
+        double angleDiff = SignedAngleDifference(a, b);
+        
+        return a + angleDiff * t;
+    }
 }

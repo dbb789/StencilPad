@@ -65,30 +65,35 @@ public class ClampedGeometryWalker : IGeometryWalker
 
     public bool Arc(int segmentIndex, Arc arc)
     {
-        // if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
-        // {
-        //     return segmentIndex <= _endPoint.Index;
-        // }
+        var startAngle = arc.StartAngle;
+        var endAngle = arc.EndAngle;
+        
+        if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
+        {
+            return segmentIndex <= _endPoint.Index;
+        }
 
-        // if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
-        // {
-        //     start = Unit2D.Lerp(start, end, _startPoint.Fraction);
+        if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
+        {
+            startAngle = MathUtil.LerpAngle(startAngle, endAngle, _startPoint.Fraction);
 
-        //     var remapped = _startPoint.Fraction < 1.0
-        //         ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
-        //         : 0.0;
+            var remapped = _startPoint.Fraction < 1.0
+                ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
+                : 0.0;
 
-        //     end = Unit2D.Lerp(start, end, remapped);
-        // }
-        // else if (segmentIndex == _startPoint.Index)
-        // {
-        //     start = Unit2D.Lerp(start, end, _startPoint.Fraction);
-        // }
-        // else if (segmentIndex == _endPoint.Index)
-        // {
-        //     end = Unit2D.Lerp(start, end, _endPoint.Fraction);
-        // }
+            endAngle = MathUtil.LerpAngle(startAngle, endAngle, remapped);
+        }
+        else if (segmentIndex == _startPoint.Index)
+        {
+            startAngle = MathUtil.LerpAngle(startAngle, endAngle, _startPoint.Fraction);
+        }
+        else if (segmentIndex == _endPoint.Index)
+        {
+            endAngle = MathUtil.LerpAngle(startAngle, endAngle, _endPoint.Fraction);
+        }
 
+        arc = new Arc(arc.Center, arc.Radius, startAngle, endAngle);
+        
         return _inner.Arc(segmentIndex - _startPoint.Index, arc);
     }
 

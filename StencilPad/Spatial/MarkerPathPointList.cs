@@ -78,61 +78,55 @@ public class MarkerPathPointList
         {
             StartSegment(arc.Start);
 
-            // var (arcCenter, arcRadius) = MathUtil.CircleFromArc(start, mid, end);
-            // var startAngle = Math.Atan2((start.Y - arcCenter.Y).Millimeters, (start.X - arcCenter.X).Millimeters);
-            // var endAngle = Math.Atan2((end.Y - arcCenter.Y).Millimeters, (end.X - arcCenter.X).Millimeters);
-            // var arcAngle = MathUtil.SignedAngleDifference(startAngle, endAngle);
+            var arcAngle = MathUtil.SignedAngleDifference(arc.StartAngle, arc.EndAngle);
 
-            // System.Diagnostics.Debug.WriteLine("////////////////////////////////////////");
-            // System.Diagnostics.Debug.WriteLine($"arcAngle : {arcAngle}");
-            
-            // double currentT = -1;
+            double currentT = -1;
 
-            // while (true)
-            // {
-            //     var (a, b) = MathUtil.GetCircleCircleIntersection(arcCenter, arcRadius, _currentPosition, _spacing);
+            while (true)
+            {
+                var (a, b) = MathUtil.GetCircleCircleIntersection(arc.Center, arc.Radius, _currentPosition, _spacing);
 
-            //     var tA = GetArcFraction(a, arcCenter, startAngle, arcAngle);
-            //     var tB = GetArcFraction(b, arcCenter, startAngle, arcAngle);
+                var tA = GetArcFraction(a, arc.Center, arc.StartAngle, arcAngle);
+                var tB = GetArcFraction(b, arc.Center, arc.StartAngle, arcAngle);
 
-            //     if (currentT >= 0 && tA <= currentT)
-            //     {
-            //         tA = null;
-            //     }
+                if (currentT >= 0 && tA <= currentT)
+                {
+                    tA = null;
+                }
 
-            //     if (currentT >= 0 && tB <= currentT)
-            //     {
-            //         tB = null;
-            //     }
+                if (currentT >= 0 && tB <= currentT)
+                {
+                    tB = null;
+                }
                 
-            //     double nextT;
-            //     Unit2D nextPoint;
+                double nextT;
+                Unit2D nextPoint;
                 
-            //     if (tA is null && tB is null)
-            //     {
-            //         break;
-            //     }
-            //     else if (tB is null)
-            //     {
-            //         nextT = tA!.Value;
-            //         nextPoint = a!.Value;
-            //     }
-            //     else if (tA is null)
-            //     {
-            //         nextT = tB.Value;
-            //         nextPoint = b.Value;
-            //     }
-            //     else
-            //     {
-            //         nextT = tA.Value < tB.Value ? tA.Value : tB.Value;
-            //         nextPoint = tA.Value < tB.Value ? a!.Value : b!.Value;
-            //     }
+                if (tA is null && tB is null)
+                {
+                    break;
+                }
+                else if (tB is null)
+                {
+                    nextT = tA!.Value;
+                    nextPoint = a!.Value;
+                }
+                else if (tA is null)
+                {
+                    nextT = tB.Value;
+                    nextPoint = b.Value;
+                }
+                else
+                {
+                    nextT = tA.Value < tB.Value ? tA.Value : tB.Value;
+                    nextPoint = tA.Value < tB.Value ? a!.Value : b!.Value;
+                }
                 
-            //     _points.Add(new Point(nextPoint));
+                _points.Add(new Point(nextPoint));
 
-            //     _currentPosition = nextPoint;
-            //     currentT = nextT;
-            // }
+                _currentPosition = nextPoint;
+                currentT = nextT;
+            }
             
             return true;
         }

@@ -24,6 +24,16 @@ public struct Arc
                               _center.Y + _radius * Math.Sin(_endAngle));
         }
     }
+
+    public Unit Length
+    {
+        get
+        {
+            var angleDiff = MathUtil.AngleDifference(_endAngle, _startAngle);
+            
+            return Unit.FromMillimeters(Math.Abs(angleDiff) * _radius.Millimeters);
+        }
+    }
     
     private Unit2D _center;
     private Unit _radius;
@@ -42,6 +52,14 @@ public struct Arc
 
     }
 
+    public Arc(Unit2D center, Unit radius, double startAngle, double endAngle)
+    {
+        _center = center;
+        _radius = radius;
+        _startAngle = startAngle;
+        _endAngle = endAngle;
+    }
+    
     public override string ToString()
     {
         return $"[Center={Center}, Radius={Radius}, StartAngle={StartAngle * MathUtil.Rad2Deg}, EndAngle={EndAngle * MathUtil.Rad2Deg}]";
