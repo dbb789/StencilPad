@@ -6,7 +6,7 @@ namespace StencilPad.Spatial;
 // any boxing concerns are addressed.
 public struct PolygonSegment
 {
-    public enum Type : byte
+    private enum Type : byte
     {
         Line,
         Arc,

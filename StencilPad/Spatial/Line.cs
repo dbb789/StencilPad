@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public readonly record struct Line
+public readonly struct Line
 {
     public Unit2D Start => _start;
     public Unit2D End => _end;

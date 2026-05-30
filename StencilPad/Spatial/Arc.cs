@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public struct Arc
+public readonly struct Arc
 {
     public Unit2D Center => _center;
     public Unit Radius => _radius;
@@ -35,10 +35,10 @@ public struct Arc
         }
     }
     
-    private Unit2D _center;
-    private Unit _radius;
-    private double _startAngle;
-    private double _endAngle;
+    private readonly Unit2D _center;
+    private readonly Unit _radius;
+    private readonly double _startAngle;
+    private readonly double _endAngle;
 
     public Arc(Unit2D start, Unit2D mid, Unit2D end)
     {
