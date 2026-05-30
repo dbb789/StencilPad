@@ -156,22 +156,22 @@ public class MarkerPathRenderer : SheetElementRenderer
             AddCircleToContext(ctx, position, 0.5);
         }
 
-        var worstError = Unit.Zero;
-        var worstDiff = Unit.Zero;
+        // var worstError = Unit.Zero;
+        // var worstDiff = Unit.Zero;
         
-        for (int i = 1; i < _markerPath.PointList.Points.Count; i++)
-        {
-            var diff = (_markerPath.PointList.Points[i].Position - _markerPath.PointList.Points[i - 1].Position).Magnitude;
-            var error = Unit.Abs(diff - spacing);
+        // for (int i = 1; i < _markerPath.PointList.Points.Count; i++)
+        // {
+        //     var diff = (_markerPath.PointList.Points[i].Position - _markerPath.PointList.Points[i - 1].Position).Magnitude;
+        //     var error = Unit.Abs(diff - spacing);
 
-            if (error > worstError)
-            {
-                worstError = error;
-                worstDiff = diff;
-            }
-        }
+        //     if (error > worstError)
+        //     {
+        //         worstError = error;
+        //         worstDiff = diff;
+        //     }
+        // }
 
-        System.Diagnostics.Debug.WriteLine($"Worst marker spacing error: {worstError.Millimeters}mm (diff: {worstDiff.Millimeters}mm, target: {spacing.Millimeters}mm)");
+        // System.Diagnostics.Debug.WriteLine($"Worst marker spacing error: {worstError.Millimeters}mm (diff: {worstDiff.Millimeters}mm, target: {spacing.Millimeters}mm)");
 
         geo.Freeze();
 

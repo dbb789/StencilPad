@@ -104,7 +104,7 @@ public struct Bezier2D
                            out double t)
     {
         var currentRadius = Unit.Zero;
-        
+
         while (Iterate(start, end, step, minStep, tolerance, out double next))
         {
             var nextPosition = At(next);
@@ -122,6 +122,7 @@ public struct Bezier2D
             currentRadius = nextRadius;
         }
 
+        
         t = default;
         
         return false;
