@@ -189,6 +189,27 @@ public struct Bezier2D
         return new Bezier2D(p0123, p123, p23, P3);
     }
     
+    public Bezier2D Subsegment(double start, double end)
+    {
+        var bezier = this;
+
+        if (start > 0.0)
+        {
+            bezier = bezier.SplitRight(start);
+
+            if (end < 1.0)
+            {
+                bezier = bezier.SplitLeft((end - start) / (1.0 - start));
+            }
+        }
+        else if (end < 1.0)
+        {
+            bezier = bezier.SplitLeft(end);
+        }
+
+        return bezier;
+    }
+
     public override string ToString()
     {
         return $"[P0: {P0}, P1: {P1}, P2: {P2}, P3: {P3}]";

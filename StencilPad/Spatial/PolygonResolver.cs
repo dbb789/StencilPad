@@ -164,16 +164,17 @@ public class PolygonResolver : IPolygonResolver
         
         if (edge.Type == EdgeType.Bezier)
         {
-            next = walker.Bezier(segmentIndex,
-                                 new Bezier2D(edgeBegin,
-                                              _clippedC1[index],
-                                              _clippedC2[index],
-                                              EdgeEnd(index)));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromBezier(new Bezier2D(edgeBegin,
+                                                                         _clippedC1[index],
+                                                                         _clippedC2[index],
+                                                                         EdgeEnd(index))));
             ++segmentIndex;
         }
         else
         {
-            next = walker.Line(segmentIndex, new Line(edgeBegin, EdgeEnd(index)));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromLine(new Line(edgeBegin, EdgeEnd(index))));
             ++segmentIndex;
         }
 
@@ -199,14 +200,16 @@ public class PolygonResolver : IPolygonResolver
         
         if (cornerType == CornerType.Rounded)
         {
-            next = walker.Arc(segmentIndex, new Arc(edgeEnd,
-                                                    _polygon.Vertices.At(index).Position,
-                                                    edgeBegin));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromArc(new Arc(edgeEnd,
+                                                                 _polygon.Vertices.At(index).Position,
+                                                                 edgeBegin)));
             ++segmentIndex;
         }
         else if (cornerType == CornerType.Beveled)
         {
-            next = walker.Line(segmentIndex, new Line(edgeEnd, edgeBegin));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromLine(new Line(edgeEnd, edgeBegin)));
             ++segmentIndex;
         }
 
@@ -226,16 +229,17 @@ public class PolygonResolver : IPolygonResolver
         
         if (edge.Type == EdgeType.Bezier)
         {
-            next = walker.Bezier(segmentIndex,
-                                 new Bezier2D(EdgeEnd(index),
-                                              _clippedC2[index],
-                                              _clippedC1[index],
-                                              edgeBegin));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromBezier(new Bezier2D(EdgeEnd(index),
+                                                                         _clippedC2[index],
+                                                                         _clippedC1[index],
+                                                                         edgeBegin)));
             --segmentIndex;
         }
         else
         {
-            next = walker.Line(segmentIndex, new Line(EdgeEnd(index), edgeBegin));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromLine(new Line(EdgeEnd(index), edgeBegin)));
             --segmentIndex;
         }
 
@@ -261,14 +265,16 @@ public class PolygonResolver : IPolygonResolver
         
         if (cornerType == CornerType.Rounded)
         {
-            next = walker.Arc(segmentIndex, new Arc(edgeBegin,
-                                                    _polygon.Vertices.At(index).Position,
-                                                    edgeEnd));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromArc(new Arc(edgeBegin,
+                                                                 _polygon.Vertices.At(index).Position,
+                                                                 edgeEnd)));
             --segmentIndex;
         }
         else if (cornerType == CornerType.Beveled)
         {
-            next = walker.Line(segmentIndex, new Line(edgeBegin, edgeEnd));
+            next = walker.Segment(segmentIndex,
+                                  PolygonSegment.FromLine(new Line(edgeBegin, edgeEnd)));
             --segmentIndex;
         }
 

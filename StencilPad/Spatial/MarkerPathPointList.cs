@@ -29,7 +29,7 @@ public class MarkerPathPointList
             return true;
         }
         
-        public bool Line(int segmentIndex, Line line)
+        private bool WalkLine(Line line)
         {
             var from = line.Start;
             var to = line.End;
@@ -74,7 +74,7 @@ public class MarkerPathPointList
             return true;
         }
         
-        public bool Arc(int segmentIndex, Arc arc)
+        private bool WalkArc(Arc arc)
         {
             StartSegment(arc.Start);
 
@@ -149,7 +149,7 @@ public class MarkerPathPointList
             return null;
         }
 
-        public bool Bezier(int segmentIndex, Bezier2D bezier)
+        private bool WalkBezier(Bezier2D bezier)
         {
             Unit tolerance = Unit.FromMillimeters(0.000001);
             double step = 0.1;
@@ -177,6 +177,26 @@ public class MarkerPathPointList
             }
             
             return true;
+        }
+
+        public bool Segment(int segmentIndex, PolygonSegment segment)
+        {
+            if (segment.IsLine)
+            {
+                return WalkLine(segment.Line);
+            }
+
+            if (segment.IsArc)
+            {
+                return WalkArc(segment.Arc);
+            }
+
+            if (segment.IsBezier)
+            {
+                return WalkBezier(segment.Bezier);
+            }
+
+            throw new InvalidOperationException("Unknown polygon segment type.");
         }
 
         private void StartSegment(Unit2D startPosition)

@@ -31,98 +31,16 @@ public class ClampedGeometryWalker : IGeometryWalker
         return _inner.Begin(clampedSegmentCount, closed);
     }
 
-    public bool Line(int segmentIndex, Line line)
+    public bool Segment(int segmentIndex, PolygonSegment segment)
     {
         if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
         {
             return segmentIndex <= _endPoint.Index;
         }
 
-        var from = line.Start;
-        var to = line.End;
-        
-        if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
-        {
-            from = Unit2D.Lerp(from, to, _startPoint.Fraction);
+        var start = (segmentIndex == _startPoint.Index) ? _startPoint.Fraction : 0.0;
+        var end = (segmentIndex == _endPoint.Index) ? _endPoint.Fraction   : 1.0;
 
-            var remapped = _startPoint.Fraction < 1.0
-                ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
-                : 0.0;
-
-            to = Unit2D.Lerp(from, to, remapped);
-        }
-        else if (segmentIndex == _startPoint.Index)
-        {
-            from = Unit2D.Lerp(from, to, _startPoint.Fraction);
-        }
-        else if (segmentIndex == _endPoint.Index)
-        {
-            to = Unit2D.Lerp(from, to, _endPoint.Fraction);
-        }
-
-        return _inner.Line(segmentIndex - _startPoint.Index, new Line(from, to));
-    }
-
-    public bool Arc(int segmentIndex, Arc arc)
-    {
-        var startAngle = arc.StartAngle;
-        var endAngle = arc.EndAngle;
-        
-        if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
-        {
-            return segmentIndex <= _endPoint.Index;
-        }
-
-        if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
-        {
-            startAngle = MathUtil.LerpAngle(startAngle, endAngle, _startPoint.Fraction);
-
-            var remapped = _startPoint.Fraction < 1.0
-                ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
-                : 0.0;
-
-            endAngle = MathUtil.LerpAngle(startAngle, endAngle, remapped);
-        }
-        else if (segmentIndex == _startPoint.Index)
-        {
-            startAngle = MathUtil.LerpAngle(startAngle, endAngle, _startPoint.Fraction);
-        }
-        else if (segmentIndex == _endPoint.Index)
-        {
-            endAngle = MathUtil.LerpAngle(startAngle, endAngle, _endPoint.Fraction);
-        }
-
-        arc = new Arc(arc.Center, arc.Radius, startAngle, endAngle);
-        
-        return _inner.Arc(segmentIndex - _startPoint.Index, arc);
-    }
-
-    public bool Bezier(int segmentIndex, Bezier2D bezier)
-    {
-        if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
-        {
-            return segmentIndex <= _endPoint.Index;
-        }
-
-        if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
-        {
-            bezier = bezier.SplitRight(_startPoint.Fraction);
-            
-            var remapped = _startPoint.Fraction < 1.0
-                ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
-                : 0.0;
-            
-            bezier = bezier.SplitLeft(remapped);
-        }
-        else if (segmentIndex == _startPoint.Index)
-        {
-            bezier = bezier.SplitRight(_startPoint.Fraction);
-        }
-        else if (segmentIndex == _endPoint.Index)
-        {
-            bezier = bezier.SplitLeft(_endPoint.Fraction);
-        }
-
-        return _inner.Bezier(segmentIndex - _startPoint.Index, bezier);
+        return _inner.Segment(segmentIndex - _startPoint.Index, segment.Subsegment(start, end));
     }
 }

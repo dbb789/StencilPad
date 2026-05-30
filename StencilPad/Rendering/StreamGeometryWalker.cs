@@ -24,50 +24,60 @@ public class StreamGeometryWalker() : IGeometryWalker
         return true;
     }
 
-    public bool Line(int segmentIndex, Line line)
+    public bool Segment(int segmentIndex, PolygonSegment segment)
     {
-        EnsureFigure(line.Start, line.End);
-        
-        Context.LineTo(line.End.Millimeters,
-                       isStroked: true,
-                       isSmoothJoin: false);
+        if (segment.IsLine)
+        {
+            var line = segment.Line;
 
-        return true;
-    }
+            EnsureFigure(line.Start, line.End);
 
-    public bool Arc(int segmentIndex, Arc arc)
-    {
-        var start = arc.Start;
-        var end = arc.End;
-        
-        EnsureFigure(start, end);
+            Context.LineTo(line.End.Millimeters,
+                           isStroked: true,
+                           isSmoothJoin: false);
 
-        var angle = MathUtil.SignedAngleDifference(arc.EndAngle, arc.StartAngle);
-        var radius = arc.Radius.Millimeters;
-        var sweepDirection = angle < 0 ? SweepDirection.Clockwise : SweepDirection.Counterclockwise;
-                
-        Context.ArcTo(point: end.Millimeters,
-                      size: new Size(radius, radius),
-                      rotationAngle: 0,
-                      isLargeArc: false,
-                      sweepDirection: sweepDirection,
-                      isStroked: true,
-                      isSmoothJoin: false);
+            return true;
+        }
 
-        return true;
-    }
-    
-    public bool Bezier(int segmentIndex, Bezier2D bezier)
-    {
-        EnsureFigure(bezier.P0, bezier.P3);
-        
-        Context.BezierTo(bezier.P1.Millimeters,
-                         bezier.P2.Millimeters,
-                         bezier.P3.Millimeters,
-                         isStroked: true,
-                         isSmoothJoin: false);
+        if (segment.IsArc)
+        {
+            var arc = segment.Arc;
+            var start = arc.Start;
+            var end = arc.End;
 
-        return true;
+            EnsureFigure(start, end);
+
+            var angle = MathUtil.SignedAngleDifference(arc.EndAngle, arc.StartAngle);
+            var radius = arc.Radius.Millimeters;
+            var sweepDirection = angle < 0 ? SweepDirection.Clockwise : SweepDirection.Counterclockwise;
+
+            Context.ArcTo(point: end.Millimeters,
+                          size: new Size(radius, radius),
+                          rotationAngle: 0,
+                          isLargeArc: false,
+                          sweepDirection: sweepDirection,
+                          isStroked: true,
+                          isSmoothJoin: false);
+
+            return true;
+        }
+
+        if (segment.IsBezier)
+        {
+            var bezier = segment.Bezier;
+
+            EnsureFigure(bezier.P0, bezier.P3);
+
+            Context.BezierTo(bezier.P1.Millimeters,
+                             bezier.P2.Millimeters,
+                             bezier.P3.Millimeters,
+                             isStroked: true,
+                             isSmoothJoin: false);
+
+            return true;
+        }
+
+        throw new InvalidOperationException("Unknown polygon segment type.");
     }
 
     private void EnsureFigure(Unit2D from, Unit2D to)

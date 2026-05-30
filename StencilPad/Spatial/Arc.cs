@@ -60,6 +60,13 @@ public struct Arc
         _endAngle = endAngle;
     }
     
+    public Arc Subsegment(double start, double end)
+    {
+        var startAngle = start <= 0.0 ? _startAngle : MathUtil.LerpAngle(_startAngle, _endAngle, start);
+        var endAngle   = end   >= 1.0 ? _endAngle   : MathUtil.LerpAngle(_startAngle, _endAngle, end);
+        return new Arc(_center, _radius, startAngle, endAngle);
+    }
+
     public override string ToString()
     {
         return $"[Center={Center}, Radius={Radius}, StartAngle={StartAngle * MathUtil.Rad2Deg}, EndAngle={EndAngle * MathUtil.Rad2Deg}]";

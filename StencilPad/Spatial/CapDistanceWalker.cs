@@ -34,60 +34,65 @@ public sealed class CapDistanceWalker : IGeometryWalker
         return true;
     }
     
-    public bool Line(int segmentIndex, Line line)
+    public bool Segment(int segmentIndex, PolygonSegment segment)
     {
-        var from = line.Start;
-        var to = line.End;
-        
-        CheckStarted(from);
+        if (segment.IsLine)
+        {
+            return WalkLine(segmentIndex, segment.Line);
+        }
 
-        var dFrom = (from - _startPoint).Magnitude;
-        var dTo = (to - _startPoint).Magnitude;
+        if (segment.IsArc)
+        {
+            return WalkArc(segmentIndex, segment.Arc);
+        }
+
+        if (segment.IsBezier)
+        {
+            return WalkBezier(segmentIndex, segment.Bezier);
+        }
+        
+        throw new InvalidOperationException("Unknown polygon segment type.");
+    }
+
+    private bool WalkLine(int segmentIndex, Line line)
+    {
+        CheckStarted(line.Start);
+
+        var dFrom = (line.Start - _startPoint).Magnitude;
+        var dTo   = (line.End   - _startPoint).Magnitude;
 
         if ((_distance >= dFrom && _distance <= dTo) ||
-            (_distance >= dTo && _distance <= dFrom))
+            (_distance >= dTo   && _distance <= dFrom))
         {
-            Point = new SegmentPoint(segmentIndex,
-                                     Unit.InverseLerp(dFrom, dTo, _distance));
+            Point = new SegmentPoint(segmentIndex, Unit.InverseLerp(dFrom, dTo, _distance));
             return false;
         }
 
         return true;
     }
 
-    public bool Arc(int segmentIndex, Arc arc)
+    private bool WalkArc(int segmentIndex, Arc arc)
     {
-        var start = arc.Start;
-        var end = arc.End;
-        
-        CheckStarted(start);
+        CheckStarted(arc.Start);
 
-        var dStart = (start - _startPoint).Magnitude;
-        var dEnd = (end - _startPoint).Magnitude;
+        var dStart = (arc.Start - _startPoint).Magnitude;
+        var dEnd   = (arc.End   - _startPoint).Magnitude;
 
         if ((_distance >= dStart && _distance <= dEnd) ||
-            (_distance >= dEnd && _distance <= dStart))
+            (_distance >= dEnd   && _distance <= dStart))
         {
-            Point = new SegmentPoint(segmentIndex,
-                                     Unit.InverseLerp(dStart, dEnd, _distance));
+            Point = new SegmentPoint(segmentIndex, Unit.InverseLerp(dStart, dEnd, _distance));
             return false;
         }
 
         return true;
     }
 
-    public bool Bezier(int segmentIndex, Bezier2D bezier)
+    private bool WalkBezier(int segmentIndex, Bezier2D bezier)
     {
         CheckStarted(bezier.P0);
 
-        if (bezier.WalkRadius(_startPoint,
-                              0.0,
-                              1.0,
-                              Step,
-                              MinStep,
-                              _distance,
-                              Tolerance,
-                              out double t))
+        if (bezier.WalkRadius(_startPoint, 0.0, 1.0, Step, MinStep, _distance, Tolerance, out double t))
         {
             Point = new SegmentPoint(segmentIndex, t);
             return false;

@@ -18,28 +18,33 @@ public class EvenOddWalker : IGeometryWalker
         return true;
     }
 
-    public bool Line(int segmentIndex, Line line)
+    public bool Segment(int segmentIndex, PolygonSegment segment)
     {
-        if (IntersectsLine(line, _point))
+        if (segment.IsLine)
         {
-            ++_count;
+            if (IntersectsLine(segment.Line, _point))
+            {
+                ++_count;
+            }
+
+            return true;
         }
 
-        return true;
-    }
+        if (segment.IsArc)
+        {
+            _count += IntersectsArc(segment.Arc, _point);
 
-    public bool Arc(int segmentIndex, Arc arc)
-    {
-        _count += IntersectsArc(arc, _point);
+            return true;
+        }
 
-        return true;
-    }
+        if (segment.IsBezier)
+        {
+            _count += IntersectsBezier(segment.Bezier, _point);
 
-    public bool Bezier(int segmentIndex, Bezier2D bezier)
-    {
-        _count += IntersectsBezier(bezier, _point);
+            return true;
+        }
 
-        return true;
+        throw new InvalidOperationException("Unknown polygon segment type.");
     }
 
     public bool AddLine(Unit2D from, Unit2D to)

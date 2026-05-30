@@ -35,4 +35,11 @@ public readonly record struct Line
 
         return Unit.FromMillimeters(Math.Sqrt((px - cx) * (px - cx) + (py - cy) * (py - cy)));
     }
+
+    public Line Subsegment(double start, double end)
+    {
+        var from = start <= 0.0 ? _start : Unit2D.Lerp(_start, _end, start);
+        var to   = end   >= 1.0 ? _end   : Unit2D.Lerp(_start, _end, end);
+        return new Line(from, to);
+    }
 }
