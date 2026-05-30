@@ -172,7 +172,7 @@ public static class MathUtil
     {
         return Math.Abs(SignedAngleDifference(a, b));
     }
-    
+
     public static bool IsAngleBetween(double angle, double startAngle, double endAngle)
     {
         angle = NormalizeAngle(angle);

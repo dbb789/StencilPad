@@ -127,12 +127,12 @@ public struct Bezier2D
         return false;
     }
 
-    private bool Iterate(double start,
-                         double end,
-                         double step,
-                         double minStep,
-                         Unit tolerance,
-                         out double t)
+    public bool Iterate(double start,
+                        double end,
+                        double step,
+                        double minStep,
+                        Unit tolerance,
+                        out double t)
     {
         if (step > 0 && start >= end)
         {

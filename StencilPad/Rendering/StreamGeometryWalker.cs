@@ -42,15 +42,12 @@ public class StreamGeometryWalker() : IGeometryWalker
         
         EnsureFigure(start, end);
 
-        // Seems to be necessary because we're measuring across the corner point
-        // and not the arc's circle.
-        var angle = MathUtil.SignedAngleDifference(arc.EndAngle - Math.PI / 2,
-                                                   arc.StartAngle + Math.PI / 2);
-        var tangent = arc.Radius;
+        var angle = MathUtil.SignedAngleDifference(arc.EndAngle, arc.StartAngle);
+        var radius = arc.Radius.Millimeters;
         var sweepDirection = angle < 0 ? SweepDirection.Clockwise : SweepDirection.Counterclockwise;
                 
         Context.ArcTo(point: end.Millimeters,
-                      size: new Size(tangent.Millimeters, tangent.Millimeters),
+                      size: new Size(radius, radius),
                       rotationAngle: 0,
                       isLargeArc: false,
                       sweepDirection: sweepDirection,
