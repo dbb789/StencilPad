@@ -14,33 +14,36 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
     
     public SheetElementRenderer? Create(ISheetElement element)
     {
-        SheetElementRenderer? renderer = null;
-        
         if (element is Shape shape)
         {
-            renderer = new ShapeRenderer(shape, _resourceService);
+            return new ShapeRenderer(shape, _resourceService);
         }
-        else if (element is MarkerPath markerPath)
+        
+        if (element is MarkerPath markerPath)
         {
-            renderer = new MarkerPathRenderer(markerPath);
+            return new MarkerPathRenderer(markerPath);
         }
-        else if (element is Ruler ruler)
+        
+        if (element is Ruler ruler)
         {
-            renderer = new RulerRenderer(ruler, _resourceService);
+            return new RulerRenderer(ruler, _resourceService);
         }
-        else if (element is ElementGroup elementGroup)
+        
+        if (element is ElementGroup elementGroup)
         {
-            renderer = new GroupRenderer(elementGroup, this);
+            return new GroupRenderer(elementGroup, this);
         }
-        else if (element is TextElement textElement)
+        
+        if (element is TextElement textElement)
         {
-            renderer = new TextElementRenderer(textElement);
+            return new TextElementRenderer(textElement);
         }
-        else if (element is ImageElement imageElement)
+        
+        if (element is ImageElement imageElement)
         {
-            renderer = new ImageElementRenderer(imageElement);
+            return new ImageElementRenderer(imageElement);
         }
 
-        return renderer;
+        return null;
     }
 }

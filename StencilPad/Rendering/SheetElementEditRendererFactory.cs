@@ -20,6 +20,11 @@ public static class SheetElementEditRendererFactory
         {
             return new ImageElementEditRenderer(imageElement);
         }
+
+        if (element is ElementGroup elementGroup)
+        {
+            return new GroupEditRenderer(elementGroup);
+        }
         
         return null;
     }
