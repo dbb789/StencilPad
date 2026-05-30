@@ -31,13 +31,16 @@ public class ClampedGeometryWalker : IGeometryWalker
         return _inner.Begin(clampedSegmentCount, closed);
     }
 
-    public bool Line(int segmentIndex, Unit2D from, Unit2D to)
+    public bool Line(int segmentIndex, Line line)
     {
         if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
         {
             return segmentIndex <= _endPoint.Index;
         }
 
+        var from = line.Start;
+        var to = line.End;
+        
         if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
         {
             from = Unit2D.Lerp(from, to, _startPoint.Fraction);
@@ -57,7 +60,7 @@ public class ClampedGeometryWalker : IGeometryWalker
             to = Unit2D.Lerp(from, to, _endPoint.Fraction);
         }
 
-        return _inner.Line(segmentIndex - _startPoint.Index, from, to);
+        return _inner.Line(segmentIndex - _startPoint.Index, new Line(from, to));
     }
 
     public bool Arc(int segmentIndex, Arc arc)

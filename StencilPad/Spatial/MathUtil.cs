@@ -7,19 +7,18 @@ public static class MathUtil
     
     public static (double?, double?) GetCircleLineIntersectionFractions(Unit2D center,
                                                                         Unit radius,
-                                                                        Unit2D p0,
-                                                                        Unit2D p1)
+                                                                        Line line)
     {
         radius = Unit.Abs(radius);
         
-        Unit2D d = p1 - p0;
+        Unit2D d = line.End - line.Start;
         double dx = d.X.Millimeters;
         double dy = d.Y.Millimeters;
         double centerX = center.X.Millimeters;
         double centerY = center.Y.Millimeters;
         double radiusMm = radius.Millimeters;
-        double p0X = p0.X.Millimeters;
-        double p0Y = p0.Y.Millimeters;
+        double p0X = line.Start.X.Millimeters;
+        double p0Y = line.Start.Y.Millimeters;
 
         double a = d.SqrMagnitude;
         double b = 2 * (dx * (p0X - centerX) + dy * (p0Y - centerY));
@@ -30,16 +29,15 @@ public static class MathUtil
     
     public static (Unit2D?, Unit2D?) GetCircleLineIntersection(Unit2D center,
                                                                Unit radius,
-                                                               Unit2D p0,
-                                                               Unit2D p1)
+                                                               Line line)
     {
-        Unit2D d = p1 - p0;
+        Unit2D d = line.End - line.Start;
         double dx = d.X.Millimeters;
         double dy = d.Y.Millimeters;
-        double p0X = p0.X.Millimeters;
-        double p0Y = p0.Y.Millimeters;
+        double p0X = line.Start.X.Millimeters;
+        double p0Y = line.Start.Y.Millimeters;
 
-        var (t0, t1) = GetCircleLineIntersectionFractions(center, radius, p0, p1);
+        var (t0, t1) = GetCircleLineIntersectionFractions(center, radius, line);
         
         Unit2D? i0 = null;
         Unit2D? i1 = null;
@@ -91,20 +89,26 @@ public static class MathUtil
         double r1mm = r1.Millimeters;
 
         if (d < 1e-10 || d > r0mm + r1mm || d < Math.Abs(r0mm - r1mm))
+        {
             return (null, null);
-
+        }
+        
         double a = (r0mm*r0mm - r1mm*r1mm + d2) / (2 * d);
         double h2 = r0mm*r0mm - a*a;
 
         if (h2 < 0)
+        {
             return (null, null);
-
+        }
+        
         double px = c0.X.Millimeters + a * dx / d;
         double py = c0.Y.Millimeters + a * dy / d;
 
         if (h2 < 1e-20)
+        {
             return (Unit2D.FromMillimeters(px, py), null);
-
+        }
+        
         double h = Math.Sqrt(h2);
         double perpX = -dy / d;
         double perpY =  dx / d;

@@ -24,11 +24,11 @@ public class StreamGeometryWalker() : IGeometryWalker
         return true;
     }
 
-    public bool Line(int segmentIndex, Unit2D from, Unit2D to)
+    public bool Line(int segmentIndex, Line line)
     {
-        EnsureFigure(from, to);
+        EnsureFigure(line.Start, line.End);
         
-        Context.LineTo(to.Millimeters,
+        Context.LineTo(line.End.Millimeters,
                        isStroked: true,
                        isSmoothJoin: false);
 

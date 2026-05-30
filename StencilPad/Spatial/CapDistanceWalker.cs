@@ -34,8 +34,11 @@ public sealed class CapDistanceWalker : IGeometryWalker
         return true;
     }
     
-    public bool Line(int segmentIndex, Unit2D from, Unit2D to)
+    public bool Line(int segmentIndex, Line line)
     {
+        var from = line.Start;
+        var to = line.End;
+        
         CheckStarted(from);
 
         var dFrom = (from - _startPoint).Magnitude;

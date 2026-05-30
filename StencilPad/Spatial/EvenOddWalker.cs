@@ -18,9 +18,9 @@ public class EvenOddWalker : IGeometryWalker
         return true;
     }
 
-    public bool Line(int segmentIndex, Unit2D from, Unit2D to)
+    public bool Line(int segmentIndex, Line line)
     {
-        if (IntersectsLine(new Line(from, to), _point))
+        if (IntersectsLine(line, _point))
         {
             ++_count;
         }
@@ -84,15 +84,12 @@ public class EvenOddWalker : IGeometryWalker
     private static int IntersectsArc(Arc arc, Unit2D point)
     {
         int count = 0;
-        
-        var lineStart = point;
-        var lineEnd = new Unit2D(point.X + Unit.FromMillimeters(1000000), point.Y);
+        var ray = new Line(point, new Unit2D(point.X + Unit.FromMillimeters(1000000), point.Y));
         var arcRange = MathUtil.AngleDifference(arc.EndAngle, arc.StartAngle);
 
         var (i0, i1) = MathUtil.GetCircleLineIntersection(arc.Center,
                                                           arc.Radius,
-                                                          lineStart,
-                                                          lineEnd);
+                                                          ray);
 
         if (i0 is not null)
         {

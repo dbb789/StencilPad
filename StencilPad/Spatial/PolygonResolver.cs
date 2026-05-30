@@ -173,7 +173,7 @@ public class PolygonResolver : IPolygonResolver
         }
         else
         {
-            next = walker.Line(segmentIndex, edgeBegin, EdgeEnd(index));
+            next = walker.Line(segmentIndex, new Line(edgeBegin, EdgeEnd(index)));
             ++segmentIndex;
         }
 
@@ -206,7 +206,7 @@ public class PolygonResolver : IPolygonResolver
         }
         else if (cornerType == CornerType.Beveled)
         {
-            next = walker.Line(segmentIndex, edgeEnd, edgeBegin);
+            next = walker.Line(segmentIndex, new Line(edgeEnd, edgeBegin));
             ++segmentIndex;
         }
 
@@ -235,7 +235,7 @@ public class PolygonResolver : IPolygonResolver
         }
         else
         {
-            next = walker.Line(segmentIndex, EdgeEnd(index), edgeBegin);
+            next = walker.Line(segmentIndex, new Line(EdgeEnd(index), edgeBegin));
             --segmentIndex;
         }
 
@@ -268,7 +268,7 @@ public class PolygonResolver : IPolygonResolver
         }
         else if (cornerType == CornerType.Beveled)
         {
-            next = walker.Line(segmentIndex, edgeBegin, edgeEnd);
+            next = walker.Line(segmentIndex, new Line(edgeBegin, edgeEnd));
             --segmentIndex;
         }
 

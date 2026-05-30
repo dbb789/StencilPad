@@ -29,8 +29,11 @@ public class MarkerPathPointList
             return true;
         }
         
-        public bool Line(int segmentIndex, Unit2D from, Unit2D to)
+        public bool Line(int segmentIndex, Line line)
         {
+            var from = line.Start;
+            var to = line.End;
+            
             StartSegment(from);
             
             double lastT = -1;
@@ -39,8 +42,7 @@ public class MarkerPathPointList
             {
                 var (t0, t1) = MathUtil.GetCircleLineIntersectionFractions(_currentPosition,
                                                                            _spacing,
-                                                                           from,
-                                                                           to);
+                                                                           line);
 
                 // NOTE: MathUtil.SolveQuadratic() is guaranteed to return with t1 > t0.
                 if (t0 is not null && t0.Value > lastT)
