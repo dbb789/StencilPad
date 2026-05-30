@@ -17,9 +17,12 @@ public readonly record struct Line
 
     public Unit DistanceTo(Unit2D point)
     {
-        double ax = _start.X.Millimeters, ay = _start.Y.Millimeters;
-        double bx = _end.X.Millimeters,   by = _end.Y.Millimeters;
-        double px = point.X.Millimeters,  py = point.Y.Millimeters;
+        double ax = _start.X.Millimeters;
+        double ay = _start.Y.Millimeters;
+        double bx = _end.X.Millimeters;
+        double by = _end.Y.Millimeters;
+        double px = point.X.Millimeters;
+        double py = point.Y.Millimeters;
 
         double dx = bx - ax, dy = by - ay;
         double lenSq = dx * dx + dy * dy;

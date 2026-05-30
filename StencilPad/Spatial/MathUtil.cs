@@ -172,20 +172,4 @@ public static class MathUtil
     {
         return Math.Abs(SignedAngleDifference(a, b));
     }
-
-    public static bool IsAngleBetween(double angle, double startAngle, double endAngle)
-    {
-        angle = NormalizeAngle(angle);
-        startAngle = NormalizeAngle(startAngle);
-        endAngle = NormalizeAngle(endAngle);
-
-        if (startAngle < endAngle)
-        {
-            return angle >= startAngle && angle <= endAngle;
-        }
-        else
-        {
-            return angle >= startAngle || angle <= endAngle;
-        }
-    }
 }
