@@ -6,9 +6,9 @@ public static class SheetElementEditRendererFactory
 {
     public static SheetElementEditRenderer? Create(ISheetElement element)
     {
-        if (element is Shape shape)
+        if (element is IPolygonSheetElement polygonElement)
         {
-            return new ShapeEditRenderer(shape);
+            return new PolygonEditRenderer(polygonElement);
         }
 
         if (element is TextElement textElement)

@@ -1,13 +1,12 @@
-using System.ComponentModel;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
-public class ShapeEditRenderer : SheetElementEditRenderer
+public class PolygonEditRenderer : SheetElementEditRenderer
 {
-    private readonly Shape _shape;
+    private readonly IPolygonSheetElement _element;
     private readonly StreamGeometryWalker _walker;
 
     private Pen? _edgeOverlayPen;
@@ -17,13 +16,13 @@ public class ShapeEditRenderer : SheetElementEditRenderer
     private StreamGeometry? _controlStemGeometry;
     private bool _geometryDirty;
 
-    public ShapeEditRenderer(Shape shape)
+    public PolygonEditRenderer(IPolygonSheetElement element)
     {
-        _shape = shape;
-        _shape.PolygonSet.PolygonAdded += PolygonAdded;
-        _shape.PolygonSet.PolygonRemoved += PolygonRemoved;
-        _shape.PolygonSet.HandleSource.HandleSelectionChanged += SelectionChanged;
-        _shape.TransformChanged += TransformChanged;
+        _element = element;
+        _element.PolygonSet.PolygonAdded += PolygonAdded;
+        _element.PolygonSet.PolygonRemoved += PolygonRemoved;
+        _element.PolygonSet.HandleSource.HandleSelectionChanged += SelectionChanged;
+        _element.TransformChanged += TransformChanged;
         
         _walker = new();
         
@@ -33,12 +32,12 @@ public class ShapeEditRenderer : SheetElementEditRenderer
         _controlStemPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0, 200, 0)), 0.2);
         _controlStemPen.Freeze();
         
-        foreach (var polygon in _shape.PolygonSet)
+        foreach (var polygon in _element.PolygonSet)
         {
             polygon.GeometryChanged += MarkGeometryDirty;
         }
 
-        _transform = _shape.Transform.CreateGroupTransform();
+        _transform = _element.Transform.CreateGroupTransform();
 
         RebuildGeometry();
         _geometryDirty = false;
@@ -46,15 +45,15 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
     public override void Dispose()
     {
-        foreach (var polygon in _shape.PolygonSet)
+        foreach (var polygon in _element.PolygonSet)
         {
             polygon.GeometryChanged -= MarkGeometryDirty;
         }
         
-        _shape.PolygonSet.PolygonAdded -= PolygonAdded;
-        _shape.PolygonSet.PolygonRemoved -= PolygonRemoved;
-        _shape.PolygonSet.HandleSource.HandleSelectionChanged -= SelectionChanged;
-        _shape.TransformChanged -= TransformChanged;
+        _element.PolygonSet.PolygonAdded -= PolygonAdded;
+        _element.PolygonSet.PolygonRemoved -= PolygonRemoved;
+        _element.PolygonSet.HandleSource.HandleSelectionChanged -= SelectionChanged;
+        _element.TransformChanged -= TransformChanged;
     }
 
     private void PolygonAdded(EditablePolygon polygon)
@@ -88,14 +87,14 @@ public class ShapeEditRenderer : SheetElementEditRenderer
 
     private void TransformChanged(ISheetElement element)
     {
-        _transform = _shape.Transform.CreateGroupTransform();
+        _transform = _element.Transform.CreateGroupTransform();
         
         InvokeRendererDirty();
     }
     
     private void RebuildGeometry()
     {
-        var polygonList = _shape.PolygonSet;
+        var polygonList = _element.PolygonSet;
 
         _edgeOverlayGeometry = new StreamGeometry { FillRule = FillRule.EvenOdd };
 
