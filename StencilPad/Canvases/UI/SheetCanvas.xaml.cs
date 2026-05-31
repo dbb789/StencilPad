@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Rendering;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
