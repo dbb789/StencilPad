@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace StencilPad.Spatial;
 
-public readonly record struct UnitTransform(Unit2D Position, decimal Angle)
+public readonly record struct UnitTransform(Unit2D Position, decimal Angle = 0m)
 {
     public static readonly UnitTransform Identity = new(Unit2D.Zero, 0m);
 

@@ -20,6 +20,11 @@ public readonly struct Line
         return Unit2D.Lerp(_start, _end, t);
     }
 
+    public Unit2D Deriv(double t)
+    {
+        return _end - _start;
+    }
+    
     public Unit DistanceTo(Unit2D point)
     {
         double ax = _start.X.Millimeters;

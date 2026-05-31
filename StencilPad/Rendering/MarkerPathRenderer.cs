@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
@@ -16,20 +17,21 @@ public class MarkerPathRenderer : SheetElementRenderer
     
     private const double MarkerHalfLengthMm = 1.0;
 
-    private MarkerPath _markerPath;
+    private readonly MarkerPath _markerPath;
+    private readonly IResourceService _resourceService;
     private StreamGeometry? _geometry;
-    private StreamGeometry? _markerGeometry;
     private int _markerCount;
     private Transform? _transform;
     
-    public MarkerPathRenderer(MarkerPath markerPath)
+    public MarkerPathRenderer(MarkerPath markerPath, IResourceService resourceService)
     {
         _markerPath = markerPath;
         _markerPath.Polygon.GeometryChanged += RebuildGeometry;
         _markerPath.TransformChanged += OnTransformChanged;
         _markerPath.PropertyChanged += PropertyChanged;
         _markerCount = 0;
-        
+
+        _resourceService = resourceService;
         _transform = _markerPath.Transform.CreateGroupTransform();
         
         RebuildGeometry();
@@ -50,15 +52,23 @@ public class MarkerPathRenderer : SheetElementRenderer
         }
 
         var pen = new Pen(Brushes.Black, 0.2);
-        var fill = Brushes.Transparent;
 
         dc.PushTransform(_transform);
-        dc.DrawGeometry(fill, pen, _geometry);
+        dc.DrawGeometry(null, pen, _geometry);
 
-        if (_markerGeometry is not null)
+        var markerGeometry = _resourceService.Get(_markerPath.MarkerType).Geometry;
+
+        foreach (var t in _markerPath.PointList.Points)
         {
-            dc.DrawGeometry(null, new Pen(Brushes.Black, 0.2), _markerGeometry);
+            var position = new Point(t.Position.X.Millimeters, t.Position.Y.Millimeters);
+            
+            dc.PushTransform(new TranslateTransform(position.X, position.Y));
+            dc.PushTransform(new RotateTransform((double)t.Angle, 0, 0));
+            dc.DrawGeometry(null, pen, markerGeometry);
+            dc.Pop();
+            dc.Pop();
         }
+
         dc.Pop();
     }
 
@@ -94,88 +104,7 @@ public class MarkerPathRenderer : SheetElementRenderer
 
         _geometry.Freeze();
 
-        var points = GetGeometryPoints();
-        
-        if (points.Count <= 1)
-        {
-            _markerGeometry = null;
-        }
-        else
-        {
-            _markerGeometry = BuildMarkers(points,
-                                           _markerPath.Spacing,
-                                           _markerPath.Offset);
-        }
-
         InvokeRendererDirty();
-    }
-
-    private StreamGeometry? BuildMarkers(List<Point> points, Unit spacing, Unit offset)
-    {
-        if (spacing.Millimeters < 0.1)
-        {
-            return null;
-        }
-
-        if (points.Count < 2)
-        {
-            return null;
-        }
-
-        // var markerData = GenerateMarkerPoints(points, spacing, offset);        
-        // bool balanced = false;
-        
-        // if (_markerPath.Polygon.Closed)
-        // {
-        //     balanced = BalanceClosingMarker(markerData, points);
-        // }
-
-        // _markerCount = markerData.Count;
-        
-        var geo = new StreamGeometry { FillRule = FillRule.EvenOdd };
-        using var ctx = geo.Open();
-
-        // for (int i = 0; i < markerData.Count; i++)
-        // {
-        //     var marker = markerData[i];
-        //     var perpendicular = GetPerpendicularAt(points, marker.SegmentIndex);
-            
-        //     AddLineToContext(ctx, marker.Position, perpendicular, MarkerHalfLengthMm);
-
-        //     if (i == markerData.Count - 1 && balanced)
-        //     {
-        //         AddCircleToContext(ctx, marker.Position, MarkerHalfLengthMm);
-        //     }
-        // }
-
-
-        foreach (var point in _markerPath.PointList.Points)
-        {
-            var position = new Point(point.Position.X.Millimeters, point.Position.Y.Millimeters);
-            
-            AddCircleToContext(ctx, position, 0.5);
-        }
-
-        // var worstError = Unit.Zero;
-        // var worstDiff = Unit.Zero;
-        
-        // for (int i = 1; i < _markerPath.PointList.Points.Count; i++)
-        // {
-        //     var diff = (_markerPath.PointList.Points[i].Position - _markerPath.PointList.Points[i - 1].Position).Magnitude;
-        //     var error = Unit.Abs(diff - spacing);
-
-        //     if (error > worstError)
-        //     {
-        //         worstError = error;
-        //         worstDiff = diff;
-        //     }
-        // }
-
-        // System.Diagnostics.Debug.WriteLine($"Worst marker spacing error: {worstError.Millimeters}mm (diff: {worstDiff.Millimeters}mm, target: {spacing.Millimeters}mm)");
-
-        geo.Freeze();
-
-        return geo;
     }
 
     private List<MarkerData> GenerateMarkerPoints(List<Point> points, Unit spacing, Unit offset)

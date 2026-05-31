@@ -2,18 +2,16 @@ using StencilPad.Spatial;
 
 public class MarkerPathPointList
 {
-    public readonly record struct Point(Unit2D Position);
-
     public class MarkerPathWalker : IGeometryWalker
     {
-        public IEnumerable<Point> Points => _points;
+        public IEnumerable<UnitTransform> Points => _points;
 
         private readonly Unit _spacing;
         private readonly Unit _offset;
         
         private bool _started;
         private Unit2D _currentPosition;
-        private List<Point> _points;
+        private List<UnitTransform> _points;
 
         public MarkerPathWalker(Unit spacing, Unit offset)
         {
@@ -29,55 +27,6 @@ public class MarkerPathPointList
             return true;
         }
         
-        private bool WalkLine(Line line)
-        {
-            StartSegment(line.Start);
-            return WalkLineOrArc(t => line.FromRadius(_currentPosition, _spacing, t, 1.0),
-                                 t => line.At(t));
-        }
-        
-        private bool WalkArc(Arc arc)
-        {
-            StartSegment(arc.Start);
-            return WalkLineOrArc(t => arc.FromRadius(_currentPosition, _spacing, t, 1.0),
-                                 t => arc.At(t));
-        }
-
-        private bool WalkLineOrArc(Func<double, double?> fromRadius, Func<double, Unit2D> at)
-        {
-            double lastT = -1;
-
-            while (true)
-            {
-                var nextT = fromRadius(lastT);
-
-                if (nextT is null)
-                {
-                    break;
-                }
-
-                var point = at(nextT.Value);
-
-                _points.Add(new Point(point));
-
-                _currentPosition = point;
-                lastT = nextT.Value;
-            }
-
-            return true;
-        }
-
-        private bool WalkBezier(Bezier2D bezier)
-        {
-            Unit tolerance = Unit.FromMillimeters(0.000001);
-            double step = 0.1;
-            double minStep = 0.0001;
-
-            StartSegment(bezier.P0);
-            return WalkLineOrArc(t => bezier.WalkRadius(_currentPosition, t, 1.0, step, minStep, _spacing, tolerance),
-                                 t => bezier.At(t));
-        }
-
         public bool Segment(int segmentIndex, PolygonSegment segment)
         {
             if (segment.IsLine)
@@ -98,20 +47,79 @@ public class MarkerPathPointList
             throw new InvalidOperationException("Unknown polygon segment type.");
         }
 
-        private void StartSegment(Unit2D startPosition)
+        private bool WalkLine(Line line)
+        {
+            StartSegment(line.Start, line.Deriv(0));
+            
+            return Walk(t => line.FromRadius(_currentPosition, _spacing, t, 1.0),
+                        t => (line.At(t), line.Deriv(t)));
+        }
+        
+        private bool WalkArc(Arc arc)
+        {
+            StartSegment(arc.Start, arc.Deriv(0));
+            
+            return Walk(t => arc.FromRadius(_currentPosition, _spacing, t, 1.0),
+                        t => (arc.At(t), arc.Deriv(t)));
+        }
+
+        private bool WalkBezier(Bezier2D bezier)
+        {
+            Unit tolerance = Unit.FromMillimeters(0.000001);
+            double step = 0.1;
+            double minStep = 0.0001;
+
+            StartSegment(bezier.P0, bezier.Deriv(0));
+            
+            return Walk(t => bezier.WalkRadius(_currentPosition, t, 1.0, step, minStep, _spacing, tolerance),
+                        t => (bezier.At(t), bezier.Deriv(t)));
+        }
+        
+        private bool Walk(Func<double, double?> fromRadius, Func<double, (Unit2D, Unit2D)> at)
+        {
+            double lastT = 0;
+
+            while (true)
+            {
+                var nextT = fromRadius(lastT);
+
+                if (nextT is null)
+                {
+                    break;
+                }
+
+                var (point, deriv) = at(nextT.Value);
+
+                AddPoint(point, deriv);
+
+                _currentPosition = point;
+                lastT = nextT.Value;
+            }
+
+            return true;
+        }
+
+        private void StartSegment(Unit2D startPosition, Unit2D startDirection)
         {
             if (!_started)
             {
                 _started = true;
                 _currentPosition = startPosition;
-                _points.Add(new Point(_currentPosition));
+                AddPoint(startPosition, startDirection);
             }
+        }
+
+        private void AddPoint(Unit2D position, Unit2D direction)
+        {
+            var angle = Math.Atan2(direction.Y.Millimeters, direction.X.Millimeters);
+            
+            _points.Add(new UnitTransform(position, (decimal)(angle * MathUtil.Rad2Deg) + 90));
         }
     }
     
-    public List<Point> Points => _points;
+    public List<UnitTransform> Points => _points;
 
-    private readonly List<Point> _points;
+    private readonly List<UnitTransform> _points;
 
     public MarkerPathPointList()
     {

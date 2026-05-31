@@ -43,7 +43,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         }
     }
     
-    public GeometryResourceId _markerType = GeometryResourceId.None;
+    public GeometryResourceId _markerType = GeometryResourceId.DefaultMarker;
     public GeometryResourceId MarkerType
     {
         get => _markerType;

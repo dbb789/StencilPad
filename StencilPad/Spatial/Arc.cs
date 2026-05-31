@@ -96,6 +96,14 @@ public readonly struct Arc
                           _center.Y + _radius * Math.Sin(angle));
     }
 
+    public Unit2D Deriv(double t)
+    {
+        var angle = MathUtil.LerpAngle(_startAngle, _endAngle, t);
+        
+        return new Unit2D(-Math.Sin(angle) * _radius,
+                          Math.Cos(angle) * _radius);
+    }
+    
     public Arc Subsegment(double start, double end)
     {
         var startAngle = (start <= 0.0) ? _startAngle : MathUtil.LerpAngle(_startAngle, _endAngle, start);

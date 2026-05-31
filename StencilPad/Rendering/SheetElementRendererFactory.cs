@@ -21,7 +21,7 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
         
         if (element is MarkerPath markerPath)
         {
-            return new MarkerPathRenderer(markerPath);
+            return new MarkerPathRenderer(markerPath, _resourceService);
         }
         
         if (element is Ruler ruler)
