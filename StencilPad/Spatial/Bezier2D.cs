@@ -83,25 +83,23 @@ public struct Bezier2D
         return end;
     }
     
-    public bool WalkRadius(double start,
-                           double end,
-                           double step,
-                           double minStep,
-                           Unit radius,
-                           Unit tolerance,
-                           out double t)
+    public double? WalkRadius(double start,
+                              double end,
+                              double step,
+                              double minStep,
+                              Unit radius,
+                              Unit tolerance)
     {
-        return WalkRadius(At(start), start, end, step, minStep, radius, tolerance, out t);
+        return WalkRadius(At(start), start, end, step, minStep, radius, tolerance);
     }
 
-    public bool WalkRadius(Unit2D initialPosition,
-                           double start,
-                           double end,
-                           double step,
-                           double minStep,
-                           Unit radius,
-                           Unit tolerance,
-                           out double t)
+    public double? WalkRadius(Unit2D initialPosition,
+                              double start,
+                              double end,
+                              double step,
+                              double minStep,
+                              Unit radius,
+                              Unit tolerance)
     {
         var currentRadius = Unit.Zero;
 
@@ -113,19 +111,14 @@ public struct Bezier2D
             if ((radius >= currentRadius && radius <= nextRadius)
                 || (radius >= nextRadius && radius <= currentRadius))
             {
-                t = Double.Lerp(start, next, Unit.InverseLerp(currentRadius, nextRadius, radius));
-                
-                return true;
+                return Double.Lerp(start, next, Unit.InverseLerp(currentRadius, nextRadius, radius));
             }
             
             start = next;
             currentRadius = nextRadius;
         }
 
-        
-        t = default;
-        
-        return false;
+        return null;
     }
 
     public bool Iterate(double start,

@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using StencilPad.Spatial;
 
 namespace StencilPad.Models;
@@ -41,7 +42,49 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
             }
         }
     }
+    
+    public GeometryResourceId _markerType = GeometryResourceId.None;
+    public GeometryResourceId MarkerType
+    {
+        get => _markerType;
+        set
+        {
+            if (_markerType != value)
+            {
+                _markerType = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    
+    private Color _markerColor = Color.FromArgb(255, 0, 0, 0);
+    public Color MarkerColor
+    {
+        get => _markerColor;
+        set
+        {
+            if (_markerColor != value)
+            {
+                _markerColor = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
+    private Color _lineColor = Color.FromArgb(255, 0, 0, 0);
+    public Color LineColor
+    {
+        get => _lineColor;
+        set
+        {
+            if (_lineColor != value)
+            {
+                _lineColor = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    
     private MarkerPathPointList _pointList;
 
     public MarkerPath()

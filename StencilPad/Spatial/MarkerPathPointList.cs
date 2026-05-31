@@ -31,122 +31,40 @@ public class MarkerPathPointList
         
         private bool WalkLine(Line line)
         {
-            var from = line.Start;
-            var to = line.End;
-            
-            StartSegment(from);
-            
-            double lastT = -1;
-
-            while (true)
-            {
-                var (t0, t1) = MathUtil.GetCircleLineIntersectionFractions(_currentPosition,
-                                                                           _spacing,
-                                                                           line);
-
-                // NOTE: MathUtil.SolveQuadratic() is guaranteed to return with t1 > t0.
-                if (t0 is not null && t0.Value > lastT)
-                {
-                    var point = from + ((to - from) * t0.Value);
-
-                    _points.Add(new Point(point));
-
-                    lastT = t0.Value;
-                    
-                    _currentPosition = point;
-                }
-                else if (t1 is not null && t1.Value > lastT)
-                {
-                    var point = from + ((to - from) * t1.Value);
-
-                    _points.Add(new Point(point));
-
-                    lastT = t1.Value;
-
-                    _currentPosition = point;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            
-            return true;
+            StartSegment(line.Start);
+            return WalkLineOrArc(t => line.FromRadius(_currentPosition, _spacing, t, 1.0),
+                                 t => line.At(t));
         }
         
         private bool WalkArc(Arc arc)
         {
             StartSegment(arc.Start);
+            return WalkLineOrArc(t => arc.FromRadius(_currentPosition, _spacing, t, 1.0),
+                                 t => arc.At(t));
+        }
 
-            var arcAngle = MathUtil.SignedAngleDifference(arc.StartAngle, arc.EndAngle);
-
-            double currentT = -1;
+        private bool WalkLineOrArc(Func<double, double?> fromRadius, Func<double, Unit2D> at)
+        {
+            double lastT = -1;
 
             while (true)
             {
-                var (a, b) = MathUtil.GetCircleCircleIntersection(arc.Center, arc.Radius, _currentPosition, _spacing);
+                var nextT = fromRadius(lastT);
 
-                var tA = GetArcFraction(a, arc.Center, arc.StartAngle, arcAngle);
-                var tB = GetArcFraction(b, arc.Center, arc.StartAngle, arcAngle);
-
-                if (currentT >= 0 && tA <= currentT)
-                {
-                    tA = null;
-                }
-
-                if (currentT >= 0 && tB <= currentT)
-                {
-                    tB = null;
-                }
-                
-                double nextT;
-                Unit2D nextPoint;
-                
-                if (tA is null && tB is null)
+                if (nextT is null)
                 {
                     break;
                 }
-                else if (tB is null)
-                {
-                    nextT = tA!.Value;
-                    nextPoint = a!.Value;
-                }
-                else if (tA is null)
-                {
-                    nextT = tB.Value;
-                    nextPoint = b.Value;
-                }
-                else
-                {
-                    nextT = tA.Value < tB.Value ? tA.Value : tB.Value;
-                    nextPoint = tA.Value < tB.Value ? a!.Value : b!.Value;
-                }
-                
-                _points.Add(new Point(nextPoint));
 
-                _currentPosition = nextPoint;
-                currentT = nextT;
+                var point = at(nextT.Value);
+
+                _points.Add(new Point(point));
+
+                _currentPosition = point;
+                lastT = nextT.Value;
             }
-            
+
             return true;
-        }
-
-        private double? GetArcFraction(Unit2D? point, Unit2D arcCenter, double startAngle, double arcAngle)
-        {
-            if (point is null)
-            {
-                return null;
-            }
-
-            var angle = Math.Atan2((point.Value.Y - arcCenter.Y).Millimeters, (point.Value.X - arcCenter.X).Millimeters);
-            double t = MathUtil.SignedAngleDifference(startAngle, angle) / arcAngle;
-
-            if (t >= 0 && t <= 1)
-            {
-                return t;
-            }
-
-            return null;
         }
 
         private bool WalkBezier(Bezier2D bezier)
@@ -154,29 +72,10 @@ public class MarkerPathPointList
             Unit tolerance = Unit.FromMillimeters(0.000001);
             double step = 0.1;
             double minStep = 0.0001;
-            
+
             StartSegment(bezier.P0);
-
-            double t = 0;
-
-            while (bezier.WalkRadius(_currentPosition,
-                                     t,
-                                     1.0,
-                                     step,
-                                     minStep,
-                                     _spacing,
-                                     tolerance,
-                                     out var nextT))
-            {
-                var point = bezier.At(nextT);
-
-                _points.Add(new Point(point));
-
-                _currentPosition = point;
-                t = nextT;
-            }
-            
-            return true;
+            return WalkLineOrArc(t => bezier.WalkRadius(_currentPosition, t, 1.0, step, minStep, _spacing, tolerance),
+                                 t => bezier.At(t));
         }
 
         public bool Segment(int segmentIndex, PolygonSegment segment)

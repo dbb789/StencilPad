@@ -3,7 +3,7 @@ namespace StencilPad.Spatial;
 // Walks IGeometryWalker events and stops when the accumulated distance along
 // the path reaches the target. Records the segment index and fraction at that
 // point. Feed WalkPolygon for start caps, WalkPolygonReversed for end caps.
-public sealed class CapDistanceWalker : IGeometryWalker
+public class CapDistanceWalker : IGeometryWalker
 {
     private static readonly Unit Tolerance = Unit.FromMillimeters(0.000001);
     private const double Step = 0.1;
@@ -59,10 +59,10 @@ public sealed class CapDistanceWalker : IGeometryWalker
         CheckStarted(line.Start);
 
         var dFrom = (line.Start - _startPoint).Magnitude;
-        var dTo   = (line.End   - _startPoint).Magnitude;
+        var dTo = (line.End - _startPoint).Magnitude;
 
         if ((_distance >= dFrom && _distance <= dTo) ||
-            (_distance >= dTo   && _distance <= dFrom))
+            (_distance >= dTo && _distance <= dFrom))
         {
             Point = new SegmentPoint(segmentIndex, Unit.InverseLerp(dFrom, dTo, _distance));
             return false;
@@ -76,7 +76,7 @@ public sealed class CapDistanceWalker : IGeometryWalker
         CheckStarted(arc.Start);
 
         var dStart = (arc.Start - _startPoint).Magnitude;
-        var dEnd   = (arc.End   - _startPoint).Magnitude;
+        var dEnd   = (arc.End - _startPoint).Magnitude;
 
         if ((_distance >= dStart && _distance <= dEnd) ||
             (_distance >= dEnd   && _distance <= dStart))
@@ -92,9 +92,11 @@ public sealed class CapDistanceWalker : IGeometryWalker
     {
         CheckStarted(bezier.P0);
 
-        if (bezier.WalkRadius(_startPoint, 0.0, 1.0, Step, MinStep, _distance, Tolerance, out double t))
+        var t = bezier.WalkRadius(_startPoint, 0.0, 1.0, Step, MinStep, _distance, Tolerance);
+
+        if (t is not null)
         {
-            Point = new SegmentPoint(segmentIndex, t);
+            Point = new SegmentPoint(segmentIndex, t.Value);
             return false;
         }
 

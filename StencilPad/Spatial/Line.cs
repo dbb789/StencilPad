@@ -15,6 +15,11 @@ public readonly struct Line
         _end = end;
     }
 
+    public Unit2D At(double t)
+    {
+        return Unit2D.Lerp(_start, _end, t);
+    }
+
     public Unit DistanceTo(Unit2D point)
     {
         double ax = _start.X.Millimeters;
@@ -34,6 +39,19 @@ public readonly struct Line
         double cx = ax + t * dx, cy = ay + t * dy;
 
         return Unit.FromMillimeters(Math.Sqrt((px - cx) * (px - cx) + (py - cy) * (py - cy)));
+    }
+
+    public double? FromRadius(Unit2D startPoint, Unit radius, double start, double end)
+    {
+        var (t0, t1) = MathUtil.GetCircleLineIntersectionFractions(startPoint, radius, this);
+
+        if (t0 < start || t0 > end) t0 = null;
+        if (t1 < start || t1 > end) t1 = null;
+
+        if (t0 is null && t1 is null) return null;
+        if (t0 is null) return t1;
+        if (t1 is null) return t0;
+        return Math.Min(t0.Value, t1.Value);
     }
 
     public Line Subsegment(double start, double end)
