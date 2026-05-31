@@ -59,7 +59,7 @@ public readonly struct Arc
         _startAngle = startAngle;
         _endAngle = endAngle;
     }
-    
+
     public double? FromRadius(Unit2D startPoint, Unit radius, double start, double end)
     {
         var arcAngle = MathUtil.SignedAngleDifference(_startAngle, _endAngle);
@@ -68,19 +68,41 @@ public readonly struct Arc
         var tA = ToFraction(a, arcAngle);
         var tB = ToFraction(b, arcAngle);
 
-        if (tA < start || tA > end) tA = null;
-        if (tB < start || tB > end) tB = null;
+        if (tA < start || tA > end)
+        {
+            tA = null;
+        }
 
-        if (tA is null && tB is null) return null;
-        if (tA is null) return tB;
-        if (tB is null) return tA;
+        if (tB < start || tB > end)
+        {
+            tB = null;
+        }
+
+        if (tA is null && tB is null)
+        {
+            return null;
+        }
+
+        if (tA is null)
+        {
+            return tB;
+        }
+
+        if (tB is null)
+        {
+            return tA;
+        }
+        
         return Math.Min(tA.Value, tB.Value);
     }
 
     private double? ToFraction(Unit2D? point, double arcAngle)
     {
-        if (point is null) return null;
-
+        if (point is null)
+        {
+            return null;
+        }
+        
         var angle = Math.Atan2((point.Value.Y - _center.Y).Millimeters,
                                (point.Value.X - _center.X).Millimeters);
         double t = MathUtil.SignedAngleDifference(_startAngle, angle) / arcAngle;

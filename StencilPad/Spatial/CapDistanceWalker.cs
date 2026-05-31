@@ -10,8 +10,6 @@ public class CapDistanceWalker : IGeometryWalker
     private const double MinStep = 0.0001;
 
     private Unit _distance;
-    private bool _started;
-    private Unit2D _startPoint;
 
     public SegmentPoint? Point { get; private set; }
     
@@ -23,9 +21,6 @@ public class CapDistanceWalker : IGeometryWalker
     public void Reset(Unit distance)
     {
         _distance = distance;
-        _started = false;
-        _startPoint = Unit2D.Zero;
-        
         Point = null;
     }
     
@@ -56,59 +51,46 @@ public class CapDistanceWalker : IGeometryWalker
 
     private bool WalkLine(int segmentIndex, Line line)
     {
-        CheckStarted(line.Start);
-
-        var dFrom = (line.Start - _startPoint).Magnitude;
-        var dTo = (line.End - _startPoint).Magnitude;
-
-        if ((_distance >= dFrom && _distance <= dTo) ||
-            (_distance >= dTo && _distance <= dFrom))
+        var lineLength = line.Length;
+        
+        if (_distance <= lineLength)
         {
-            Point = new SegmentPoint(segmentIndex, Unit.InverseLerp(dFrom, dTo, _distance));
+            Point = new SegmentPoint(segmentIndex, _distance / lineLength);
             return false;
         }
 
+        _distance -= line.Length;
+        
         return true;
     }
 
     private bool WalkArc(int segmentIndex, Arc arc)
     {
-        CheckStarted(arc.Start);
-
-        var dStart = (arc.Start - _startPoint).Magnitude;
-        var dEnd = (arc.End - _startPoint).Magnitude;
-
-        if ((_distance >= dStart && _distance <= dEnd) ||
-            (_distance >= dEnd   && _distance <= dStart))
+        var arcLength = arc.Length;
+        
+        if (_distance <= arc.Length)
         {
-            Point = new SegmentPoint(segmentIndex, Unit.InverseLerp(dStart, dEnd, _distance));
+            Point = new SegmentPoint(segmentIndex, _distance / arcLength);
             return false;
         }
+        
+        _distance -= arc.Length;
 
         return true;
     }
 
     private bool WalkBezier(int segmentIndex, Bezier2D bezier)
     {
-        CheckStarted(bezier.P0);
+        var (t, walkLength) = bezier.Walk(0.0, 1.0, Step, MinStep, _distance, Tolerance);
 
-        var t = bezier.WalkRadius(_startPoint, 0.0, 1.0, Step, MinStep, _distance, Tolerance);
-
-        if (t is not null)
+        if (t >= (1.0 - MinStep))
         {
-            Point = new SegmentPoint(segmentIndex, t.Value);
+            Point = new SegmentPoint(segmentIndex, t);
             return false;
         }
 
+        _distance -= walkLength;
+        
         return true;
-    }
-
-    private void CheckStarted(Unit2D point)
-    {
-        if (!_started)
-        {
-            _started = true;
-            _startPoint = point;
-        }
     }
 }

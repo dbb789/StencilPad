@@ -50,13 +50,14 @@ public struct Bezier2D
 		return 3 * mt_2 * (_p1 - _p0) + 6 * mt * t * (_p2 - _p1) + 3 * t_2 * (_p3 - _p2);
 	}
     
-    public double Walk(double start,
-                       double end,
-                       double step,
-                       double minStep,
-                       Unit length,
-                       Unit tolerance)
+    public (double, Unit) Walk(double start,
+                               double end,
+                               double step,
+                               double minStep,
+                               Unit maxLength,
+                               Unit tolerance)
     {
+        var remainingLength = maxLength;
         var currentPosition = At(start);
         
         while (Iterate(start, end, step, minStep, tolerance, out double next))
@@ -64,23 +65,33 @@ public struct Bezier2D
             var nextPosition = At(next);
             var segmentLength = (nextPosition - currentPosition).Magnitude;
 
-            if (Unit.Abs(segmentLength - length) <= tolerance)
+            if (Unit.Abs(segmentLength - remainingLength) <= tolerance)
             {
-                return next;
+                // Segment and remaining length are close enough - return the end of the segment.
+                return (next, maxLength);
             }
-            else if (segmentLength < length)
+            else if (segmentLength < remainingLength)
             {
+                // Segment is shorter than remaining length - move to the end of the segment and continue.
                 start = next;
-                length -= segmentLength;
+                remainingLength -= segmentLength;
                 currentPosition = nextPosition;
             }
             else
             {
-                return length / segmentLength * (next - start) + start;
+                // Segment is longer than remaining length - we've overshot due
+                // to Iterate() tolerance, so we need to estimate the position
+                // along the segment that corresponds to the total length.
+                
+                var fraction = remainingLength / segmentLength;
+                var estimatedPoint = Double.Lerp(start, next, fraction);
+
+                return (estimatedPoint, maxLength);
             }
         }
 
-        return end;
+        // Exceeded end - return the end position and the length we actually walked.
+        return (end, maxLength - remainingLength);
     }
     
     public double? WalkRadius(double start,
@@ -120,7 +131,7 @@ public struct Bezier2D
 
         return null;
     }
-
+    
     public bool Iterate(double start,
                         double end,
                         double step,

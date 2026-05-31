@@ -43,7 +43,6 @@ public class MarkerPathPointList
             startFraction = startPoint.Value.Fraction;
         }
 
-        System.Diagnostics.Debug.WriteLine($"Initial segment index: {SegmentIndex(0, segmentOffset)}");
         var initialSegment = _segments[SegmentIndex(0, segmentOffset)];
         
         StartSegment(initialSegment, startFraction);
@@ -51,7 +50,6 @@ public class MarkerPathPointList
 
         for (int i = 1; i < _segments.Count; ++i)
         {
-            System.Diagnostics.Debug.WriteLine($"Next segment index: {SegmentIndex(i, segmentOffset)}");
             var segment = _segments[SegmentIndex(i, segmentOffset)];
 
             ProcessSegment(segment, 0, 1);
