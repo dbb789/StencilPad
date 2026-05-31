@@ -19,7 +19,6 @@ public readonly record struct UnitTransform(Unit2D Position, decimal Angle = 0m)
         return group;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Unit2D Apply(Unit2D point)
     {
         if (Angle == 0m)
@@ -40,7 +39,6 @@ public readonly record struct UnitTransform(Unit2D Position, decimal Angle = 0m)
         return new Unit2D(Unit.FromMillimeters(rx), Unit.FromMillimeters(ry)) + Position;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Unit2D Rotate(Unit2D vector)
     {
         if (Angle == 0m)
@@ -61,7 +59,6 @@ public readonly record struct UnitTransform(Unit2D Position, decimal Angle = 0m)
         return new Unit2D(Unit.FromMillimeters(rx), Unit.FromMillimeters(ry));
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Unit2D InverseApply(Unit2D point)
     {
         var p = point - Position;

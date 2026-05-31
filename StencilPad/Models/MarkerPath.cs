@@ -43,6 +43,21 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         }
     }
     
+    private bool _balanced = true;
+    public bool Balanced
+    {
+        get => _balanced;
+        set
+        {
+            if (_balanced != value)
+            {
+                _balanced = value;
+                UpdateGeometry();
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public GeometryResourceId _markerType = GeometryResourceId.DefaultMarker;
     public GeometryResourceId MarkerType
     {
@@ -84,7 +99,9 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
             }
         }
     }
-    
+
+    public bool HasBalancePoint => _pointList.Balanced;
+
     private MarkerPathPointList _pointList;
 
     public MarkerPath()
@@ -166,7 +183,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 
     private void UpdateGeometry()
     {
-        _pointList.CalculatePath(Polygon, Spacing, Offset);
+        _pointList.CalculatePath(Polygon, Spacing, Offset, Balanced);
         
         FireGeometryChanged();
     }

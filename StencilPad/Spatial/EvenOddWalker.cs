@@ -88,38 +88,23 @@ public class EvenOddWalker : IGeometryWalker
     
     private static int IntersectsArc(Arc arc, Unit2D point)
     {
+        var ray = new Line(point, new Unit2D(point.X + Unit.FromMillimeters(1000000),
+                                             point.Y));
+
+        var (t0, t1) = arc.Intersection(ray);
+
         int count = 0;
-        var ray = new Line(point, new Unit2D(point.X + Unit.FromMillimeters(1000000), point.Y));
-        var arcRange = MathUtil.AngleDifference(arc.EndAngle, arc.StartAngle);
 
-        var (i0, i1) = MathUtil.GetCircleLineIntersection(arc.Center,
-                                                          arc.Radius,
-                                                          ray);
-
-        if (i0 is not null)
+        if (t0 is not null)
         {
-            var angle = Math.Atan2(i0.Value.Y.Millimeters - arc.Center.Y.Millimeters,
-                                   i0.Value.X.Millimeters - arc.Center.X.Millimeters);
+            ++count;
+        }
 
-            if (MathUtil.AngleDifference(angle, arc.StartAngle) <= arcRange &&
-                MathUtil.AngleDifference(angle, arc.EndAngle) <= arcRange)
-            {
-                ++count;
-            }
+        if (t1 is not null)
+        {
+            ++count;
         }
         
-        if (i1 is not null)
-        {
-            var angle = Math.Atan2(i1.Value.Y.Millimeters - arc.Center.Y.Millimeters,
-                                   i1.Value.X.Millimeters - arc.Center.X.Millimeters);
-
-            if (MathUtil.AngleDifference(angle, arc.StartAngle) <= arcRange &&
-                MathUtil.AngleDifference(angle, arc.EndAngle) <= arcRange)
-            {
-                ++count;
-            }
-        }
-
         return count;
     }
 

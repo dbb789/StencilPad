@@ -58,13 +58,20 @@ public class MarkerPathRenderer : SheetElementRenderer
 
         var markerGeometry = _resourceService.Get(_markerPath.MarkerType).Geometry;
 
-        foreach (var t in _markerPath.PointList.Points)
+        for (int i = 0; i < _markerPath.PointList.Points.Count; ++i)
         {
+            var t = _markerPath.PointList.Points[i];
             var position = new Point(t.Position.X.Millimeters, t.Position.Y.Millimeters);
             
             dc.PushTransform(new TranslateTransform(position.X, position.Y));
             dc.PushTransform(new RotateTransform((double)t.Angle, 0, 0));
             dc.DrawGeometry(null, pen, markerGeometry);
+
+            if ((i == _markerPath.PointList.Points.Count - 1) && _markerPath.HasBalancePoint)
+            {
+                dc.DrawEllipse(null, pen, new Point(0, 0), 1, 1);
+            }
+
             dc.Pop();
             dc.Pop();
         }

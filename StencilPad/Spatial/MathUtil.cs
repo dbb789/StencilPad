@@ -54,7 +54,7 @@ public static class MathUtil
         
         return (i0, i1);
     }
-
+    
     public static (Unit2D center, Unit radius) CircleFromArc(Unit2D start, Unit2D mid, Unit2D end)
     {
         var offsetA = start - mid;
@@ -182,5 +182,19 @@ public static class MathUtil
         double angleDiff = SignedAngleDifference(a, b);
         
         return a + angleDiff * t;
+    }
+
+    public static double InverseLerpAngle(double a, double b, double value)
+    {
+        double angleDiff = SignedAngleDifference(a, b);
+        
+        if (Math.Abs(angleDiff) < 1e-10)
+        {
+            return 0;
+        }
+        
+        double valueDiff = SignedAngleDifference(a, value);
+        
+        return valueDiff / angleDiff;
     }
 }

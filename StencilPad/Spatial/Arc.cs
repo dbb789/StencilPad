@@ -95,7 +95,7 @@ public readonly struct Arc
         
         return Math.Min(tA.Value, tB.Value);
     }
-
+    
     private double? ToFraction(Unit2D? point, double arcAngle)
     {
         if (point is null)
@@ -126,6 +126,46 @@ public readonly struct Arc
                           Math.Cos(angle) * _radius);
     }
     
+    public (double?, double?) Intersection(Line line)
+    {
+        var arcRange = MathUtil.AngleDifference(EndAngle, StartAngle);
+
+        var (i0, i1) = MathUtil.GetCircleLineIntersection(Center,
+                                                          Radius,
+                                                          line);
+
+        double? t0 = null;
+        double? t1 = null;
+        
+        if (i0 is not null)
+        {
+            var angle = Math.Atan2(i0.Value.Y.Millimeters - Center.Y.Millimeters,
+                                   i0.Value.X.Millimeters - Center.X.Millimeters);
+
+            t0 = MathUtil.InverseLerpAngle(_startAngle, _endAngle, angle);
+        }
+        
+        if (i1 is not null)
+        {
+            var angle = Math.Atan2(i1.Value.Y.Millimeters - Center.Y.Millimeters,
+                                   i1.Value.X.Millimeters - Center.X.Millimeters);
+
+            t1 = MathUtil.InverseLerpAngle(_startAngle, _endAngle, angle);
+        }
+
+        if (t0 is not null && (t0 < 0 || t0 > 1))
+        {
+            t0 = null;
+        }
+
+        if (t1 is not null && (t1 < 0 || t1 > 1))
+        {
+            t1 = null;
+        }
+        
+        return (t0, t1);
+    }
+
     public Arc Subsegment(double start, double end)
     {
         var startAngle = (start <= 0.0) ? _startAngle : MathUtil.LerpAngle(_startAngle, _endAngle, start);

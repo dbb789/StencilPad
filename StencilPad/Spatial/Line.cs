@@ -78,10 +78,45 @@ public readonly struct Line
         return Math.Min(t0.Value, t1.Value);
     }
 
+    public double? Intersection(Line other)
+    {
+        double ax = Start.X.Millimeters;
+        double ay = Start.Y.Millimeters;
+        double adx = End.X.Millimeters - ax;
+        double ady = End.Y.Millimeters - ay;
+
+        double bx = other.Start.X.Millimeters;
+        double by = other.Start.Y.Millimeters;
+        double bdx = other.End.X.Millimeters - bx;
+        double bdy = other.End.Y.Millimeters - by;
+
+        double det = adx * bdy - ady * bdx;
+
+        if (Math.Abs(det) < 1e-10)
+        {
+            return null;
+        }
+
+        double t = ((bx - ax) * bdy - (by - ay) * bdx) / det;
+
+        if (t < 0 || t > 1)
+        {
+            return null;
+        }
+
+        return t;
+    }
+
     public Line Subsegment(double start, double end)
     {
         var from = (start <= 0.0) ? _start : Unit2D.Lerp(_start, _end, start);
         var to = (end >= 1.0) ? _end : Unit2D.Lerp(_start, _end, end);
+        
         return new Line(from, to);
+    }
+
+    public override string ToString()
+    {
+        return $"[{_start}, {_end}]";
     }
 }
