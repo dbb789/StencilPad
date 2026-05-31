@@ -9,7 +9,12 @@ public readonly record struct Unit
     
     public static readonly Unit Zero = new(0);
     public static readonly Unit Epsilon = new(0.0000001m);
-    
+
+     // 1000 kilometers - notably different to regular MaxValue in that we can
+     // still work with it without getting overflow issues, but at the same time
+     // we can safely consider anything above this value to be insane.
+    public static readonly Unit MaxValue = new(1000000000);
+
     public static Unit FromMillimeters(double millimeters)
     {
         return new Unit((decimal)millimeters);

@@ -88,7 +88,7 @@ public class EvenOddWalker : IGeometryWalker
     
     private static int IntersectsArc(Arc arc, Unit2D point)
     {
-        var ray = new Line(point, new Unit2D(point.X + Unit.FromMillimeters(1000000),
+        var ray = new Line(point, new Unit2D(point.X + Unit.MaxValue,
                                              point.Y));
 
         var (t0, t1) = arc.Intersection(ray);
