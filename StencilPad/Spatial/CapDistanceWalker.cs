@@ -76,7 +76,7 @@ public class CapDistanceWalker : IGeometryWalker
         CheckStarted(arc.Start);
 
         var dStart = (arc.Start - _startPoint).Magnitude;
-        var dEnd   = (arc.End - _startPoint).Magnitude;
+        var dEnd = (arc.End - _startPoint).Magnitude;
 
         if ((_distance >= dStart && _distance <= dEnd) ||
             (_distance >= dEnd   && _distance <= dStart))

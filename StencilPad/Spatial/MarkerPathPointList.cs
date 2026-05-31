@@ -29,43 +29,55 @@ public class MarkerPathPointList
         _segments.Clear();
         _points.Clear();
         _spacing = spacing;
-        
+
         var collectWalker = new PolygonSegmentCollector(_segments);
         
         polygon.Resolver.WalkPolygon(collectWalker);
 
-        System.Diagnostics.Debug.WriteLine($"Segments: {_segments.Count}");
-
         int segmentOffset = 0;
+        double startFraction = 0;
         
-        StartSegment(_segments[SegmentIndex(0, segmentOffset)]);
-        
-        for (int i = 0; i < _segments.Count; ++i)
+        if (startPoint is not null)
         {
+            segmentOffset = startPoint.Value.Index;
+            startFraction = startPoint.Value.Fraction;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"Initial segment index: {SegmentIndex(0, segmentOffset)}");
+        var initialSegment = _segments[SegmentIndex(0, segmentOffset)];
+        
+        StartSegment(initialSegment, startFraction);
+        ProcessSegment(initialSegment, startFraction, 1.0);
+
+        for (int i = 1; i < _segments.Count; ++i)
+        {
+            System.Diagnostics.Debug.WriteLine($"Next segment index: {SegmentIndex(i, segmentOffset)}");
             var segment = _segments[SegmentIndex(i, segmentOffset)];
 
-            ProcessSegment(segment);
+            ProcessSegment(segment, 0, 1);
         }
+
+        ProcessSegment(initialSegment, 0, startFraction);
     }
 
     private int SegmentIndex(int index, int offset)
-    {
-        return (index + offset + _segments.Count) % _segments.Count;
+    {   
+        return (((index + offset) % _segments.Count) + _segments.Count) % _segments.Count;
     }
     
-    private void StartSegment(PolygonSegment segment)
+    private void StartSegment(PolygonSegment segment, double t0)
     {
         if (segment.IsLine)
         {
-            AddPoint(segment.Line.At(0), segment.Line.Deriv(0));
+            AddPoint(segment.Line.At(t0), segment.Line.Deriv(t0));
         }
         else if (segment.IsArc)
         {
-            AddPoint(segment.Arc.At(0), segment.Arc.Deriv(0));
+            AddPoint(segment.Arc.At(t0), segment.Arc.Deriv(t0));
         }
         else if (segment.IsBezier)
         {
-            AddPoint(segment.Bezier.At(0), segment.Bezier.Deriv(0));
+            AddPoint(segment.Bezier.At(t0), segment.Bezier.Deriv(t0));
         }
         else
         {
@@ -73,19 +85,19 @@ public class MarkerPathPointList
         }
     }
 
-    private void ProcessSegment(PolygonSegment segment)
+    private void ProcessSegment(PolygonSegment segment, double t0, double t1)
     {
         if (segment.IsLine)
         {
-            WalkLine(segment.Line);
+            WalkLine(segment.Line, t0, t1);
         }
         else if (segment.IsArc)
         {
-            WalkArc(segment.Arc);
+            WalkArc(segment.Arc, t0, t1);
         }
         else if (segment.IsBezier)
         {
-            WalkBezier(segment.Bezier);
+            WalkBezier(segment.Bezier, t0, t1);
         }
         else
         {
@@ -93,28 +105,28 @@ public class MarkerPathPointList
         }
     }
 
-    private void WalkLine(Line line)
+    private void WalkLine(Line line, double t0, double t1)
     {
-        Walk(0,
-             t => line.FromRadius(_currentPosition, _spacing, t, 1.0),
+        Walk(t0,
+             t => line.FromRadius(_currentPosition, _spacing, t, t1),
              t => (line.At(t), line.Deriv(t)));
     }
     
-    private void WalkArc(Arc arc)
+    private void WalkArc(Arc arc, double t0, double t1)
     {
-        Walk(0,
-             t => arc.FromRadius(_currentPosition, _spacing, t, 1.0),
+        Walk(t0,
+             t => arc.FromRadius(_currentPosition, _spacing, t, t1),
              t => (arc.At(t), arc.Deriv(t)));
     }
     
-    private void WalkBezier(Bezier2D bezier)
+    private void WalkBezier(Bezier2D bezier, double t0, double t1)
     {
         Unit tolerance = Unit.FromMillimeters(0.000001);
         double step = 0.1;
         double minStep = 0.0001;
         
-        Walk(0,
-             t => bezier.WalkRadius(_currentPosition, t, 1.0, step, minStep, _spacing, tolerance),
+        Walk(t0,
+             t => bezier.WalkRadius(_currentPosition, t, t1, step, minStep, _spacing, tolerance),
              t => (bezier.At(t), bezier.Deriv(t)));
     }
     

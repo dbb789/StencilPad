@@ -50,7 +50,7 @@
                     <widgets:UnitSliderField Grid.Row="2" Grid.Column="2" MinWidth="180"
                                              Value="{Binding Offset}"
                                              SliderMinimum="0"
-                                             SliderMaximum="10"/>
+                                             SliderMaximum="100"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Marker Colour">
