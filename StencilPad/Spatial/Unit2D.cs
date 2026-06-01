@@ -71,6 +71,11 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         return a + ((b - a) * t);
     }
 
+    public bool ApproximatelyEquals(Unit2D other)
+    {
+        return (this - other).Magnitude <= Unit.Epsilon;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator +(Unit2D a, Unit2D b) => new(a.X + b.X, a.Y + b.Y);
 

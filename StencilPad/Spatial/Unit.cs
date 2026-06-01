@@ -130,6 +130,12 @@ public readonly record struct Unit
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ApproximatelyEquals(Unit other)
+    {
+        return Abs(this - other) <= Unit.Epsilon;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <(Unit a, Unit b) => a._value < b._value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
