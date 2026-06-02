@@ -7,7 +7,12 @@ public static class SchemaJsonOptions
 {
     public static readonly JsonSerializerOptions Default = new()
     {
-        Converters = { new JsonStringEnumConverter(), new UnitConverter(), new Unit2DConverter() },
+        Converters = {
+            new JsonStringEnumConverter(),
+            new UnitConverter(),
+            new Unit2DConverter(),
+            new ColorConverter()
+        },
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 }

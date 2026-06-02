@@ -5,25 +5,36 @@ namespace StencilPad.Schemas;
 public class VertexSchema
 {
     public Unit2D Pos { get; set; }
-    public CornerType CornerType { get; set; }
+    public CornerType? Corner { get; set; }
     public Unit? CornerUnit { get; set; }
     public double? CornerProp { get; set; }
 
     public static VertexSchema Pack(Vertex vertex)
     {
-        return new VertexSchema
+        if (vertex.CornerType == CornerType.None)
         {
-            Pos = vertex.Position,
-            CornerType = vertex.CornerType,
-            CornerUnit = vertex.CornerSize.IsUnit ? vertex.CornerSize.Unit : null,
-            CornerProp = vertex.CornerSize.IsProportion ? vertex.CornerSize.Proportion : null
-        };
+            return new VertexSchema
+            {
+                Pos = vertex.Position
+            };
+        }
+        else
+        {
+            return new VertexSchema
+            {
+                Pos = vertex.Position,
+                Corner = vertex.CornerType,
+                CornerUnit = vertex.CornerSize.IsUnit ? vertex.CornerSize.Unit : null,
+                CornerProp = vertex.CornerSize.IsProportion ? vertex.CornerSize.Proportion : null
+            };
+        }
     }
 
     public static Vertex Unpack(VertexSchema data)
     {
+        var cornerType = data.Corner ?? CornerType.None;
         var cornerSize = CornerSize.Zero;
-
+        
         if (data.CornerUnit.HasValue)
         {
             cornerSize = CornerSize.FromUnit(data.CornerUnit.Value);
@@ -33,6 +44,6 @@ public class VertexSchema
             cornerSize = CornerSize.FromProportion(data.CornerProp.Value);
         }
         
-        return new Vertex(data.Pos, data.CornerType, cornerSize);
+        return new Vertex(data.Pos, cornerType, cornerSize);
     }
 }

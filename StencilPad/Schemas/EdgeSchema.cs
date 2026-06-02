@@ -4,25 +4,32 @@ namespace StencilPad.Schemas;
 
 public class EdgeSchema
 {
-    public EdgeType Type { get; set; }
+    public EdgeType? Type { get; set; }
     public Unit2D? CtrlBegin { get; set; }
     public Unit2D? CtrlEnd { get; set; }
 
     public static EdgeSchema Pack(Edge edge)
     {
-        return new EdgeSchema
+        if (edge.Type == EdgeType.Straight)
         {
-            Type = edge.Type,
-            CtrlBegin = (edge.ControlBeginOffset != Unit2D.Zero) ? edge.ControlBeginOffset : null,
-            CtrlEnd = (edge.ControlEndOffset != Unit2D.Zero) ? edge.ControlEndOffset : null
-    };
+            return new EdgeSchema();
+        }
+        else
+        {
+            return new EdgeSchema
+            {
+                Type = edge.Type,
+                CtrlBegin = (edge.ControlBeginOffset != Unit2D.Zero) ? edge.ControlBeginOffset : null,
+                CtrlEnd = (edge.ControlEndOffset != Unit2D.Zero) ? edge.ControlEndOffset : null
+            };
+        }
     }
 
     public static Edge Unpack(EdgeSchema data)
     {
         return new Edge
         {
-            Type = data.Type,
+            Type = data.Type ?? EdgeType.Straight,
             ControlBeginOffset = data.CtrlBegin ?? Unit2D.Zero,
             ControlEndOffset = data.CtrlEnd ?? Unit2D.Zero
         };

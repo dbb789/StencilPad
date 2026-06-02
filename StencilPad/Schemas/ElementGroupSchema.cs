@@ -1,30 +1,29 @@
 using StencilPad.Models;
-using StencilPad.Spatial;
 
 namespace StencilPad.Schemas;
 
 public class ElementGroupSchema : SheetElementSchema
 {
-    public SheetElementSchema[] Children { get; set; } = [];
+    public SheetElementSchema[] C { get; set; } = [];
 
     public static ElementGroupSchema Pack(ElementGroup elementGroup)
     {
         return new ElementGroupSchema
         {
-            Children = elementGroup.Children
+            C = elementGroup.Children
                 .Select(Pack).Where(c => c is not null).ToArray()!,
                 
-            Transform = UnitTransformSchema.Pack(elementGroup.Transform)
+            Trns = UnitTransformSchema.Pack(elementGroup.Transform)
         };
     }
 
     public override ISheetElement Unpack()
     {
-        var children = Children.Select(c => c.Unpack()).ToArray();
+        var children = C.Select(c => c.Unpack()).ToArray();
         
         var group = new ElementGroup(children);
         
-        group.Transform = UnitTransformSchema.Unpack(Transform);
+        group.Transform = UnitTransformSchema.Unpack(Trns);
 
         return group;
     }

@@ -8,6 +8,7 @@ using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
 using StencilPad.ViewModels;
+using StencilPad.Export;
 
 namespace StencilPad.Controllers;
 
@@ -90,6 +91,8 @@ public class AppController
         _viewModel.UndoCommand = new RelayCommand(Undo);
         _viewModel.RedoCommand = new RelayCommand(Redo);
         _viewModel.ImportImageCommand = new RelayCommand(ImportImage);
+        _viewModel.ExportSvgCommand = new RelayCommand(ExportSvg);
+        _viewModel.ExportPngCommand = new RelayCommand(ExportPng);
 
         _operationService.OperationPushed += PushOperation;
 
@@ -429,6 +432,67 @@ public class AppController
         _operationService.Push(new AddSheetElementOperation(tab.Sheet.Id, element));
     }
 
+    private void ExportSvg()
+    {
+        var tab = _viewModel.SelectedTab;
+        if (tab is null)
+        {
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Export SVG",
+            Filter = "SVG Files (*.svg)|*.svg",
+            FileName = $"{tab.Sheet.Name}.svg"
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            SvgExporter.Export(tab.Sheet, dialog.FileName);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowError($"Failed to export SVG: {ex.Message}", "Export Failed");
+        }
+    }
+
+    private void ExportPng()
+    {
+        var tab = _viewModel.SelectedTab;
+        if (tab is null)
+        {
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Export PNG",
+            Filter = "PNG Files (*.png)|*.png",
+            FileName = $"{tab.Sheet.Name}.png"
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            var resourceService = (IResourceService)App.ServiceProvider.GetService(typeof(IResourceService))!;
+            PngExporter.Export(tab.Sheet, dialog.FileName, resourceService);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowError($"Failed to export PNG: {ex.Message}", "Export Failed");
+        }
+    }
+    
     private void SetCurrentFilePath(string? path)
     {
         _currentFilePath = path;

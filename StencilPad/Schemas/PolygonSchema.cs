@@ -4,9 +4,9 @@ namespace StencilPad.Schemas;
 
 public class PolygonSchema
 {
-    public bool Closed { get; set; }
-    public VertexSchema[] Vertices { get; set; } = [];
-    public EdgeSchema[] Edges { get; set; } = [];
+    public VertexSchema[] V { get; set; } = [];
+    public EdgeSchema[] E { get; set; } = [];
+    public bool? C { get; set; }
 
     public static PolygonSchema Pack(Polygon polygon)
     {
@@ -31,9 +31,9 @@ public class PolygonSchema
 
         return new PolygonSchema
         {
-            Closed = polygon.Closed,
-            Vertices = vertices,
-            Edges = edges
+            C = polygon.Closed ? true : null,
+            V = vertices,
+            E = edges
         };
     }
 
@@ -41,21 +41,21 @@ public class PolygonSchema
     {
         var polygon = new Polygon();
 
-        foreach (var vertex in data.Vertices)
+        foreach (var vertex in data.V)
         {
             polygon.AddVertex(VertexSchema.Unpack(vertex));
         }
 
         // NOTE: Closing a polygon will add an additional edge so perform this
         // first before edge property assignment below.
-        if (data.Closed)
+        if (data.C ?? false)
         {
             polygon.Close();
         }
 
-        for (int i = 0; i < data.Edges.Length; i++)
+        for (int i = 0; i < data.E.Length; i++)
         {
-            polygon.Edges[i] = EdgeSchema.Unpack(data.Edges[i]);
+            polygon.Edges[i] = EdgeSchema.Unpack(data.E[i]);
         }
 
 

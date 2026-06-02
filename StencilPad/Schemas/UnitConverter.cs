@@ -20,6 +20,6 @@ public class UnitConverter : JsonConverter<Unit>
 
     public override void Write(Utf8JsonWriter writer, Unit value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value.ToString());
+        writer.WriteStringValue(value.ToString(6));
     }
 }

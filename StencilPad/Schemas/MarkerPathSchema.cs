@@ -5,28 +5,28 @@ namespace StencilPad.Schemas;
 
 public class MarkerPathSchema : SheetElementSchema
 {
-    public PolygonSchema Polygon { get; set; } = new();
-    public Unit Offset { get; set; } = Unit.FromMillimeters(4);
-    public Unit Spacing { get; set; } = Unit.FromMillimeters(2);
+    public PolygonSchema Ply { get; set; } = new();
+    public Unit Offs { get; set; } = Unit.FromMillimeters(4);
+    public Unit Spc { get; set; } = Unit.FromMillimeters(2);
     
     public static MarkerPathSchema Pack(MarkerPath markerPath)
     {
         return new MarkerPathSchema
         {
-            Polygon = PolygonSchema.Pack(markerPath.Polygon),
-            Offset = markerPath.Offset,
-            Spacing = markerPath.Spacing,
-            Transform = UnitTransformSchema.Pack(markerPath.Transform)
+            Ply = PolygonSchema.Pack(markerPath.Polygon),
+            Offs = markerPath.Offset,
+            Spc = markerPath.Spacing,
+            Trns = UnitTransformSchema.Pack(markerPath.Transform)
         };
     }
 
     public override MarkerPath Unpack()
     {
-        return new MarkerPath(PolygonSchema.Unpack(Polygon))
+        return new MarkerPath(PolygonSchema.Unpack(Ply))
         {
-            Offset = Offset,
-            Spacing = Spacing,
-            Transform = UnitTransformSchema.Unpack(Transform)
+            Offset = Offs,
+            Spacing = Spc,
+            Transform = UnitTransformSchema.Unpack(Trns)
         };
     }
 }

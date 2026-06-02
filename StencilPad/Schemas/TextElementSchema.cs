@@ -9,9 +9,9 @@ public class TextElementSchema : SheetElementSchema
     public Unit2D Min { get; set; } = Unit2D.Zero;
     public Unit2D Max { get; set; } = Unit2D.Zero;
     public string Text { get; set; } = "";
-    public string FontName { get; set; } = "Arial";
-    public double FontSize { get; set; } = 5.0;
-    public Color Color { get; set; } = Color.FromArgb(255, 0, 0, 0);
+    public string Font { get; set; } = "Arial";
+    public double FSz { get; set; } = 5.0;
+    public Color Col { get; set; } = Color.FromArgb(255, 0, 0, 0);
 
     public static TextElementSchema Pack(TextElement element)
     {
@@ -20,10 +20,10 @@ public class TextElementSchema : SheetElementSchema
             Min = element.Min,
             Max = element.Max,
             Text = element.Text,
-            FontName = element.FontName,
-            FontSize = element.FontSize,
-            Color = element.Color,
-            Transform = UnitTransformSchema.Pack(element.Transform)
+            Font = element.FontName,
+            FSz = element.FontSize,
+            Col = element.Color,
+            Trns = UnitTransformSchema.Pack(element.Transform)
         };
     }
 
@@ -32,10 +32,10 @@ public class TextElementSchema : SheetElementSchema
         return new TextElement(Min, Text)
         {
             Max = Max,
-            FontName = FontName,
-            FontSize = FontSize,
-            Color = Color,
-            Transform = UnitTransformSchema.Unpack(Transform)
+            FontName = Font,
+            FontSize = FSz,
+            Color = Col,
+            Transform = UnitTransformSchema.Unpack(Trns)
         };
     }
 }

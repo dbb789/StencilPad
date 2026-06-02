@@ -30,17 +30,20 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Project"   Command="{Binding NewProjectCommand}"  InputGestureText="Ctrl+N"/>
+                <MenuItem Header="_New Project" Command="{Binding NewProjectCommand}"  InputGestureText="Ctrl+N"/>
                 <MenuItem Header="_Open Project…" Command="{Binding OpenProjectCommand}" InputGestureText="Ctrl+O"/>
                 <Separator/>
-                <MenuItem Header="_Save"          Command="{Binding SaveProjectCommand}" InputGestureText="Ctrl+S"/>
-                <MenuItem Header="Save _As…"      Command="{Binding SaveProjectAsCommand}" InputGestureText="Ctrl+Shift+S"/>
+                <MenuItem Header="_Save" Command="{Binding SaveProjectCommand}" InputGestureText="Ctrl+S"/>
+                <MenuItem Header="Save _As…" Command="{Binding SaveProjectAsCommand}" InputGestureText="Ctrl+Shift+S"/>
                 <Separator/>
                 <MenuItem Header="_Import Image…" Command="{Binding ImportImageCommand}"/>
-                <MenuItem Header="Export _PNG…"   Click="Export_Click"/>
-                <MenuItem Header="_Print…"        Command="{Binding PrintCommand}" InputGestureText="Ctrl+P"/>
+                <MenuItem Header="Export">
+                    <MenuItem Header="Export _SVG…" Command="{Binding ExportSvgCommand}"/>
+                    <MenuItem Header="Export _PNG…" Command="{Binding ExportPngCommand}"/>
+                </MenuItem>
+                <MenuItem Header="_Print…" Command="{Binding PrintCommand}" InputGestureText="Ctrl+P"/>
                 <Separator/>
-                <MenuItem Header="E_xit"          Command="{Binding ExitCommand}"/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
             </MenuItem>
 
             <MenuItem Header="_Edit">

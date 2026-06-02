@@ -44,6 +44,8 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand UndoCommand { get; set; } = null!;
     public ICommand RedoCommand { get; set; } = null!;
     public ICommand ImportImageCommand { get; set; } = null!;
+    public ICommand ExportSvgCommand { get; set; } = null!;
+    public ICommand ExportPngCommand { get; set; } = null!;
     
     public MainWindowViewModel()
     { }

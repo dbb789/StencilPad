@@ -168,5 +168,18 @@ public readonly record struct Unit
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double operator /(Unit a, Unit b) => (double)(a._value / b._value);
 
-    public override string ToString() => _value.ToString(CultureInfo.InvariantCulture);
+    // "0.###..." - # means digit-if-present, so trailing zeros are omitted; 28 #s = max decimal precision
+    private const string StrFormat = "0.############################";
+
+    public override string ToString()
+    {
+        return _value.ToString(StrFormat, CultureInfo.InvariantCulture);
+    }
+
+    public string ToString(int maxDp)
+    {
+        var rounded = Math.Round(_value, maxDp, MidpointRounding.AwayFromZero);
+        
+        return rounded.ToString(StrFormat, CultureInfo.InvariantCulture);
+    }
 }

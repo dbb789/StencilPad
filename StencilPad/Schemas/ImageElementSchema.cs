@@ -9,7 +9,7 @@ public class ImageElementSchema : SheetElementSchema
     public Unit2D Max { get; set; } = Unit2D.Zero;
     
     // System.Text.Json serializes byte[] as a base64 string automatically.
-    public byte[] ImageData { get; set; } = [];
+    public byte[] Data { get; set; } = [];
 
     public static ImageElementSchema Pack(ImageElement element)
     {
@@ -17,16 +17,16 @@ public class ImageElementSchema : SheetElementSchema
         {
             Min = element.Min,
             Max = element.Max,
-            ImageData = element.ImageData,
-            Transform = UnitTransformSchema.Pack(element.Transform)
+            Data = element.ImageData,
+            Trns = UnitTransformSchema.Pack(element.Transform)
         };
     }
 
     public override ImageElement Unpack()
     {
-        return new ImageElement(Min, Max, ImageData)
+        return new ImageElement(Min, Max, Data)
         {
-            Transform = UnitTransformSchema.Unpack(Transform)
+            Transform = UnitTransformSchema.Unpack(Trns)
         };
     }
 }

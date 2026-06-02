@@ -1,19 +1,18 @@
 using System.Text.Json.Serialization;
 using StencilPad.Models;
-using StencilPad.Spatial;
 
 namespace StencilPad.Schemas;
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
-[JsonDerivedType(typeof(ElementGroupSchema), "Group")]
-[JsonDerivedType(typeof(ShapeSchema), "Shape")]
-[JsonDerivedType(typeof(MarkerPathSchema), "MarkerPath")]
-[JsonDerivedType(typeof(RulerSchema), "Ruler")]
-[JsonDerivedType(typeof(TextElementSchema), "Text")]
-[JsonDerivedType(typeof(ImageElementSchema), "Image")]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "T")]
+[JsonDerivedType(typeof(ElementGroupSchema), "Grp")]
+[JsonDerivedType(typeof(ShapeSchema), "Shp")]
+[JsonDerivedType(typeof(MarkerPathSchema), "MrkP")]
+[JsonDerivedType(typeof(RulerSchema), "Rlr")]
+[JsonDerivedType(typeof(TextElementSchema), "Txt")]
+[JsonDerivedType(typeof(ImageElementSchema), "Img")]
 public abstract class SheetElementSchema
 {
-    public UnitTransformSchema Transform { get; set; } = new();
+    public UnitTransformSchema Trns { get; set; } = new();
 
     public abstract ISheetElement Unpack();
 
