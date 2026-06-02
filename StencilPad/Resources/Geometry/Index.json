@@ -1,8 +1,8 @@
 {
     "Caps":
     [
-        { "Id": 1, "Filename": "Arrow0.spad", "Size": { "X": "2", "Y": "1.5" } },
-        { "Id": 2, "Filename": "Arrow1.spad" },
+        { "Id": 1, "Filename": "Arrow0.spad", "Size": ["2", "1.5"] },
+        { "Id": 2, "Filename": "Arrow1.spad", "Size": ["2", "0"] },
         { "Id": 3, "Filename": "Arrow2.spad" },
         { "Id": 4, "Filename": "Arrow3.spad" },
         { "Id": 5, "Filename": "Arrow4.spad" },
