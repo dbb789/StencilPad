@@ -79,7 +79,7 @@ public class CapDistanceWalker : IGeometryWalker
     {
         var (t, walkLength) = bezier.Walk(0.0, 1.0, _distance, Bezier2D.IterateFine);
 
-        if (t >= (1.0 - Bezier2D.IterateFine.MinStep))
+        if (t < 1.0)
         {
             Point = new SegmentPoint(segmentIndex, t);
             return false;
