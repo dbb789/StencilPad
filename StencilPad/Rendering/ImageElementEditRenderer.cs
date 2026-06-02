@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
@@ -24,12 +25,14 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += OnGeometryChanged;
+        _imageElement.WorldTransformChanged += OnWorldTransformChanged;
         _imageElement.PropertyChanged += OnPropertyChanged;
     }
 
     public override void Dispose()
     {
         _imageElement.GeometryChanged -= OnGeometryChanged;
+        _imageElement.WorldTransformChanged -= OnWorldTransformChanged;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -42,32 +45,24 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
             return;
         }
 
-        var transform = CreateTransform();
+        var transform = _imageElement.WorldTransform.CreateGroupTransform();
         dc.PushTransform(transform);
         dc.DrawRectangle(Brushes.Transparent, OutlinePen, bounds.Millimeters);
         dc.Pop();
     }
 
-    private Transform CreateTransform()
+    private void OnWorldTransformChanged(ISheetElement _)
     {
-        var group = new TransformGroup();
-        if (_imageElement.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_imageElement.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_imageElement.Transform.Position.X.Millimeters,
-                                                  _imageElement.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        return group;
+        InvokeRendererDirty();
     }
-
-    private void OnGeometryChanged(ISheetElement _) => InvokeRendererDirty();
-
-    private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    
+    private void OnGeometryChanged(ISheetElement _)
     {
-        if (e.PropertyName == nameof(ImageElement.Transform))
-        {
-            InvokeRendererDirty();
-        }
+        InvokeRendererDirty();
+    }
+    
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        InvokeRendererDirty();
     }
 }

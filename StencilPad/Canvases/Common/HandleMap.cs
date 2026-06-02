@@ -235,16 +235,15 @@ public class HandleMap : IHandleMap, IUnitSnap
     
     private void Add(ISheetElement element)
     {
-        element.QueryHandles((handle, localPosition, selected) =>
+        element.QueryHandles((handle, position, selected) =>
         {
-            Add(element, handle, element.Transform.Apply(localPosition), selected);
+            Add(element, handle, position, selected);
         });
 
         element.HandleAdded += OnHandleAdded;
         element.HandleRemoved += OnHandleRemoved;
         element.HandleMoved += OnHandleMoved;
         element.HandleSelectionChanged += OnHandleSelectionChanged;
-        element.TransformChanged += OnTransformChanged;
     }
 
     private void Remove(ISheetElement element)
@@ -258,16 +257,15 @@ public class HandleMap : IHandleMap, IUnitSnap
         element.HandleRemoved -= OnHandleRemoved;
         element.HandleMoved -= OnHandleMoved;
         element.HandleSelectionChanged -= OnHandleSelectionChanged;
-        element.TransformChanged -= OnTransformChanged;
     }
 
-    private void Add(ISheetElement element, Handle handle, Unit2D worldPosition, bool selected)
+    private void Add(ISheetElement element, Handle handle, Unit2D position, bool selected)
     {
         var entry = new HandleMapEntry
         {
             Element = element,
             Handle = handle,
-            Position = worldPosition,
+            Position = position,
             Editing = _sheet?.Selection.Contains(element) ?? false,
             Selected = selected
         };
@@ -279,14 +277,14 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
         
         _byHandle[handle] = entry;
-        _byPosition.Insert(worldPosition, entry);
+        _byPosition.Insert(position, entry);
 
         if (selected)
         {
             _selectedHandles.Add(entry);
         }
 
-        HandleAdded?.Invoke(element, handle, worldPosition);
+        HandleAdded?.Invoke(element, handle, position);
     }
 
     private void Remove(ISheetElement element, Handle handle)
@@ -309,9 +307,9 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
-    private void OnHandleAdded(ISheetElement element, Handle handle, Unit2D localPosition, bool selected)
+    private void OnHandleAdded(ISheetElement element, Handle handle, Unit2D position, bool selected)
     {
-        Add(element, handle, element.Transform.Apply(localPosition), selected);
+        Add(element, handle, position, selected);
     }
 
     private void OnHandleRemoved(ISheetElement element, Handle handle)
@@ -319,9 +317,9 @@ public class HandleMap : IHandleMap, IUnitSnap
         Remove(element, handle);
     }
 
-    private void OnHandleMoved(ISheetElement element, Handle handle, Unit2D localPosition)
+    private void OnHandleMoved(ISheetElement element, Handle handle, Unit2D position)
     {
-        UpdateHandle(element, handle, localPosition);
+        UpdateHandle(element, handle, position);
     }
 
     private void OnHandleSelectionChanged(ISheetElement element, Handle handle, bool selected)
@@ -347,29 +345,19 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
-    private void OnTransformChanged(ISheetElement element)
-    {
-        element.QueryHandles((handle, localPosition, selected) =>
-        {
-            UpdateHandle(element, handle, localPosition);
-        });
-    }
-
-    private void UpdateHandle(ISheetElement element, Handle handle, Unit2D localPosition)
+    private void UpdateHandle(ISheetElement element, Handle handle, Unit2D position)
     {
         if (_byHandle.TryGetValue(handle, out var entry))
         {
-            var worldPosition = element.Transform.Apply(localPosition);
-            
-            if (_byPosition.Move(worldPosition, entry))
+            if (_byPosition.Move(position, entry))
             {
-                entry.Position = worldPosition;
+                entry.Position = position;
                 
-                HandleMoved?.Invoke(element, handle, worldPosition);
+                HandleMoved?.Invoke(element, handle, position);
             }
             else
             {
-                Debug.WriteLine($"HandleMap: Failed to move handle {handle} from {entry.Position} to new position {worldPosition} during transform change");
+                Debug.WriteLine($"HandleMap: Failed to move handle {handle} from {entry.Position} to new position {position} during transform change");
                 
                 _byPosition.VisitAllValues((pos, e) =>
                 {

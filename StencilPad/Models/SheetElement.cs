@@ -28,12 +28,28 @@ public abstract class SheetElement : ModelBase, ISheetElement
             if (_transform != value)
             {
                 _transform = value;
-                TransformChanged?.Invoke(this);
+                OnWorldTransformChanged();
+            }
+        }
+    }
+    
+    private UnitTransform _parentTransform = UnitTransform.Identity;
+    public UnitTransform ParentTransform
+    {
+        get => _parentTransform;
+        set
+        {
+            if (_parentTransform != value)
+            {
+                _parentTransform = value;
+                OnWorldTransformChanged();
             }
         }
     }
 
-    public event Action<ISheetElement>? TransformChanged;
+    public UnitTransform WorldTransform => ParentTransform * Transform;
+
+    public event Action<ISheetElement>? WorldTransformChanged;
     public event Action<ISheetElement>? GeometryChanged;
 
     private IHandleSource? _elementHandleSource;
@@ -45,7 +61,10 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public void QueryHandles(Action<Handle, Unit2D, bool> func)
     {
-        _elementHandleSource?.QueryHandles(func);
+        _elementHandleSource?.QueryHandles((handle, position, selected) =>
+        {
+            func(handle, WorldTransform.Apply(position), selected);
+        });
     }
 
     public void SetHandleSelected(Handle handle, bool selected)
@@ -55,12 +74,12 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public Unit2D GetPoint(Handle handle)
     {
-        return _elementHandleSource?.GetPoint(handle) ?? Unit2D.Zero;
+        return WorldTransform.Apply(_elementHandleSource?.GetPoint(handle) ?? Unit2D.Zero);
     }
     
     public void SetPoint(Handle handle, Unit2D position)
     {
-        _elementHandleSource?.SetPoint(handle, position);
+        _elementHandleSource?.SetPoint(handle, WorldTransform.InverseApply(position));
     }
 
     protected void SetHandleSource(IHandleSource newHandleSource)
@@ -86,12 +105,12 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public UnitBounds GetTransformedBounds()
     {
-        return GetBounds(Transform);
+        return GetBounds(WorldTransform);
     }
 
     public virtual bool ContainsPoint(Unit2D point)
     {
-        var localPoint = Transform.InverseApply(point);
+        var localPoint = WorldTransform.InverseApply(point);
         var bounds = GetBounds(UnitTransform.Identity);
 
         var size = bounds.Size;
@@ -113,7 +132,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
     
     private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
     {
-        HandleAdded?.Invoke(this, handle, position, selected);
+        HandleAdded?.Invoke(this, handle, WorldTransform.Apply(position), selected);
     }
 
     private void InvokeHandleRemoved(IHandleSource source, Handle handle)
@@ -123,7 +142,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     private void InvokeHandleMoved(IHandleSource source, Handle handle, Unit2D position)
     {
-        HandleMoved?.Invoke(this, handle, position);
+        HandleMoved?.Invoke(this, handle, WorldTransform.Apply(position));
     }
 
     private void InvokeHandleSelectionChanged(IHandleSource source, Handle handle, bool selected)
@@ -131,6 +150,26 @@ public abstract class SheetElement : ModelBase, ISheetElement
         HandleSelectionChanged?.Invoke(this, handle, selected);
     }
 
+    private void MoveAllHandles()
+    {
+        if (_elementHandleSource is null)
+        {
+            return;
+        }
+
+        _elementHandleSource.QueryHandles(MoveAllInvoke);
+    }
+
+    private void MoveAllInvoke(Handle handle, Unit2D position, bool selected)
+    {
+        if (_elementHandleSource is null)
+        {
+            return;
+        }
+        
+        InvokeHandleMoved(_elementHandleSource, handle, position);
+    }
+    
     protected void FireGeometryChanged()
     {
         GeometryChanged?.Invoke(this);
@@ -143,4 +182,10 @@ public abstract class SheetElement : ModelBase, ISheetElement
     public abstract void SetBounds(UnitBounds newBounds, UnitTransform transform);
     public abstract void AssignFromElement(ISheetElement other);
     public abstract ISheetElement DeepClone();
+
+    protected virtual void OnWorldTransformChanged()
+    {
+        WorldTransformChanged?.Invoke(this);
+        MoveAllHandles();
+    }
 }

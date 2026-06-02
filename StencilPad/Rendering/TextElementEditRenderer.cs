@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
@@ -12,12 +13,14 @@ public class TextElementEditRenderer : SheetElementEditRenderer
     {
         _textElement = textElement;
         _textElement.GeometryChanged += GeometryChanged;
+        _textElement.WorldTransformChanged += OnWorldTransformChanged;
         _textElement.PropertyChanged += OnPropertyChanged;
     }
 
     public override void Dispose()
     {
         _textElement.GeometryChanged -= GeometryChanged;
+        _textElement.WorldTransformChanged -= OnWorldTransformChanged;
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -38,23 +41,15 @@ public class TextElementEditRenderer : SheetElementEditRenderer
             DashStyle = DashStyles.Dot
         };
 
-        var transform = CreateTransform();
+        var transform = _textElement.WorldTransform.CreateGroupTransform();
         dc.PushTransform(transform);
         dc.DrawRectangle(Brushes.Transparent, pen, rect);
         dc.Pop();
     }
 
-    private Transform CreateTransform()
+    private void OnWorldTransformChanged(ISheetElement _)
     {
-        var group = new TransformGroup();
-        if (_textElement.Transform.Angle != 0m)
-        {
-            group.Children.Add(new RotateTransform((double)_textElement.Transform.Angle));
-        }
-        group.Children.Add(new TranslateTransform(_textElement.Transform.Position.X.Millimeters,
-                                                  _textElement.Transform.Position.Y.Millimeters));
-        group.Freeze();
-        return group;
+        InvokeRendererDirty();
     }
 
     private void GeometryChanged(ISheetElement _)
@@ -62,11 +57,8 @@ public class TextElementEditRenderer : SheetElementEditRenderer
         InvokeRendererDirty();
     }
 
-    private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(TextElement.Transform))
-        {
-            InvokeRendererDirty();
-        }
+        InvokeRendererDirty();
     }
 }

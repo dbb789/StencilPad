@@ -20,7 +20,7 @@ public class TextElementRenderer : SheetElementRenderer
     {
         _textElement = textElement;
         _textElement.GeometryChanged += GeometryChanged;
-        _textElement.TransformChanged += TransformChanged;
+        _textElement.WorldTransformChanged += TransformChanged;
         _textElement.PropertyChanged += OnPropertyChanged;
         
         RebuildFormattedText();
@@ -29,7 +29,7 @@ public class TextElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _textElement.GeometryChanged -= GeometryChanged;
-        _textElement.TransformChanged -= TransformChanged;
+        _textElement.WorldTransformChanged -= TransformChanged;
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -43,7 +43,7 @@ public class TextElementRenderer : SheetElementRenderer
         var bounds = UnitBounds.FromMinMax(_textElement.Min, _textElement.Max);
         var clipRect = bounds.Millimeters;
 
-        dc.PushTransform(_textElement.Transform.CreateGroupTransform());
+        dc.PushTransform(_textElement.WorldTransform.CreateGroupTransform());
         dc.PushClip(new RectangleGeometry(clipRect));
         dc.DrawText(_formattedText, clipRect.TopLeft);
         dc.Pop();

@@ -77,8 +77,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var element in _sheet.Selection)
         {
-            element.TransformChanged += OnTransformChanged;
-            element.GeometryChanged += OnTransformChanged;
+            element.WorldTransformChanged += OnWorldTransformChanged;
+            element.GeometryChanged += OnWorldTransformChanged;
         }
 
         _appConfigService.ConfigChanged += OnConfigChanged;
@@ -92,8 +92,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var element in _sheet.Selection)
         {
-            element.TransformChanged -= OnTransformChanged;
-            element.GeometryChanged -= OnTransformChanged;
+            element.WorldTransformChanged -= OnWorldTransformChanged;
+            element.GeometryChanged -= OnWorldTransformChanged;
         }
     }
 
@@ -371,8 +371,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         {
             foreach (ISheetElement element in e.OldItems)
             {
-                element.TransformChanged -= OnTransformChanged;
-                element.GeometryChanged -= OnTransformChanged;
+                element.WorldTransformChanged -= OnWorldTransformChanged;
+                element.GeometryChanged -= OnWorldTransformChanged;
             }
         }
 
@@ -380,15 +380,15 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         {
             foreach (ISheetElement element in e.NewItems)
             {
-                element.TransformChanged += OnTransformChanged;
-                element.GeometryChanged += OnTransformChanged;
+                element.WorldTransformChanged += OnWorldTransformChanged;
+                element.GeometryChanged += OnWorldTransformChanged;
             }
         }
 
         ForceRedraw();
     }
 
-    private void OnTransformChanged(ISheetElement element)
+    private void OnWorldTransformChanged(ISheetElement element)
     {
         ForceRedraw();
     }

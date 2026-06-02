@@ -36,7 +36,7 @@ public class ShapeResolver : IStyledGeometryResolver
             AddPolygon(_shape.PolygonSet[i]);
         }
 
-        _shape.TransformChanged += TransformChanged;
+        _shape.WorldTransformChanged += TransformChanged;
         _shape.PropertyChanged += PropertyChanged;
         _shape.PolygonSet.PolygonAdded += AddPolygon;
         _shape.PolygonSet.PolygonRemoved += RemovePolygon;
@@ -44,8 +44,8 @@ public class ShapeResolver : IStyledGeometryResolver
 
     public void Dispose()
     {
-        _shape.TransformChanged -= TransformChanged;
-        _shape.PropertyChanged += PropertyChanged;
+        _shape.WorldTransformChanged -= TransformChanged;
+        _shape.PropertyChanged -= PropertyChanged;
         _shape.PolygonSet.PolygonAdded -= AddPolygon;
         _shape.PolygonSet.PolygonRemoved -= RemovePolygon;
 

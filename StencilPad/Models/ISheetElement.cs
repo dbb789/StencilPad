@@ -7,7 +7,10 @@ public interface ISheetElement
     Guid Id { get; }
 
     UnitTransform Transform { get; set; }
-    event Action<ISheetElement>? TransformChanged;
+    UnitTransform ParentTransform { get; set; }
+    UnitTransform WorldTransform { get; }
+    
+    event Action<ISheetElement>? WorldTransformChanged;
     event Action<ISheetElement>? GeometryChanged;
     
     event Action<ISheetElement, Handle, Unit2D, bool>? HandleAdded;

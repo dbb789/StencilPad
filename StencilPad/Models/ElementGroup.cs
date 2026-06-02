@@ -11,15 +11,12 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     public event Action? ChildrenChanged;
 
-    private void OnChildGeometryChanged(ISheetElement _) => FireGeometryChanged();
-    private void OnChildTransformChanged(ISheetElement _) => FireGeometryChanged();
-
     private void SubscribeChildren(IEnumerable<ISheetElement> children)
     {
         foreach (var child in children)
         {
             child.GeometryChanged += OnChildGeometryChanged;
-            child.TransformChanged += OnChildTransformChanged;
+            child.WorldTransformChanged += OnChildWorldTransformChanged;
         }
     }
 
@@ -28,7 +25,7 @@ public class ElementGroup : SheetElement<ElementGroup>
         foreach (var child in children)
         {
             child.GeometryChanged -= OnChildGeometryChanged;
-            child.TransformChanged -= OnChildTransformChanged;
+            child.WorldTransformChanged -= OnChildWorldTransformChanged;
         }
     }
 
@@ -43,6 +40,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     {
         _children = new(children.Select(c => c.DeepClone()));
         _groupHandleSource = new(_children);
+        
         SetHandleSource(_groupHandleSource);
         SubscribeChildren(_children);
     }
@@ -99,6 +97,16 @@ public class ElementGroup : SheetElement<ElementGroup>
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
+    protected override void OnWorldTransformChanged()
+    {
+        base.OnWorldTransformChanged();
+        
+        foreach (var child in _children)
+        {
+            child.ParentTransform = WorldTransform;
+        }
+    }
+
     public override UnitBounds GetBounds(UnitTransform transform)
     {
         UnitBounds? bounds = null;
@@ -109,6 +117,16 @@ public class ElementGroup : SheetElement<ElementGroup>
         }
 
         return bounds ?? UnitBounds.Empty;
+    }
+
+    private void OnChildGeometryChanged(ISheetElement element)
+    {
+        FireGeometryChanged();
+    }
+
+    private void OnChildWorldTransformChanged(ISheetElement _)
+    {
+        FireGeometryChanged();
     }
 
     public override void SetBounds(UnitBounds newBounds, UnitTransform transform)

@@ -26,7 +26,7 @@ public class ShapeRenderer : SheetElementRenderer
         _shape = shape;
         _shape.PolygonSet.PolygonAdded += AddPolygon;
         _shape.PolygonSet.PolygonRemoved += RemovePolygon;
-        _shape.TransformChanged += OnTransformChanged;
+        _shape.WorldTransformChanged += OnWorldTransformChanged;
         _shape.PropertyChanged += PropertyChanged;
 
         _resourceService = resourceService;
@@ -41,7 +41,7 @@ public class ShapeRenderer : SheetElementRenderer
 
         UpdateProperties();
 
-        _transform = _shape.Transform.CreateGroupTransform();
+        _transform = _shape.WorldTransform.CreateGroupTransform();
     }
 
     public override void Dispose()
@@ -53,7 +53,7 @@ public class ShapeRenderer : SheetElementRenderer
 
         _shape.PolygonSet.PolygonAdded -= AddPolygon;
         _shape.PolygonSet.PolygonRemoved -= RemovePolygon;
-        _shape.TransformChanged -= OnTransformChanged;
+        _shape.WorldTransformChanged -= OnWorldTransformChanged;
         _shape.PropertyChanged -= PropertyChanged;
     }
 
@@ -141,9 +141,9 @@ public class ShapeRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
-    private void OnTransformChanged(ISheetElement element)
+    private void OnWorldTransformChanged(ISheetElement element)
     {
-        _transform = _shape.Transform.CreateGroupTransform();
+        _transform = _shape.WorldTransform.CreateGroupTransform();
         
         InvokeRendererDirty();
     }
