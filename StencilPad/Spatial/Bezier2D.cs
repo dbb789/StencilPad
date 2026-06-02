@@ -189,25 +189,29 @@ public struct Bezier2D
 
             var error = Unit.Abs(lenA - lenB);
 
-            // If the error is significantly smaller than the tolerance, we
-            // increase the step size.
-            if (error <= (iterateArgs.Tolerance / 8))
+            if (error <= iterateArgs.Tolerance)
             {
-                t = next;
-                step = Math.Min(step * 2.0, iterateArgs.MaxStep);
+                // If the error is significantly smaller than the tolerance, we
+                // increase the step size.
+                if (error <= (iterateArgs.Tolerance / 8))
+                {
+                    step = Math.Min(step * 2.0, iterateArgs.MaxStep);
+                }
 
+                t = next;
+                
                 return true;
             }
 
-            // This is deliberately before the conditional - it saves us one additional iteration.
-            step /= 2.0;
-            
-            if (error <= iterateArgs.Tolerance || Math.Abs(step) <= Math.Abs(iterateArgs.MinStep))
+            // Check against the next step size to avoid the additional iteration when we're close enough to the end.
+            if (Math.Abs(step / 2.0) <= Math.Abs(iterateArgs.MinStep))
             {
                 t = next;
                 
                 return true;
             }
+            
+            step /= 2.0;
         }
     }
 
