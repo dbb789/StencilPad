@@ -113,7 +113,9 @@ public class EvenOddWalker : IGeometryWalker
         int count = 0;
         double t = 0;
 
-        while (bezier.Iterate(t, 1, 0.25, 0.01, Unit.FromMillimeters(0.01), out double next))
+        double step = Bezier2D.IterateCoarse.InitialStep;
+        
+        while (bezier.Iterate(t, 1, Bezier2D.IterateCoarse, ref step, out double next))
         {
             var line = new Line(bezier.At(t), bezier.At(next));
 

@@ -2,10 +2,6 @@ using StencilPad.Spatial;
 
 public class MarkerPathPointList
 {
-    private static readonly Unit BezierTolerance = Unit.FromMillimeters(0.000001);
-    private const double BezierStep = 0.1;
-    private const double BezierMinStep = 0.0001;
-
     private record struct MarkerPoint(UnitTransform Transform, SegmentPoint Point);
     
     public List<UnitTransform> Points => _points.Select(x => x.Transform).ToList();
@@ -173,7 +169,7 @@ public class MarkerPathPointList
     private void WalkBezier(int segmentIndex, Bezier2D bezier, double t0, double t1)
     {
         Walk(segmentIndex, t0,
-             t => bezier.WalkRadius(_currentPosition, t, t1, BezierStep, BezierMinStep, _spacing, BezierTolerance),
+             t => bezier.WalkRadius(_currentPosition, t, t1, _spacing, Bezier2D.IterateFine),
              t => (bezier.At(t), bezier.Deriv(t)));
     }
     
@@ -255,7 +251,9 @@ public class MarkerPathPointList
             var bezier = segment.Bezier;
             double t = 0;
 
-            while (bezier.Iterate(t, 1, BezierStep, BezierMinStep, BezierTolerance, out double next))
+            double step = Bezier2D.IterateFine.InitialStep;
+            
+            while (bezier.Iterate(t, 1, Bezier2D.IterateFine, ref step, out double next))
             {
                 var line = new Line(bezier.At(t), bezier.At(next));
 

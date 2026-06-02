@@ -5,10 +5,6 @@ namespace StencilPad.Spatial;
 // point. Feed WalkPolygon for start caps, WalkPolygonReversed for end caps.
 public class CapDistanceWalker : IGeometryWalker
 {
-    private static readonly Unit Tolerance = Unit.FromMillimeters(0.000001);
-    private const double Step = 0.1;
-    private const double MinStep = 0.0001;
-
     private Unit _distance;
 
     public SegmentPoint? Point { get; private set; }
@@ -81,9 +77,9 @@ public class CapDistanceWalker : IGeometryWalker
 
     private bool WalkBezier(int segmentIndex, Bezier2D bezier)
     {
-        var (t, walkLength) = bezier.Walk(0.0, 1.0, Step, MinStep, _distance, Tolerance);
+        var (t, walkLength) = bezier.Walk(0.0, 1.0, _distance, Bezier2D.IterateFine);
 
-        if (t >= (1.0 - MinStep))
+        if (t >= (1.0 - Bezier2D.IterateFine.MinStep))
         {
             Point = new SegmentPoint(segmentIndex, t);
             return false;

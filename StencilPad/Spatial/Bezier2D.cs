@@ -2,6 +2,30 @@ using StencilPad.Spatial;
 
 public struct Bezier2D
 {
+    public class IterateArgs
+    {
+        public double InitialStep { get; init; }
+        public double MaxStep { get; init; }
+        public double MinStep { get; init; }
+        public Unit Tolerance { get; init; }
+    }
+
+    public static readonly IterateArgs IterateFine = new()
+    {
+        InitialStep = 0.1,
+        MaxStep = 0.1,
+        MinStep = 0.0001,
+        Tolerance = Unit.FromMillimeters(0.000001)
+    };
+    
+    public static readonly IterateArgs IterateCoarse = new()
+    {
+        InitialStep = 0.25,
+        MaxStep = 0.25,
+        MinStep = 0.01,
+        Tolerance = Unit.FromMillimeters(0.01)
+    };
+    
     public Unit2D P0 => _p0;
     public Unit2D P1 => _p1;
     public Unit2D P2 => _p2;
@@ -52,20 +76,20 @@ public struct Bezier2D
     
     public (double, Unit) Walk(double start,
                                double end,
-                               double step,
-                               double minStep,
                                Unit maxLength,
-                               Unit tolerance)
+                               IterateArgs iterateArgs)
     {
         var remainingLength = maxLength;
         var currentPosition = At(start);
+
+        double step = iterateArgs.InitialStep;
         
-        while (Iterate(start, end, step, minStep, tolerance, out double next))
+        while (Iterate(start, end, iterateArgs, ref step, out double next))
         {
             var nextPosition = At(next);
             var segmentLength = (nextPosition - currentPosition).Magnitude;
 
-            if (Unit.Abs(segmentLength - remainingLength) <= tolerance)
+            if (Unit.Abs(segmentLength - remainingLength) <= iterateArgs.Tolerance)
             {
                 // Segment and remaining length are close enough - return the end of the segment.
                 return (next, maxLength);
@@ -96,25 +120,23 @@ public struct Bezier2D
     
     public double? WalkRadius(double start,
                               double end,
-                              double step,
-                              double minStep,
                               Unit radius,
-                              Unit tolerance)
+                              IterateArgs iterateArgs)
     {
-        return WalkRadius(At(start), start, end, step, minStep, radius, tolerance);
+        return WalkRadius(At(start), start, end, radius, iterateArgs);
     }
 
     public double? WalkRadius(Unit2D initialPosition,
                               double start,
                               double end,
-                              double step,
-                              double minStep,
                               Unit radius,
-                              Unit tolerance)
+                              IterateArgs iterateArgs)
     {
         var currentRadius = Unit.Zero;
 
-        while (Iterate(start, end, step, minStep, tolerance, out double next))
+        double step = iterateArgs.InitialStep;
+        
+        while (Iterate(start, end, iterateArgs, ref step, out double next))
         {
             var nextPosition = At(next);
             var nextRadius = (nextPosition - initialPosition).Magnitude;
@@ -134,9 +156,8 @@ public struct Bezier2D
     
     public bool Iterate(double start,
                         double end,
-                        double step,
-                        double minStep,
-                        Unit tolerance,
+                        IterateArgs iterateArgs,
+                        ref double step,
                         out double t)
     {
         if (step > 0 && start >= end)
@@ -166,10 +187,22 @@ public struct Bezier2D
             var lenA = (nextPoint - startPoint).Magnitude;
             var lenB = (nextPoint - midPoint).Magnitude + (midPoint - startPoint).Magnitude;
 
+            var error = Unit.Abs(lenA - lenB);
+
+            // If the error is significantly smaller than the tolerance, we
+            // increase the step size.
+            if (error <= (iterateArgs.Tolerance / 8))
+            {
+                t = next;
+                step = Math.Min(step * 2.0, iterateArgs.MaxStep);
+
+                return true;
+            }
+
             // This is deliberately before the conditional - it saves us one additional iteration.
             step /= 2.0;
             
-            if (Unit.Abs(lenA - lenB) <= tolerance || Math.Abs(step) <= Math.Abs(minStep))
+            if (error <= iterateArgs.Tolerance || Math.Abs(step) <= Math.Abs(iterateArgs.MinStep))
             {
                 t = next;
                 
