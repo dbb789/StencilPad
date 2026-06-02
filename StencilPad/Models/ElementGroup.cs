@@ -16,7 +16,7 @@ public class ElementGroup : SheetElement<ElementGroup>
         foreach (var child in children)
         {
             child.GeometryChanged += OnChildGeometryChanged;
-            child.WorldTransformChanged += OnChildWorldTransformChanged;
+            child.TransformChanged += OnChildTransformChanged;
         }
     }
 
@@ -25,7 +25,7 @@ public class ElementGroup : SheetElement<ElementGroup>
         foreach (var child in children)
         {
             child.GeometryChanged -= OnChildGeometryChanged;
-            child.WorldTransformChanged -= OnChildWorldTransformChanged;
+            child.TransformChanged -= OnChildTransformChanged;
         }
     }
 
@@ -97,16 +97,6 @@ public class ElementGroup : SheetElement<ElementGroup>
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    protected override void OnWorldTransformChanged()
-    {
-        base.OnWorldTransformChanged();
-        
-        foreach (var child in _children)
-        {
-            child.ParentTransform = WorldTransform;
-        }
-    }
-
     public override UnitBounds GetBounds(UnitTransform transform)
     {
         UnitBounds? bounds = null;
@@ -124,7 +114,7 @@ public class ElementGroup : SheetElement<ElementGroup>
         FireGeometryChanged();
     }
 
-    private void OnChildWorldTransformChanged(ISheetElement _)
+    private void OnChildTransformChanged(ISheetElement _)
     {
         FireGeometryChanged();
     }

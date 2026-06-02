@@ -22,7 +22,7 @@ public class RulerRenderer : SheetElementRenderer
     {
         _ruler = ruler;
         _ruler.GeometryChanged += GeometryChanged;
-        _ruler.WorldTransformChanged += OnWorldTransformChanged;
+        _ruler.TransformChanged += OnTransformChanged;
         _ruler.PropertyChanged += PropertyChanged;
 
         _resourceService = resourceService;
@@ -32,7 +32,7 @@ public class RulerRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _ruler.GeometryChanged -= GeometryChanged;
-        _ruler.WorldTransformChanged -= OnWorldTransformChanged;
+        _ruler.TransformChanged -= OnTransformChanged;
         _ruler.PropertyChanged -= PropertyChanged;
     }
 
@@ -104,15 +104,15 @@ public class RulerRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
-    private void OnWorldTransformChanged(ISheetElement element)
+    private void OnTransformChanged(ISheetElement element)
     {
-        _transform = _ruler.WorldTransform.CreateGroupTransform();
+        _transform = _ruler.Transform.CreateGroupTransform();
         InvokeRendererDirty();
     }
 
     private void UpdateProperties()
     {
-        _transform = _ruler.WorldTransform.CreateGroupTransform();
+        _transform = _ruler.Transform.CreateGroupTransform();
         _brush = new SolidColorBrush(_ruler.Color);
         _brush.Freeze();
         _pen = new Pen(_brush, 0.2);

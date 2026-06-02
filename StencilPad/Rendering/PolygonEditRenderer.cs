@@ -22,7 +22,7 @@ public class PolygonEditRenderer : SheetElementEditRenderer
         _element.PolygonSet.PolygonAdded += PolygonAdded;
         _element.PolygonSet.PolygonRemoved += PolygonRemoved;
         _element.PolygonSet.HandleSource.HandleSelectionChanged += SelectionChanged;
-        _element.WorldTransformChanged += TransformChanged;
+        _element.TransformChanged += TransformChanged;
         
         _walker = new();
         
@@ -37,7 +37,7 @@ public class PolygonEditRenderer : SheetElementEditRenderer
             polygon.GeometryChanged += MarkGeometryDirty;
         }
 
-        _transform = _element.WorldTransform.CreateGroupTransform();
+        _transform = _element.Transform.CreateGroupTransform();
 
         RebuildGeometry();
         _geometryDirty = false;
@@ -53,7 +53,7 @@ public class PolygonEditRenderer : SheetElementEditRenderer
         _element.PolygonSet.PolygonAdded -= PolygonAdded;
         _element.PolygonSet.PolygonRemoved -= PolygonRemoved;
         _element.PolygonSet.HandleSource.HandleSelectionChanged -= SelectionChanged;
-        _element.WorldTransformChanged -= TransformChanged;
+        _element.TransformChanged -= TransformChanged;
     }
 
     private void PolygonAdded(EditablePolygon polygon)
@@ -87,7 +87,7 @@ public class PolygonEditRenderer : SheetElementEditRenderer
 
     private void TransformChanged(ISheetElement element)
     {
-        _transform = _element.WorldTransform.CreateGroupTransform();
+        _transform = _element.Transform.CreateGroupTransform();
         
         InvokeRendererDirty();
     }

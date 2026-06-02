@@ -25,14 +25,14 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += OnGeometryChanged;
-        _imageElement.WorldTransformChanged += OnWorldTransformChanged;
+        _imageElement.TransformChanged += OnTransformChanged;
         _imageElement.PropertyChanged += OnPropertyChanged;
     }
 
     public override void Dispose()
     {
         _imageElement.GeometryChanged -= OnGeometryChanged;
-        _imageElement.WorldTransformChanged -= OnWorldTransformChanged;
+        _imageElement.TransformChanged -= OnTransformChanged;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -45,13 +45,13 @@ public class ImageElementEditRenderer : SheetElementEditRenderer
             return;
         }
 
-        var transform = _imageElement.WorldTransform.CreateGroupTransform();
+        var transform = _imageElement.Transform.CreateGroupTransform();
         dc.PushTransform(transform);
         dc.DrawRectangle(Brushes.Transparent, OutlinePen, bounds.Millimeters);
         dc.Pop();
     }
 
-    private void OnWorldTransformChanged(ISheetElement _)
+    private void OnTransformChanged(ISheetElement _)
     {
         InvokeRendererDirty();
     }

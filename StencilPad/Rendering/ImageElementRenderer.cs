@@ -17,7 +17,7 @@ public class ImageElementRenderer : SheetElementRenderer
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += OnGeometryChanged;
-        _imageElement.WorldTransformChanged += TransformChanged;
+        _imageElement.TransformChanged += TransformChanged;
         _imageElement.PropertyChanged += OnPropertyChanged;
         
         RebuildBitmap();
@@ -26,7 +26,7 @@ public class ImageElementRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _imageElement.GeometryChanged -= OnGeometryChanged;
-        _imageElement.WorldTransformChanged -= TransformChanged;
+        _imageElement.TransformChanged -= TransformChanged;
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -44,7 +44,7 @@ public class ImageElementRenderer : SheetElementRenderer
             return;
         }
 
-        dc.PushTransform(_imageElement.WorldTransform.CreateGroupTransform());
+        dc.PushTransform(_imageElement.Transform.CreateGroupTransform());
         dc.DrawImage(_bitmap, rect);
         dc.Pop();
     }

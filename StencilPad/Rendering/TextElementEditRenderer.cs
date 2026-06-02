@@ -13,14 +13,14 @@ public class TextElementEditRenderer : SheetElementEditRenderer
     {
         _textElement = textElement;
         _textElement.GeometryChanged += GeometryChanged;
-        _textElement.WorldTransformChanged += OnWorldTransformChanged;
+        _textElement.TransformChanged += OnTransformChanged;
         _textElement.PropertyChanged += OnPropertyChanged;
     }
 
     public override void Dispose()
     {
         _textElement.GeometryChanged -= GeometryChanged;
-        _textElement.WorldTransformChanged -= OnWorldTransformChanged;
+        _textElement.TransformChanged -= OnTransformChanged;
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 
@@ -41,13 +41,13 @@ public class TextElementEditRenderer : SheetElementEditRenderer
             DashStyle = DashStyles.Dot
         };
 
-        var transform = _textElement.WorldTransform.CreateGroupTransform();
+        var transform = _textElement.Transform.CreateGroupTransform();
         dc.PushTransform(transform);
         dc.DrawRectangle(Brushes.Transparent, pen, rect);
         dc.Pop();
     }
 
-    private void OnWorldTransformChanged(ISheetElement _)
+    private void OnTransformChanged(ISheetElement _)
     {
         InvokeRendererDirty();
     }

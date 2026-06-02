@@ -27,12 +27,12 @@ public class MarkerPathRenderer : SheetElementRenderer
     {
         _markerPath = markerPath;
         _markerPath.Polygon.GeometryChanged += RebuildGeometry;
-        _markerPath.WorldTransformChanged += OnWorldTransformChanged;
+        _markerPath.TransformChanged += OnTransformChanged;
         _markerPath.PropertyChanged += PropertyChanged;
         _markerCount = 0;
 
         _resourceService = resourceService;
-        _transform = _markerPath.WorldTransform.CreateGroupTransform();
+        _transform = _markerPath.Transform.CreateGroupTransform();
         
         RebuildGeometry();
     }
@@ -40,7 +40,7 @@ public class MarkerPathRenderer : SheetElementRenderer
     public override void Dispose()
     {
         _markerPath.Polygon.GeometryChanged -= RebuildGeometry;
-        _markerPath.WorldTransformChanged -= OnWorldTransformChanged;
+        _markerPath.TransformChanged -= OnTransformChanged;
         _markerPath.PropertyChanged -= PropertyChanged;
     }
 
@@ -85,9 +85,9 @@ public class MarkerPathRenderer : SheetElementRenderer
         InvokeRendererDirty();
     }
 
-    private void OnWorldTransformChanged(ISheetElement element)
+    private void OnTransformChanged(ISheetElement element)
     {
-        _transform = _markerPath.WorldTransform.CreateGroupTransform();
+        _transform = _markerPath.Transform.CreateGroupTransform();
 
         InvokeRendererDirty();
     }
