@@ -29,10 +29,10 @@ public struct Bezier2D
     public Unit2D At(double t)
     {
         double t_2 = t * t;
-        double t_3 = t * t * t;
+        double t_3 = t * t_2;
         double mt = 1 - t;
         double mt_2 = mt * mt;
-        double mt_3 = mt * mt * mt;
+        double mt_3 = mt * mt_2;
 
         // B(t) = (1-t)^3 * P0 + 3(1-t)^2 * t * P1 + 3(1-t) * t^2 * P2 + t^3 * P3
         
@@ -152,20 +152,30 @@ public struct Bezier2D
             
             return false;
         }
-        
-        double next = (step > 0) ? Math.Min(start + step, end) : Math.Max(start + step, end);
-        double mid = (start + next) / 2.0;
-        var lenA = (At(next) - At(start)).Magnitude;
-        var lenB = (At(next) - At(mid)).Magnitude + (At(mid) - At(start)).Magnitude;
-        
-        if (Unit.Abs(lenA - lenB) <= tolerance || Math.Abs(step) <= Math.Abs(minStep))
-        {
-            t = next;
-            
-            return true;
-        }
 
-        return Iterate(start, end, step / 2.0, minStep, tolerance, out t);
+        var startPoint = At(start);
+            
+        while (true)
+        {
+            double next = (step > 0) ? Math.Min(start + step, end) : Math.Max(start + step, end);
+            double mid = (start + next) / 2.0;
+
+            var nextPoint = At(next);
+            var midPoint = At(mid);
+            
+            var lenA = (nextPoint - startPoint).Magnitude;
+            var lenB = (nextPoint - midPoint).Magnitude + (midPoint - startPoint).Magnitude;
+
+            // This is deliberately before the conditional - it saves us one additional iteration.
+            step /= 2.0;
+            
+            if (Unit.Abs(lenA - lenB) <= tolerance || Math.Abs(step) <= Math.Abs(minStep))
+            {
+                t = next;
+                
+                return true;
+            }
+        }
     }
 
     // De Casteljau's algorithm.
