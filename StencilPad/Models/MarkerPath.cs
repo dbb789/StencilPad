@@ -183,7 +183,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 
     private void UpdateGeometry()
     {
-        _pointList.CalculatePath(Polygon, Spacing, Offset, Balanced);
+        _pointList.GeneratePoints(Polygon, Spacing, Offset, Balanced);
         
         FireGeometryChanged();
     }

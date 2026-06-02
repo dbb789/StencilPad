@@ -3,12 +3,16 @@ using StencilPad.Spatial;
 public class MarkerPathPointList
 {
     private record struct MarkerPoint(UnitTransform Transform, SegmentPoint Point);
-    
-    public List<UnitTransform> Points => _points.Select(x => x.Transform).ToList();
+
+    public UnitTransform this[int index] => _points[index].Transform;
+    public int Count => _points.Count;
     public bool Balanced => _balanced;
     
     private readonly List<PolygonSegment> _segments;
     private readonly List<MarkerPoint> _points;
+    
+    private readonly CapDistanceWalker _distanceWalker;
+    private readonly PolygonSegmentCollector _collectWalker;
 
     private Unit _spacing;
     private Unit2D _currentPosition;
@@ -18,25 +22,27 @@ public class MarkerPathPointList
     {
         _segments = new();
         _points = new();
+        
+        _distanceWalker = new CapDistanceWalker();
+        _collectWalker = new PolygonSegmentCollector(_segments);
+
+        _balanced = false;
     }
 
-    public void CalculatePath(Polygon polygon, Unit spacing, Unit offset, bool balance)
+    public void GeneratePoints(Polygon polygon, Unit spacing, Unit offset, bool balance)
     {
-        var distanceWalker = new CapDistanceWalker();
+        _distanceWalker.Reset(offset);
 
-        distanceWalker.Reset(offset);
+        polygon.Resolver.WalkPolygon(_distanceWalker);
 
-        polygon.Resolver.WalkPolygon(distanceWalker);
-
-        var startPoint = distanceWalker.Point;
+        var startPoint = _distanceWalker.Point;
 
         _segments.Clear();
         _points.Clear();
+        _balanced = false;
         _spacing = spacing;
 
-        var collectWalker = new PolygonSegmentCollector(_segments);
-        
-        polygon.Resolver.WalkPolygon(collectWalker);
+        polygon.Resolver.WalkPolygon(_collectWalker);
 
         int segmentOffset = 0;
         double startFraction = 0;
