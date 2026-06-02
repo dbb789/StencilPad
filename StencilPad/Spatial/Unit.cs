@@ -9,7 +9,12 @@ public readonly record struct Unit
     
     public static readonly Unit Zero = new(0);
     public static readonly Unit Epsilon = new(0.0000001m);
-    
+
+    // 1000 kilometers - notably different to regular MaxValue in that we can
+    // still work with it without getting overflow issues, but at the same time
+    // we can safely consider anything above this value to be insane.
+    public static readonly Unit MaxValue = new(1e9m);
+
     public static Unit FromMillimeters(double millimeters)
     {
         return new Unit((decimal)millimeters);
@@ -125,6 +130,12 @@ public readonly record struct Unit
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ApproximatelyEquals(Unit other)
+    {
+        return Abs(this - other) <= Unit.Epsilon;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <(Unit a, Unit b) => a._value < b._value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -153,7 +164,7 @@ public readonly record struct Unit
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator /(Unit u, double scalar) => new(u._value / (decimal)scalar);
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double operator /(Unit a, Unit b) => (double)(a._value / b._value);
 

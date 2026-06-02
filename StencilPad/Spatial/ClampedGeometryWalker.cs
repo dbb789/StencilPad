@@ -31,96 +31,16 @@ public class ClampedGeometryWalker : IGeometryWalker
         return _inner.Begin(clampedSegmentCount, closed);
     }
 
-    public bool Line(int segmentIndex, Unit2D from, Unit2D to)
+    public bool Segment(int segmentIndex, PolygonSegment segment)
     {
         if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
         {
             return segmentIndex <= _endPoint.Index;
         }
 
-        if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
-        {
-            from = Unit2D.Lerp(from, to, _startPoint.Fraction);
+        var start = (segmentIndex == _startPoint.Index) ? _startPoint.Fraction : 0.0;
+        var end = (segmentIndex == _endPoint.Index) ? _endPoint.Fraction   : 1.0;
 
-            var remapped = _startPoint.Fraction < 1.0
-                ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
-                : 0.0;
-
-            to = Unit2D.Lerp(from, to, remapped);
-        }
-        else if (segmentIndex == _startPoint.Index)
-        {
-            from = Unit2D.Lerp(from, to, _startPoint.Fraction);
-        }
-        else if (segmentIndex == _endPoint.Index)
-        {
-            to = Unit2D.Lerp(from, to, _endPoint.Fraction);
-        }
-
-        return _inner.Line(segmentIndex - _startPoint.Index, from, to);
-    }
-
-    public bool Arc(int segmentIndex, Unit2D start, Unit2D mid, Unit2D end)
-    {
-        if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
-        {
-            return segmentIndex <= _endPoint.Index;
-        }
-
-        if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
-        {
-            start = Unit2D.Lerp(start, end, _startPoint.Fraction);
-
-            var remapped = _startPoint.Fraction < 1.0
-                ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
-                : 0.0;
-
-            end = Unit2D.Lerp(start, end, remapped);
-        }
-        else if (segmentIndex == _startPoint.Index)
-        {
-            start = Unit2D.Lerp(start, end, _startPoint.Fraction);
-        }
-        else if (segmentIndex == _endPoint.Index)
-        {
-            end = Unit2D.Lerp(start, end, _endPoint.Fraction);
-        }
-
-        return _inner.Arc(segmentIndex - _startPoint.Index, start, mid, end);
-    }
-
-    public bool Bezier(int segmentIndex, Unit2D from, Unit2D c1, Unit2D c2, Unit2D to)
-    {
-        if (segmentIndex < _startPoint.Index || segmentIndex > _endPoint.Index)
-        {
-            return segmentIndex <= _endPoint.Index;
-        }
-
-        var bezier = new Bezier2D(from, c1, c2, to);
-
-        if (segmentIndex == _startPoint.Index && segmentIndex == _endPoint.Index)
-        {
-            bezier = bezier.SplitRight(_startPoint.Fraction);
-            
-            var remapped = _startPoint.Fraction < 1.0
-                ? (_endPoint.Fraction - _startPoint.Fraction) / (1.0 - _startPoint.Fraction)
-                : 0.0;
-            
-            bezier = bezier.SplitLeft(remapped);
-        }
-        else if (segmentIndex == _startPoint.Index)
-        {
-            bezier = bezier.SplitRight(_startPoint.Fraction);
-        }
-        else if (segmentIndex == _endPoint.Index)
-        {
-            bezier = bezier.SplitLeft(_endPoint.Fraction);
-        }
-
-        return _inner.Bezier(segmentIndex - _startPoint.Index,
-                             bezier.P0,
-                             bezier.P1,
-                             bezier.P2,
-                             bezier.P3);
+        return _inner.Segment(segmentIndex - _startPoint.Index, segment.Subsegment(start, end));
     }
 }

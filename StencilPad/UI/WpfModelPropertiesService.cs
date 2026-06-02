@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.UI.Properties;
@@ -107,7 +108,6 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         window.WindowStartupLocation = WindowStartupLocation.Manual;
 
-        // Capture mouse position in logical units now, before the window opens.
         var devicePoint = _owner.PointToScreen(Mouse.GetPosition(_owner));
         var source = PresentationSource.FromVisual(_owner);
         var mousePos = source != null
@@ -116,10 +116,10 @@ public class WpfModelPropertiesService : IModelPropertiesService
 
         window.Loaded += (_, _) =>
         {
-            var workArea = SystemParameters.WorkArea;
+            var workArea = Win32Util.GetWorkAreaForDevicePoint(devicePoint, source);
 
-            window.Left = Math.Clamp(mousePos.X - window.ActualWidth * 0.25, workArea.Left, workArea.Right - window.ActualWidth);
-            window.Top  = Math.Clamp(mousePos.Y - window.ActualHeight * 0.25, workArea.Top, workArea.Bottom - window.ActualHeight);
+            window.Left = Math.Clamp(mousePos.X - window.ActualWidth * 0.25, workArea.Left, workArea.Right  - window.ActualWidth);
+            window.Top  = Math.Clamp(mousePos.Y - window.ActualHeight * 0.25, workArea.Top,  workArea.Bottom - window.ActualHeight);
         };
 
         window.Show();

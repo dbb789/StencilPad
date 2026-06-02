@@ -8,5 +8,9 @@
         { "Id": 5, "Filename": "Arrow4.spad" },
         { "Id": 6, "Filename": "Arrow5.spad" }
     ],
-    "Markers": []
+    "Markers":
+    [
+        { "Id": 1001, "Filename": "Marker0.spad" },
+        { "Id": 1002, "Filename": "Marker1.spad" }
+    ]
 }

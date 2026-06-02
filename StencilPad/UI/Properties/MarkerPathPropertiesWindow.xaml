@@ -10,7 +10,7 @@
         Title="{Binding Title}" SizeToContent="WidthAndHeight"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
         WindowStyle="ToolWindow"
-        MinWidth="260">
+        MinWidth="300">
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="{x:Static SystemCommands.CloseWindowCommand}"/>
     </Window.InputBindings>
@@ -18,34 +18,52 @@
         <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}" Executed="Close_Click"/>
     </Window.CommandBindings>
     <Grid Margin="12">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="12"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="8"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="12"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Spacing:"
-                   VerticalAlignment="Center"/>
-        <widgets:UnitSliderField Grid.Row="0" Grid.Column="2" MinWidth="180"
-                                 Value="{Binding Spacing}"
-                                 SliderMinimum="1"
-                                 SliderMaximum="10"/>
+        <TabControl Grid.Row="0" Height="400">
+            <TabItem Header="Marker Settings">
+                <Grid Margin="8" MinWidth="200" MinHeight="200">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Offset:"
-                   VerticalAlignment="Center"/>
-        <widgets:UnitSliderField Grid.Row="2" Grid.Column="2" MinWidth="180"
-                                 Value="{Binding Offset}"
-                                 SliderMinimum="0"
-                                 SliderMaximum="10"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Spacing:"
+                               VerticalAlignment="Center"/>
+                    <widgets:UnitSliderField Grid.Row="0" Grid.Column="2" MinWidth="180"
+                                             Value="{Binding Spacing}"
+                                             SliderMinimum="1"
+                                             SliderMaximum="10"/>
 
-        <Button Grid.Row="4" Grid.Column="2" Content="Close"
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Offset:"
+                               VerticalAlignment="Center"/>
+                    <widgets:UnitSliderField Grid.Row="2" Grid.Column="2" MinWidth="180"
+                                             Value="{Binding Offset}"
+                                             SliderMinimum="0"
+                                             SliderMaximum="100"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Marker Colour">
+                <widgets:ColorField Margin="8"
+                                    Value="{Binding MarkerColor}"/>
+            </TabItem>
+            <TabItem Header="Line Colour">
+                <widgets:ColorField Margin="8"
+                                    Value="{Binding LineColor}"/>
+            </TabItem>
+        </TabControl>
+
+        <Button Grid.Row="2" Content="Close"
                 MinWidth="75" HorizontalAlignment="Right" Click="Close_Click"/>
     </Grid>
 </Window>
