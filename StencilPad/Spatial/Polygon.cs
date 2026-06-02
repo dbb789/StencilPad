@@ -6,7 +6,7 @@ public class Polygon : IPolygon
     public IKeyedList<Edge> Edges => _edges;
     public bool Closed => _closed;
 
-    public IPolygonResolver Resolver => _resolver;
+    public IGeometryResolver Resolver => _resolver;
     
     private readonly KeyedList<Vertex> _vertices;
     private readonly KeyedList<Edge> _edges;

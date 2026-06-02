@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public interface IPolygonResolver
+public interface IGeometryResolver
 {
     void WalkPolygon(IGeometryWalker walker);
     void WalkPolygonReverse(IGeometryWalker walker);

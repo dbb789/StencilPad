@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public class PolygonResolver : IPolygonResolver
+public class PolygonResolver : IGeometryResolver
 {
     private IPolygon _polygon;
     private bool _geometryDirty;
