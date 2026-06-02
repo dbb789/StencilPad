@@ -1,4 +1,5 @@
 using System.IO;
+using System.IO.Compression;
 using System.Text.Json;
 
 namespace StencilPad.Schemas;
@@ -7,34 +8,39 @@ public static class SchemaUtil
 {
     public static ProjectSchema LoadProject(string filename)
     {
-        var json = File.ReadAllText(filename);
-        
-        return DeserializeProject(json);
-    }
-    
-    public static async Task<ProjectSchema> LoadProjectAsync(string filename)
-    {
-        var json = await File.ReadAllTextAsync(filename);
+        using var file = File.OpenRead(filename);
+        using var gz = new GZipStream(file, CompressionMode.Decompress);
 
-        return DeserializeProject(json);
-    }
+        var schema = JsonSerializer.Deserialize<ProjectSchema>(gz, SchemaJsonOptions.Default);
 
-    private static ProjectSchema DeserializeProject(string json)
-    {
-        var schema = JsonSerializer.Deserialize<ProjectSchema>(json, SchemaJsonOptions.Default);
-
-        if (schema == null)
+        if (schema is null)
         {
             throw new InvalidDataException("Failed to deserialize project schema.");
         }
-
+        
         return schema;
     }
-    
+
+    public static async Task<ProjectSchema> LoadProjectAsync(string filename)
+    {
+        await using var file = File.OpenRead(filename);
+        await using var gz = new GZipStream(file, CompressionMode.Decompress);
+
+        var schema = await JsonSerializer.DeserializeAsync<ProjectSchema>(gz, SchemaJsonOptions.Default);
+
+        if (schema is null)
+        {
+            throw new InvalidDataException("Failed to deserialize project schema.");
+        }
+        
+        return schema;
+    }
+
     public static async Task SaveProjectAsync(ProjectSchema schema, string filename)
     {
-        var json = JsonSerializer.Serialize(schema, SchemaJsonOptions.Default);
-        
-        await File.WriteAllTextAsync(filename, json);
+        await using var file = File.Create(filename);
+        await using var gz = new GZipStream(file, CompressionLevel.Optimal);
+
+        await JsonSerializer.SerializeAsync(gz, schema, SchemaJsonOptions.Default);
     }
 }
