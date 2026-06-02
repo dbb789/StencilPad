@@ -15,21 +15,6 @@ public class MinMaxHandleSource : IHandleSource
     private HandleSet _selection;
     private HandleSourceId _id = HandleFactory.NewId();
 
-    private UnitTransform _transform = UnitTransform.Identity;
-    public UnitTransform Transform
-    {
-        get => _transform;
-        set
-        {
-            if (_transform != value)
-            {
-                _transform = value;
-                HandleMoved?.Invoke(this, _handles[0], GetPoint(_handles[0]));
-                HandleMoved?.Invoke(this, _handles[1], GetPoint(_handles[1]));
-            }
-        }
-    }
-
     public Unit2D Min
     {
         get => _min;
@@ -94,20 +79,18 @@ public class MinMaxHandleSource : IHandleSource
 
     public Unit2D GetPoint(Handle handle)
     {
-        var localPos = handle.GetKey<MinMaxHandleKey>().Type == MinMaxHandleKey.HandleType.Min ? _min : _max;
-        return Transform.Apply(localPos);
+        return handle.GetKey<MinMaxHandleKey>().Type == MinMaxHandleKey.HandleType.Min ? _min : _max;
     }
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        var localPos = Transform.InverseApply(position);
         if (handle.GetKey<MinMaxHandleKey>().Type == MinMaxHandleKey.HandleType.Min)
         {
-            Min = localPos;
+            Min = position;
         }
         else
         {
-            Max = localPos;
+            Max = position;
         }
     }
 
@@ -116,7 +99,6 @@ public class MinMaxHandleSource : IHandleSource
         _id = other._id;
         _min = other._min;
         _max = other._max;
-        _transform = other._transform;
         _selection.AssignFrom(other._selection);
 
         HandleMoved?.Invoke(this, _handles[0], GetPoint(_handles[0]));
@@ -128,7 +110,6 @@ public class MinMaxHandleSource : IHandleSource
         var clone = new MinMaxHandleSource(_min, _max);
 
         clone._id = _id;
-        clone._transform = _transform;
         clone._selection.AssignFrom(_selection);
 
         return clone;
