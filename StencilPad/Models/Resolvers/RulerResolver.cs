@@ -11,15 +11,18 @@ public class RulerResolver : IStyledGeometryResolver
     private readonly Ruler _ruler;
     private readonly IResourceService _resourceService;
     private readonly List<IStyledGeometryWalker> _subscriptions;
+    private readonly LineResolver _lineResolver;
+    private readonly List<(GeometryResource, UnitTransform)> _caps;
 
     private GeometryStyle _style;
-    private bool _disposed;
 
     public RulerResolver(Ruler markerPath, IResourceService resourceService)
     {
         _ruler = markerPath;
         _resourceService = resourceService;
         _subscriptions = new();
+        _lineResolver = new();
+        _caps = new();
         _style = CreateStyle();
 
         _ruler.GeometryChanged += OnGeometryChanged;
@@ -29,9 +32,6 @@ public class RulerResolver : IStyledGeometryResolver
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
         _ruler.GeometryChanged -= OnGeometryChanged;
         _ruler.TransformChanged -= OnTransformChanged;
         _ruler.PropertyChanged -= OnPropertyChanged;
@@ -40,6 +40,8 @@ public class RulerResolver : IStyledGeometryResolver
         {
             walker.Destroy(GeometryId);
         }
+
+        _subscriptions.Clear();
     }
 
     public void Subscribe(IStyledGeometryWalker walker)
@@ -100,10 +102,13 @@ public class RulerResolver : IStyledGeometryResolver
 
     private GeometrySet CreateGeometrySet()
     {
-        var line = new Line(_ruler.Min, _ruler.Max);
-        var lineResolver = new LineResolver(line);
+        _lineResolver.Line = new Line(_ruler.Min, _ruler.Max);
+
+        _caps.Clear();
+        _caps.Add((_resourceService.Get(GeometryResourceId.First), new UnitTransform(_ruler.Min)));
+        _caps.Add((_resourceService.Get(GeometryResourceId.First), new UnitTransform(_ruler.Max)));
         
-        return new GeometrySet(lineResolver);
+        return new GeometrySet(_lineResolver, _caps);
     }
 
     private GeometryStyle CreateStyle()

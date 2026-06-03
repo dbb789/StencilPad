@@ -34,9 +34,9 @@ public class ShapeResolver : IStyledGeometryResolver
         _style = CreateStyle();
         _idCounter = 0;
 
-        for (int i = 0; i < _shape.PolygonSet.Count; ++i)
+        foreach (var polygon in _shape.PolygonSet)
         {
-            AddPolygon(_shape.PolygonSet[i]);
+            AddPolygon(polygon);
         }
 
         _shape.TransformChanged += TransformChanged;
@@ -56,6 +56,8 @@ public class ShapeResolver : IStyledGeometryResolver
         {
             RemovePolygon(polygon);
         }
+
+        _subscriptions.Clear();
     }
     
     public void Subscribe(IStyledGeometryWalker walker)

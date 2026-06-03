@@ -2,11 +2,11 @@ namespace StencilPad.Spatial;
 
 public class LineResolver : IGeometryResolver
 {
-    private readonly Line _line;
+    public Line Line;
     
-    public LineResolver(Line line)
+    public LineResolver()
     {
-        _line = line;
+        Line = new Line(Unit2D.Zero, Unit2D.Zero);
     }
 
     public void Walk(IGeometryWalker walker)
@@ -16,7 +16,7 @@ public class LineResolver : IGeometryResolver
             return;
         }
         
-        walker.Segment(0, PolygonSegment.FromLine(_line));
+        walker.Segment(0, PolygonSegment.FromLine(Line));
     }
 
     public void WalkReverse(IGeometryWalker walker)
@@ -26,7 +26,7 @@ public class LineResolver : IGeometryResolver
             return;
         }
         
-        walker.Segment(0, PolygonSegment.FromLine(_line.Reversed));
+        walker.Segment(0, PolygonSegment.FromLine(Line.Reversed));
     }
 
     public void WalkEdge(IGeometryWalker walker, int edgeIndex)

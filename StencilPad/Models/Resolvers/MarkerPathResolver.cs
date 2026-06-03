@@ -13,7 +13,6 @@ public class MarkerPathResolver : IStyledGeometryResolver
     private readonly List<IStyledGeometryWalker> _subscriptions;
 
     private GeometryStyle _style;
-    private bool _disposed;
 
     public MarkerPathResolver(MarkerPath markerPath, IResourceService resourceService)
     {
@@ -29,9 +28,6 @@ public class MarkerPathResolver : IStyledGeometryResolver
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
         _markerPath.GeometryChanged -= OnGeometryChanged;
         _markerPath.TransformChanged -= OnTransformChanged;
         _markerPath.PropertyChanged -= OnPropertyChanged;
@@ -40,6 +36,8 @@ public class MarkerPathResolver : IStyledGeometryResolver
         {
             walker.Destroy(GeometryId);
         }
+
+        _subscriptions.Clear();
     }
 
     public void Subscribe(IStyledGeometryWalker walker)
