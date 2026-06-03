@@ -6,7 +6,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
-public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
+public class StyledGeometryRenderer : IStyledGeometryWalker
 {
     private class Entry
     {
@@ -18,7 +18,6 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
         public bool GeometryDirty;
     }
 
-    private readonly IStyledGeometryResolver _resolver;
     private readonly IResourceService _resourceService;
     private readonly Dictionary<int, Entry> _entryMap;
     private ClampedGeometryWalker? _clampedGeometryWalker;
@@ -26,38 +25,31 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
     
     private GeometryGroup? _baseGeometry;
     private bool _geometryDirty;
-    private Transform? _transform;
     private Pen? _pen;
     private Brush? _brush;
 
-    public ResolverRenderer(IStyledGeometryResolver resolver,
-                            IResourceService resourceService)
+    public event Action? RendererDirty;
+    
+    public StyledGeometryRenderer(IResourceService resourceService)
     {
-        _resolver = resolver;
         _resourceService = resourceService;
         _entryMap = new();
         _geometryDirty = true;
-        
-        _resolver.Subscribe(this);
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
-        _resolver.Unsubscribe(this);
     }
 
-    public override void Render(DrawingContext dc)
+    public void Render(DrawingContext dc)
     {
-        if (_pen is null ||
-            _brush is null ||
-            _transform is null)
+        if (_pen is null || _brush is null)
         {
             return;
         }
 
         var geometry = GetGeometryGroup();
 
-        dc.PushTransform(_transform);
         dc.DrawGeometry(_brush, _pen, geometry);
         
         foreach (var (_, entry) in _entryMap)
@@ -69,21 +61,12 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
                 dc.Pop();
             }
         }
-        
-        dc.Pop();
     }
     
     public void SetStyle(GeometryStyle style)
     {
         _pen = CreatePen(style);
         _brush = CreateBrush(style);
-
-        InvokeRendererDirty();
-    }
-    
-    public void SetTransform(UnitTransform transform)
-    {
-        _transform = transform.CreateGroupTransform();
 
         InvokeRendererDirty();
     }
@@ -212,5 +195,10 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
         brush.Freeze();
         
         return brush;
+    }
+
+    private void InvokeRendererDirty()
+    {
+        RendererDirty?.Invoke();
     }
 }

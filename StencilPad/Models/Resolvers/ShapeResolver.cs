@@ -4,7 +4,7 @@ using StencilPad.Services;
 
 namespace StencilPad.Models.Resolvers;
 
-public class ShapeResolver : IStyledGeometryResolver
+public class ShapeResolver : IModelResolver
 {
     private class PolygonState
     {
@@ -18,8 +18,10 @@ public class ShapeResolver : IStyledGeometryResolver
 
     private readonly Shape _shape;
     private readonly IResourceService _resourceService;
-    private readonly List<IStyledGeometryWalker> _subscriptions;
     private readonly Dictionary<IPolygon, PolygonState> _polygonMap;
+    
+    private IModelWalker? _walker;
+    private IStyledGeometryWalker? _geometryWalker;
 
     private CapDistanceWalker? _capDistanceWalker;
     private GeometryStyle _style;
@@ -29,7 +31,6 @@ public class ShapeResolver : IStyledGeometryResolver
     {
         _shape = shape;
         _resourceService = resourceService;
-        _subscriptions = new();
         _polygonMap = new();
         _style = CreateStyle();
         _idCounter = 0;
@@ -47,6 +48,8 @@ public class ShapeResolver : IStyledGeometryResolver
 
     public void Dispose()
     {
+        Detach();
+
         _shape.TransformChanged -= TransformChanged;
         _shape.PropertyChanged -= PropertyChanged;
         _shape.PolygonSet.PolygonAdded -= AddPolygon;
@@ -56,31 +59,30 @@ public class ShapeResolver : IStyledGeometryResolver
         {
             RemovePolygon(polygon);
         }
-
-        _subscriptions.Clear();
     }
     
-    public void Subscribe(IStyledGeometryWalker walker)
+    public void Attach(IModelWalker walker)
     {
-        _subscriptions.Add(walker);
-        VisitAll(walker);
-    }
+        _walker = walker;
+        _walker.SetTransform(_shape.Transform);
+        _geometryWalker = walker.CreateStyledGeometryWalker();
+        _geometryWalker.SetStyle(_style);
 
-    public void Unsubscribe(IStyledGeometryWalker walker)
-    {
-        _subscriptions.Remove(walker);
-    }
-
-    public void VisitAll(IStyledGeometryWalker walker)
-    {
-        walker.SetStyle(_style);
-        walker.SetTransform(_shape.Transform);
-        
         foreach (var (polygon, state) in _polygonMap)
         {
-            walker.Create(state.Id, 
-                          CreateGeometrySet(polygon));
+            _geometryWalker.Create(state.Id, CreateGeometrySet(polygon));
         }
+    }
+
+    public void Detach()
+    {
+        foreach (var (polygon, state) in _polygonMap)
+        {
+            _geometryWalker?.Destroy(state.Id);
+        }
+        
+        _geometryWalker = null;
+        _walker = null;
     }
 
     private void AddPolygon(IPolygon polygon)
@@ -90,11 +92,7 @@ public class ShapeResolver : IStyledGeometryResolver
         _polygonMap[polygon] = new PolygonState(id);
         polygon.GeometryChanged += GeometryChanged;
 
-        foreach (var walker in _subscriptions)
-        {
-            walker.Create(id, CreateGeometrySet(polygon));
-        }
-
+        _geometryWalker?.Create(id, CreateGeometrySet(polygon));
     }
 
     private void RemovePolygon(IPolygon polygon)
@@ -106,30 +104,21 @@ public class ShapeResolver : IStyledGeometryResolver
         
         _polygonMap.Remove(polygon);
         polygon.GeometryChanged -= GeometryChanged;
-
-        foreach (var walker in _subscriptions)
-        {
-            walker.Destroy(state.Id);
-        }
+        
+        _geometryWalker?.Destroy(state.Id);
     }
 
     private void GeometryChanged(IPolygon polygon)
     {
         if (_polygonMap.TryGetValue(polygon, out var state))
         {
-            foreach (var walker in _subscriptions)
-            {
-                walker.Update(state.Id, CreateGeometrySet(polygon));
-            }
+            _geometryWalker?.Update(state.Id, CreateGeometrySet(polygon));
         }
     }
 
     private void TransformChanged(ISheetElement element)
     {
-        foreach (var walker in _subscriptions)
-        {
-            walker.SetTransform(_shape.Transform);
-        }
+        _walker?.SetTransform(_shape.Transform);
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -137,20 +126,13 @@ public class ShapeResolver : IStyledGeometryResolver
         if (IsStyleProperty(e.PropertyName))
         {
             _style = CreateStyle();
-
-            foreach (var walker in _subscriptions)
-            {
-                walker.SetStyle(_style);
-            }
+            _geometryWalker?.SetStyle(_style);
         }
         else
         {
             foreach (var (polygon, state) in _polygonMap)
             {
-                foreach (var walker in _subscriptions)
-                {
-                    walker.Update(state.Id, CreateGeometrySet(polygon));
-                }
+                _geometryWalker?.Update(state.Id, CreateGeometrySet(polygon));
             }
         }
     }

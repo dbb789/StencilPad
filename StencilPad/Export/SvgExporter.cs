@@ -40,12 +40,17 @@ public static class SvgExporter
             new XAttribute("height",  Mm(height)),
             new XAttribute("viewBox", $"{Num(offsetX)} {Num(offsetY)} {Num(width)} {Num(height)}"));
 
-        using (var walker = new SvgWalker(svg))
+        using (var modelWalker = new SvgModelWalker(svg))
         {
             foreach (var element in sheet.Elements)
             {
                 using var resolver = ResolverFactory.Create(element, resourceService);
-                resolver?.VisitAll(walker);
+
+                if (resolver is not null)
+                {
+                    resolver.Attach(modelWalker);
+                    resolver.Detach();
+                }
             }
         }
 
@@ -55,31 +60,60 @@ public static class SvgExporter
         doc.Save(stream);
     }
 
-    private class SvgWalker : IStyledGeometryWalker
+    private class SvgModelWalker : IModelWalker
     {
         private readonly XElement _svg;
-        private GeometryStyle _style;
+        private readonly List<SvgGeometryWalker> _geometryWalkers = new();
         private UnitTransform _transform;
+
+        public SvgModelWalker(XElement svg)
+        {
+            _svg = svg;
+        }
+
+        public void SetTransform(UnitTransform transform)
+        {
+            _transform = transform;
+        }
+
+        public IStyledGeometryWalker CreateStyledGeometryWalker()
+        {
+            var walker = new SvgGeometryWalker(_svg, _transform);
+            _geometryWalkers.Add(walker);
+            return walker;
+        }
+
+        public void Dispose()
+        {
+            foreach (var walker in _geometryWalkers)
+            {
+                walker.Dispose();
+            }
+
+            _geometryWalkers.Clear();
+        }
+    }
+
+    private class SvgGeometryWalker : IStyledGeometryWalker
+    {
+        private readonly XElement _svg;
+        private readonly UnitTransform _transform;
+        private GeometryStyle _style;
 
         private readonly StringBuilder _pendingPaths = new();
         private readonly List<(Shape Shape, UnitTransform Transform)> _pendingOverlays = new();
         private bool _pendingClosed;
 
-        public SvgWalker(XElement svg)
+        public SvgGeometryWalker(XElement svg, UnitTransform transform)
         {
             _svg = svg;
+            _transform = transform;
         }
 
         public void SetStyle(GeometryStyle style)
         {
             Flush();
             _style = style;
-        }
-
-        public void SetTransform(UnitTransform transform)
-        {
-            Flush();
-            _transform = transform;
         }
 
         public void Create(int id, GeometrySet geometrySet)
@@ -114,15 +148,9 @@ public static class SvgExporter
             }
         }
 
-        public void Update(int id, GeometrySet geometrySet)
-        {
-            // SVG export is one-shot; updates are not expected
-        }
+        public void Update(int id, GeometrySet geometrySet) { }
 
-        public void Destroy(int id)
-        {
-            // SVG export is one-shot; destroys are not expected
-        }
+        public void Destroy(int id) { }
 
         public void Dispose()
         {
@@ -168,11 +196,11 @@ public static class SvgExporter
             var strokeWidth = Num(_style.LineWidth.Millimeters);
 
             var path = new XElement(SvgNs + "path",
-                new XAttribute("d",            pathData),
-                new XAttribute("fill",         fill),
-                new XAttribute("fill-rule",    "evenodd"),
-                new XAttribute("stroke",       stroke),
-                new XAttribute("stroke-width", strokeWidth),
+                new XAttribute("d",              pathData),
+                new XAttribute("fill",           fill),
+                new XAttribute("fill-rule",      "evenodd"),
+                new XAttribute("stroke",         stroke),
+                new XAttribute("stroke-width",   strokeWidth),
                 new XAttribute("stroke-opacity", Num(_style.LineColor.A / 255.0)));
 
             if (_style.LineStyle == LineStyleResourceId.Dashes)

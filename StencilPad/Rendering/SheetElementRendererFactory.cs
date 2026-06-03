@@ -19,7 +19,7 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
 
         if (resolver is not null)
         {
-            return new ResolverRenderer(resolver, _resourceService);
+            return new ModelRenderer(resolver, _resourceService);
         }
         
         if (element is Ruler ruler)

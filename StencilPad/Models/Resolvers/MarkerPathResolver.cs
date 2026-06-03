@@ -4,13 +4,15 @@ using StencilPad.Services;
 
 namespace StencilPad.Models.Resolvers;
 
-public class MarkerPathResolver : IStyledGeometryResolver
+public class MarkerPathResolver : IModelResolver
 {
     private const int GeometryId = 1;
 
     private readonly MarkerPath _markerPath;
     private readonly IResourceService _resourceService;
-    private readonly List<IStyledGeometryWalker> _subscriptions;
+    
+    private IModelWalker? _walker;
+    private IStyledGeometryWalker? _geometryWalker;
 
     private GeometryStyle _style;
 
@@ -18,7 +20,6 @@ public class MarkerPathResolver : IStyledGeometryResolver
     {
         _markerPath = markerPath;
         _resourceService = resourceService;
-        _subscriptions = new();
         _style = CreateStyle();
 
         _markerPath.GeometryChanged += OnGeometryChanged;
@@ -28,52 +29,38 @@ public class MarkerPathResolver : IStyledGeometryResolver
 
     public void Dispose()
     {
+        Detach();
+
         _markerPath.GeometryChanged -= OnGeometryChanged;
         _markerPath.TransformChanged -= OnTransformChanged;
         _markerPath.PropertyChanged -= OnPropertyChanged;
-
-        foreach (var walker in _subscriptions)
-        {
-            walker.Destroy(GeometryId);
-        }
-
-        _subscriptions.Clear();
     }
-
-    public void Subscribe(IStyledGeometryWalker walker)
+    
+    public void Attach(IModelWalker walker)
     {
-        _subscriptions.Add(walker);
-        VisitAll(walker);
+        _walker = walker;
+        _walker.SetTransform(_markerPath.Transform);
+        
+        _geometryWalker = walker.CreateStyledGeometryWalker();
+        _geometryWalker.SetStyle(_style);
+        _geometryWalker.Create(GeometryId, CreateGeometrySet());
     }
 
-    public void Unsubscribe(IStyledGeometryWalker walker)
+    public void Detach()
     {
-        _subscriptions.Remove(walker);
+        _geometryWalker?.Destroy(GeometryId);
+        _geometryWalker = null;
+        _walker = null;
     }
-
-    public void VisitAll(IStyledGeometryWalker walker)
-    {
-        walker.SetStyle(_style);
-        walker.SetTransform(_markerPath.Transform);
-        walker.Create(GeometryId, CreateGeometrySet());
-    }
-
+    
     private void OnGeometryChanged(ISheetElement element)
     {
-        var set = CreateGeometrySet();
-
-        foreach (var walker in _subscriptions)
-        {
-            walker.Update(GeometryId, set);
-        }
+        _geometryWalker?.Update(GeometryId, CreateGeometrySet());
     }
 
     private void OnTransformChanged(ISheetElement element)
     {
-        foreach (var walker in _subscriptions)
-        {
-            walker.SetTransform(_markerPath.Transform);
-        }
+        _walker?.SetTransform(_markerPath.Transform);
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -81,18 +68,11 @@ public class MarkerPathResolver : IStyledGeometryResolver
         if (IsStyleProperty(e.PropertyName))
         {
             _style = CreateStyle();
-
-            foreach (var walker in _subscriptions)
-            {
-                walker.SetStyle(_style);
-            }
+            _geometryWalker?.SetStyle(_style);
         }
         else if (e.PropertyName == nameof(MarkerPath.MarkerType))
         {
-            foreach (var walker in _subscriptions)
-            {
-                walker.Update(GeometryId, CreateGeometrySet());
-            }
+            _geometryWalker?.Update(GeometryId, CreateGeometrySet());
         }
     }
 

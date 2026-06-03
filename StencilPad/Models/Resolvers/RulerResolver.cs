@@ -4,23 +4,24 @@ using StencilPad.Services;
 
 namespace StencilPad.Models.Resolvers;
 
-public class RulerResolver : IStyledGeometryResolver
+public class RulerResolver : IModelResolver
 {
     private const int GeometryId = 1;
 
     private readonly Ruler _ruler;
     private readonly IResourceService _resourceService;
-    private readonly List<IStyledGeometryWalker> _subscriptions;
     private readonly LineResolver _lineResolver;
     private readonly List<(GeometryResource, UnitTransform)> _caps;
 
+    private IModelWalker? _walker;
+    private IStyledGeometryWalker? _geometryWalker;
+    
     private GeometryStyle _style;
 
-    public RulerResolver(Ruler markerPath, IResourceService resourceService)
+    public RulerResolver(Ruler ruler, IResourceService resourceService)
     {
-        _ruler = markerPath;
+        _ruler = ruler;
         _resourceService = resourceService;
-        _subscriptions = new();
         _lineResolver = new();
         _caps = new();
         _style = CreateStyle();
@@ -32,52 +33,38 @@ public class RulerResolver : IStyledGeometryResolver
 
     public void Dispose()
     {
+        Detach();
+        
         _ruler.GeometryChanged -= OnGeometryChanged;
         _ruler.TransformChanged -= OnTransformChanged;
         _ruler.PropertyChanged -= OnPropertyChanged;
-
-        foreach (var walker in _subscriptions)
-        {
-            walker.Destroy(GeometryId);
-        }
-
-        _subscriptions.Clear();
     }
 
-    public void Subscribe(IStyledGeometryWalker walker)
+    public void Attach(IModelWalker walker)
     {
-        _subscriptions.Add(walker);
-        VisitAll(walker);
+        _walker = walker;
+        _walker.SetTransform(_ruler.Transform);
+        
+        _geometryWalker = walker.CreateStyledGeometryWalker();
+        _geometryWalker.SetStyle(_style);
+        _geometryWalker.Create(GeometryId, CreateGeometrySet());
     }
 
-    public void Unsubscribe(IStyledGeometryWalker walker)
+    public void Detach()
     {
-        _subscriptions.Remove(walker);
+        _geometryWalker?.Destroy(GeometryId);
+        _geometryWalker = null;
+        _walker = null;
     }
-
-    public void VisitAll(IStyledGeometryWalker walker)
-    {
-        walker.SetStyle(_style);
-        walker.SetTransform(_ruler.Transform);
-        walker.Create(GeometryId, CreateGeometrySet());
-    }
-
+    
     private void OnGeometryChanged(ISheetElement element)
     {
-        var set = CreateGeometrySet();
-
-        foreach (var walker in _subscriptions)
-        {
-            walker.Update(GeometryId, set);
-        }
+        _geometryWalker?.Update(GeometryId, CreateGeometrySet());
     }
 
     private void OnTransformChanged(ISheetElement element)
     {
-        foreach (var walker in _subscriptions)
-        {
-            walker.SetTransform(_ruler.Transform);
-        }
+        _walker?.SetTransform(_ruler.Transform);
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -85,18 +72,11 @@ public class RulerResolver : IStyledGeometryResolver
         if (IsStyleProperty(e.PropertyName))
         {
             _style = CreateStyle();
-
-            foreach (var walker in _subscriptions)
-            {
-                walker.SetStyle(_style);
-            }
+            _geometryWalker?.SetStyle(_style);
         }
         else
         {
-            foreach (var walker in _subscriptions)
-            {
-                walker.Update(GeometryId, CreateGeometrySet());
-            }
+            _geometryWalker?.Update(GeometryId, CreateGeometrySet());
         }
     }
 

@@ -3,8 +3,8 @@ using StencilPad.Services;
 
 public static class ResolverFactory
 {
-    public static IStyledGeometryResolver? Create(ISheetElement element,
-                                                  IResourceService resourceService)
+    public static IModelResolver? Create(ISheetElement element,
+                                         IResourceService resourceService)
     {
         if (element is Shape shape)
         {
