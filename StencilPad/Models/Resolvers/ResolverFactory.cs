@@ -26,6 +26,11 @@ public static class ResolverFactory
             return new TextElementResolver(textElement);
         }
 
+        if (element is ElementGroup elementGroup)
+        {
+            return new GroupResolver(elementGroup, resourceService);
+        }
+
         return null;
     }
 }

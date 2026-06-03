@@ -34,6 +34,17 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
         _renderers.Clear();
     }
 
+    public IModelWalker CreateModelWalker(IModelResolver resolver)
+    {
+        var renderer = new ModelRenderer(resolver, _resourceService);
+        
+        renderer.RendererDirty += InvokeRendererDirty;
+
+        _renderers.Add(renderer);
+        
+        return renderer;
+    }
+    
     public IStyledGeometryWalker CreateStyledGeometryWalker()
     {
         var renderer = new StyledGeometryRenderer(_resourceService);

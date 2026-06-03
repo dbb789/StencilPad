@@ -54,7 +54,7 @@ public class RulerResolver : IModelResolver
 
         _textWalker = walker.CreateTextWalker();
         _textWalker.SetTransform(GetTextTransform());
-        _textWalker?.SetBounds(GetTextBounds());
+        _textWalker.SetBounds(GetTextBounds());
         _textWalker.SetStyle(_textStyle);
         _textWalker.SetText(GetText());
     }

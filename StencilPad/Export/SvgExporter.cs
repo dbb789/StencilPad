@@ -77,6 +77,13 @@ public static class SvgExporter
             _transform = transform;
         }
 
+        public IModelWalker CreateModelWalker(IModelResolver resolver)
+        {
+            var walker = new SvgModelWalker(_svg);
+            walker.SetTransform(_transform);
+            return walker;
+        }
+
         public IStyledGeometryWalker CreateStyledGeometryWalker()
         {
             var walker = new SvgGeometryWalker(_svg, _transform);
