@@ -22,11 +22,6 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
             return new ResolverRenderer(resolver, _resourceService);
         }
         
-        if (element is MarkerPath markerPath)
-        {
-            return new MarkerPathRenderer(markerPath, _resourceService);
-        }
-        
         if (element is Ruler ruler)
         {
             return new RulerRenderer(ruler, _resourceService);
