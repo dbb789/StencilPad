@@ -1,21 +1,41 @@
-using System.Runtime.CompilerServices;
 using System.Windows.Media;
 
 namespace StencilPad.Spatial;
 
-public readonly record struct UnitTransform(Unit2D Position, decimal Angle = 0m)
+public readonly record struct UnitTransform
 {
     public static readonly UnitTransform Identity = new(Unit2D.Zero, 0m);
+    
+    public Unit2D Position { get; init; }
+    public decimal Angle { get; init; }
+
+
+    public UnitTransform(Unit2D position, decimal angle)
+    {
+        Position = position;
+        Angle = angle;
+    }
+    
+    public UnitTransform(Unit2D position, double angle)
+     : this(position, (decimal)angle)
+    { }
+
+    public UnitTransform(Unit2D position)
+     : this(position, 0m)
+    { }
 
     public Transform CreateGroupTransform()
     {
         var group = new TransformGroup();
+        
         if (Angle != 0m)
         {
             group.Children.Add(new RotateTransform((double)Angle));
         }
+        
         group.Children.Add(new TranslateTransform(Position.X.Millimeters, Position.Y.Millimeters));
         group.Freeze();
+        
         return group;
     }
 

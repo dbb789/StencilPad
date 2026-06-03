@@ -13,7 +13,7 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
 
     private Transform _transform;
     private TextStyle _style;
-    private UnitBounds _bounds;
+    private UnitBounds? _bounds;
     private string _text;
     private FormattedText? _formattedText;
 
@@ -45,7 +45,7 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
         InvokeRendererDirty();
     }
 
-    public void SetBounds(UnitBounds bounds)
+    public void SetBounds(UnitBounds? bounds)
     {
         _bounds = bounds;
         RebuildFormattedText();
@@ -66,12 +66,22 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
             return;
         }
 
-        var clipRect = _bounds.Millimeters;
 
         dc.PushTransform(_transform);
-        dc.PushClip(new RectangleGeometry(clipRect));
-        dc.DrawText(_formattedText, clipRect.TopLeft);
-        dc.Pop();
+
+        if (_bounds is not null)
+        {
+            var clipRect = _bounds.Value.Millimeters;
+
+            dc.PushClip(new RectangleGeometry(clipRect));
+            dc.DrawText(_formattedText, clipRect.TopLeft);
+            dc.Pop();
+        }
+        else
+        {
+            dc.DrawText(_formattedText, new Point(-_formattedText.Width / 2, 0.5));
+        }
+
         dc.Pop();
     }
     
@@ -97,15 +107,18 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
             Trimming = TextTrimming.None
         };
 
-        var size = _bounds.Size;
-        
-        if (size.X.Millimeters > 0)
+        if (_bounds is not null)
         {
-            _formattedText.MaxTextWidth = size.X.Millimeters;
-        }
-        if (size.Y.Millimeters > 0)
-        {
-            _formattedText.MaxTextHeight = size.Y.Millimeters;
+            var size = _bounds.Value.Size;
+
+            if (size.X.Millimeters > 0)
+            {
+                _formattedText.MaxTextWidth = size.X.Millimeters;
+            }
+            if (size.Y.Millimeters > 0)
+            {
+                _formattedText.MaxTextHeight = size.Y.Millimeters;
+            }
         }
     }
 

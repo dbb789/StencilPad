@@ -17,16 +17,18 @@ public class RulerResolver : IModelResolver
     private IStyledGeometryWalker? _geometryWalker;
     private ITextWalker? _textWalker;
     
-    private GeometryStyle _style;
-
+    private GeometryStyle _geometryStyle;
+    private TextStyle _textStyle;
+    
     public RulerResolver(Ruler ruler, IResourceService resourceService)
     {
         _ruler = ruler;
         _resourceService = resourceService;
         _lineResolver = new();
         _caps = new();
-        _style = CreateStyle();
-
+        _geometryStyle = CreateGeometryStyle();
+        _textStyle = CreateTextStyle();
+            
         _ruler.GeometryChanged += OnGeometryChanged;
         _ruler.TransformChanged += OnTransformChanged;
         _ruler.PropertyChanged += OnPropertyChanged;
@@ -47,18 +49,13 @@ public class RulerResolver : IModelResolver
         _walker.SetTransform(_ruler.Transform);
         
         _geometryWalker = walker.CreateStyledGeometryWalker();
-        _geometryWalker.SetStyle(_style);
+        _geometryWalker.SetStyle(_geometryStyle);
         _geometryWalker.Create(GeometryId, CreateGeometrySet());
 
         _textWalker = walker.CreateTextWalker();
-        _textWalker.SetStyle(new TextStyle
-        {
-            Font = "Arial",
-            Size = 14,
-            Color = _ruler.Color
-        });
-        _textWalker.SetText("This is a test");
-        _textWalker.SetBounds(UnitBounds.FromCenterSize(Unit2D.Zero, Unit2D.FromMillimeters(100, 100)));
+        _textWalker.SetTransform(GetTextTransform());
+        _textWalker.SetStyle(_textStyle);
+        _textWalker.SetText(GetText());
     }
 
     public void Detach()
@@ -71,6 +68,8 @@ public class RulerResolver : IModelResolver
     private void OnGeometryChanged(ISheetElement element)
     {
         _geometryWalker?.Update(GeometryId, CreateGeometrySet());
+        _textWalker?.SetTransform(GetTextTransform());
+        _textWalker?.SetText(GetText());
     }
 
     private void OnTransformChanged(ISheetElement element)
@@ -82,8 +81,11 @@ public class RulerResolver : IModelResolver
     {
         if (IsStyleProperty(e.PropertyName))
         {
-            _style = CreateStyle();
-            _geometryWalker?.SetStyle(_style);
+            _geometryStyle = CreateGeometryStyle();
+            _geometryWalker?.SetStyle(_geometryStyle);
+
+            _textStyle = CreateTextStyle();
+            _textWalker?.SetStyle(_textStyle);
         }
         else
         {
@@ -91,27 +93,69 @@ public class RulerResolver : IModelResolver
         }
     }
 
+    private UnitTransform GetTextTransform()
+    {
+        var mid = (_ruler.Min + _ruler.Max) / 2;
+        var rotation = Math.Atan2((_ruler.Max.Y - _ruler.Min.Y).Millimeters,
+                                  (_ruler.Max.X - _ruler.Min.X).Millimeters) * MathUtil.Rad2Deg;
+        
+        return new UnitTransform(mid, rotation);
+    }
+
+    private string GetText()
+    {
+        return $"{_ruler.Length.Millimeters:F1} mm";
+    }
+
     private GeometrySet CreateGeometrySet()
     {
         _lineResolver.Line = new Line(_ruler.Min, _ruler.Max);
 
         _caps.Clear();
-        _caps.Add((_resourceService.Get(GeometryResourceId.First), new UnitTransform(_ruler.Min)));
-        _caps.Add((_resourceService.Get(GeometryResourceId.First), new UnitTransform(_ruler.Max)));
+        _caps.Add((_resourceService.Get(GeometryResourceId.First), GetStartCapTransform()));
+        _caps.Add((_resourceService.Get(GeometryResourceId.First), GetEndCapTransform()));
         
         return new GeometrySet(_lineResolver, _caps);
     }
 
-    private GeometryStyle CreateStyle()
+    private UnitTransform GetStartCapTransform()
+    {
+        var rotation = Math.Atan2((_ruler.Max.Y - _ruler.Min.Y).Millimeters,
+                                  (_ruler.Max.X - _ruler.Min.X).Millimeters) * MathUtil.Rad2Deg;
+
+        return new UnitTransform(_ruler.Min, rotation - 90);
+    }
+
+    private UnitTransform GetEndCapTransform()
+    {
+        var rotation = Math.Atan2((_ruler.Max.Y - _ruler.Min.Y).Millimeters,
+                                  (_ruler.Max.X - _ruler.Min.X).Millimeters) * MathUtil.Rad2Deg;
+
+        return new UnitTransform(_ruler.Max, rotation + 90);
+    }
+
+    private GeometryStyle CreateGeometryStyle()
     {
         return new GeometryStyle
         {
             LineColor = _ruler.Color
         };
     }
-
+    
+    private TextStyle CreateTextStyle()
+    {
+        return new TextStyle
+        {
+            Font = _ruler.FontName,
+            Size = _ruler.FontSize,
+            Color = _ruler.Color
+        };
+    }
+    
     private static bool IsStyleProperty(string? propertyName)
     {
-        return propertyName == nameof(Ruler.Color);
+        return propertyName == nameof(Ruler.FontName) ||
+            propertyName == nameof(Ruler.FontSize) ||
+            propertyName == nameof(Ruler.Color);
     }
 }
