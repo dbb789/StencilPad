@@ -64,6 +64,7 @@ public static class SvgExporter
     {
         private readonly XElement _svg;
         private readonly List<SvgGeometryWalker> _geometryWalkers = new();
+        private readonly List<SvgTextWalker> _textWalkers = new();
         private UnitTransform _transform;
 
         public SvgModelWalker(XElement svg)
@@ -85,7 +86,9 @@ public static class SvgExporter
 
         public ITextWalker CreateTextWalker()
         {
-            throw new NotImplementedException("Text export is not implemented.");
+            var walker = new SvgTextWalker(_svg, _transform);
+            _textWalkers.Add(walker);
+            return walker;
         }
 
         public void Dispose()
@@ -95,7 +98,13 @@ public static class SvgExporter
                 walker.Dispose();
             }
 
+            foreach (var walker in _textWalkers)
+            {
+                walker.Dispose();
+            }
+
             _geometryWalkers.Clear();
+            _textWalkers.Clear();
         }
     }
 
@@ -215,6 +224,79 @@ public static class SvgExporter
             }
 
             return path;
+        }
+    }
+
+    private class SvgTextWalker : ITextWalker
+    {
+        private readonly XElement _svg;
+        private UnitTransform _transform;
+        private TextStyle _style;
+        private UnitBounds? _bounds;
+        private string _text = "";
+
+        public SvgTextWalker(XElement svg, UnitTransform transform)
+        {
+            _svg = svg;
+            _transform = transform;
+            _style = new TextStyle();
+        }
+
+        public void SetTransform(UnitTransform transform) => _transform = transform;
+        public void SetStyle(TextStyle style) => _style = style;
+        public void SetBounds(UnitBounds? bounds) => _bounds = bounds;
+        public void SetText(string text) => _text = text;
+
+        public void Dispose()
+        {
+            if (string.IsNullOrEmpty(_text)) return;
+
+            Unit2D localOrigin;
+            if (_bounds is not null)
+            {
+                var b = _bounds.Value;
+                var localX = _style.Justification switch
+                {
+                    Justification.Center => b.Center.X,
+                    Justification.Right  => b.Max.X,
+                    _                    => b.Min.X
+                };
+                localOrigin = new Unit2D(localX, b.Min.Y);
+            }
+            else
+            {
+                localOrigin = Unit2D.Zero;
+            }
+            var origin = _transform.Apply(localOrigin);
+
+            var x = Num(origin.X.Millimeters);
+            var y = Num(origin.Y.Millimeters);
+            var fontSize = Num(Unit.FromFontSizePoints(_style.Size).Millimeters);
+
+            var anchor = _style.Justification switch
+            {
+                Justification.Center => "middle",
+                Justification.Right  => "end",
+                _                    => "start"
+            };
+
+            var elem = new XElement(SvgNs + "text",
+                new XAttribute("x",                x),
+                new XAttribute("y",                y),
+                new XAttribute("font-family",      _style.Font),
+                new XAttribute("font-size",        fontSize),
+                new XAttribute("fill",             ColorToSvg(_style.Color)),
+                new XAttribute("text-anchor",      anchor),
+                new XAttribute("dominant-baseline","hanging"),
+                _text);
+
+            if (_transform.Angle != 0)
+            {
+                elem.Add(new XAttribute("transform",
+                    $"rotate({Num((double)_transform.Angle)},{x},{y})"));
+            }
+
+            _svg.Add(elem);
         }
     }
 
