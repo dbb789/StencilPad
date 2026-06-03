@@ -15,14 +15,11 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
     
     public SheetElementRenderer? Create(ISheetElement element)
     {
-        // if (element is Shape shape)
-        // {
-        //     return new ShapeRenderer(shape, _resourceService);
-        // }
+        var resolver = ResolverFactory.Create(element, _resourceService);
 
-        if (element is Shape shape)
+        if (resolver is not null)
         {
-            return new ResolverRenderer(new ShapeResolver(shape, _resourceService), _resourceService);
+            return new ResolverRenderer(resolver, _resourceService);
         }
         
         if (element is MarkerPath markerPath)

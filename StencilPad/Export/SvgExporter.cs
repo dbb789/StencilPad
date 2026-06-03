@@ -4,6 +4,8 @@ using System.Text;
 using System.Windows.Media;
 using System.Xml.Linq;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Export;
@@ -12,7 +14,7 @@ public static class SvgExporter
 {
     private static readonly XNamespace SvgNs = "http://www.w3.org/2000/svg";
 
-    public static void Export(Sheet sheet, string path)
+    public static void Export(Sheet sheet, IResourceService resourceService, string path)
     {
         UnitBounds? sheetBounds = null;
 
@@ -38,95 +40,249 @@ public static class SvgExporter
             new XAttribute("height",  Mm(height)),
             new XAttribute("viewBox", $"{Num(offsetX)} {Num(offsetY)} {Num(width)} {Num(height)}"));
 
-        foreach (var element in sheet.Elements)
+        using (var walker = new SvgWalker(svg))
         {
-            if (element is Shape shape)
+            foreach (var element in sheet.Elements)
             {
-                foreach (var pathElement in BuildShapeElements(shape))
-                {
-                    svg.Add(pathElement);
-                }
+                using var resolver = ResolverFactory.Create(element, resourceService);
+                resolver?.VisitAll(walker);
             }
         }
 
         var doc = new XDocument(new XDeclaration("1.0", "utf-8", null), svg);
 
-        using var stream = File.OpenWrite(path);
+        using var stream = File.Create(path);
         doc.Save(stream);
     }
 
-    private static IEnumerable<XElement> BuildShapeElements(Shape shape)
+    private class SvgWalker : IStyledGeometryWalker
     {
-        foreach (var polygon in shape.PolygonSet)
+        private readonly XElement _svg;
+        private GeometryStyle _style;
+        private UnitTransform _transform;
+
+        private readonly StringBuilder _pendingPaths = new();
+        private readonly List<(Shape Shape, UnitTransform Transform)> _pendingOverlays = new();
+        private bool _pendingClosed;
+
+        public SvgWalker(XElement svg)
         {
-            var pathData = BuildPathData(polygon, shape.Transform);
-
-            if (string.IsNullOrEmpty(pathData))
-            {
-                continue;
-            }
-
-            var fill        = shape.FillColor.A == 0 ? "none" : ColorToSvg(shape.FillColor);
-            var stroke      = ColorToSvg(shape.LineColor);
-            var strokeWidth = Num(shape.LineWidth.Millimeters);
-
-            var path = new XElement(SvgNs + "path",
-                new XAttribute("d",              pathData),
-                new XAttribute("fill",           fill),
-                new XAttribute("stroke",         stroke),
-                new XAttribute("stroke-width",   strokeWidth),
-                new XAttribute("stroke-opacity", Num(shape.LineColor.A / 255.0)));
-
-            if (shape.LineStyle == LineStyleResourceId.Dashes)
-            {
-                var dash = shape.LineWidth.Millimeters;
-                path.Add(new XAttribute("stroke-dasharray", $"{Num(dash * 4)} {Num(dash * 2)}"));
-            }
-
-            yield return path;
-        }
-    }
-
-    private static string BuildPathData(IPolygon polygon, UnitTransform transform)
-    {
-        if (polygon.Vertices.Count == 0)
-        {
-            return string.Empty;
+            _svg = svg;
         }
 
-        var sb = new StringBuilder();
-
-        var first = transform.Apply(polygon.Vertices[0].Position);
-        sb.Append($"M {Num(first.X.Millimeters)},{Num(first.Y.Millimeters)}");
-
-        for (int i = 0; i < polygon.Edges.Count; i++)
+        public void SetStyle(GeometryStyle style)
         {
-            var edge       = polygon.Edges[i];
-            var fromVertex = polygon.Vertices.At(i);
-            var toVertex   = polygon.Vertices.At((i + 1) % polygon.Vertices.Count);
-            var to         = transform.Apply(toVertex.Position);
+            Flush();
+            _style = style;
+        }
 
-            if (edge.Type == EdgeType.Bezier)
+        public void SetTransform(UnitTransform transform)
+        {
+            Flush();
+            _transform = transform;
+        }
+
+        public void Create(int id, GeometrySet geometrySet)
+        {
+            var pathWalker = new SvgPathWalker(_transform);
+
+            if (geometrySet.StartPoint is not null || geometrySet.EndPoint is not null)
             {
-                var cp1 = transform.Apply(fromVertex.Position + edge.ControlBeginOffset);
-                var cp2 = transform.Apply(toVertex.Position   + edge.ControlEndOffset);
-
-                sb.Append($" C {Num(cp1.X.Millimeters)},{Num(cp1.Y.Millimeters)}");
-                sb.Append($" {Num(cp2.X.Millimeters)},{Num(cp2.Y.Millimeters)}");
-                sb.Append($" {Num(to.X.Millimeters)},{Num(to.Y.Millimeters)}");
+                var clampedWalker = new ClampedGeometryWalker(pathWalker);
+                clampedWalker.SetStartEnd(geometrySet.StartPoint, geometrySet.EndPoint);
+                geometrySet.Resolver.Walk(clampedWalker);
             }
             else
             {
-                sb.Append($" L {Num(to.X.Millimeters)},{Num(to.Y.Millimeters)}");
+                geometrySet.Resolver.Walk(pathWalker);
+            }
+
+            var pathData = pathWalker.Build();
+
+            if (!string.IsNullOrEmpty(pathData))
+            {
+                if (_pendingPaths.Length > 0)
+                    _pendingPaths.Append(' ');
+
+                _pendingPaths.Append(pathData);
+                _pendingClosed |= pathWalker.Closed;
+            }
+
+            foreach (var (resource, overlayTransform) in geometrySet.Overlays)
+            {
+                _pendingOverlays.Add((resource.Shape, _transform * overlayTransform));
             }
         }
 
-        if (polygon.Closed)
+        public void Update(int id, GeometrySet geometrySet)
         {
-            sb.Append(" Z");
+            // SVG export is one-shot; updates are not expected
         }
 
-        return sb.ToString();
+        public void Destroy(int id)
+        {
+            // SVG export is one-shot; destroys are not expected
+        }
+
+        public void Dispose()
+        {
+            Flush();
+        }
+
+        private void Flush()
+        {
+            if (_pendingPaths.Length > 0)
+            {
+                _svg.Add(BuildPathElement(_pendingPaths.ToString(), _pendingClosed));
+                _pendingPaths.Clear();
+                _pendingClosed = false;
+            }
+
+            foreach (var (shape, transform) in _pendingOverlays)
+            {
+                AppendShape(shape, transform);
+            }
+
+            _pendingOverlays.Clear();
+        }
+
+        private void AppendShape(Shape shape, UnitTransform transform)
+        {
+            foreach (var polygon in shape.PolygonSet)
+            {
+                var pathWalker = new SvgPathWalker(transform);
+                polygon.Resolver.Walk(pathWalker);
+                var pathData = pathWalker.Build();
+
+                if (!string.IsNullOrEmpty(pathData))
+                {
+                    _svg.Add(BuildPathElement(pathData, pathWalker.Closed));
+                }
+            }
+        }
+
+        private XElement BuildPathElement(string pathData, bool closed)
+        {
+            var fill        = closed && _style.FillColor.A != 0 ? ColorToSvg(_style.FillColor) : "none";
+            var stroke      = ColorToSvg(_style.LineColor);
+            var strokeWidth = Num(_style.LineWidth.Millimeters);
+
+            var path = new XElement(SvgNs + "path",
+                new XAttribute("d",            pathData),
+                new XAttribute("fill",         fill),
+                new XAttribute("fill-rule",    "evenodd"),
+                new XAttribute("stroke",       stroke),
+                new XAttribute("stroke-width", strokeWidth),
+                new XAttribute("stroke-opacity", Num(_style.LineColor.A / 255.0)));
+
+            if (_style.LineStyle == LineStyleResourceId.Dashes)
+            {
+                var dash = _style.LineWidth.Millimeters;
+                path.Add(new XAttribute("stroke-dasharray", $"{Num(dash * 4)} {Num(dash * 2)}"));
+            }
+
+            return path;
+        }
+    }
+
+    private class SvgPathWalker : IGeometryWalker
+    {
+        private readonly UnitTransform _transform;
+        private readonly StringBuilder _sb = new();
+        private bool _started;
+        private bool _closed;
+
+        public bool Closed => _closed;
+
+        public SvgPathWalker(UnitTransform transform)
+        {
+            _transform = transform;
+        }
+
+        public bool Begin(int segmentCount, bool closed)
+        {
+            _started = false;
+            _closed = closed;
+            return segmentCount > 0;
+        }
+
+        public bool Segment(int segmentIndex, PolygonSegment segment)
+        {
+            if (segment.IsLine)
+            {
+                var line = segment.Line;
+
+                if (!_started)
+                {
+                    var from = _transform.Apply(line.Start);
+                    _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                    _started = true;
+                }
+
+                var to = _transform.Apply(line.End);
+                _sb.Append($" L {Num(to.X.Millimeters)},{Num(to.Y.Millimeters)}");
+            }
+            else if (segment.IsBezier)
+            {
+                var b = segment.Bezier;
+
+                if (!_started)
+                {
+                    var from = _transform.Apply(b.P0);
+                    _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                    _started = true;
+                }
+
+                var p1 = _transform.Apply(b.P1);
+                var p2 = _transform.Apply(b.P2);
+                var p3 = _transform.Apply(b.P3);
+
+                _sb.Append($" C {Num(p1.X.Millimeters)},{Num(p1.Y.Millimeters)}");
+                _sb.Append($" {Num(p2.X.Millimeters)},{Num(p2.Y.Millimeters)}");
+                _sb.Append($" {Num(p3.X.Millimeters)},{Num(p3.Y.Millimeters)}");
+            }
+            else if (segment.IsArc)
+            {
+                var arc = segment.Arc;
+                AppendArc(arc);
+            }
+
+            return true;
+        }
+
+        public string Build()
+        {
+            if (!_started)
+            {
+                return string.Empty;
+            }
+
+            if (_closed)
+            {
+                _sb.Append(" Z");
+            }
+
+            return _sb.ToString();
+        }
+
+        private void AppendArc(Arc arc)
+        {
+            if (!_started)
+            {
+                var from = _transform.Apply(arc.Start);
+                _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                _started = true;
+            }
+
+            var end = _transform.Apply(arc.End);
+            var r   = arc.Radius.Millimeters;
+
+            var totalAngle  = arc.EndAngle - arc.StartAngle;
+            var largeArc    = Math.Abs(totalAngle) > Math.PI ? 1 : 0;
+            var sweep       = totalAngle > 0 ? 1 : 0;
+
+            _sb.Append($" A {Num(r)},{Num(r)} 0 {largeArc} {sweep} {Num(end.X.Millimeters)},{Num(end.Y.Millimeters)}");
+        }
     }
 
     private static string ColorToSvg(Color color)

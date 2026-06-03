@@ -454,7 +454,8 @@ public class AppController
 
         try
         {
-            SvgExporter.Export(tab.Sheet, dialog.FileName);
+            var resourceService = (IResourceService)App.ServiceProvider.GetService(typeof(IResourceService))!;
+            SvgExporter.Export(tab.Sheet, resourceService, dialog.FileName);
         }
         catch (Exception ex)
         {
