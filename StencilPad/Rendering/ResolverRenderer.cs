@@ -21,9 +21,11 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
     private readonly IStyledGeometryResolver _resolver;
     private readonly IResourceService _resourceService;
     private readonly Dictionary<int, Entry> _entryMap;
-
     private ClampedGeometryWalker? _clampedGeometryWalker;
     private StreamGeometryWalker? _streamGeometryWalker;
+    
+    private GeometryGroup? _baseGeometry;
+    private bool _geometryDirty;
     private Transform? _transform;
     private Pen? _pen;
     private Brush? _brush;
@@ -34,7 +36,8 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
         _resolver = resolver;
         _resourceService = resourceService;
         _entryMap = new();
-
+        _geometryDirty = true;
+        
         _resolver.Subscribe(this);
     }
 
@@ -51,21 +54,11 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
         {
             return;
         }
-        
-        var geometryGroup = new GeometryGroup
-        {
-            FillRule = FillRule.EvenOdd
-        };
 
-        foreach (var (_, entry) in _entryMap)
-        {
-            geometryGroup.Children.Add(GetGeometry(entry));
-        }
+        var geometry = GetGeometryGroup();
 
-        geometryGroup.Freeze();
-        
         dc.PushTransform(_transform);
-        dc.DrawGeometry(_brush, _pen, geometryGroup);
+        dc.DrawGeometry(_brush, _pen, geometry);
         
         foreach (var (_, entry) in _entryMap)
         {
@@ -95,8 +88,7 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
         InvokeRendererDirty();
     }
     
-    public void Create(int id,
-                       GeometrySet geometry)
+    public void Create(int id, GeometrySet geometry)
     {
         _entryMap[id] = new Entry
         {
@@ -105,17 +97,22 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
             GeometryDirty = true,
         };
 
+        _geometryDirty = true;
+        
         InvokeRendererDirty();
     }
 
-    public void Update(int id,
-                       GeometrySet geometry)
+    public void Update(int id, GeometrySet geometry)
     {
-        if (_entryMap.TryGetValue(id, out var entry))
+        if (!_entryMap.TryGetValue(id, out var entry))
         {
-            entry.GeometrySet = geometry;
-            entry.GeometryDirty = true;
+            return;
         }
+        
+        entry.GeometrySet = geometry;
+        entry.GeometryDirty = true;
+
+        _geometryDirty = true;
 
         InvokeRendererDirty();
     }
@@ -123,8 +120,33 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
     public void Destroy(int id)
     {
         _entryMap.Remove(id);
-        
+        _geometryDirty = true;
+
         InvokeRendererDirty();
+    }
+
+    private Geometry GetGeometryGroup()
+    {
+        if (!_geometryDirty && _baseGeometry is not null)
+        {
+            return _baseGeometry;
+        }
+        
+        _geometryDirty = false;
+            
+        _baseGeometry = new GeometryGroup
+        {
+            FillRule = FillRule.EvenOdd
+        };
+
+        foreach (var (_, entry) in _entryMap)
+        {
+            _baseGeometry.Children.Add(GetGeometry(entry));
+        }
+
+        _baseGeometry.Freeze();
+
+        return _baseGeometry;
     }
 
     private Geometry GetGeometry(Entry entry)
