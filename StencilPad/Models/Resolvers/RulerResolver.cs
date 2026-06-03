@@ -54,6 +54,7 @@ public class RulerResolver : IModelResolver
 
         _textWalker = walker.CreateTextWalker();
         _textWalker.SetTransform(GetTextTransform());
+        _textWalker?.SetBounds(GetTextBounds());
         _textWalker.SetStyle(_textStyle);
         _textWalker.SetText(GetText());
     }
@@ -70,6 +71,7 @@ public class RulerResolver : IModelResolver
     {
         _geometryWalker?.Update(GeometryId, CreateGeometrySet());
         _textWalker?.SetTransform(GetTextTransform());
+        _textWalker?.SetBounds(GetTextBounds());
         _textWalker?.SetText(GetText());
     }
 
@@ -103,6 +105,12 @@ public class RulerResolver : IModelResolver
         return new UnitTransform(mid, rotation);
     }
 
+    private UnitBounds GetTextBounds()
+    {
+        return UnitBounds.FromCenterSize(Unit2D.FromMillimeters(0, 51),
+                                         Unit2D.FromMillimeters(1000, 100));
+    }
+
     private string GetText()
     {
         return $"{_ruler.Length.Millimeters:F1} mm";
@@ -110,11 +118,15 @@ public class RulerResolver : IModelResolver
 
     private GeometrySet CreateGeometrySet()
     {
-        _lineResolver.Line = new Line(_ruler.Min, _ruler.Max);
-
+        var capResource = _resourceService.Get(GeometryResourceId.First);
+        var direction = _ruler.Max - _ruler.Min;
+        
+        _lineResolver.Line = new Line(_ruler.Min + direction.NormalizedTo(capResource.Size.Y),
+                                      _ruler.Max - direction.NormalizedTo(capResource.Size.Y));
+        
         _caps.Clear();
-        _caps.Add((_resourceService.Get(GeometryResourceId.First), GetStartCapTransform()));
-        _caps.Add((_resourceService.Get(GeometryResourceId.First), GetEndCapTransform()));
+        _caps.Add((capResource, GetStartCapTransform()));
+        _caps.Add((capResource, GetEndCapTransform()));
         
         return new GeometrySet(_lineResolver, _caps);
     }
@@ -149,6 +161,7 @@ public class RulerResolver : IModelResolver
         {
             Font = _ruler.FontName,
             Size = _ruler.FontSize,
+            Justification = Justification.Center,
             Color = _ruler.Color
         };
     }

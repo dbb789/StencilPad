@@ -66,7 +66,6 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
             return;
         }
 
-
         dc.PushTransform(_transform);
 
         if (_bounds is not null)
@@ -79,7 +78,7 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
         }
         else
         {
-            dc.DrawText(_formattedText, new Point(-_formattedText.Width / 2, 0.5));
+            dc.DrawText(_formattedText, new Point(0, 0));
         }
 
         dc.Pop();
@@ -104,7 +103,8 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
             new SolidColorBrush(_style.Color),
             1.0)
         {
-            Trimming = TextTrimming.None
+            Trimming = TextTrimming.None,
+            TextAlignment = GetTextAlignment(_style.Justification)
         };
 
         if (_bounds is not null)
@@ -132,27 +132,17 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
         return FallbackFont;
     }
 
-    public static Unit2D Measure(TextElement textElement)
+    private static TextAlignment GetTextAlignment(Justification justification)
     {
-        if (string.IsNullOrEmpty(textElement.Text))
+        return justification switch
         {
-            return Unit2D.Zero;
-        }
-
-        var fontFamily = ResolveFont(textElement.FontName);
-
-        var ft = new FormattedText(
-            textElement.Text,
-            CultureInfo.InvariantCulture,
-            FlowDirection.LeftToRight,
-            new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-            textElement.FontSize,
-            Brushes.Black,
-            1.0);
-
-        return new Unit2D(Unit.FromMillimeters(ft.Width + 0.5), Unit.FromMillimeters(ft.Height));
+            Justification.Left => TextAlignment.Left,
+            Justification.Center => TextAlignment.Center,
+            Justification.Right => TextAlignment.Right,
+            _ => TextAlignment.Left
+        };
     }
-
+    
     private void InvokeRendererDirty()
     {
         RendererDirty?.Invoke();

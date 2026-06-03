@@ -77,6 +77,7 @@ public class TextElementResolver : IModelResolver
         {
             Font = _textElement.FontName,
             Size = _textElement.FontSize,
+            Justification = _textElement.Justification,
             Color = _textElement.Color
         };
     }

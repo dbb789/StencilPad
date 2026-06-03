@@ -63,6 +63,20 @@ public class TextElement : SheetElement<TextElement>
         }
     }
 
+    private Justification _justification = Justification.Left;
+    public Justification Justification
+    {
+        get => _justification;
+        set
+        {
+            if (_justification != value)
+            {
+                _justification = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    
     private Color _color = Color.FromArgb(255, 0, 0, 0);
     public Color Color
     {
