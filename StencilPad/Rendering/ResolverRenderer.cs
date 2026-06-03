@@ -104,6 +104,8 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
             Geometry = null,
             GeometryDirty = true,
         };
+
+        InvokeRendererDirty();
     }
 
     public void Update(int id,
@@ -121,6 +123,8 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
     public void Destroy(int id)
     {
         _entryMap.Remove(id);
+        
+        InvokeRendererDirty();
     }
 
     private Geometry GetGeometry(Entry entry)
