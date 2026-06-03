@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using StencilPad.Spatial;
 
 namespace StencilPad.Models;
@@ -10,18 +11,18 @@ public class GroupHandleSource<TChild> : IHandleSource where TChild : IHandleSou
     public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
     private readonly List<TChild> _children;
-    private readonly Dictionary<HandleSourceId, TChild> _routing;
+    private readonly Dictionary<Handle, TChild> _mapping;
 
     public GroupHandleSource()
     {
         _children = [];
-        _routing = [];
+        _mapping = [];
     }
 
     public GroupHandleSource(IEnumerable<TChild> children)
     {
         _children = [];
-        _routing = [];
+        _mapping = [];
 
         SetChildren(children);
     }
@@ -33,7 +34,11 @@ public class GroupHandleSource<TChild> : IHandleSource where TChild : IHandleSou
             Remove(_children[i]);
         }
 
-        _routing.Clear();
+        if (_mapping.Count > 0)
+        {
+            Debug.WriteLine($"Warning: GroupHandleSource had {_mapping.Count} handles still mapped after clearing children.");
+            _mapping.Clear();
+        }
         
         foreach (var child in children)
         {
@@ -52,7 +57,7 @@ public class GroupHandleSource<TChild> : IHandleSource where TChild : IHandleSou
         
         child.QueryHandles((handle, position, selected) =>
         {
-            _routing[handle.HandleSetId] = child;
+            _mapping[handle] = child;
             HandleAdded?.Invoke(this, handle, position, selected);
         });
     }
@@ -68,6 +73,7 @@ public class GroupHandleSource<TChild> : IHandleSource where TChild : IHandleSou
 
         child.QueryHandles((handle, position, selected) =>
         {
+            _mapping.Remove(handle);
             HandleRemoved?.Invoke(this, handle);
         });
     }
@@ -82,31 +88,54 @@ public class GroupHandleSource<TChild> : IHandleSource where TChild : IHandleSou
 
     public void SetHandleSelected(Handle handle, bool selected)
     {
-        _routing[handle.HandleSetId].SetHandleSelected(handle, selected);
+        if (!TryGetChild(handle, out var child))
+        {
+            return;
+        }
+
+        child.SetHandleSelected(handle, selected);
     }
 
     public void SetPoint(Handle handle, Unit2D position)
     {
-        var child = _routing[handle.HandleSetId];
-        
+        if (!TryGetChild(handle, out var child))
+        {
+            return;
+        }
+
         child.SetPoint(handle, position);
     }
 
     public Unit2D GetPoint(Handle handle)
     {
-        var child = _routing[handle.HandleSetId];
-        
+        if (!TryGetChild(handle, out var child))
+        {
+            return Unit2D.Zero;
+        }
+
         return child.GetPoint(handle);
     }
 
+    private bool TryGetChild(Handle handle, out TChild child)
+    {
+        if (!_mapping.TryGetValue(handle, out child!))
+        {
+            Debug.WriteLine($"Handle {handle} not found in any child.");
+            return false;
+        }
+
+        return true;
+    }
+    
     private void OnHandleAdded(TChild child, Handle handle, Unit2D position, bool selected)
     {
-        _routing[handle.HandleSetId] = child;
+        _mapping[handle] = child;
         HandleAdded?.Invoke(this, handle, position, selected);
     }
 
     private void OnHandleRemoved(TChild child, Handle handle)
     {
+        _mapping.Remove(handle);
         HandleRemoved?.Invoke(this, handle);
     }
     
