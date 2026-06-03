@@ -1,12 +1,11 @@
 using System.Windows.Media;
-using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
-public class StyledGeometryRenderer : IStyledGeometryWalker
+public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
 {
     private class Entry
     {

@@ -83,6 +83,11 @@ public static class SvgExporter
             return walker;
         }
 
+        public ITextWalker CreateTextWalker()
+        {
+            throw new NotImplementedException("Text export is not implemented.");
+        }
+
         public void Dispose()
         {
             foreach (var walker in _geometryWalkers)

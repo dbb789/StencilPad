@@ -15,6 +15,7 @@ public class RulerResolver : IModelResolver
 
     private IModelWalker? _walker;
     private IStyledGeometryWalker? _geometryWalker;
+    private ITextWalker? _textWalker;
     
     private GeometryStyle _style;
 
@@ -48,6 +49,16 @@ public class RulerResolver : IModelResolver
         _geometryWalker = walker.CreateStyledGeometryWalker();
         _geometryWalker.SetStyle(_style);
         _geometryWalker.Create(GeometryId, CreateGeometrySet());
+
+        _textWalker = walker.CreateTextWalker();
+        _textWalker.SetStyle(new TextStyle
+        {
+            Font = "Arial",
+            Size = 14,
+            Color = _ruler.Color
+        });
+        _textWalker.SetText("This is a test");
+        _textWalker.SetBounds(UnitBounds.FromCenterSize(Unit2D.Zero, Unit2D.FromMillimeters(100, 100)));
     }
 
     public void Detach()

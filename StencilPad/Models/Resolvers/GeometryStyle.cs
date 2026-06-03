@@ -1,12 +1,10 @@
 using System.Windows.Media;
 using StencilPad.Spatial;
 
-namespace StencilPad.Models;
+namespace StencilPad.Models.Resolvers;
 
 public readonly record struct GeometryStyle
 {
-    public static readonly GeometryStyle ShapeDefault = new();
-
     public GeometryStyle()
     {
         FillColor = Color.FromArgb(0, 255, 255, 255);

@@ -7,4 +7,5 @@ public interface IModelWalker : IDisposable
     void SetTransform(UnitTransform transform);
     
     IStyledGeometryWalker CreateStyledGeometryWalker();
+    ITextWalker CreateTextWalker();
 }

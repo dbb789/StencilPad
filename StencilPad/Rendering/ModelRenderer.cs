@@ -5,10 +5,10 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
-public class ModelRenderer : SheetElementRenderer, IModelWalker
+public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
 {
     private readonly IResourceService _resourceService;
-    private readonly List<StyledGeometryRenderer> _geometryRenderers;
+    private readonly List<IWalkerRenderer> _renderers;
     private IModelResolver _resolver;
     private Transform _transform;
 
@@ -16,7 +16,7 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker
     {
         _resolver = resolver;
         _resourceService = resourceService;
-        _geometryRenderers = new();
+        _renderers = new();
         _transform = Transform.Identity;
         _resolver.Attach(this);
     }
@@ -25,13 +25,13 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker
     {
         _resolver.Detach();
         
-        foreach (var renderer in _geometryRenderers)
+        foreach (var renderer in _renderers)
         {
             renderer.RendererDirty -= InvokeRendererDirty;
             renderer.Dispose();
         }
 
-        _geometryRenderers.Clear();
+        _renderers.Clear();
     }
 
     public IStyledGeometryWalker CreateStyledGeometryWalker()
@@ -40,7 +40,18 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker
         
         renderer.RendererDirty += InvokeRendererDirty;
 
-        _geometryRenderers.Add(renderer);
+        _renderers.Add(renderer);
+        
+        return renderer;
+    }
+
+    public ITextWalker CreateTextWalker()
+    {
+        var renderer = new TextRenderer();
+        
+        renderer.RendererDirty += InvokeRendererDirty;
+
+        _renderers.Add(renderer);
         
         return renderer;
     }
@@ -55,7 +66,7 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker
     {
         dc.PushTransform(_transform);
         
-        foreach (var renderer in _geometryRenderers)
+        foreach (var renderer in _renderers)
         {
             renderer.Render(dc);
         }
