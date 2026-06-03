@@ -10,8 +10,6 @@ namespace StencilPad.Rendering;
 
 public class RulerRenderer : SheetElementRenderer
 {
-    public override Ruler Element => _ruler;
-
     private readonly Ruler _ruler;
     private readonly IResourceService _resourceService;
     private Transform? _transform;

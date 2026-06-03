@@ -5,8 +5,6 @@ namespace StencilPad.Rendering;
 
 public class GroupRenderer : SheetElementRenderer
 {
-    public override ElementGroup Element => _elementGroup;
-
     private readonly ElementGroup _elementGroup;
     private readonly SheetElementRendererFactory _rendererFactory;
     private readonly List<SheetElementRenderer> _childRenderers;

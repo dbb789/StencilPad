@@ -11,8 +11,6 @@ public class MarkerPathRenderer : SheetElementRenderer
 {
     private record struct MarkerData(Point Position, int SegmentIndex);
     
-    public override MarkerPath Element => _markerPath;
-
     public int MarkerCount => _markerCount;
     
     private const double MarkerHalfLengthMm = 1.0;

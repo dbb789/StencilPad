@@ -1,4 +1,5 @@
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 using StencilPad.Services;
 
 namespace StencilPad.Rendering;
@@ -14,9 +15,14 @@ public class SheetElementRendererFactory : ISheetElementRendererFactory
     
     public SheetElementRenderer? Create(ISheetElement element)
     {
+        // if (element is Shape shape)
+        // {
+        //     return new ShapeRenderer(shape, _resourceService);
+        // }
+
         if (element is Shape shape)
         {
-            return new ShapeRenderer(shape, _resourceService);
+            return new ResolverRenderer(new ShapeResolver(shape, _resourceService), _resourceService);
         }
         
         if (element is MarkerPath markerPath)

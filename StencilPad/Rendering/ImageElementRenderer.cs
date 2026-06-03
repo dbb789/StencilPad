@@ -8,8 +8,6 @@ namespace StencilPad.Rendering;
 
 public class ImageElementRenderer : SheetElementRenderer
 {
-    public override ImageElement Element => _imageElement;
-
     private readonly ImageElement _imageElement;
     private BitmapImage? _bitmap;
 

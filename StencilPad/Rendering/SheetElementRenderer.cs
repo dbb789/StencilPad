@@ -8,8 +8,6 @@ public abstract class SheetElementRenderer : IDisposable
 {
     public event Action? RendererDirty;
 
-    public abstract SheetElement Element { get; }
-
     public abstract void Render(DrawingContext dc);
 
     public abstract void Dispose();

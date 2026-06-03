@@ -11,8 +11,6 @@ public class TextElementRenderer : SheetElementRenderer
 {
     private static readonly FontFamily FallbackFont = new("Arial");
 
-    public override TextElement Element => _textElement;
-
     private readonly TextElement _textElement;
     private FormattedText? _formattedText;
 

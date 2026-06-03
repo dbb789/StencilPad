@@ -4,31 +4,14 @@ namespace StencilPad.Models.Resolvers;
 
 public interface IStyledGeometryWalker : IDisposable
 {
-    void AddResolver(int id,
-                     IGeometryResolver resolver,
-                     GeometryStyle style,
-                     UnitTransform transform);
+    void SetStyle(GeometryStyle style);
+    void SetTransform(UnitTransform transform);
 
-    void RemoveResolver(int id);
+    void Create(int id,
+                GeometrySet geometrySet);
 
-    void UpdateResolver(int id,
-                        IGeometryResolver resolver);
+    void Update(int id,
+                GeometrySet geometrySet);
     
-    void UpdateResolver(int id,
-                        GeometryStyle style,
-                        UnitTransform transform);
-
-    void AddResource(int id,
-                     GeometryResourceId resource,
-                     GeometryStyle style,
-                     UnitTransform transform);
-
-    void RemoveResource(int id);
-
-    void UpdateResource(int id,
-                        GeometryResourceId resource);
-
-    void UpdateResource(int id,
-                        GeometryStyle style,
-                        UnitTransform transform);
+    void Destroy(int id);
 }

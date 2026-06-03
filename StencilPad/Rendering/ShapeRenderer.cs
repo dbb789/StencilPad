@@ -9,8 +9,6 @@ namespace StencilPad.Rendering;
 
 public class ShapeRenderer : SheetElementRenderer
 {
-    public override Shape Element => _shape;
-
     private readonly Shape _shape;
     private readonly IResourceService _resourceService;
     private readonly StreamGeometryWalker _walker;

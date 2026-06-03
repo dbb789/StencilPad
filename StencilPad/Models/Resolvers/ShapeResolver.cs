@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using StencilPad.Spatial;
+using StencilPad.Services;
 
 namespace StencilPad.Models.Resolvers;
 
@@ -8,9 +9,7 @@ public class ShapeResolver : IStyledGeometryResolver
     private class PolygonState
     {
         public int Id;
-        public bool HasStartCap;
-        public bool HasEndCap;
-
+        
         public PolygonState(int id)
         {
             Id = id;
@@ -18,17 +17,20 @@ public class ShapeResolver : IStyledGeometryResolver
     }
 
     private readonly Shape _shape;
-    private readonly GeometryStyle _style;
+    private readonly IResourceService _resourceService;
     private readonly List<IStyledGeometryWalker> _subscriptions;
     private readonly Dictionary<IPolygon, PolygonState> _polygonMap;
+    
+    private GeometryStyle _style;
     private int _idCounter;
     
-    public ShapeResolver(Shape shape)
+    public ShapeResolver(Shape shape, IResourceService resourceService)
     {
         _shape = shape;
-        _style = GeometryStyle.ShapeDefault;
+        _resourceService = resourceService;
         _subscriptions = new();
         _polygonMap = new();
+        _style = CreateStyle();
         _idCounter = 0;
 
         for (int i = 0; i < _shape.PolygonSet.Count; ++i)
@@ -68,28 +70,13 @@ public class ShapeResolver : IStyledGeometryResolver
 
     public void VisitAll(IStyledGeometryWalker walker)
     {
+        walker.SetStyle(_style);
+        walker.SetTransform(_shape.Transform);
+        
         foreach (var (polygon, state) in _polygonMap)
         {
-            walker.AddResolver(state.Id,
-                               polygon.Resolver,
-                               _style,
-                               _shape.Transform);
-
-            if (state.HasStartCap)
-            {
-                walker.AddResource(StartCapId(state.Id),
-                                   _shape.StartCap,
-                                   _style,
-                                   _shape.Transform * new UnitTransform(polygon.Vertices[0].Position));
-            }
-
-            if (state.HasEndCap)
-            {
-                walker.AddResource(EndCapId(state.Id),
-                                   _shape.StartCap,
-                                   _style,
-                                   _shape.Transform * new UnitTransform(polygon.Vertices[^1].Position));
-            }
+            walker.Create(state.Id, 
+                          CreateGeometrySet(polygon));
         }
     }
 
@@ -97,35 +84,29 @@ public class ShapeResolver : IStyledGeometryResolver
     {
         var id = ++_idCounter;
 
-        _polygonMap[polygon] = new PolygonState(id)
-        {
-            HasStartCap = HasStartCap(polygon),
-            HasEndCap = HasEndCap(polygon)
-        };
-
+        _polygonMap[polygon] = new PolygonState(id);
         polygon.GeometryChanged += GeometryChanged;
 
-        foreach (var subscription in _subscriptions)
+        foreach (var walker in _subscriptions)
         {
-            subscription.AddResolver(id,
-                                     polygon.Resolver,
-                                     _style,
-                                     _shape.Transform);
+            walker.Create(id, CreateGeometrySet(polygon));
         }
+
     }
 
     private void RemovePolygon(IPolygon polygon)
     {
-        if (_polygonMap.TryGetValue(polygon, out var state))
+        if (!_polygonMap.TryGetValue(polygon, out var state))
         {
-            _polygonMap.Remove(polygon);
+            return;
+        }
+        
+        _polygonMap.Remove(polygon);
+        polygon.GeometryChanged -= GeometryChanged;
 
-            polygon.GeometryChanged -= GeometryChanged;
-
-            foreach (var subscription in _subscriptions)
-            {
-                subscription.RemoveResolver(state.Id);
-            }
+        foreach (var walker in _subscriptions)
+        {
+            walker.Destroy(state.Id);
         }
     }
 
@@ -133,131 +114,106 @@ public class ShapeResolver : IStyledGeometryResolver
     {
         if (_polygonMap.TryGetValue(polygon, out var state))
         {
-            foreach (var subscription in _subscriptions)
+            foreach (var walker in _subscriptions)
             {
-                subscription.UpdateResolver(state.Id, polygon.Resolver);
-
-                UpdateStartCap(polygon, state);
-                UpdateEndCap(polygon, state);
+                walker.Update(state.Id, CreateGeometrySet(polygon));
             }
         }
     }
 
     private void TransformChanged(ISheetElement element)
     {
-        foreach (var (polygon, state) in _polygonMap)
+        foreach (var walker in _subscriptions)
         {
-            foreach (var subscription in _subscriptions)
-            {
-                subscription.UpdateResolver(state.Id, polygon.Resolver);
-
-                if (state.HasStartCap)
-                {
-                    subscription.UpdateResource(StartCapId(state.Id),
-                                                _style,
-                                                _shape.Transform * new UnitTransform(polygon.Vertices[0].Position));
-                }
-
-                if (state.HasEndCap)
-                {
-                    subscription.UpdateResource(EndCapId(state.Id),
-                                                _style,
-                                                _shape.Transform * new UnitTransform(polygon.Vertices[^1].Position));
-                }
-            }
+            walker.SetTransform(_shape.Transform);
         }
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        foreach (var (polygon, state) in _polygonMap)
+        if (IsStyleProperty(e.PropertyName))
         {
-            foreach (var subscription in _subscriptions)
+            _style = CreateStyle();
+
+            foreach (var walker in _subscriptions)
             {
-                UpdateStartCap(polygon, state);
-                UpdateEndCap(polygon, state);
-            }
-        }
-    }
-
-    private void UpdateStartCap(IPolygon polygon, PolygonState state)
-    {
-        var nextHasStartCap = HasStartCap(polygon);
-
-        if (state.HasStartCap != nextHasStartCap)
-        {
-            state.HasStartCap = nextHasStartCap;
-
-            foreach (var subscription in _subscriptions)
-            {
-                if (nextHasStartCap)
-                {
-                    subscription.AddResource(StartCapId(state.Id),
-                                             _shape.StartCap,
-                                             _style,
-                                             _shape.Transform * new UnitTransform(polygon.Vertices[0].Position));
-                }
-                else
-                {
-                    subscription.RemoveResource(StartCapId(state.Id));
-                }
+                walker.SetStyle(_style);
             }
         }
         else
         {
-            foreach (var subscription in _subscriptions)
+            foreach (var (polygon, state) in _polygonMap)
             {
-                subscription.UpdateResource(StartCapId(state.Id),
-                                            _style,
-                                            _shape.Transform * new UnitTransform(polygon.Vertices[0].Position));
+                foreach (var walker in _subscriptions)
+                {
+                    walker.Update(state.Id, CreateGeometrySet(polygon));
+                }
             }
         }
     }
 
-    private void UpdateEndCap(IPolygon polygon, PolygonState state)
+    private GeometrySet CreateGeometrySet(IPolygon polygon)
     {
-        var nextHasEndCap = HasEndCap(polygon);
+        var caps = new List<(GeometryResource, UnitTransform)>();
 
-        if (state.HasEndCap != nextHasEndCap)
-        {
-            state.HasEndCap = nextHasEndCap;
+        var startCap = HasStartCap(polygon) ? _resourceService.Get(_shape.StartCap) : null;
+        var endCap = HasEndCap(polygon) ? _resourceService.Get(_shape.EndCap) : null;
 
-            foreach (var subscription in _subscriptions)
-            {
-                if (nextHasEndCap)
-                {
-                    subscription.AddResource(EndCapId(state.Id),
-                                             _shape.EndCap,
-                                             _style,
-                                             _shape.Transform * new UnitTransform(polygon.Vertices[^1].Position));
-                }
-                else
-                {
-                    subscription.RemoveResource(EndCapId(state.Id));
-                }
-            }
-        }
-        else
+        SegmentPoint? startPoint = null;
+        SegmentPoint? endPoint = null;
+
+        if (startCap is not null)
         {
-            foreach (var subscription in _subscriptions)
-            {
-                subscription.UpdateResource(EndCapId(state.Id),
-                                            _style,
-                                            _shape.Transform * new UnitTransform(polygon.Vertices[^1].Position));
-            }
+            var capWalker = new CapDistanceWalker();
+            
+            capWalker.Reset(startCap.Size.Y + _style.LineWidth);
+            
+            polygon.Resolver.WalkPolygon(capWalker);
+            
+            startPoint = capWalker.Point;
+            caps.Add((startCap, new UnitTransform(polygon.Vertices[0].Position)));
         }
+
+        if (endCap is not null)
+        {
+            var capWalker = new CapDistanceWalker();
+
+            capWalker.Reset(endCap.Size.Y + _style.LineWidth);
+
+            polygon.Resolver.WalkPolygonReverse(capWalker);
+
+            endPoint = capWalker.Point;
+
+            if (endPoint is not null)
+            {
+                endPoint = endPoint.Value with { Fraction = 1.0 - endPoint.Value.Fraction };
+            }
+
+            caps.Add((endCap, new UnitTransform(polygon.Vertices[^1].Position)));
+        }
+
+        return new GeometrySet(polygon.Resolver, caps);
+    }
+
+    private GeometryStyle CreateStyle()
+    {
+        return new GeometryStyle
+        {
+            LineColor = _shape.LineColor,
+            LineWidth = _shape.LineWidth,
+            LineStyle = _shape.LineStyle,
+            FillColor = _shape.FillColor
+        };
+    }
+
+    private bool IsStyleProperty(string? propertyName)
+    {
+        return propertyName == nameof(Shape.LineColor) ||
+               propertyName == nameof(Shape.LineWidth) ||
+               propertyName == nameof(Shape.LineStyle) ||
+               propertyName == nameof(Shape.FillColor);
     }
     
-    private int StartCapId(int polygonId)
-    {
-        return polygonId * 2;
-    }
-
-    private int EndCapId(int polygonId)
-    {
-        return (polygonId * 2) + 1;
-    }
-
     private bool HasStartCap(IPolygon polygon)
     {
         return !polygon.Closed &&
