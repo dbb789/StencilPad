@@ -8,7 +8,7 @@ public class EditablePolygonList : IEditablePolygonSet
     public IHandleSource HandleSource => _handleSource;
 
     private List<EditablePolygon> _polygons;
-    private PolygonListHandleSource _handleSource;
+    private GroupHandleSource<IHandleSource> _handleSource;
     
     public EditablePolygon this[int index] => _polygons[index];
     public int Count => _polygons.Count;
@@ -19,7 +19,7 @@ public class EditablePolygonList : IEditablePolygonSet
     public EditablePolygonList()
     {
         _polygons = [];
-        _handleSource = new PolygonListHandleSource();
+        _handleSource = new();
     }
 
     public void Add(EditablePolygon polygon)

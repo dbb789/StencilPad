@@ -2,15 +2,15 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public class GroupHandleSource : IHandleSource
+public class GroupHandleSource<TChild> : IHandleSource where TChild : IHandleSource<TChild>
 {
     public event Action<IHandleSource, Handle, Unit2D, bool>? HandleAdded;
     public event Action<IHandleSource, Handle>? HandleRemoved;
     public event Action<IHandleSource, Handle, Unit2D>? HandleMoved;
     public event Action<IHandleSource, Handle, bool>? HandleSelectionChanged;
 
-    private readonly List<ISheetElement> _children;
-    private readonly Dictionary<HandleSourceId, ISheetElement> _routing;
+    private readonly List<TChild> _children;
+    private readonly Dictionary<HandleSourceId, TChild> _routing;
 
     public GroupHandleSource()
     {
@@ -18,7 +18,7 @@ public class GroupHandleSource : IHandleSource
         _routing = [];
     }
 
-    public GroupHandleSource(IEnumerable<ISheetElement> children)
+    public GroupHandleSource(IEnumerable<TChild> children)
     {
         _children = [];
         _routing = [];
@@ -26,7 +26,7 @@ public class GroupHandleSource : IHandleSource
         SetChildren(children);
     }
 
-    public void SetChildren(IEnumerable<ISheetElement> children)
+    public void SetChildren(IEnumerable<TChild> children)
     {
         for (int i = _children.Count - 1; i >= 0; i--)
         {
@@ -41,7 +41,7 @@ public class GroupHandleSource : IHandleSource
         }
     }
 
-    public void Add(ISheetElement child)
+    public void Add(TChild child)
     {
         _children.Add(child);
         
@@ -57,7 +57,7 @@ public class GroupHandleSource : IHandleSource
         });
     }
 
-    public void Remove(ISheetElement child)
+    public void Remove(TChild child)
     {
         _children.Remove(child);
         
@@ -99,23 +99,23 @@ public class GroupHandleSource : IHandleSource
         return child.GetPoint(handle);
     }
 
-    private void OnHandleAdded(ISheetElement child, Handle handle, Unit2D position, bool selected)
+    private void OnHandleAdded(TChild child, Handle handle, Unit2D position, bool selected)
     {
         _routing[handle.HandleSetId] = child;
         HandleAdded?.Invoke(this, handle, position, selected);
     }
 
-    private void OnHandleRemoved(ISheetElement child, Handle handle)
+    private void OnHandleRemoved(TChild child, Handle handle)
     {
         HandleRemoved?.Invoke(this, handle);
     }
     
-    private void OnHandleMoved(ISheetElement child, Handle handle, Unit2D position)
+    private void OnHandleMoved(TChild child, Handle handle, Unit2D position)
     {
         HandleMoved?.Invoke(this, handle, position);
     }
 
-    private void OnHandleSelectionChanged(ISheetElement child, Handle handle, bool selected)
+    private void OnHandleSelectionChanged(TChild child, Handle handle, bool selected)
     {
         HandleSelectionChanged?.Invoke(this, handle, selected);
     }

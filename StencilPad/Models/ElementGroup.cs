@@ -7,7 +7,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     public IEnumerable<ISheetElement> Children => _children;
 
     private List<ISheetElement> _children;
-    private GroupHandleSource _groupHandleSource;
+    private GroupHandleSource<ISheetElement> _groupHandleSource;
 
     public event Action? ChildrenChanged;
 

@@ -49,7 +49,7 @@ public class MinMaxHandleSource : IHandleSource
 
     public void QueryHandles(Action<Handle, Unit2D, bool> func)
     {
-        for (int i = 0; i < _handles.Count; i++)
+        for (int i = 0; i < _handles.Count; ++i)
         {
             var handle = _handles[i];
             var position = GetPoint(handle);
