@@ -12,21 +12,21 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 
     public bool CanGroupMove => Type == HandleType.Move;
 
-    public static Handle Move<TKey>(HandleSourceId handleSetId, TKey key) where TKey : IHandleKey, new()
+    public static Handle Move<TKey>(HandleSourceId handleSourceId, TKey key) where TKey : IHandleKey, new()
     {
-        return new(handleSetId, HandleType.Move, key.KeyType, key.Pack());
+        return new(handleSourceId, HandleType.Move, key.KeyType, key.Pack());
     }
     
-    public static Handle Adjust<TKey>(HandleSourceId handleSetId, TKey key) where TKey : IHandleKey, new()
+    public static Handle Adjust<TKey>(HandleSourceId handleSourceId, TKey key) where TKey : IHandleKey, new()
     {
-        return new(handleSetId, HandleType.Adjust, key.KeyType, key.Pack());
+        return new(handleSourceId, HandleType.Adjust, key.KeyType, key.Pack());
     }
 
-    private Handle(HandleSourceId handleSetId, HandleType type, HandleKeyType keyType, ulong key)
+    private Handle(HandleSourceId handleSourceId, HandleType type, HandleKeyType keyType, ulong key)
     {
         Type = type;
         
-        _handleSourceId = handleSetId;
+        _handleSourceId = handleSourceId;
         _keyType = keyType;
         _key = key;
     }
