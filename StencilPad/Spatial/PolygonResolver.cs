@@ -41,7 +41,7 @@ public class PolygonResolver : IGeometryResolver
         }
     }
 
-    public void WalkPolygon(IGeometryWalker walker)
+    public void Walk(IGeometryWalker walker)
     {
         if (_polygon is null)
         {
@@ -88,7 +88,7 @@ public class PolygonResolver : IGeometryResolver
         }
     }
     
-    public void WalkPolygonReverse(IGeometryWalker walker)
+    public void WalkReverse(IGeometryWalker walker)
     {
         if (_polygon is null)
         {

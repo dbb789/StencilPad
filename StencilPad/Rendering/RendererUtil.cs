@@ -53,6 +53,6 @@ public static class RendererUtil
             Context = ctx
         };
 
-        polygon.Resolver.WalkPolygon(walker);
+        polygon.Resolver.Walk(walker);
     }
 }

@@ -148,7 +148,7 @@ public class ResourceService : IResourceService
                         polygon.Transform(shape.Transform);
                         bounds = UnitBounds.Union(bounds, polygon.CalculateBounds());
                         
-                        polygon.Resolver.WalkPolygon(walker);
+                        polygon.Resolver.Walk(walker);
                     }
                 }
             }

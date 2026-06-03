@@ -22,6 +22,8 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
     private readonly IResourceService _resourceService;
     private readonly Dictionary<int, Entry> _entryMap;
 
+    private ClampedGeometryWalker? _clampedGeometryWalker;
+    private StreamGeometryWalker? _streamGeometryWalker;
     private Transform? _transform;
     private Pen? _pen;
     private Brush? _brush;
@@ -137,11 +139,22 @@ public class ResolverRenderer : SheetElementRenderer, IStyledGeometryWalker
 
         using (var ctx = geometry.Open())
         {
-            var geometryWalker = new StreamGeometryWalker();
+            _streamGeometryWalker ??= new StreamGeometryWalker();
+            _streamGeometryWalker.Context = ctx;
             
-            geometryWalker.Context = ctx;
+            if (entry.GeometrySet.StartPoint is not null ||
+                entry.GeometrySet.EndPoint is not null)
+            {
+                _clampedGeometryWalker ??= new ClampedGeometryWalker(_streamGeometryWalker);
+                _clampedGeometryWalker.SetStartEnd(entry.GeometrySet.StartPoint,
+                                                   entry.GeometrySet.EndPoint);
 
-            entry.GeometrySet.Resolver.WalkPolygon(geometryWalker);
+                entry.GeometrySet.Resolver.Walk(_clampedGeometryWalker);
+            }
+            else
+            {
+                entry.GeometrySet.Resolver.Walk(_streamGeometryWalker);
+            }
         }
 
         geometry.Freeze();

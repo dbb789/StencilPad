@@ -110,7 +110,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
         using (var ctx = geometry.Open())
         {
             _walker.Context = ctx;
-            _polygon.Resolver.WalkPolygon(_walker);
+            _polygon.Resolver.Walk(_walker);
         }
         
         geometry.Freeze();

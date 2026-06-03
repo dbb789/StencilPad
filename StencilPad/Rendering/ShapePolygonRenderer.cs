@@ -142,7 +142,7 @@ public class ShapePolygonRenderer
                     _capWalker ??= new CapDistanceWalker();
                     _capWalker.Reset(_startCap.Size.Y + _lineWidth);
 
-                    polygon.Resolver.WalkPolygon(_capWalker);
+                    polygon.Resolver.Walk(_capWalker);
 
                     startPoint = _capWalker.Point;
                 }
@@ -152,7 +152,7 @@ public class ShapePolygonRenderer
                     _capWalker ??= new CapDistanceWalker();
                     _capWalker.Reset(_endCap.Size.Y + _lineWidth);
 
-                    polygon.Resolver.WalkPolygonReverse(_capWalker);
+                    polygon.Resolver.WalkReverse(_capWalker);
 
                     endPoint = _capWalker.Point;
 
@@ -167,16 +167,16 @@ public class ShapePolygonRenderer
                     _clampedWalker ??= new ClampedGeometryWalker(_geometryWalker);
                     _clampedWalker.SetStartEnd(startPoint, endPoint);
 
-                    polygon.Resolver.WalkPolygon(_clampedWalker);
+                    polygon.Resolver.Walk(_clampedWalker);
                 }
                 else
                 {
-                    polygon.Resolver.WalkPolygon(_geometryWalker);
+                    polygon.Resolver.Walk(_geometryWalker);
                 }
             }
             else
             {
-                polygon.Resolver.WalkPolygon(_geometryWalker);
+                polygon.Resolver.Walk(_geometryWalker);
             }
         }
 
