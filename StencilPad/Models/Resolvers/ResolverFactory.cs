@@ -15,6 +15,11 @@ public static class ResolverFactory
         {
             return new MarkerPathResolver(markerPath, resourceService);
         }
+        
+        if (element is Ruler ruler)
+        {
+            return new RulerResolver(ruler, resourceService);
+        }
 
         return null;
     }
