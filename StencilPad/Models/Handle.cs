@@ -6,7 +6,7 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 
     public HandleType Type { get; init; }
 
-    private readonly HandleSourceId _handleSetId;
+    private readonly HandleSourceId _handleSourceId;
     private readonly HandleKeyType _keyType;
     private readonly ulong _key;
 
@@ -26,7 +26,7 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
     {
         Type = type;
         
-        _handleSetId = handleSetId;
+        _handleSourceId = handleSetId;
         _keyType = keyType;
         _key = key;
     }
@@ -47,7 +47,7 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
     
     public bool Equals(Handle other)
     {
-        return _handleSetId == other._handleSetId &&
+        return _handleSourceId == other._handleSourceId &&
             Type == other.Type &&
             _keyType == other._keyType &&
             _key == other._key;
@@ -60,12 +60,12 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(_handleSetId, Type, _keyType, _key);
+        return HashCode.Combine(_handleSourceId, Type, _keyType, _key);
     }
 
     public int CompareTo(Handle other)
     {
-        int cmp = _handleSetId.CompareTo(other._handleSetId);
+        int cmp = _handleSourceId.CompareTo(other._handleSourceId);
         
         if (cmp != 0)
         {
@@ -91,7 +91,7 @@ public readonly struct Handle : IEquatable<Handle>, IComparable<Handle>
 
     public override string ToString()
     {
-        return $"[{_handleSetId}, {Type}, {_keyType}, {_key}]";
+        return $"[{_handleSourceId}, {Type}, {_keyType}, {_key}]";
     }
     
     public static bool operator==(Handle lhs, Handle rhs)
