@@ -20,6 +20,11 @@ public static class ResolverFactory
         {
             return new RulerResolver(ruler, resourceService);
         }
+        
+        if (element is TextElement textElement)
+        {
+            return new TextElementResolver(textElement);
+        }
 
         return null;
     }

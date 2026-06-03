@@ -62,6 +62,7 @@ public class RulerResolver : IModelResolver
     {
         _geometryWalker?.Destroy(GeometryId);
         _geometryWalker = null;
+        _textWalker = null;
         _walker = null;
     }
     
