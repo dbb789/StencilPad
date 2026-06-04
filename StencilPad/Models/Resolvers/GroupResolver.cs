@@ -27,7 +27,7 @@ public class GroupResolver : IModelResolver
     public void Attach(IModelWalker walker)
     {
         _walker = walker;
-        
+        _walker.SetTransform(_group.Transform);
         foreach (var element in _group.Children)
         {
             var childResolver = ResolverFactory.Create(element, _resourceSet);

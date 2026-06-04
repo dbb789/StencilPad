@@ -63,58 +63,55 @@ public static class SvgExporter
     private class SvgModelWalker : IModelWalker
     {
         private readonly XElement _svg;
-        private readonly List<SvgGeometryWalker> _geometryWalkers = new();
-        private readonly List<SvgTextWalker> _textWalkers = new();
-        private UnitTransform _transform;
+        private readonly UnitTransform _parentTransform;
+        private readonly List<IDisposable> _walkers = new();
+        private UnitTransform _worldTransform;
 
-        public SvgModelWalker(XElement svg)
+        public SvgModelWalker(XElement svg, UnitTransform parentTransform = default)
         {
             _svg = svg;
+            _parentTransform = parentTransform;
         }
 
-        public void SetTransform(UnitTransform transform)
+        public void SetTransform(UnitTransform localTransform)
         {
-            _transform = transform;
+            _worldTransform = _parentTransform * localTransform;
         }
 
         public IModelWalker CreateModelWalker()
         {
-            throw new NotSupportedException("Model elements are not supported in SVG export.");
+            var walker = new SvgModelWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
+            return walker;
         }
 
         public IStyledGeometryWalker CreateStyledGeometryWalker()
         {
-            var walker = new SvgGeometryWalker(_svg, _transform);
-            _geometryWalkers.Add(walker);
+            var walker = new SvgGeometryWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
             return walker;
         }
 
         public ITextWalker CreateTextWalker()
         {
-            var walker = new SvgTextWalker(_svg, _transform);
-            _textWalkers.Add(walker);
+            var walker = new SvgTextWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
             return walker;
         }
 
         public IImageWalker CreateImageWalker()
         {
-            throw new NotSupportedException("Image elements are not supported in SVG export.");
+            var walker = new SvgImageWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
+            return walker;
         }
 
         public void Dispose()
         {
-            foreach (var walker in _geometryWalkers)
-            {
+            foreach (var walker in _walkers)
                 walker.Dispose();
-            }
 
-            foreach (var walker in _textWalkers)
-            {
-                walker.Dispose();
-            }
-
-            _geometryWalkers.Clear();
-            _textWalkers.Clear();
+            _walkers.Clear();
         }
     }
 
@@ -307,6 +304,67 @@ public static class SvgExporter
             }
 
             _svg.Add(elem);
+        }
+    }
+
+    private class SvgImageWalker : IImageWalker
+    {
+        private readonly XElement _svg;
+        private readonly UnitTransform _transform;
+        private UnitBounds? _bounds;
+        private byte[]? _imageData;
+
+        public SvgImageWalker(XElement svg, UnitTransform transform)
+        {
+            _svg = svg;
+            _transform = transform;
+        }
+
+        public void SetBounds(UnitBounds? bounds) => _bounds = bounds;
+        public void SetImageData(byte[] imageData) => _imageData = imageData;
+
+        public void Dispose()
+        {
+            if (_bounds is null || _imageData is null || _imageData.Length == 0) return;
+
+            var b = _bounds.Value;
+            var mime = DetectMimeType(_imageData);
+            var base64 = Convert.ToBase64String(_imageData);
+
+            var x      = Num(b.Min.X.Millimeters);
+            var y      = Num(b.Min.Y.Millimeters);
+            var width  = Num(b.Size.X.Millimeters);
+            var height = Num(b.Size.Y.Millimeters);
+
+            var elem = new XElement(SvgNs + "image",
+                new XAttribute("x",      x),
+                new XAttribute("y",      y),
+                new XAttribute("width",  width),
+                new XAttribute("height", height),
+                new XAttribute("href",   $"data:{mime};base64,{base64}"));
+
+            var tx = Num(_transform.Position.X.Millimeters);
+            var ty = Num(_transform.Position.Y.Millimeters);
+
+            if (_transform.Angle != 0)
+                elem.Add(new XAttribute("transform",
+                    $"translate({tx},{ty}) rotate({Num((double)_transform.Angle)})"));
+            else if (_transform.Position != Unit2D.Zero)
+                elem.Add(new XAttribute("transform", $"translate({tx},{ty})"));
+
+            _svg.Add(elem);
+        }
+
+        private static string DetectMimeType(byte[] data)
+        {
+            if (data.Length >= 4 &&
+                data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
+                return "image/png";
+
+            if (data.Length >= 2 && data[0] == 0xFF && data[1] == 0xD8)
+                return "image/jpeg";
+
+            return "image/png";
         }
     }
 
