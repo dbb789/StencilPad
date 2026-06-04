@@ -11,7 +11,7 @@
                         <Path Data="{Binding Geometry}"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                               StrokeThickness="1"
-                              Fill="Black"
+                              Fill="Transparent"
                               StrokeLineJoin="Round"
                               StrokeStartLineCap="Round"
                               StrokeEndLineCap="Round"

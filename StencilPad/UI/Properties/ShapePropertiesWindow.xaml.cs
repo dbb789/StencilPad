@@ -60,10 +60,12 @@ public partial class ShapePropertiesWindow : Window
             FillRule = FillRule.EvenOdd
         };
 
+        var offset = cap.Size.Y.Millimeters;
+
         using (var ctx = line.Open())
         {
-            ctx.BeginFigure(new Point(0, 0), true, false);
-            ctx.LineTo(new Point(0, 40), true, false);
+            ctx.BeginFigure(new Point(0, offset), true, false);
+            ctx.LineTo(new Point(0, 4), true, false);
         }
 
         line.Freeze();
@@ -80,16 +82,16 @@ public partial class ShapePropertiesWindow : Window
         
         if (startCap)
         {
-            transformGroup.Children.Add(new TranslateTransform(-5, 0));
             transformGroup.Children.Add(new RotateTransform(-90, 0, 0));
+            transformGroup.Children.Add(new TranslateTransform(0, cap.Size.X.Millimeters / 2));
         }
         else
         {
-            transformGroup.Children.Add(new TranslateTransform(5, -40));
             transformGroup.Children.Add(new RotateTransform(90, 0, 0));
+            transformGroup.Children.Add(new TranslateTransform(4, cap.Size.X.Millimeters / 2));
         }
 
-        transformGroup.Children.Add(new ScaleTransform(2, 2));
+        transformGroup.Children.Add(new ScaleTransform(4, 4));
 
         transformGroup.Freeze();
         
@@ -109,7 +111,7 @@ public partial class ShapePropertiesWindow : Window
         using (var ctx = line.Open())
         {
             ctx.BeginFigure(new Point(0, 0), true, false);
-            ctx.LineTo(new Point(40, 0), true, false);
+            ctx.LineTo(new Point(80, 0), true, false);
         }
 
         line.Freeze();

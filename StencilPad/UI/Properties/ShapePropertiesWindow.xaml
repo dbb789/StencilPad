@@ -34,54 +34,37 @@
                                     Value="{Binding LineColor}"/>
             </TabItem>
             <TabItem Header="Line Style">
-                <Grid Margin="8" MinWidth="200" MinHeight="200">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="8"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="8"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="8"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Column="0" Grid.Row="0"
-                               Text="Line Width:"
-                               VerticalAlignment="Center"/>
-                    <widgets:UnitField Grid.Column="2" Grid.Row="0"
-                                       MinWidth="160"
+                <StackPanel Margin="8">
+                    <TextBlock Text="Line Width:"
+                               VerticalAlignment="Center"
+                               Margin="2"/>
+                    <widgets:UnitField MinWidth="160"
                                        Value="{Binding LineWidth}"/>
+                    <Separator Background="Transparent"/>
+                    <TextBlock Text="Line Style:"
+                               Margin="2"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="4"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="4"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Grid.Row="2"
-                               Text="Start Cap:"
-                               VerticalAlignment="Center"/>
-                    <widgets:GeometryDropdown x:Name="StartCapDropdown"
-                                              Grid.Column="2" Grid.Row="2"
-                                              MinWidth="160"
-                                              SelectedIndex="{Binding StartCapIndex}"/>
-                    
-                    <TextBlock Grid.Column="0" Grid.Row="4"
-                               Text="Line Style:"
-                               VerticalAlignment="Center"/>
-                    <widgets:GeometryDropdown x:Name="LineStyleDropdown"
-                                              Grid.Column="2" Grid.Row="4"
-                                              MinWidth="160"
-                                              SelectedIndex="{Binding LineStyleIndex}"/>
+                        <widgets:GeometryDropdown x:Name="StartCapDropdown"
+                                                  Grid.Column="0"
+                                                  SelectedIndex="{Binding StartCapIndex}"/>
 
-                    <TextBlock Grid.Column="0" Grid.Row="6"
-                               Text="End Cap:"
-                               VerticalAlignment="Center"/>
-                    <widgets:GeometryDropdown x:Name="EndCapDropdown"
-                                              Grid.Column="2" Grid.Row="6"
-                                              MinWidth="160"
-                                              SelectedIndex="{Binding EndCapIndex}"/>
-                </Grid>
+                        <widgets:GeometryDropdown x:Name="LineStyleDropdown"
+                                                  Grid.Column="2"
+                                                  SelectedIndex="{Binding LineStyleIndex}"/>
+
+                        <widgets:GeometryDropdown x:Name="EndCapDropdown"
+                                                  Grid.Column="4"
+                                                  SelectedIndex="{Binding EndCapIndex}"/>
+                    </Grid>
+                </StackPanel>
             </TabItem>
         </TabControl>
 
