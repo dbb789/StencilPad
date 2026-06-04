@@ -1,18 +1,53 @@
 using System.Windows.Media;
 using StencilPad.Models;
-using StencilPad.Spatial;
+using StencilPad.Models.Resolvers;
+using StencilPad.Services;
 
 namespace StencilPad.Rendering;
 
-public abstract class SheetElementRenderer : IDisposable
+public class SheetElementRenderer
 {
+    private IModelResolver? _resolver;
+    private ModelRenderer? _modelRenderer;
+    
     public event Action? RendererDirty;
 
-    public abstract void Render(DrawingContext dc);
+    public SheetElementRenderer(ISheetElement element, IResourceSet resourceSet)
+    {
+        _resolver = ResolverFactory.Create(element, resourceSet);
 
-    public abstract void Dispose();
+        if (_resolver is not null)
+        {
+            _modelRenderer = new ModelRenderer(resourceSet);
+            _modelRenderer.RendererDirty += InvokeRendererDirty;
+            
+            _resolver.Attach(_modelRenderer);
+        }
+    }
 
-    protected void InvokeRendererDirty()
+    public void Dispose()
+    {
+        if (_resolver is not null)
+        {
+            _resolver?.Detach();
+            _resolver?.Dispose();
+            _resolver = null;
+        }
+
+        if (_modelRenderer is not null)
+        {
+            _modelRenderer.RendererDirty -= InvokeRendererDirty;
+            _modelRenderer?.Dispose();
+            _modelRenderer = null;
+        }
+    }
+
+    public void Render(DrawingContext dc)
+    {
+        _modelRenderer?.Render(dc);
+    }
+
+    private void InvokeRendererDirty()
     {
         RendererDirty?.Invoke();
     }

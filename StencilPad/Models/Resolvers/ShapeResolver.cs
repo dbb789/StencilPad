@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using StencilPad.Spatial;
-using StencilPad.Services;
 
 namespace StencilPad.Models.Resolvers;
 
@@ -17,7 +16,7 @@ public class ShapeResolver : IModelResolver
     }
 
     private readonly Shape _shape;
-    private readonly IResourceService _resourceService;
+    private readonly IResourceSet _resourceSet;
     private readonly Dictionary<IPolygon, PolygonState> _polygonMap;
     
     private IModelWalker? _walker;
@@ -27,10 +26,10 @@ public class ShapeResolver : IModelResolver
     private GeometryStyle _style;
     private int _idCounter;
     
-    public ShapeResolver(Shape shape, IResourceService resourceService)
+    public ShapeResolver(Shape shape, IResourceSet resourceSet)
     {
         _shape = shape;
-        _resourceService = resourceService;
+        _resourceSet = resourceSet;
         _polygonMap = new();
         _style = CreateStyle();
         _idCounter = 0;
@@ -141,8 +140,8 @@ public class ShapeResolver : IModelResolver
     {
         var caps = new List<(GeometryResource, UnitTransform)>();
 
-        var startCap = HasStartCap(polygon) ? _resourceService.Get(_shape.StartCap) : null;
-        var endCap = HasEndCap(polygon) ? _resourceService.Get(_shape.EndCap) : null;
+        var startCap = HasStartCap(polygon) ? _resourceSet.Get(_shape.StartCap) : null;
+        var endCap = HasEndCap(polygon) ? _resourceSet.Get(_shape.EndCap) : null;
 
         SegmentPoint? startPoint = null;
         SegmentPoint? endPoint = null;

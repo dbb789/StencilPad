@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using StencilPad.Spatial;
-using StencilPad.Services;
 
 namespace StencilPad.Models.Resolvers;
 
@@ -9,7 +8,7 @@ public class RulerResolver : IModelResolver
     private const int GeometryId = 1;
 
     private readonly Ruler _ruler;
-    private readonly IResourceService _resourceService;
+    private readonly IResourceSet _resourceSet;
     private readonly LineResolver _lineResolver;
     private readonly List<(GeometryResource, UnitTransform)> _caps;
 
@@ -20,10 +19,10 @@ public class RulerResolver : IModelResolver
     private GeometryStyle _geometryStyle;
     private TextStyle _textStyle;
     
-    public RulerResolver(Ruler ruler, IResourceService resourceService)
+    public RulerResolver(Ruler ruler, IResourceSet resourceSet)
     {
         _ruler = ruler;
-        _resourceService = resourceService;
+        _resourceSet = resourceSet;
         _lineResolver = new();
         _caps = new();
         _geometryStyle = CreateGeometryStyle();
@@ -118,7 +117,7 @@ public class RulerResolver : IModelResolver
 
     private GeometrySet CreateGeometrySet()
     {
-        var capResource = _resourceService.Get(GeometryResourceId.First);
+        var capResource = _resourceSet.Get(GeometryResourceId.First);
         var direction = _ruler.Max - _ruler.Min;
         
         _lineResolver.Line = new Line(_ruler.Min + direction.NormalizedTo(capResource.Size.Y),

@@ -77,7 +77,7 @@ public static class SvgExporter
             _transform = transform;
         }
 
-        public IModelWalker CreateModelWalker(IModelResolver resolver)
+        public IModelWalker CreateModelWalker()
         {
             throw new NotSupportedException("Model elements are not supported in SVG export.");
         }

@@ -17,7 +17,7 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
         public bool GeometryDirty;
     }
 
-    private readonly IResourceService _resourceService;
+    private readonly IResourceSet _resourceSet;
     private readonly Dictionary<int, Entry> _entryMap;
     private ClampedGeometryWalker? _clampedGeometryWalker;
     private StreamGeometryWalker? _streamGeometryWalker;
@@ -29,9 +29,9 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
 
     public event Action? RendererDirty;
     
-    public StyledGeometryRenderer(IResourceService resourceService)
+    public StyledGeometryRenderer(IResourceSet resourceSet)
     {
-        _resourceService = resourceService;
+        _resourceSet = resourceSet;
         _entryMap = new();
         _geometryDirty = true;
     }
@@ -180,7 +180,7 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
         pen.StartLineCap = PenLineCap.Flat;
         pen.EndLineCap = PenLineCap.Flat;
         pen.LineJoin = PenLineJoin.Miter;
-        pen.DashStyle = _resourceService.Get(style.LineStyle);
+        pen.DashStyle = _resourceSet.Get(style.LineStyle);
         
         pen.Freeze();
         

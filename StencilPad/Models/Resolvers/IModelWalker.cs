@@ -6,7 +6,7 @@ public interface IModelWalker : IDisposable
 {
     void SetTransform(UnitTransform transform);
 
-    IModelWalker CreateModelWalker(IModelResolver resolver);
+    IModelWalker CreateModelWalker();
     IStyledGeometryWalker CreateStyledGeometryWalker();
     ITextWalker CreateTextWalker();
     IImageWalker CreateImageWalker();

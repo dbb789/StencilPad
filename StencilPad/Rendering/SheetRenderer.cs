@@ -1,6 +1,8 @@
 using System.Collections.Specialized;
 using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
+using StencilPad.Services;
 
 namespace StencilPad.Rendering;
 
@@ -12,18 +14,15 @@ public class SheetRenderer : IDisposable
         set => AssignSheet(value);
     }
 
-    public SheetElementRenderer this[int index] => _renderers.GetAt(index).Value;
-    public int Count => _renderers.Count;
-
-    private readonly ISheetElementRendererFactory _sheetElementRendererFactory;
+    private readonly IResourceSet _resourceSet;
     private Sheet? _sheet;
     private OrderedDictionary<ISheetElement, SheetElementRenderer> _renderers;
-
+    
     public event Action? RendererDirty;
 
-    public SheetRenderer(ISheetElementRendererFactory sheetElementRendererFactory)
+    public SheetRenderer(IResourceSet resourceSet)
     {
-        _sheetElementRendererFactory = sheetElementRendererFactory;
+        _resourceSet = resourceSet;
         _renderers = new();
     }
 
@@ -45,11 +44,6 @@ public class SheetRenderer : IDisposable
         }
     }
     
-    public bool TryGetElementRenderer(ISheetElement element, out SheetElementRenderer renderer)
-    {
-        return _renderers.TryGetValue(element, out renderer!);
-    }
-
     private void AssignSheet(Sheet? sheet)
     {
         if (_sheet == sheet)
@@ -117,10 +111,12 @@ public class SheetRenderer : IDisposable
     
     private void AddRenderer(ISheetElement element, int index = -1)
     {
-        var renderer = _sheetElementRendererFactory.Create(element);
+        var resolver = ResolverFactory.Create(element, _resourceSet);
 
-        if (renderer is not null)
+        if (resolver is not null)
         {
+            var renderer = new SheetElementRenderer(element, _resourceSet);
+
             renderer.RendererDirty += InvokeRendererDirty;
 
             if (index < 0)

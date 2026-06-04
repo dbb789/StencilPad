@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using StencilPad.Spatial;
-using StencilPad.Services;
 
 namespace StencilPad.Models.Resolvers;
 
@@ -9,17 +8,17 @@ public class MarkerPathResolver : IModelResolver
     private const int GeometryId = 1;
 
     private readonly MarkerPath _markerPath;
-    private readonly IResourceService _resourceService;
+    private readonly IResourceSet _resourceSet;
     
     private IModelWalker? _walker;
     private IStyledGeometryWalker? _geometryWalker;
 
     private GeometryStyle _style;
 
-    public MarkerPathResolver(MarkerPath markerPath, IResourceService resourceService)
+    public MarkerPathResolver(MarkerPath markerPath, IResourceSet resourceSet)
     {
         _markerPath = markerPath;
-        _resourceService = resourceService;
+        _resourceSet = resourceSet;
         _style = CreateStyle();
 
         _markerPath.GeometryChanged += OnGeometryChanged;
@@ -78,7 +77,7 @@ public class MarkerPathResolver : IModelResolver
 
     private GeometrySet CreateGeometrySet()
     {
-        var markerResource = _resourceService.Get(_markerPath.MarkerType);
+        var markerResource = _resourceSet.Get(_markerPath.MarkerType);
         var overlays = new List<(GeometryResource, UnitTransform)>(_markerPath.PointList.Count);
 
         for (int i = 0; i < _markerPath.PointList.Count; ++i)

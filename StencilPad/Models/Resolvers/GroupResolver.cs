@@ -1,19 +1,17 @@
-using StencilPad.Services;
-
 namespace StencilPad.Models.Resolvers;
 
 public class GroupResolver : IModelResolver
 {
     private readonly ElementGroup _group;
-    private readonly IResourceService _resourceService;
+    private readonly IResourceSet _resourceSet;
     private readonly List<(IModelResolver, IModelWalker)> _children;
 
     private IModelWalker? _walker;
 
-    public GroupResolver(ElementGroup group, IResourceService resourceService)
+    public GroupResolver(ElementGroup group, IResourceSet resourceSet)
     {
         _group = group;
-        _resourceService = resourceService;
+        _resourceSet = resourceSet;
         _children = new();
 
         _group.TransformChanged += TransformChanged;
@@ -32,12 +30,14 @@ public class GroupResolver : IModelResolver
         
         foreach (var element in _group.Children)
         {
-            var childResolver = ResolverFactory.Create(element, _resourceService);
+            var childResolver = ResolverFactory.Create(element, _resourceSet);
 
             if (childResolver is not null)
             {
-                var childWalker = _walker.CreateModelWalker(childResolver);
+                var childWalker = _walker.CreateModelWalker();
 
+                childResolver.Attach(childWalker);
+                
                 _children.Add((childResolver, childWalker));
             }
         }

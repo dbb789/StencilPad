@@ -1,30 +1,26 @@
 using System.Windows.Media;
 using StencilPad.Models.Resolvers;
-using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;
 
-public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
+public class ModelRenderer : IModelWalker, IWalkerRenderer
 {
-    private readonly IResourceService _resourceService;
+    private readonly IResourceSet _resourceSet;
     private readonly List<IWalkerRenderer> _renderers;
-    private readonly IModelResolver _resolver;
     private Transform _transform;
 
-    public ModelRenderer(IModelResolver resolver, IResourceService resourceService)
+    public event Action? RendererDirty;
+
+    public ModelRenderer(IResourceSet resourceSet)
     {
-        _resolver = resolver;
-        _resourceService = resourceService;
+        _resourceSet = resourceSet;
         _renderers = new();
         _transform = Transform.Identity;
-        _resolver.Attach(this);
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
-        _resolver.Detach();
-        
         foreach (var renderer in _renderers)
         {
             renderer.RendererDirty -= InvokeRendererDirty;
@@ -34,9 +30,9 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
         _renderers.Clear();
     }
 
-    public IModelWalker CreateModelWalker(IModelResolver resolver)
+    public IModelWalker CreateModelWalker()
     {
-        var renderer = new ModelRenderer(resolver, _resourceService);
+        var renderer = new ModelRenderer(_resourceSet);
         
         renderer.RendererDirty += InvokeRendererDirty;
 
@@ -47,7 +43,7 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
     
     public IStyledGeometryWalker CreateStyledGeometryWalker()
     {
-        var renderer = new StyledGeometryRenderer(_resourceService);
+        var renderer = new StyledGeometryRenderer(_resourceSet);
         
         renderer.RendererDirty += InvokeRendererDirty;
 
@@ -84,7 +80,7 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
         InvokeRendererDirty();
     }
     
-    public override void Render(DrawingContext dc)
+    public void Render(DrawingContext dc)
     {
         dc.PushTransform(_transform);
         
@@ -94,5 +90,10 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
         }
 
         dc.Pop();
+    }
+
+    private void InvokeRendererDirty()
+    {
+        RendererDirty?.Invoke();
     }
 }

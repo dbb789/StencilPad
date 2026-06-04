@@ -1,13 +1,10 @@
-using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 
 namespace StencilPad.Services;
 
-public interface IResourceService
+public interface IResourceService : IResourceSet
 {
     IEnumerable<GeometryResourceId> GetGeometryResourceIds(GeometryResourceType type);
     IEnumerable<LineStyleResourceId> GetLineStyleResourceIds();
-
-    GeometryResource Get(GeometryResourceId id);
-    DashStyle Get(LineStyleResourceId id);
 }
