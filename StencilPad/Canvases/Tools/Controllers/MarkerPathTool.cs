@@ -11,7 +11,7 @@ namespace StencilPad.Canvases.Tools.Controllers;
 public class MarkerPathTool : ITool
 {
     public class Factory(Sheet Sheet,
-                         ToolOverlay ToolOverlay,
+                         OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
                          Factory<ShapeToolOverlay> OverlayFactory) : IToolFactory
@@ -21,25 +21,25 @@ public class MarkerPathTool : ITool
 
         public ITool Create(IToolButton button)
         {
-            return new MarkerPathTool(Sheet, ToolOverlay, UnitSnapOverlay, OperationService, OverlayFactory);
+            return new MarkerPathTool(Sheet, OverlayContainer, UnitSnapOverlay, OperationService, OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
-    private readonly ToolOverlay _toolOverlay;
+    private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
     private readonly Factory<ShapeToolOverlay> _overlayFactory;
     private ShapeToolOverlay? _overlay;
 
     private MarkerPathTool(Sheet sheet,
-                           ToolOverlay toolOverlay,
+                           OverlayContainer overlayContainer,
                            IUnitSnapOverlay unitSnapOverlay,
                            IOperationService operationService,
                            Factory<ShapeToolOverlay> overlayFactory)
     {
         _sheet = sheet;
-        _toolOverlay = toolOverlay;
+        _overlayContainer = overlayContainer;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -51,7 +51,7 @@ public class MarkerPathTool : ITool
     public void ToolBegin()
     {
         _overlay = _overlayFactory.Create();
-        _toolOverlay.ActiveOverlay = _overlay;
+        _overlayContainer.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 
         _overlay.OnPolygonCompleted += PolygonCompleted;
@@ -59,7 +59,7 @@ public class MarkerPathTool : ITool
 
     public void ToolEnd()
     {
-        _toolOverlay.ActiveOverlay = null;
+        _overlayContainer.ActiveOverlay = null;
         _unitSnapOverlay.End();
 
         if (_overlay is not null)

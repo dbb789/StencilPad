@@ -15,7 +15,7 @@ public class SelectionTool : ITool
     private const decimal AngleSnapDegrees = 15m;
 
     public class Factory(Sheet Sheet,
-                         ToolOverlay ToolOverlay,
+                         OverlayContainer OverlayContainer,
                          IRubberBand RubberBand,
                          IModelPropertiesService ModelPropertiesService,
                          IOperationService OperationService,
@@ -27,7 +27,7 @@ public class SelectionTool : ITool
         public ITool Create(IToolButton button)
         {
             return new SelectionTool(Sheet,
-                                     ToolOverlay,
+                                     OverlayContainer,
                                      RubberBand,
                                      ModelPropertiesService,
                                      OperationService,
@@ -36,7 +36,7 @@ public class SelectionTool : ITool
     }
 
     private readonly Sheet _sheet;
-    private readonly ToolOverlay _toolOverlay;
+    private readonly OverlayContainer _overlayContainer;
     private readonly IRubberBand _rubberBand;
     private readonly IModelPropertiesService _modelPropertiesService;
     private readonly IOperationService _operationService;
@@ -50,14 +50,14 @@ public class SelectionTool : ITool
     private IDisposable? _editContext;
     
     private SelectionTool(Sheet sheet,
-                          ToolOverlay toolOverlay,
+                          OverlayContainer overlayContainer,
                           IRubberBand rubberBand,
                           IModelPropertiesService modelPropertiesService,
                           IOperationService operationService,
                           Factory<SelectionToolOverlay> overlayFactory)
     {
         _sheet = sheet;
-        _toolOverlay = toolOverlay;
+        _overlayContainer = overlayContainer;
         _rubberBand = rubberBand;
         _modelPropertiesService = modelPropertiesService;
         _operationService = operationService;
@@ -70,7 +70,7 @@ public class SelectionTool : ITool
     public void ToolBegin()
     {
         _overlay = _overlayFactory.Create();
-        _toolOverlay.ActiveOverlay = _overlay;
+        _overlayContainer.ActiveOverlay = _overlay;
 
         _rubberBand.IsActive = true;
         _rubberBand.PointSelected += PointSelected;
@@ -97,7 +97,7 @@ public class SelectionTool : ITool
         
         _rubberBand.IsActive = false;
 
-        _toolOverlay.ActiveOverlay = null;
+        _overlayContainer.ActiveOverlay = null;
 
         if (_overlay is not null)
         {

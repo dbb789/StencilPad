@@ -83,24 +83,11 @@ public class SheetRenderer : IDisposable
 
     private void ElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            foreach (var renderer in _renderers.Values)
-            {
-                renderer.RendererDirty -= InvokeRendererDirty;
-                renderer.Dispose();
-            }
-
-            _renderers.Clear();
-            InvokeRendererDirty();
-            return;
-        }
-
         if (e.OldItems is not null)
         {
             foreach (var item in e.OldItems)
             {
-                if (item is SheetElement element)
+                if (item is ISheetElement element)
                 {
                     RemoveRenderer(element);
                 }
@@ -111,7 +98,7 @@ public class SheetRenderer : IDisposable
         {
             foreach (var item in e.NewItems)
             {
-                if (item is SheetElement element)
+                if (item is ISheetElement element)
                 {
                     AddRenderer(element, e.NewStartingIndex);
                 }

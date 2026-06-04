@@ -10,7 +10,7 @@ namespace StencilPad.Canvases.Tools.Controllers;
 public class TextTool : ITool
 {
     public class Factory(Sheet Sheet,
-                         ToolOverlay ToolOverlay,
+                         OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
                          Factory<TextToolOverlay> OverlayFactory) : IToolFactory
@@ -20,25 +20,25 @@ public class TextTool : ITool
 
         public ITool Create(IToolButton button)
         {
-            return new TextTool(Sheet, ToolOverlay, UnitSnapOverlay, OperationService, OverlayFactory);
+            return new TextTool(Sheet, OverlayContainer, UnitSnapOverlay, OperationService, OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
-    private readonly ToolOverlay _toolOverlay;
+    private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
     private readonly Factory<TextToolOverlay> _overlayFactory;
     private TextToolOverlay? _overlay;
 
     private TextTool(Sheet sheet,
-                     ToolOverlay toolOverlay,
+                     OverlayContainer overlayContainer,
                      IUnitSnapOverlay unitSnapOverlay,
                      IOperationService operationService,
                      Factory<TextToolOverlay> overlayFactory)
     {
         _sheet = sheet;
-        _toolOverlay = toolOverlay;
+        _overlayContainer = overlayContainer;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -50,7 +50,7 @@ public class TextTool : ITool
     public void ToolBegin()
     {
         _overlay = _overlayFactory.Create();
-        _toolOverlay.ActiveOverlay = _overlay;
+        _overlayContainer.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 
         _overlay.OnTextPlaced += TextPlaced;
@@ -58,7 +58,7 @@ public class TextTool : ITool
 
     public void ToolEnd()
     {
-        _toolOverlay.ActiveOverlay = null;
+        _overlayContainer.ActiveOverlay = null;
         _unitSnapOverlay.End();
 
         if (_overlay is not null)

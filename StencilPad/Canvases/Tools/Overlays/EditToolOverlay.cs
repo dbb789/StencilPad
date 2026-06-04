@@ -9,13 +9,12 @@ using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Common;
 using StencilPad.Models;
-using StencilPad.Rendering;
 using StencilPad.Spatial;
 using StencilPad.Services;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, IDisposable
+public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
     // Limit mouse move event handling to 60hz so we don't clog up WPF.
     private const long MouseMoveEventThrottleMs = 16;
@@ -33,7 +32,6 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, I
     private readonly IAppConfigService _appConfigService;
     private readonly IViewport _viewport;
     private readonly IHandleMap _handleMap;
-    private readonly IEditOverlayRenderer _editOverlayRenderer;
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     
@@ -52,16 +50,15 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, I
                            IAppConfigService appConfigService,
                            IViewport viewport,
                            IHandleMap handleMap,
-                           IEditOverlayRenderer editOverlayRenderer,
                            IUnitSnap unitSnap,
                            IUnitSnapOverlay unitSnapOverlay,
                            PolygonSheetElementEditActionSet actionSet)
+        : base(viewport, sheet)
     {
         _sheet = sheet;
         _appConfigService = appConfigService;
         _viewport = viewport;
         _handleMap = handleMap;
-        _editOverlayRenderer = editOverlayRenderer;
         _unitSnap = unitSnap;
         _unitSnapOverlay = unitSnapOverlay;
         
@@ -78,26 +75,29 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, I
 
         BuildPens();
         
+        RegisterOverlay(PolygonToolOverlayRenderer.Factory);
+        RegisterOverlay(TextElementToolOverlayRenderer.Factory);
+        RegisterOverlay(ImageElementToolOverlayRenderer.Factory);
+
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
-        
-        _editOverlayRenderer.IsEnabled = true;
         
         _appConfigService.ConfigChanged += OnConfigChanged;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         _appConfigService.ConfigChanged -= OnConfigChanged;
                 
-        _editOverlayRenderer.IsEnabled = false;
         _viewport.ViewportChanged -= ForceRedraw;
 
         _handleMap.SheetSelectionChanged -= ForceRedraw;
         _handleMap.HandleAdded -= OnHandleAdded;
         _handleMap.HandleRemoved -= OnHandleRemoved;
         _handleMap.HandleMoved -= OnHandleMoved;
-        _handleMap.HandleSelectionChanged += ForceRedraw;
+        _handleMap.HandleSelectionChanged -= ForceRedraw;
+
+        base.Dispose();
     }
 
     private void BuildPens()
@@ -281,16 +281,13 @@ public class EditToolOverlay : Canvas, IUnitSnapContext, IGlobalCommandTarget, I
         return true;
     }
 
-    private void ForceRedraw()
-    {
-        InvalidateVisual();
-    }
-    
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
         
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
+
+        RenderOverlay(dc);
 
         _queryResults.Clear();
         _handleMap.QueryHandles(UnitBounds.FromCenterSize(Unit2D.Zero, _viewport.Size),

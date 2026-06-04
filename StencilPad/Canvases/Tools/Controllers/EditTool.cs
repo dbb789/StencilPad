@@ -4,8 +4,6 @@ using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
-using StencilPad.Models.Operations;
-using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
@@ -15,8 +13,7 @@ public class EditTool : ITool
 {
     public class Factory(Sheet Sheet,
                          IHandleMap HandleMap,
-                         ToolOverlay ToolOverlay,
-                         IEditOverlayRenderer EditOverlayRenderer,
+                         OverlayContainer OverlayContainer,
                          IRubberBand RubberBand,
                          IOperationService OperationService,
                          Factory<EditToolOverlay> EditToolOverlayFactory) : IToolFactory
@@ -29,8 +26,7 @@ public class EditTool : ITool
             return new EditTool(button,
                                 Sheet,
                                 HandleMap,
-                                ToolOverlay,
-                                EditOverlayRenderer,
+                                OverlayContainer,
                                 RubberBand,
                                 OperationService,
                                 EditToolOverlayFactory);
@@ -40,8 +36,7 @@ public class EditTool : ITool
     private readonly IToolButton _button;
     private readonly Sheet _sheet;
     private readonly IHandleMap _handleMap;
-    private readonly ToolOverlay _toolOverlay;
-    private readonly IEditOverlayRenderer _editOverlayRenderer;
+    private readonly OverlayContainer _overlayContainer;
     private readonly IRubberBand _rubberBand;
     private readonly IOperationService _operationService;
     private readonly Factory<EditToolOverlay> _overlayFactory;
@@ -55,8 +50,7 @@ public class EditTool : ITool
     private EditTool(IToolButton button,
                      Sheet sheet,
                      IHandleMap handleMap,
-                     ToolOverlay toolOverlay,
-                     IEditOverlayRenderer editOverlayRenderer,
+                     OverlayContainer overlayContainer,
                      IRubberBand rubberBand,
                      IOperationService operationService,
                      Factory<EditToolOverlay> overlayFactory)
@@ -64,8 +58,7 @@ public class EditTool : ITool
         _button = button;
         _sheet = sheet;
         _handleMap = handleMap;
-        _toolOverlay = toolOverlay;
-        _editOverlayRenderer = editOverlayRenderer;
+        _overlayContainer = overlayContainer;
         _rubberBand = rubberBand;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -91,9 +84,8 @@ public class EditTool : ITool
         
         _overlay = _overlayFactory.Create();
         
-        _toolOverlay.ActiveOverlay = _overlay;
+        _overlayContainer.ActiveOverlay = _overlay;
         _rubberBand.IsActive = true;
-        _editOverlayRenderer.IsEnabled = true;
 
         _overlay.HandleDragBegin += OnHandleDragBegin;
         _overlay.HandleDragged += OnHandleDragged;
@@ -109,9 +101,8 @@ public class EditTool : ITool
     {
         _operationService.FlushEditContext();
         
-        _toolOverlay.ActiveOverlay = null;
+        _overlayContainer.ActiveOverlay = null;
         _rubberBand.IsActive = false;
-        _editOverlayRenderer.IsEnabled = false;
 
         if (_overlay is not null)
         {

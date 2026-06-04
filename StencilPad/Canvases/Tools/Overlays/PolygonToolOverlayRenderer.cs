@@ -1,11 +1,27 @@
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Spatial;
+using StencilPad.Rendering;
 
-namespace StencilPad.Rendering;
+namespace StencilPad.Canvases.Tools.Overlays;
 
-public class PolygonEditRenderer : SheetElementEditRenderer
+public class PolygonToolOverlayRenderer : IToolOverlayRenderer
 {
+    public static readonly IToolOverlayRendererFactory Factory = new FactoryImpl();
+    
+    private class FactoryImpl : IToolOverlayRendererFactory
+    {
+        public IToolOverlayRenderer? CreateOverlay(ISheetElement element)
+        {
+            if (element is IPolygonSheetElement polygonSheetElement)
+            {
+                return new PolygonToolOverlayRenderer(polygonSheetElement);
+            }
+
+            return null;
+        }
+    }
+    
     private readonly IPolygonSheetElement _element;
     private readonly StreamGeometryWalker _walker;
 
@@ -15,8 +31,10 @@ public class PolygonEditRenderer : SheetElementEditRenderer
     private StreamGeometry? _edgeOverlayGeometry;
     private StreamGeometry? _controlStemGeometry;
     private bool _geometryDirty;
+    
+    public event Action? RendererDirty;
 
-    public PolygonEditRenderer(IPolygonSheetElement element)
+    private PolygonToolOverlayRenderer(IPolygonSheetElement element)
     {
         _element = element;
         _element.PolygonSet.PolygonAdded += PolygonAdded;
@@ -43,7 +61,7 @@ public class PolygonEditRenderer : SheetElementEditRenderer
         _geometryDirty = false;
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         foreach (var polygon in _element.PolygonSet)
         {
@@ -144,7 +162,7 @@ public class PolygonEditRenderer : SheetElementEditRenderer
         _controlStemGeometry.Freeze();
     }
 
-    public override void Render(DrawingContext dc)
+    public void Render(DrawingContext dc)
     {
         if (_geometryDirty)
         {
@@ -174,5 +192,10 @@ public class PolygonEditRenderer : SheetElementEditRenderer
         }
 
         dc.Pop();
+    }
+
+    private void InvokeRendererDirty()
+    {
+        RendererDirty?.Invoke();
     }
 }

@@ -9,15 +9,12 @@ namespace StencilPad.Canvases.UI;
 public class SheetRenderPanel : ContentControl
 {
     private SheetRenderer _sheetRenderer;
-    private EditOverlayRenderer _editOverlayRenderer;
     private IViewport _viewport;
 
     public SheetRenderPanel(SheetRenderer sheetRenderer,
-                            EditOverlayRenderer editOverlayRenderer,
                             IViewport viewport)
     {
         _sheetRenderer = sheetRenderer;
-        _editOverlayRenderer = editOverlayRenderer;
         _viewport = viewport;
 
         Loaded += OnLoaded;
@@ -27,13 +24,11 @@ public class SheetRenderPanel : ContentControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _sheetRenderer.RendererDirty += ForceRedraw;
-        _editOverlayRenderer.RendererDirty += ForceRedraw;
     }
 
     public void OnUnloaded(object sender, RoutedEventArgs e)
     {
         _sheetRenderer.RendererDirty -= ForceRedraw;
-        _editOverlayRenderer.RendererDirty -= ForceRedraw;
     }
     
     private void ForceRedraw()
@@ -46,7 +41,6 @@ public class SheetRenderPanel : ContentControl
         dc.PushTransform(_viewport.MillimetersToPixelsTransform);
 
         _sheetRenderer.Render(dc);
-        _editOverlayRenderer.Render(dc);
         
         dc.Pop();
     }

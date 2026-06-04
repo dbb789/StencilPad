@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,10 +65,9 @@ namespace StencilPad.Canvases.UI
             set => SetValue(SnapToPointProperty, value);
         }
 
-        public ToolOverlay ToolOverlay => _toolOverlay;
+        public OverlayContainer OverlayContainer => _overlayContainer;
         public CanvasGrid CanvasGrid => _canvasGrid;
         public SheetRenderer SheetRenderer => _sheetRenderer;
-        public IEditOverlayRenderer EditOverlayRenderer => _editOverlayRenderer;
         public IViewport Viewport => _viewport;
         public IHandleMap HandleMap => _handleMap;
         public IRubberBand RubberBand => _rubberBandEventPanel;
@@ -77,11 +77,10 @@ namespace StencilPad.Canvases.UI
         private readonly VisualViewport _viewport;
         private readonly HandleMap _handleMap;
         private readonly SheetRenderer _sheetRenderer;
-        private readonly EditOverlayRenderer _editOverlayRenderer;
         private readonly CanvasGrid _canvasGrid;
         private readonly RubberBandEventPanel _rubberBandEventPanel;
         private readonly SheetRenderPanel _renderer;
-        private readonly ToolOverlay _toolOverlay;
+        private readonly OverlayContainer _overlayContainer;
         private readonly RubberBandRenderPanel _rubberBandRenderPanel;
         private readonly UnitSnapOverlay _unitSnapOverlay;
         private readonly CompositeUnitSnap _unitSnap;
@@ -106,14 +105,11 @@ namespace StencilPad.Canvases.UI
             _handleMap = new HandleMap();
 
             _sheetRenderer = new SheetRenderer(resourceService);
-            
-            _editOverlayRenderer = new EditOverlayRenderer();
 
             _canvasGrid = new CanvasGrid(appConfigService,
                                          _viewport);
 
             _renderer = new SheetRenderPanel(_sheetRenderer,
-                                             _editOverlayRenderer,
                                              _viewport);
             _canvasGrid.Content = _renderer;
 
@@ -124,8 +120,8 @@ namespace StencilPad.Canvases.UI
             _unitSnapOverlay = new UnitSnapOverlay(_viewport, _unitSnap);
             _rubberBandEventPanel.Content = _unitSnapOverlay;
 
-            _toolOverlay = new ToolOverlay();
-            _unitSnapOverlay.Content = _toolOverlay;
+            _overlayContainer = new OverlayContainer();
+            _unitSnapOverlay.Content = _overlayContainer;
 
             _rubberBandRenderPanel = new RubberBandRenderPanel();
             _rubberBandEventPanel.RenderPanel = _rubberBandRenderPanel;
@@ -137,12 +133,12 @@ namespace StencilPad.Canvases.UI
 
             CommandBindings.Add(new CommandBinding(
                 GlobalCommands.SelectAll,
-                (_, _) => (_toolOverlay.ActiveOverlay as IGlobalCommandTarget)?.SelectAll(),
-                (_, e) => e.CanExecute = _toolOverlay.ActiveOverlay is IGlobalCommandTarget));
+                (_, _) => (_overlayContainer.ActiveOverlay as IGlobalCommandTarget)?.SelectAll(),
+                (_, e) => e.CanExecute = _overlayContainer.ActiveOverlay is IGlobalCommandTarget));
             CommandBindings.Add(new CommandBinding(
                 GlobalCommands.ClearSelection,
-                (_, _) => (_toolOverlay.ActiveOverlay as IGlobalCommandTarget)?.ClearSelection(),
-                (_, e) => e.CanExecute = _toolOverlay.ActiveOverlay is IGlobalCommandTarget));
+                (_, _) => (_overlayContainer.ActiveOverlay as IGlobalCommandTarget)?.ClearSelection(),
+                (_, e) => e.CanExecute = _overlayContainer.ActiveOverlay is IGlobalCommandTarget));
 
             _viewport.Visual = this;
 
@@ -162,9 +158,8 @@ namespace StencilPad.Canvases.UI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<ToolOverlay>(_toolOverlay);
+            services.AddSingleton<OverlayContainer>(_overlayContainer);
             services.AddSingleton<CanvasGrid>(_canvasGrid);
-            services.AddSingleton<IEditOverlayRenderer>(_editOverlayRenderer);
             services.AddSingleton<IViewport>(_viewport);
             services.AddSingleton<IHandleMap>(_handleMap);
             services.AddSingleton<IRubberBand>(_rubberBandEventPanel);
@@ -192,14 +187,13 @@ namespace StencilPad.Canvases.UI
             }
             
             sheetCanvas._sheetRenderer.Sheet = sheet;
-            sheetCanvas._editOverlayRenderer.Sheet = sheet;
             sheetCanvas._handleMap.Sheet = sheet;
             
             sheet.PropertyChanged += sheetCanvas.Sheet_PropertyChanged;
             sheetCanvas.UpdateViewportSize(sheet.Format);
         }
 
-        private void Sheet_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Sheet_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Sheet.Format) && Sheet is not null)
             {
