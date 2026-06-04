@@ -18,13 +18,11 @@ public class PrintService : IPrintService
     
     public Task<bool> PrintAsync(string documentName, Sheet sheet)
     {
-        var sheetElementRendererFactory = new SheetElementRendererFactory(_resourceService);
-        
         return PrintAsync(documentName, (dc) =>
         {
             foreach (var element in sheet.Elements)
             {
-                var renderer = sheetElementRendererFactory.Create(element);
+                var renderer = new SheetElementRenderer(element, _resourceService);
                 
                 if (renderer is not null)
                 {

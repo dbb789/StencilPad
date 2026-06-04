@@ -34,8 +34,8 @@ public static class PngExporter
         double width  = size.X.Millimeters;
         double height = size.Y.Millimeters;
         
-        var factory  = new SheetElementRendererFactory(resourceService);
-        var renderer = new SheetRenderer(factory);
+        var renderer = new SheetRenderer(resourceService);
+        
         renderer.Sheet = sheet;
 
         var transform = new TransformGroup();

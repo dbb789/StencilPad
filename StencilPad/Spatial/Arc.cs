@@ -1,5 +1,7 @@
 namespace StencilPad.Spatial;
 
+// NOTE: Arcs in this system are purely for rendering circular corners, and as
+// such will never exceed 180 degrees by design.
 public readonly struct Arc
 {
     public Unit2D Center => _center;

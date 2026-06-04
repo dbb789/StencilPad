@@ -1,0 +1,14 @@
+namespace StencilPad.Models.Resolvers;
+
+public interface IStyledGeometryWalker
+{
+    void SetStyle(GeometryStyle style);
+
+    void Create(int id,
+                GeometrySet geometrySet);
+
+    void Update(int id,
+                GeometrySet geometrySet);
+    
+    void Destroy(int id);
+}

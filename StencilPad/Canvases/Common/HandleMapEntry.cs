@@ -15,7 +15,7 @@ public class HandleMapEntry : IHandleMapEntry
     {
         if (Position != position)
         {
-            Element.SetPoint(Handle, Element.Transform.InverseApply(position));
+            Element.SetPoint(Handle, position);
         }
     }
     

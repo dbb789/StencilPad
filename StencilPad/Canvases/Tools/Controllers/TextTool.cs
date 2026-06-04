@@ -1,9 +1,7 @@
-using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
-using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
@@ -72,12 +70,12 @@ public class TextTool : ITool
         }
     }
 
-    private void TextPlaced(Unit2D position, string text)
+    private void TextPlaced(Unit2D position, Unit2D size, string text)
     {
         var element = new TextElement(position, text);
-        element.Max = position + TextElementRenderer.Measure(element);
 
-        _operationService.Push(
-            new AddSheetElementOperation(_sheet.Id, element));
+        element.Max = position + size;
+
+        _operationService.Push(new AddSheetElementOperation(_sheet.Id, element));
     }
 }

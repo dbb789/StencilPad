@@ -2,7 +2,7 @@ namespace StencilPad.Spatial;
 
 public interface IPolygon
 {
-    IPolygonResolver Resolver { get; }
+    IGeometryResolver Resolver { get; }
     
     event Action<IPolygon>? GeometryChanged;
 

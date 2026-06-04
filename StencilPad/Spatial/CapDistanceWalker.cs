@@ -8,7 +8,8 @@ public class CapDistanceWalker : IGeometryWalker
     private Unit _distance;
 
     public SegmentPoint? Point { get; private set; }
-    
+    public Unit2D Position { get; private set; }
+
     public CapDistanceWalker()
     {
         Reset(Unit.Zero);
@@ -51,7 +52,11 @@ public class CapDistanceWalker : IGeometryWalker
         
         if (_distance <= lineLength)
         {
-            Point = new SegmentPoint(segmentIndex, _distance / lineLength);
+            var t = _distance / lineLength;
+            
+            Point = new SegmentPoint(segmentIndex, t);
+            Position = line.At(t);
+            
             return false;
         }
 
@@ -66,7 +71,11 @@ public class CapDistanceWalker : IGeometryWalker
         
         if (_distance <= arc.Length)
         {
-            Point = new SegmentPoint(segmentIndex, _distance / arcLength);
+            var t = _distance / arcLength;
+
+            Point = new SegmentPoint(segmentIndex, t);
+            Position = arc.At(t);
+            
             return false;
         }
         
@@ -82,6 +91,8 @@ public class CapDistanceWalker : IGeometryWalker
         if (t < 1.0)
         {
             Point = new SegmentPoint(segmentIndex, t);
+            Position = bezier.At(t);
+            
             return false;
         }
 

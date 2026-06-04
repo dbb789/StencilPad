@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
-using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
 using StencilPad.ViewModels;
@@ -413,7 +413,7 @@ public class AppController
             return;
         }
 
-        var size = ImageElementRenderer.MeasureNaturalSize(imageData);
+        var size = MeasureImageSize(imageData);
         var halfSize = size / 2.0;
 
         Unit2D center;
@@ -432,6 +432,34 @@ public class AppController
         _operationService.Push(new AddSheetElementOperation(tab.Sheet.Id, element));
     }
 
+    public static Unit2D MeasureImageSize(byte[] imageData, double maxMm = 150.0)
+    {
+        var bitmap = new BitmapImage();
+        
+        bitmap.BeginInit();
+        bitmap.StreamSource = new MemoryStream(imageData);
+        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+        bitmap.EndInit();
+        bitmap.Freeze();
+
+        var dpiX = bitmap.DpiX > 0 ? bitmap.DpiX : 96.0;
+        var dpiY = bitmap.DpiY > 0 ? bitmap.DpiY : 96.0;
+
+        var widthMm  = bitmap.PixelWidth  * 25.4 / dpiX;
+        var heightMm = bitmap.PixelHeight * 25.4 / dpiY;
+
+        var larger = Math.Max(widthMm, heightMm);
+        
+        if (larger > maxMm)
+        {
+            var scale = maxMm / larger;
+            widthMm  *= scale;
+            heightMm *= scale;
+        }
+
+        return new Unit2D(Unit.FromMillimeters(widthMm), Unit.FromMillimeters(heightMm));
+    }
+    
     private void ExportSvg()
     {
         var tab = _viewModel.SelectedTab;
@@ -454,7 +482,8 @@ public class AppController
 
         try
         {
-            SvgExporter.Export(tab.Sheet, dialog.FileName);
+            var resourceService = (IResourceService)App.ServiceProvider.GetService(typeof(IResourceService))!;
+            SvgExporter.Export(tab.Sheet, resourceService, dialog.FileName);
         }
         catch (Exception ex)
         {

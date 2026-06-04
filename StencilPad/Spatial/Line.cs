@@ -5,7 +5,8 @@ public readonly struct Line
     public Unit2D Start => _start;
     public Unit2D End => _end;
     public Unit Length => (_end - _start).Magnitude;
-
+    public Line Reversed => new Line(_end, _start);
+    
     private readonly Unit2D _start;
     private readonly Unit2D _end;
 

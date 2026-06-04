@@ -1,6 +1,6 @@
 namespace StencilPad.Spatial;
 
-public class PolygonResolver : IPolygonResolver
+public class PolygonResolver : IGeometryResolver
 {
     private IPolygon _polygon;
     private bool _geometryDirty;
@@ -41,7 +41,7 @@ public class PolygonResolver : IPolygonResolver
         }
     }
 
-    public void WalkPolygon(IGeometryWalker walker)
+    public void Walk(IGeometryWalker walker)
     {
         if (_polygon is null)
         {
@@ -88,7 +88,7 @@ public class PolygonResolver : IPolygonResolver
         }
     }
     
-    public void WalkPolygonReverse(IGeometryWalker walker)
+    public void WalkReverse(IGeometryWalker walker)
     {
         if (_polygon is null)
         {

@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 
 namespace StencilPad.Rendering;
 
@@ -12,18 +13,15 @@ public class SheetRenderer : IDisposable
         set => AssignSheet(value);
     }
 
-    public SheetElementRenderer this[int index] => _renderers.GetAt(index).Value;
-    public int Count => _renderers.Count;
-
-    private readonly ISheetElementRendererFactory _sheetElementRendererFactory;
+    private readonly IResourceSet _resourceSet;
     private Sheet? _sheet;
     private OrderedDictionary<ISheetElement, SheetElementRenderer> _renderers;
-
+    
     public event Action? RendererDirty;
 
-    public SheetRenderer(ISheetElementRendererFactory sheetElementRendererFactory)
+    public SheetRenderer(IResourceSet resourceSet)
     {
-        _sheetElementRendererFactory = sheetElementRendererFactory;
+        _resourceSet = resourceSet;
         _renderers = new();
     }
 
@@ -45,11 +43,6 @@ public class SheetRenderer : IDisposable
         }
     }
     
-    public bool TryGetElementRenderer(ISheetElement element, out SheetElementRenderer renderer)
-    {
-        return _renderers.TryGetValue(element, out renderer!);
-    }
-
     private void AssignSheet(Sheet? sheet)
     {
         if (_sheet == sheet)
@@ -90,6 +83,19 @@ public class SheetRenderer : IDisposable
 
     private void ElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var renderer in _renderers.Values)
+            {
+                renderer.RendererDirty -= InvokeRendererDirty;
+                renderer.Dispose();
+            }
+
+            _renderers.Clear();
+            InvokeRendererDirty();
+            return;
+        }
+
         if (e.OldItems is not null)
         {
             foreach (var item in e.OldItems)
@@ -117,19 +123,22 @@ public class SheetRenderer : IDisposable
     
     private void AddRenderer(ISheetElement element, int index = -1)
     {
-        var renderer = _sheetElementRendererFactory.Create(element);
+        var renderer = new SheetElementRenderer(element, _resourceSet);
 
-        if (renderer is not null)
+        if (!renderer.HasContent)
         {
-            renderer.RendererDirty += InvokeRendererDirty;
-
-            if (index < 0)
-            {
-                index = _renderers.Count;
-            }
-            
-            _renderers.Insert(index, element, renderer);
+            renderer.Dispose();
+            return;
         }
+
+        renderer.RendererDirty += InvokeRendererDirty;
+
+        if (index < 0)
+        {
+            index = _renderers.Count;
+        }
+
+        _renderers.Insert(index, element, renderer);
     }
 
     private void RemoveRenderer(ISheetElement element)

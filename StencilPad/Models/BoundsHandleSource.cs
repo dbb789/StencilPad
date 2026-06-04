@@ -25,20 +25,6 @@ public class BoundsHandleSource : IHandleSource
     private Unit2D _min;
     private Unit2D _max;
 
-    private UnitTransform _transform = UnitTransform.Identity;
-    public UnitTransform Transform
-    {
-        get => _transform;
-        set
-        {
-            if (_transform != value)
-            {
-                _transform = value;
-                UpdateAllHandles();
-            }
-        }
-    }
-    
     public UnitBounds Bounds
     {
         get => UnitBounds.FromMinMax(_min, _max);
@@ -95,55 +81,54 @@ public class BoundsHandleSource : IHandleSource
     public Unit2D GetPoint(Handle handle)
     {
         var type = handle.GetKey<BoundsHandleKey>().Type;
-        Unit2D localPos;
+        Unit2D position;
 
         switch (type)
         {
         case BoundsHandleKey.HandleType.NW:
-            localPos = new Unit2D(_min.X, _min.Y);
+            position = new Unit2D(_min.X, _min.Y);
             break;
             
         case BoundsHandleKey.HandleType.NE:
-            localPos = new Unit2D(_max.X, _min.Y);
+            position = new Unit2D(_max.X, _min.Y);
             break;
             
         case BoundsHandleKey.HandleType.SW:
-            localPos = new Unit2D(_min.X, _max.Y);
+            position = new Unit2D(_min.X, _max.Y);
             break;
             
         case BoundsHandleKey.HandleType.SE:
-            localPos = new Unit2D(_max.X, _max.Y);
+            position = new Unit2D(_max.X, _max.Y);
             break;
         default:
             throw new InvalidOperationException($"Invalid handle type: {type}");
         }
 
-        return Transform.Apply(localPos);
+        return position;
     }
 
     public void SetPoint(Handle handle, Unit2D position)
     {
         var type = handle.GetKey<BoundsHandleKey>().Type;
-        var localPos = Transform.InverseApply(position);
 
         switch (type)
         {
         case BoundsHandleKey.HandleType.NW:
-            _min = localPos;
+            _min = position;
             break;
             
         case BoundsHandleKey.HandleType.NE:
-            _min = new Unit2D(_min.X, localPos.Y);
-            _max = new Unit2D(localPos.X, _max.Y);
+            _min = new Unit2D(_min.X, position.Y);
+            _max = new Unit2D(position.X, _max.Y);
             break;
             
         case BoundsHandleKey.HandleType.SW:
-            _min = new Unit2D(localPos.X, _min.Y);
-            _max = new Unit2D(_max.X, localPos.Y);
+            _min = new Unit2D(position.X, _min.Y);
+            _max = new Unit2D(_max.X, position.Y);
             break;
             
         case BoundsHandleKey.HandleType.SE:
-            _max = localPos;
+            _max = position;
             break;
         }
 
@@ -157,7 +142,6 @@ public class BoundsHandleSource : IHandleSource
         _id = other._id;
         _min = other._min;
         _max = other._max;
-        _transform = other._transform;
         
         _selection.AssignFrom(other._selection);
 

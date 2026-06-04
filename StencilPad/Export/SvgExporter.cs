@@ -4,6 +4,8 @@ using System.Text;
 using System.Windows.Media;
 using System.Xml.Linq;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Export;
@@ -12,7 +14,7 @@ public static class SvgExporter
 {
     private static readonly XNamespace SvgNs = "http://www.w3.org/2000/svg";
 
-    public static void Export(Sheet sheet, string path)
+    public static void Export(Sheet sheet, IResourceService resourceService, string path)
     {
         UnitBounds? sheetBounds = null;
 
@@ -38,95 +40,435 @@ public static class SvgExporter
             new XAttribute("height",  Mm(height)),
             new XAttribute("viewBox", $"{Num(offsetX)} {Num(offsetY)} {Num(width)} {Num(height)}"));
 
-        foreach (var element in sheet.Elements)
+        using (var modelWalker = new SvgModelWalker(svg))
         {
-            if (element is Shape shape)
+            foreach (var element in sheet.Elements)
             {
-                foreach (var pathElement in BuildShapeElements(shape))
+                using var resolver = ResolverFactory.Create(element, resourceService);
+
+                if (resolver is not null)
                 {
-                    svg.Add(pathElement);
+                    resolver.Attach(modelWalker);
+                    resolver.Detach();
                 }
             }
         }
 
         var doc = new XDocument(new XDeclaration("1.0", "utf-8", null), svg);
 
-        using var stream = File.OpenWrite(path);
+        using var stream = File.Create(path);
         doc.Save(stream);
     }
 
-    private static IEnumerable<XElement> BuildShapeElements(Shape shape)
+    private class SvgModelWalker : IModelWalker, IDisposable
     {
-        foreach (var polygon in shape.PolygonSet)
-        {
-            var pathData = BuildPathData(polygon, shape.Transform);
+        private readonly XElement _svg;
+        private readonly UnitTransform _parentTransform;
+        private readonly List<IDisposable> _walkers = new();
+        private UnitTransform _worldTransform;
 
-            if (string.IsNullOrEmpty(pathData))
+        public SvgModelWalker(XElement svg, UnitTransform parentTransform = default)
+        {
+            _svg = svg;
+            _parentTransform = parentTransform;
+            _worldTransform = parentTransform;
+        }
+
+        public void SetTransform(UnitTransform localTransform)
+        {
+            _worldTransform = _parentTransform * localTransform;
+        }
+
+        public IModelWalker CreateModelWalker()
+        {
+            var walker = new SvgModelWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
+            return walker;
+        }
+
+        public IStyledGeometryWalker CreateStyledGeometryWalker()
+        {
+            var walker = new SvgGeometryWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
+            return walker;
+        }
+
+        public ITextWalker CreateTextWalker()
+        {
+            var walker = new SvgTextWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
+            return walker;
+        }
+
+        public IImageWalker CreateImageWalker()
+        {
+            var walker = new SvgImageWalker(_svg, _worldTransform);
+            _walkers.Add(walker);
+            return walker;
+        }
+
+        public void Dispose()
+        {
+            foreach (var walker in _walkers)
+                walker.Dispose();
+
+            _walkers.Clear();
+        }
+    }
+
+    private class SvgGeometryWalker : IStyledGeometryWalker, IDisposable
+    {
+        private readonly XElement _svg;
+        private readonly UnitTransform _transform;
+        private GeometryStyle _style;
+
+        private readonly StringBuilder _pendingPaths = new();
+        private readonly List<(Shape Shape, UnitTransform Transform)> _pendingOverlays = new();
+        private bool _pendingClosed;
+
+        public SvgGeometryWalker(XElement svg, UnitTransform transform)
+        {
+            _svg = svg;
+            _transform = transform;
+        }
+
+        public void SetStyle(GeometryStyle style)
+        {
+            Flush();
+            _style = style;
+        }
+
+        public void Create(int id, GeometrySet geometrySet)
+        {
+            var pathWalker = new SvgPathWalker(_transform);
+
+            if (geometrySet.StartPoint is not null || geometrySet.EndPoint is not null)
             {
-                continue;
+                var clampedWalker = new ClampedGeometryWalker(pathWalker);
+                clampedWalker.SetStartEnd(geometrySet.StartPoint, geometrySet.EndPoint);
+                geometrySet.Resolver.Walk(clampedWalker);
+            }
+            else
+            {
+                geometrySet.Resolver.Walk(pathWalker);
             }
 
-            var fill        = shape.FillColor.A == 0 ? "none" : ColorToSvg(shape.FillColor);
-            var stroke      = ColorToSvg(shape.LineColor);
-            var strokeWidth = Num(shape.LineWidth.Millimeters);
+            var pathData = pathWalker.Build();
+
+            if (!string.IsNullOrEmpty(pathData))
+            {
+                if (_pendingPaths.Length > 0)
+                    _pendingPaths.Append(' ');
+
+                _pendingPaths.Append(pathData);
+                _pendingClosed |= pathWalker.Closed;
+            }
+
+            foreach (var (resource, overlayTransform) in geometrySet.Overlays)
+            {
+                _pendingOverlays.Add((resource.Shape, _transform * overlayTransform));
+            }
+        }
+
+        public void Update(int id, GeometrySet geometrySet) { }
+
+        public void Destroy(int id) { }
+
+        public void Dispose()
+        {
+            Flush();
+        }
+
+        private void Flush()
+        {
+            if (_pendingPaths.Length > 0)
+            {
+                _svg.Add(BuildPathElement(_pendingPaths.ToString(), _pendingClosed));
+                _pendingPaths.Clear();
+                _pendingClosed = false;
+            }
+
+            foreach (var (shape, transform) in _pendingOverlays)
+            {
+                AppendShape(shape, transform);
+            }
+
+            _pendingOverlays.Clear();
+        }
+
+        private void AppendShape(Shape shape, UnitTransform transform)
+        {
+            foreach (var polygon in shape.PolygonSet)
+            {
+                var pathWalker = new SvgPathWalker(transform);
+                polygon.Resolver.Walk(pathWalker);
+                var pathData = pathWalker.Build();
+
+                if (!string.IsNullOrEmpty(pathData))
+                {
+                    _svg.Add(BuildPathElement(pathData, pathWalker.Closed));
+                }
+            }
+        }
+
+        private XElement BuildPathElement(string pathData, bool closed)
+        {
+            var fill        = closed && _style.FillColor.A != 0 ? ColorToSvg(_style.FillColor) : "none";
+            var stroke      = ColorToSvg(_style.LineColor);
+            var strokeWidth = Num(_style.LineWidth.Millimeters);
 
             var path = new XElement(SvgNs + "path",
                 new XAttribute("d",              pathData),
                 new XAttribute("fill",           fill),
+                new XAttribute("fill-rule",      "evenodd"),
                 new XAttribute("stroke",         stroke),
                 new XAttribute("stroke-width",   strokeWidth),
-                new XAttribute("stroke-opacity", Num(shape.LineColor.A / 255.0)));
+                new XAttribute("stroke-opacity", Num(_style.LineColor.A / 255.0)));
 
-            if (shape.LineStyle == LineStyleResourceId.Dashes)
+            if (_style.LineStyle == LineStyleResourceId.Dashes)
             {
-                var dash = shape.LineWidth.Millimeters;
+                var dash = _style.LineWidth.Millimeters;
                 path.Add(new XAttribute("stroke-dasharray", $"{Num(dash * 4)} {Num(dash * 2)}"));
             }
 
-            yield return path;
+            return path;
         }
     }
 
-    private static string BuildPathData(IPolygon polygon, UnitTransform transform)
+    private class SvgTextWalker : ITextWalker, IDisposable
     {
-        if (polygon.Vertices.Count == 0)
+        private readonly XElement _svg;
+        private readonly UnitTransform _parentTransform;
+        private UnitTransform _worldTransform;
+        private TextStyle _style;
+        private UnitBounds? _bounds;
+        private string _text = "";
+
+        public SvgTextWalker(XElement svg, UnitTransform parentTransform)
         {
-            return string.Empty;
+            _svg = svg;
+            _parentTransform = parentTransform;
+            _worldTransform = parentTransform;
+            _style = new TextStyle();
         }
 
-        var sb = new StringBuilder();
+        public void SetTransform(UnitTransform localTransform) =>
+            _worldTransform = _parentTransform * localTransform;
+        public void SetStyle(TextStyle style) => _style = style;
+        public void SetBounds(UnitBounds? bounds) => _bounds = bounds;
+        public void SetText(string text) => _text = text;
 
-        var first = transform.Apply(polygon.Vertices[0].Position);
-        sb.Append($"M {Num(first.X.Millimeters)},{Num(first.Y.Millimeters)}");
-
-        for (int i = 0; i < polygon.Edges.Count; i++)
+        public void Dispose()
         {
-            var edge       = polygon.Edges[i];
-            var fromVertex = polygon.Vertices.At(i);
-            var toVertex   = polygon.Vertices.At((i + 1) % polygon.Vertices.Count);
-            var to         = transform.Apply(toVertex.Position);
+            if (string.IsNullOrEmpty(_text)) return;
 
-            if (edge.Type == EdgeType.Bezier)
+            Unit2D origin;
+            if (_bounds is not null)
             {
-                var cp1 = transform.Apply(fromVertex.Position + edge.ControlBeginOffset);
-                var cp2 = transform.Apply(toVertex.Position   + edge.ControlEndOffset);
-
-                sb.Append($" C {Num(cp1.X.Millimeters)},{Num(cp1.Y.Millimeters)}");
-                sb.Append($" {Num(cp2.X.Millimeters)},{Num(cp2.Y.Millimeters)}");
-                sb.Append($" {Num(to.X.Millimeters)},{Num(to.Y.Millimeters)}");
+                var b = _bounds.Value;
+                var localX = _style.Justification switch
+                {
+                    Justification.Center => b.Center.X,
+                    Justification.Right  => b.Max.X,
+                    _                    => b.Min.X
+                };
+                origin = _worldTransform.Apply(new Unit2D(localX, b.Min.Y));
             }
             else
             {
-                sb.Append($" L {Num(to.X.Millimeters)},{Num(to.Y.Millimeters)}");
+                origin = _worldTransform.Position;
             }
-        }
 
-        if (polygon.Closed)
+            var x = Num(origin.X.Millimeters);
+            var y = Num(origin.Y.Millimeters);
+            var fontSize = Num(Unit.FromFontSizePoints(_style.Size).Millimeters);
+
+            var anchor = _style.Justification switch
+            {
+                Justification.Center => "middle",
+                Justification.Right  => "end",
+                _                    => "start"
+            };
+
+            var elem = new XElement(SvgNs + "text",
+                new XAttribute("x",                x),
+                new XAttribute("y",                y),
+                new XAttribute("font-family",      _style.Font),
+                new XAttribute("font-size",        fontSize),
+                new XAttribute("fill",             ColorToSvg(_style.Color)),
+                new XAttribute("text-anchor",      anchor),
+                new XAttribute("dominant-baseline","hanging"),
+                _text);
+
+            if (_worldTransform.Angle != 0)
+            {
+                elem.Add(new XAttribute("transform",
+                    $"rotate({Num((double)_worldTransform.Angle)},{x},{y})"));
+            }
+
+            _svg.Add(elem);
+        }
+    }
+
+    private class SvgImageWalker : IImageWalker, IDisposable
+    {
+        private readonly XElement _svg;
+        private readonly UnitTransform _transform;
+        private UnitBounds? _bounds;
+        private byte[]? _imageData;
+
+        public SvgImageWalker(XElement svg, UnitTransform transform)
         {
-            sb.Append(" Z");
+            _svg = svg;
+            _transform = transform;
         }
 
-        return sb.ToString();
+        public void SetBounds(UnitBounds? bounds) => _bounds = bounds;
+        public void SetImageData(byte[] imageData) => _imageData = imageData;
+
+        public void Dispose()
+        {
+            if (_bounds is null || _imageData is null || _imageData.Length == 0) return;
+
+            var b = _bounds.Value;
+            var mime = DetectMimeType(_imageData);
+            var base64 = Convert.ToBase64String(_imageData);
+
+            var x      = Num(b.Min.X.Millimeters);
+            var y      = Num(b.Min.Y.Millimeters);
+            var width  = Num(b.Size.X.Millimeters);
+            var height = Num(b.Size.Y.Millimeters);
+
+            var elem = new XElement(SvgNs + "image",
+                new XAttribute("x",      x),
+                new XAttribute("y",      y),
+                new XAttribute("width",  width),
+                new XAttribute("height", height),
+                new XAttribute("href",   $"data:{mime};base64,{base64}"));
+
+            var tx = Num(_transform.Position.X.Millimeters);
+            var ty = Num(_transform.Position.Y.Millimeters);
+
+            if (_transform.Angle != 0)
+                elem.Add(new XAttribute("transform",
+                    $"translate({tx},{ty}) rotate({Num((double)_transform.Angle)})"));
+            else if (_transform.Position != Unit2D.Zero)
+                elem.Add(new XAttribute("transform", $"translate({tx},{ty})"));
+
+            _svg.Add(elem);
+        }
+
+        private static string DetectMimeType(byte[] data)
+        {
+            if (data.Length >= 4 &&
+                data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
+                return "image/png";
+
+            if (data.Length >= 2 && data[0] == 0xFF && data[1] == 0xD8)
+                return "image/jpeg";
+
+            return "image/png";
+        }
+    }
+
+    private class SvgPathWalker : IGeometryWalker
+    {
+        private readonly UnitTransform _transform;
+        private readonly StringBuilder _sb = new();
+        private bool _started;
+        private bool _closed;
+
+        public bool Closed => _closed;
+
+        public SvgPathWalker(UnitTransform transform)
+        {
+            _transform = transform;
+        }
+
+        public bool Begin(int segmentCount, bool closed)
+        {
+            _started = false;
+            _closed = closed;
+            return segmentCount > 0;
+        }
+
+        public bool Segment(int segmentIndex, PolygonSegment segment)
+        {
+            if (segment.IsLine)
+            {
+                var line = segment.Line;
+
+                if (!_started)
+                {
+                    var from = _transform.Apply(line.Start);
+                    _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                    _started = true;
+                }
+
+                var to = _transform.Apply(line.End);
+                _sb.Append($" L {Num(to.X.Millimeters)},{Num(to.Y.Millimeters)}");
+            }
+            else if (segment.IsBezier)
+            {
+                var b = segment.Bezier;
+
+                if (!_started)
+                {
+                    var from = _transform.Apply(b.P0);
+                    _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                    _started = true;
+                }
+
+                var p1 = _transform.Apply(b.P1);
+                var p2 = _transform.Apply(b.P2);
+                var p3 = _transform.Apply(b.P3);
+
+                _sb.Append($" C {Num(p1.X.Millimeters)},{Num(p1.Y.Millimeters)}");
+                _sb.Append($" {Num(p2.X.Millimeters)},{Num(p2.Y.Millimeters)}");
+                _sb.Append($" {Num(p3.X.Millimeters)},{Num(p3.Y.Millimeters)}");
+            }
+            else if (segment.IsArc)
+            {
+                var arc = segment.Arc;
+                AppendArc(arc);
+            }
+
+            return true;
+        }
+
+        public string Build()
+        {
+            if (!_started)
+            {
+                return string.Empty;
+            }
+
+            if (_closed)
+            {
+                _sb.Append(" Z");
+            }
+
+            return _sb.ToString();
+        }
+
+        private void AppendArc(Arc arc)
+        {
+            if (!_started)
+            {
+                var from = _transform.Apply(arc.Start);
+                _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                _started = true;
+            }
+
+            var end = _transform.Apply(arc.End);
+            var r   = arc.Radius.Millimeters;
+
+            var totalAngle  = arc.EndAngle - arc.StartAngle;
+            var largeArc    = Math.Abs(totalAngle) > Math.PI ? 1 : 0;
+            var sweep       = totalAngle > 0 ? 1 : 0;
+
+            _sb.Append($" A {Num(r)},{Num(r)} 0 {largeArc} {sweep} {Num(end.X.Millimeters)},{Num(end.Y.Millimeters)}");
+        }
     }
 
     private static string ColorToSvg(Color color)

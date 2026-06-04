@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -17,7 +18,7 @@ public class TextToolOverlay : Canvas, IDisposable
     public double FontSize { get; set; } = 12.0;
     public string FontFamilyName { get; set; } = "Arial";
 
-    public event Action<Unit2D, string>? OnTextPlaced;
+    public event Action<Unit2D, Unit2D, string>? OnTextPlaced;
 
     public TextToolOverlay(IViewport viewport, IUnitSnap unitSnap)
     {
@@ -118,7 +119,7 @@ public class TextToolOverlay : Canvas, IDisposable
 
         if (commit && _pendingPosition.HasValue && !string.IsNullOrWhiteSpace(text))
         {
-            OnTextPlaced?.Invoke(_pendingPosition.Value, text);
+            OnTextPlaced?.Invoke(_pendingPosition.Value, Measure(text), text);
         }
 
         _pendingPosition = null;
@@ -137,5 +138,26 @@ public class TextToolOverlay : Canvas, IDisposable
         }
 
         InvalidateVisual();
+    }
+    
+    private Unit2D Measure(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return Unit2D.Zero;
+        }
+
+        var fontFamily = new FontFamily(FontFamilyName);
+
+        var ft = new FormattedText(
+            text,
+            CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+            FontSize,
+            Brushes.Black,
+            1.0);
+
+        return new Unit2D(Unit.FromMillimeters(ft.Width + 0.5), Unit.FromMillimeters(ft.Height));
     }
 }

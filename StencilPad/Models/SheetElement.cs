@@ -28,11 +28,11 @@ public abstract class SheetElement : ModelBase, ISheetElement
             if (_transform != value)
             {
                 _transform = value;
-                TransformChanged?.Invoke(this);
+                OnTransformChanged();
             }
         }
     }
-
+    
     public event Action<ISheetElement>? TransformChanged;
     public event Action<ISheetElement>? GeometryChanged;
 
@@ -45,7 +45,10 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public void QueryHandles(Action<Handle, Unit2D, bool> func)
     {
-        _elementHandleSource?.QueryHandles(func);
+        _elementHandleSource?.QueryHandles((handle, position, selected) =>
+        {
+            func(handle, Transform.Apply(position), selected);
+        });
     }
 
     public void SetHandleSelected(Handle handle, bool selected)
@@ -55,12 +58,12 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public Unit2D GetPoint(Handle handle)
     {
-        return _elementHandleSource?.GetPoint(handle) ?? Unit2D.Zero;
+        return Transform.Apply(_elementHandleSource?.GetPoint(handle) ?? Unit2D.Zero);
     }
     
     public void SetPoint(Handle handle, Unit2D position)
     {
-        _elementHandleSource?.SetPoint(handle, position);
+        _elementHandleSource?.SetPoint(handle, Transform.InverseApply(position));
     }
 
     protected void SetHandleSource(IHandleSource newHandleSource)
@@ -113,7 +116,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
     
     private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
     {
-        HandleAdded?.Invoke(this, handle, position, selected);
+        HandleAdded?.Invoke(this, handle, Transform.Apply(position), selected);
     }
 
     private void InvokeHandleRemoved(IHandleSource source, Handle handle)
@@ -123,7 +126,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     private void InvokeHandleMoved(IHandleSource source, Handle handle, Unit2D position)
     {
-        HandleMoved?.Invoke(this, handle, position);
+        HandleMoved?.Invoke(this, handle, Transform.Apply(position));
     }
 
     private void InvokeHandleSelectionChanged(IHandleSource source, Handle handle, bool selected)
@@ -131,6 +134,26 @@ public abstract class SheetElement : ModelBase, ISheetElement
         HandleSelectionChanged?.Invoke(this, handle, selected);
     }
 
+    private void MoveAllHandles()
+    {
+        if (_elementHandleSource is null)
+        {
+            return;
+        }
+
+        _elementHandleSource.QueryHandles(MoveAllInvoke);
+    }
+
+    private void MoveAllInvoke(Handle handle, Unit2D position, bool selected)
+    {
+        if (_elementHandleSource is null)
+        {
+            return;
+        }
+        
+        InvokeHandleMoved(_elementHandleSource, handle, position);
+    }
+    
     protected void FireGeometryChanged()
     {
         GeometryChanged?.Invoke(this);
@@ -143,4 +166,10 @@ public abstract class SheetElement : ModelBase, ISheetElement
     public abstract void SetBounds(UnitBounds newBounds, UnitTransform transform);
     public abstract void AssignFromElement(ISheetElement other);
     public abstract ISheetElement DeepClone();
+
+    protected virtual void OnTransformChanged()
+    {
+        TransformChanged?.Invoke(this);
+        MoveAllHandles();
+    }
 }

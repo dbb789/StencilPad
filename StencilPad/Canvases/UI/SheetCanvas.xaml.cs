@@ -105,9 +105,7 @@ namespace StencilPad.Canvases.UI
             _viewport = new VisualViewport();
             _handleMap = new HandleMap();
 
-            var sheetElementRendererFactory = new SheetElementRendererFactory(resourceService);
-            
-            _sheetRenderer = new SheetRenderer(sheetElementRendererFactory);
+            _sheetRenderer = new SheetRenderer(resourceService);
             
             _editOverlayRenderer = new EditOverlayRenderer();
 

@@ -7,12 +7,9 @@ public class ElementGroup : SheetElement<ElementGroup>
     public IEnumerable<ISheetElement> Children => _children;
 
     private List<ISheetElement> _children;
-    private GroupHandleSource _groupHandleSource;
+    private GroupHandleSource<ISheetElement> _groupHandleSource;
 
     public event Action? ChildrenChanged;
-
-    private void OnChildGeometryChanged(ISheetElement _) => FireGeometryChanged();
-    private void OnChildTransformChanged(ISheetElement _) => FireGeometryChanged();
 
     private void SubscribeChildren(IEnumerable<ISheetElement> children)
     {
@@ -43,6 +40,7 @@ public class ElementGroup : SheetElement<ElementGroup>
     {
         _children = new(children.Select(c => c.DeepClone()));
         _groupHandleSource = new(_children);
+        
         SetHandleSource(_groupHandleSource);
         SubscribeChildren(_children);
     }
@@ -109,6 +107,16 @@ public class ElementGroup : SheetElement<ElementGroup>
         }
 
         return bounds ?? UnitBounds.Empty;
+    }
+
+    private void OnChildGeometryChanged(ISheetElement element)
+    {
+        FireGeometryChanged();
+    }
+
+    private void OnChildTransformChanged(ISheetElement _)
+    {
+        FireGeometryChanged();
     }
 
     public override void SetBounds(UnitBounds newBounds, UnitTransform transform)

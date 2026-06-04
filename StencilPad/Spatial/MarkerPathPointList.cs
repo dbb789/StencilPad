@@ -33,7 +33,7 @@ public class MarkerPathPointList
     {
         _distanceWalker.Reset(offset);
 
-        polygon.Resolver.WalkPolygon(_distanceWalker);
+        polygon.Resolver.Walk(_distanceWalker);
 
         var startPoint = _distanceWalker.Point;
 
@@ -42,7 +42,7 @@ public class MarkerPathPointList
         _balanced = false;
         _spacing = spacing;
 
-        polygon.Resolver.WalkPolygon(_collectWalker);
+        polygon.Resolver.Walk(_collectWalker);
 
         int segmentOffset = 0;
         double startFraction = 0;

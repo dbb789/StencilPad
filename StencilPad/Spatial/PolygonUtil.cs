@@ -19,7 +19,7 @@ public static class PolygonUtil
 
         var walker = new EvenOddWalker(point);
 
-        polygon.Resolver.WalkPolygon(walker);
+        polygon.Resolver.Walk(walker);
 
         if (!polygon.Closed)
         {
