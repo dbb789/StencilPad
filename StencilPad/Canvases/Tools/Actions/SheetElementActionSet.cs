@@ -101,14 +101,19 @@ public class SheetElementActionSet
                 {
                     var operation = new BulkCommandOperation();
                     var children = new List<ISheetElement>();
+                    var orderedElements = elements.OrderBy(e => sheet.Elements.IndexOf(e));
 
-                    foreach (var element in elements)
+                    foreach (var element in orderedElements)
                     {
-                        if (element is ElementGroup)
+                        if (element is ElementGroup existingGroup)
                         {
-                            foreach (var child in ((ElementGroup)element).Children)
+                            foreach (var child in existingGroup.Children)
                             {
-                                children.Add(child.DeepClone());
+                                var clone = child.DeepClone();
+                                
+                                clone.Transform = existingGroup.Transform * clone.Transform;
+
+                                children.Add(clone);
                             }
                         }
                         else
