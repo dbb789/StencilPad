@@ -1,6 +1,6 @@
 namespace StencilPad.Models.Resolvers;
 
-public interface IStyledGeometryWalker : IDisposable
+public interface IStyledGeometryWalker
 {
     void SetStyle(GeometryStyle style);
 

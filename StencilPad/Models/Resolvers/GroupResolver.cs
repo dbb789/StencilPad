@@ -15,6 +15,7 @@ public class GroupResolver : IModelResolver
         _children = new();
 
         _group.TransformChanged += TransformChanged;
+        _group.ChildrenChanged += OnChildrenChanged;
     }
 
     public void Dispose()
@@ -22,41 +23,72 @@ public class GroupResolver : IModelResolver
         Detach();
         
         _group.TransformChanged -= TransformChanged;
+        _group.ChildrenChanged -= OnChildrenChanged;
     }
 
     public void Attach(IModelWalker walker)
     {
         _walker = walker;
         _walker.SetTransform(_group.Transform);
+        
         foreach (var element in _group.Children)
         {
-            var childResolver = ResolverFactory.Create(element, _resourceSet);
-
-            if (childResolver is not null)
-            {
-                var childWalker = _walker.CreateModelWalker();
-
-                childResolver.Attach(childWalker);
-                
-                _children.Add((childResolver, childWalker));
-            }
+            AddElement(element);
         }
     }
 
     public void Detach()
     {
-        foreach (var (childResolver, childWalker) in _children)
-        {
-            childResolver.Detach();
-            childWalker.Dispose();
-        }
+        ClearChildren();
 
-        _children.Clear();
         _walker = null;
     }
 
     private void TransformChanged(ISheetElement element)
     {
         _walker?.SetTransform(_group.Transform);
+    }
+
+    private void OnChildrenChanged()
+    {
+        if (_walker is null)
+        {
+            return;
+        }
+
+        ClearChildren();
+
+        foreach (var element in _group.Children)
+        {
+            AddElement(element);
+        }
+    }
+
+    private void ClearChildren()
+    {
+        foreach (var (childResolver, _) in _children)
+        {
+            childResolver.Dispose();
+        }
+
+        _children.Clear();
+    }
+
+    private void AddElement(ISheetElement element)
+    {
+        if (_walker is null)
+        {
+            return;
+        }
+        
+        var childResolver = ResolverFactory.Create(element, _resourceSet);
+
+        if (childResolver is not null)
+        {
+            var childWalker = _walker.CreateModelWalker();
+
+            childResolver.Attach(childWalker);
+            _children.Add((childResolver, childWalker));
+        }
     }
 }

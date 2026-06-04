@@ -2,7 +2,6 @@ using System.Collections.Specialized;
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
-using StencilPad.Services;
 
 namespace StencilPad.Rendering;
 
@@ -84,6 +83,19 @@ public class SheetRenderer : IDisposable
 
     private void ElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var renderer in _renderers.Values)
+            {
+                renderer.RendererDirty -= InvokeRendererDirty;
+                renderer.Dispose();
+            }
+
+            _renderers.Clear();
+            InvokeRendererDirty();
+            return;
+        }
+
         if (e.OldItems is not null)
         {
             foreach (var item in e.OldItems)
@@ -111,21 +123,22 @@ public class SheetRenderer : IDisposable
     
     private void AddRenderer(ISheetElement element, int index = -1)
     {
-        var resolver = ResolverFactory.Create(element, _resourceSet);
+        var renderer = new SheetElementRenderer(element, _resourceSet);
 
-        if (resolver is not null)
+        if (!renderer.HasContent)
         {
-            var renderer = new SheetElementRenderer(element, _resourceSet);
-
-            renderer.RendererDirty += InvokeRendererDirty;
-
-            if (index < 0)
-            {
-                index = _renderers.Count;
-            }
-            
-            _renderers.Insert(index, element, renderer);
+            renderer.Dispose();
+            return;
         }
+
+        renderer.RendererDirty += InvokeRendererDirty;
+
+        if (index < 0)
+        {
+            index = _renderers.Count;
+        }
+
+        _renderers.Insert(index, element, renderer);
     }
 
     private void RemoveRenderer(ISheetElement element)

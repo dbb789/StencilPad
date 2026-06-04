@@ -1,12 +1,13 @@
 using System.Windows.Media;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
-using StencilPad.Services;
 
 namespace StencilPad.Rendering;
 
 public class SheetElementRenderer
 {
+    public bool HasContent => _modelRenderer is not null;
+    
     private IModelResolver? _resolver;
     private ModelRenderer? _modelRenderer;
     
@@ -29,15 +30,14 @@ public class SheetElementRenderer
     {
         if (_resolver is not null)
         {
-            _resolver?.Detach();
-            _resolver?.Dispose();
+            _resolver.Dispose();
             _resolver = null;
         }
 
         if (_modelRenderer is not null)
         {
             _modelRenderer.RendererDirty -= InvokeRendererDirty;
-            _modelRenderer?.Dispose();
+            _modelRenderer.Dispose();
             _modelRenderer = null;
         }
     }

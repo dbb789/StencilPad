@@ -2,7 +2,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models.Resolvers;
 
-public interface ITextWalker : IDisposable
+public interface ITextWalker
 {
     void SetTransform(UnitTransform transform);
     void SetStyle(TextStyle style);

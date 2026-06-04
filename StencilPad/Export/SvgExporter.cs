@@ -60,7 +60,7 @@ public static class SvgExporter
         doc.Save(stream);
     }
 
-    private class SvgModelWalker : IModelWalker
+    private class SvgModelWalker : IModelWalker, IDisposable
     {
         private readonly XElement _svg;
         private readonly UnitTransform _parentTransform;
@@ -71,6 +71,7 @@ public static class SvgExporter
         {
             _svg = svg;
             _parentTransform = parentTransform;
+            _worldTransform = parentTransform;
         }
 
         public void SetTransform(UnitTransform localTransform)
@@ -115,7 +116,7 @@ public static class SvgExporter
         }
     }
 
-    private class SvgGeometryWalker : IStyledGeometryWalker
+    private class SvgGeometryWalker : IStyledGeometryWalker, IDisposable
     {
         private readonly XElement _svg;
         private readonly UnitTransform _transform;
@@ -234,22 +235,25 @@ public static class SvgExporter
         }
     }
 
-    private class SvgTextWalker : ITextWalker
+    private class SvgTextWalker : ITextWalker, IDisposable
     {
         private readonly XElement _svg;
-        private UnitTransform _transform;
+        private readonly UnitTransform _parentTransform;
+        private UnitTransform _worldTransform;
         private TextStyle _style;
         private UnitBounds? _bounds;
         private string _text = "";
 
-        public SvgTextWalker(XElement svg, UnitTransform transform)
+        public SvgTextWalker(XElement svg, UnitTransform parentTransform)
         {
             _svg = svg;
-            _transform = transform;
+            _parentTransform = parentTransform;
+            _worldTransform = parentTransform;
             _style = new TextStyle();
         }
 
-        public void SetTransform(UnitTransform transform) => _transform = transform;
+        public void SetTransform(UnitTransform localTransform) =>
+            _worldTransform = _parentTransform * localTransform;
         public void SetStyle(TextStyle style) => _style = style;
         public void SetBounds(UnitBounds? bounds) => _bounds = bounds;
         public void SetText(string text) => _text = text;
@@ -258,7 +262,7 @@ public static class SvgExporter
         {
             if (string.IsNullOrEmpty(_text)) return;
 
-            Unit2D localOrigin;
+            Unit2D origin;
             if (_bounds is not null)
             {
                 var b = _bounds.Value;
@@ -268,13 +272,12 @@ public static class SvgExporter
                     Justification.Right  => b.Max.X,
                     _                    => b.Min.X
                 };
-                localOrigin = new Unit2D(localX, b.Min.Y);
+                origin = _worldTransform.Apply(new Unit2D(localX, b.Min.Y));
             }
             else
             {
-                localOrigin = Unit2D.Zero;
+                origin = _worldTransform.Position;
             }
-            var origin = _transform.Apply(localOrigin);
 
             var x = Num(origin.X.Millimeters);
             var y = Num(origin.Y.Millimeters);
@@ -297,17 +300,17 @@ public static class SvgExporter
                 new XAttribute("dominant-baseline","hanging"),
                 _text);
 
-            if (_transform.Angle != 0)
+            if (_worldTransform.Angle != 0)
             {
                 elem.Add(new XAttribute("transform",
-                    $"rotate({Num((double)_transform.Angle)},{x},{y})"));
+                    $"rotate({Num((double)_worldTransform.Angle)},{x},{y})"));
             }
 
             _svg.Add(elem);
         }
     }
 
-    private class SvgImageWalker : IImageWalker
+    private class SvgImageWalker : IImageWalker, IDisposable
     {
         private readonly XElement _svg;
         private readonly UnitTransform _transform;
