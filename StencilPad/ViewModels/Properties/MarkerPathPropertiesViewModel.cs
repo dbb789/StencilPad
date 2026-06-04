@@ -77,10 +77,33 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         }
     }
 
+    private int _markerTypeIndex;
+    public int MarkerTypeIndex
+    {
+        get => _markerTypeIndex;
+        set
+        {
+            _markerTypeIndex = value;
+
+            foreach (var markerPath in Elements)
+            {
+                markerPath.MarkerType = _markerTypeIds[value];
+            }
+
+            OnPropertyChanged();
+        }
+    }
+
+    public IReadOnlyList<GeometryResourceId> MarkerTypeIds => _markerTypeIds;
+
+    private List<GeometryResourceId> _markerTypeIds;
+
     public MarkerPathPropertiesViewModel(IResourceService resourceService,
                                          Sheet sheet)
         : base(sheet)
     {
+        _markerTypeIds = new(resourceService.GetGeometryResourceIds(GeometryResourceType.Marker));
+        
         OnElementsChanged();
     }
 
@@ -97,5 +120,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
 
         _lineColor = Mode(e => e.LineColor);
         OnPropertyChanged(nameof(LineColor));
+
+        _markerTypeIndex = Mode(e => _markerTypeIds.IndexOf(e.MarkerType));
+        OnPropertyChanged(nameof(MarkerTypeIndex));
     }
 }
