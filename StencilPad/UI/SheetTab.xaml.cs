@@ -11,7 +11,7 @@ public partial class SheetTab : UserControl
 {
     private const double ZoomStep = 1.1;
     private const double ZoomMin = 0.1;
-    private const double ZoomMax = 3.0;
+    private const double ZoomMax = 5.0;
 
     private bool _showGrid = true;
     public bool ShowGrid

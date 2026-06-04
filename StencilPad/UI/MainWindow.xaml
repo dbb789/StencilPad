@@ -117,8 +117,8 @@
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
                     <Slider Name="RectangleHeight" 
-                            Width="140" Orientation="Horizontal" HorizontalAlignment="Left" 
-                            Value="{Binding SelectedTab.Zoom}" Minimum="0.1" Maximum="3" 
+                            Width="160" Orientation="Horizontal" HorizontalAlignment="Left" 
+                            Value="{Binding SelectedTab.Zoom}" Minimum="0.1" Maximum="5"
                             SmallChange="0.1" LargeChange="1"
                             IsSnapToTickEnabled="True"
                             TickPlacement="BottomRight"
