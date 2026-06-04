@@ -71,21 +71,7 @@ public class PolygonSheetElementEditActionSet
 
         public void Invoke(Sheet sheet, IEnumerable<ISheetElement> elements)
         {
-            var polygonSheetElements = elements.OfType<IPolygonSheetElement>();
-            var targets = new List<VertexCornerTarget>();
-
-            foreach (var element in polygonSheetElements)
-            {
-                foreach (var polygon in element.PolygonSet)
-                {
-                    foreach (var vertexIndex in polygon.GetSelectedVertices())
-                    {
-                        targets.Add(new VertexCornerTarget(element, polygon, vertexIndex));
-                    }
-                }
-            }
-
-            _modelPropertiesService.ShowVertexCornerProperties(sheet, targets);
+            _modelPropertiesService.ShowVertexCornerProperties(sheet);
         }
     }
     

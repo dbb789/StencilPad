@@ -29,11 +29,11 @@ public class WpfModelPropertiesService : IModelPropertiesService
         _openWindow = null;
     }
 
-    public void ShowVertexCornerProperties(Sheet sheet, IEnumerable<VertexCornerTarget> targets)
+    public void ShowVertexCornerProperties(Sheet sheet)
     {
         _openWindow?.Close();
 
-        var window = new VertexCornerPropertiesWindow(sheet, targets, _operationService)
+        var window = new VertexCornerPropertiesWindow(sheet, _operationService)
         {
             Owner = _owner
         };

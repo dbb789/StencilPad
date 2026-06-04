@@ -8,11 +8,10 @@ namespace StencilPad.UI.Properties;
 public partial class VertexCornerPropertiesWindow : Window
 {
     public VertexCornerPropertiesWindow(Sheet sheet,
-                                        IEnumerable<VertexCornerTarget> targets,
                                         IOperationService operationService)
     {
         InitializeComponent();
-        DataContext = new VertexCornerPropertiesViewModel(sheet, targets, operationService);
+        DataContext = new VertexCornerPropertiesViewModel(sheet, operationService);
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)

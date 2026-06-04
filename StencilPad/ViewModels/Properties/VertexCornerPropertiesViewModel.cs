@@ -1,5 +1,4 @@
 using StencilPad.Models;
-using StencilPad.Models.Operations;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
@@ -9,13 +8,6 @@ public record CornerTypeItem(CornerType Value, string Description);
 
 public class VertexCornerPropertiesViewModel : ViewModelBase
 {
-    private readonly Sheet _sheet;
-    private readonly IEnumerable<VertexCornerTarget> _targets;
-    private readonly IEnumerable<ISheetElement> _elements;
-    private readonly IOperationService _operationService;
-    private CornerType _cornerType;
-    private CornerSize _cornerSize;
-
     public static IReadOnlyList<CornerTypeItem> CornerTypes { get; } =
     [
         new(CornerType.None, "None"),
@@ -23,10 +15,9 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         new(CornerType.Beveled, "Beveled"),
     ];
 
-    public string Title => _targets.Count() == 1
-        ? "Vertex Corner"
-        : $"Vertex Corner ({_targets.Count()} selected)";
+    public string Title => "Corner Properties";
 
+    private CornerType _cornerType;
     public CornerType CornerType
     {
         get => _cornerType;
@@ -34,50 +25,112 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
         {
             SetProperty(ref _cornerType, value);
 
-            using var context = _operationService.CreateEditContext(_sheet, _elements);
+            var elements = _sheet.Selection.OfType<IPolygonSheetElement>();
             
-            foreach (var target in _targets)
+            using var context = _operationService.CreateEditContext(_sheet, elements);
+            
+            foreach (var element in elements)
             {
-                var polygon = target.Polygon;
-                var vertex = polygon.Vertices[target.VertexIndex];
+                foreach (var polygon in element.PolygonSet)
+                {
+                    foreach (var vertexIndex in polygon.GetSelectedVertices())
+                    {
+                        var vertex = polygon.Vertices[vertexIndex];
 
-                polygon.Vertices[target.VertexIndex] = vertex with { CornerType = value };
+                        polygon.Vertices[vertexIndex] = vertex with { CornerType = value };
+                    }
+                }
             }
         }
     }
 
+    private CornerSize _cornerSize;
     public CornerSize CornerSize
     {
         get => _cornerSize;
         set
         {
             SetProperty(ref _cornerSize, value);
+            
+            var elements = _sheet.Selection.OfType<IPolygonSheetElement>();
+            
+            using var context = _operationService.CreateEditContext(_sheet, elements);
 
-            using var context = _operationService.CreateEditContext(_sheet, _elements);
-
-            foreach (var target in _targets)
+            foreach (var element in elements)
             {
-                var polygon = target.Polygon;
-                var vertex = polygon.Vertices[target.VertexIndex];
+                foreach (var polygon in element.PolygonSet)
+                {
+                    foreach (var vertexIndex in polygon.GetSelectedVertices())
+                    {
+                        var vertex = polygon.Vertices[vertexIndex];
 
-                polygon.Vertices[target.VertexIndex] = vertex with { CornerSize = value };
+                        polygon.Vertices[vertexIndex] = vertex with { CornerSize = value };
+                    }
+                }
             }
         }
     }
 
+    private readonly Sheet _sheet;
+    private readonly IOperationService _operationService;
+
     public VertexCornerPropertiesViewModel(Sheet sheet,
-                                           IEnumerable<VertexCornerTarget> targets,
                                            IOperationService operationService)
     {
-        var first = targets.First();
-        var vertex = first.Polygon.Vertices[first.VertexIndex];
-        
-        _cornerType = vertex.CornerType;
-        _cornerSize = vertex.CornerSize;
-        
         _sheet = sheet;
-        _targets = targets;
-        _elements = new HashSet<ISheetElement>(_targets.Select(t => t.Element));
         _operationService = operationService;
+
+        var cornerTypes = new List<CornerType>();
+        var cornerSizes = new List<CornerSize>();
+        
+        var elements = _sheet.Selection.OfType<IPolygonSheetElement>();
+
+        foreach (var element in elements)
+        {
+            foreach (var polygon in element.PolygonSet)
+            {
+                foreach (var vertexIndex in polygon.GetSelectedVertices())
+                {
+                    var vertex = polygon.Vertices[vertexIndex];
+
+                    cornerTypes.Add(vertex.CornerType);
+                    cornerSizes.Add(vertex.CornerSize);
+                }
+            }
+        }
+
+        _cornerType = Mode(cornerTypes, CornerType.None);
+        _cornerSize = Mode(cornerSizes, CornerSize.Zero);
+    }
+    
+    private T Mode<T>(IEnumerable<T> values, T defaultValue) where T : notnull
+    {
+        var map = new Dictionary<T, int>();
+
+        foreach (var value in values)
+        {
+            if (map.TryGetValue(value, out var count))
+            {
+                map[value] = count + 1;
+            }
+            else
+            {
+                map[value] = 1;
+            }
+        }
+
+        T highest = defaultValue;
+        int highestCount = 0;
+
+        foreach (var (value, count) in map)
+        {
+            if (count > highestCount)
+            {
+                highest = value;
+                highestCount = count;
+            }
+        }
+
+        return highest;
     }
 }

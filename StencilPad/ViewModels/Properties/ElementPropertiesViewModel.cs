@@ -70,6 +70,37 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
         // ...
     }
 
+    protected T? Mode<T>(IEnumerable<T> values) where T : notnull
+    {
+        var map = new Dictionary<T, int>();
+
+        foreach (var value in values)
+        {
+            if (map.TryGetValue(value, out var count))
+            {
+                map[value] = count + 1;
+            }
+            else
+            {
+                map[value] = 1;
+            }
+        }
+
+        T? highest = default;
+        int highestCount = 0;
+
+        foreach (var (value, count) in map)
+        {
+            if (count > highestCount)
+            {
+                highest = value;
+                highestCount = count;
+            }
+        }
+
+        return highest;
+    }
+
     protected T? Mode<T>(Func<TElement, T> selector) where T : notnull
     {
         var map = new Dictionary<T, int>();
