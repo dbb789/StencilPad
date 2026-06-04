@@ -9,7 +9,7 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
 {
     private readonly IResourceService _resourceService;
     private readonly List<IWalkerRenderer> _renderers;
-    private IModelResolver _resolver;
+    private readonly IModelResolver _resolver;
     private Transform _transform;
 
     public ModelRenderer(IModelResolver resolver, IResourceService resourceService)
@@ -59,6 +59,17 @@ public class ModelRenderer : SheetElementRenderer, IModelWalker, IWalkerRenderer
     public ITextWalker CreateTextWalker()
     {
         var renderer = new TextRenderer();
+        
+        renderer.RendererDirty += InvokeRendererDirty;
+
+        _renderers.Add(renderer);
+        
+        return renderer;
+    }
+
+    public IImageWalker CreateImageWalker()
+    {
+        var renderer = new ImageRenderer();
         
         renderer.RendererDirty += InvokeRendererDirty;
 

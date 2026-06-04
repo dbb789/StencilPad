@@ -9,4 +9,5 @@ public interface IModelWalker : IDisposable
     IModelWalker CreateModelWalker(IModelResolver resolver);
     IStyledGeometryWalker CreateStyledGeometryWalker();
     ITextWalker CreateTextWalker();
+    IImageWalker CreateImageWalker();
 }

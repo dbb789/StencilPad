@@ -79,9 +79,7 @@ public static class SvgExporter
 
         public IModelWalker CreateModelWalker(IModelResolver resolver)
         {
-            var walker = new SvgModelWalker(_svg);
-            walker.SetTransform(_transform);
-            return walker;
+            throw new NotSupportedException("Model elements are not supported in SVG export.");
         }
 
         public IStyledGeometryWalker CreateStyledGeometryWalker()
@@ -96,6 +94,11 @@ public static class SvgExporter
             var walker = new SvgTextWalker(_svg, _transform);
             _textWalkers.Add(walker);
             return walker;
+        }
+
+        public IImageWalker CreateImageWalker()
+        {
+            throw new NotSupportedException("Image elements are not supported in SVG export.");
         }
 
         public void Dispose()
