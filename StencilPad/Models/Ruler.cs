@@ -118,6 +118,9 @@ public class Ruler : SheetElement<Ruler>
     {
         _minMaxHandleSource.AssignFrom(other._minMaxHandleSource);
         Transform = other.Transform;
+        
+        FontName = other.FontName;
+        FontSize = other.FontSize;
         Color = other.Color;
     }
 

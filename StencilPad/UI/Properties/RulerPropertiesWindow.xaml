@@ -49,7 +49,8 @@
         <TextBlock Grid.Row="2" Text="Colour:"/>
 
         <!-- Colour picker -->
-        <widgets:ColorField Grid.Row="4"
+        <widgets:ColorField x:Name="ColorField"
+                            Grid.Row="4"
                             Value="{Binding Color}"/>
 
         <Button Grid.Row="6" Content="Close"

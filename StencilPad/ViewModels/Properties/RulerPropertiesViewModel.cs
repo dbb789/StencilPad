@@ -1,5 +1,6 @@
 using System.Windows.Media;
 using StencilPad.Models;
+using StencilPad.Services;
 
 namespace StencilPad.ViewModels.Properties;
 
@@ -14,6 +15,8 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
         set
         {
             _color = value;
+            
+            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
 
             foreach (var element in Elements)
             {
@@ -31,6 +34,8 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
         set
         {
             _fontName = value;
+            
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
 
             foreach (var element in Elements)
             {
@@ -49,6 +54,8 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
         {
             _fontSize = value;
 
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
+
             foreach (var element in Elements)
             {
                 element.FontSize = value;
@@ -58,10 +65,28 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
         }
     }
 
-    public RulerPropertiesViewModel(Sheet sheet)
+    private readonly Sheet _sheet;
+    private readonly IOperationService _operationService;
+    private IDisposable? _dragContext;
+        
+    public RulerPropertiesViewModel(Sheet sheet,
+                                    IOperationService operationService)
         : base(sheet)
     {
+        _sheet = sheet;
+        _operationService = operationService;
+
         OnElementsChanged();
+    }
+    
+    public void DragBegin()
+    {
+        _dragContext = _operationService.CreateEditContext(_sheet, Elements);
+    }
+
+    public void DragEnd()
+    {
+        _dragContext?.Dispose();
     }
 
     protected override void OnElementsChanged()

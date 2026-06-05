@@ -93,7 +93,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new RulerPropertiesWindow(sheet)
+        var window = new RulerPropertiesWindow(sheet, _operationService)
         {
             Owner = _owner
         };
