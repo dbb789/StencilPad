@@ -27,10 +27,23 @@ public partial class ColorField : UserControl
     private Color _committedColor;
     private string _hexValue = "";
 
+    public event Action? DragBegin;
+    public event Action? DragEnd;
+
     public ColorField()
     {
         InitializeComponent();
 
+        AttachDragHandlers(HueSlider);
+        AttachDragHandlers(SaturationSlider);
+        AttachDragHandlers(BrightnessSlider);
+        AttachDragHandlers(RedSlider);
+        AttachDragHandlers(GreenSlider);
+        AttachDragHandlers(BlueSlider);
+
+        SvPicker.DragBegin += () => DragBegin?.Invoke();
+        SvPicker.DragEnd += () => DragEnd?.Invoke();
+        
         HueSlider.ValueChanged += (_, _) =>
         {
             _hue = HueSlider.Value * 360;
@@ -288,5 +301,11 @@ public partial class ColorField : UserControl
         {
             _alpha = 1;
         }
+    }
+
+    private void AttachDragHandlers(ColorFieldSliderBase slider)
+    {
+        slider.DragBegin += () => DragBegin?.Invoke();
+        slider.DragEnd += () => DragEnd?.Invoke();
     }
 }

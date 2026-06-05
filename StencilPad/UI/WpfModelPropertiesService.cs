@@ -63,7 +63,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new ShapePropertiesWindow(_resourceService, sheet)
+        var window = new ShapePropertiesWindow(sheet, _resourceService, _operationService)
         {
             Owner = _owner
         };

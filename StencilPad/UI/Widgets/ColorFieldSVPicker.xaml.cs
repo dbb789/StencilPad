@@ -39,6 +39,8 @@ public partial class ColorFieldSVPicker : UserControl
 
     private bool _dragging;
 
+    public event Action? DragBegin;
+    public event Action? DragEnd;
     public event EventHandler? ValueChanged;
 
     public ColorFieldSVPicker()
@@ -72,6 +74,8 @@ public partial class ColorFieldSVPicker : UserControl
     private void DragCanvas_MouseDown(object sender, MouseButtonEventArgs e)
     {
         _dragging = true;
+        DragBegin?.Invoke();
+
         DragCanvas.CaptureMouse();
         SetValueFromPoint(e.GetPosition(DragCanvas));
     }
@@ -92,6 +96,7 @@ public partial class ColorFieldSVPicker : UserControl
         }
 
         _dragging = false;
+        DragEnd?.Invoke();
         DragCanvas.ReleaseMouseCapture();
     }
 

@@ -17,6 +17,12 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
         {
             _fillColor = value;
 
+            // Note the use of TryCreateEditContext here - this is because we
+            // may or may not be in the middle of a drag operation, and we don't
+            // want to create an edit context if we are. Same goes for LineColor
+            // below.
+            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
+
             foreach (var shape in Elements)
             {
                 shape.FillColor = value;
@@ -33,6 +39,8 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
         set
         {
             _lineColor = value;
+            
+            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
 
             foreach (var shape in Elements)
             {
@@ -50,6 +58,8 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
         set
         {
             _lineWidth = value;
+            
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
 
             foreach (var shape in Elements)
             {
@@ -67,6 +77,8 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
         set
         {
             _startCapIndex = value;
+            
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
 
             foreach (var shape in Elements)
             {
@@ -85,6 +97,8 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
         {
             _endCapIndex = value;
 
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
+
             foreach (var shape in Elements)
             {
                 shape.EndCap = _capIds[value];
@@ -102,6 +116,8 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
         {
             _lineStyleIndex = value;
 
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
+
             foreach (var shape in Elements)
             {
                 shape.LineStyle = _lineStyles[value];
@@ -113,14 +129,21 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
     
     public IReadOnlyList<GeometryResourceId> CapIds => _capIds;
     public IReadOnlyList<LineStyleResourceId> LineStyleIds => _lineStyles;
-    
+
+    private readonly Sheet _sheet;
+    private readonly IOperationService _operationService;
     private List<GeometryResourceId> _capIds;
     private List<LineStyleResourceId> _lineStyles;
+    private IDisposable? _dragContext;
     
-    public ShapePropertiesViewModel(IResourceService resourceService,
-                                    Sheet sheet)
+    public ShapePropertiesViewModel(Sheet sheet,
+                                    IResourceService resourceService,
+                                    IOperationService operationService)
         : base(sheet)
     {
+        _sheet = sheet;
+        _operationService = operationService;
+
         _capIds = [ GeometryResourceId.None ];
         _capIds.AddRange(resourceService.GetGeometryResourceIds(GeometryResourceType.Cap));
 
@@ -130,6 +153,16 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
         OnElementsChanged();
     }
 
+    public void DragBegin()
+    {
+        _dragContext = _operationService.CreateEditContext(_sheet, Elements);
+    }
+
+    public void DragEnd()
+    {
+        _dragContext?.Dispose();
+    }
+    
     protected override void OnElementsChanged()
     {
         _fillColor = Mode(shape => shape.FillColor);

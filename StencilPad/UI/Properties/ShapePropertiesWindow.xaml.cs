@@ -10,13 +10,14 @@ namespace StencilPad.UI.Properties;
 public partial class ShapePropertiesWindow : Window
 {
     public ShapePropertiesViewModel ViewModel { get; }
-    
-    public ShapePropertiesWindow(IResourceService resourceService,
-                                 Sheet sheet)
+
+    public ShapePropertiesWindow(Sheet sheet,
+                                 IResourceService resourceService,
+                                 IOperationService operationService)
     {
         InitializeComponent();
 
-        ViewModel = new ShapePropertiesViewModel(resourceService, sheet);
+        ViewModel = new ShapePropertiesViewModel(sheet, resourceService, operationService);
         DataContext = ViewModel;
         
         var startCapItems = ViewModel.CapIds.Select(
@@ -36,6 +37,22 @@ public partial class ShapePropertiesWindow : Window
                                              resourceService.Get(id))).ToList();
 
         LineStyleDropdown.Items = lineStyleItems;
+
+        Loaded += (_, _) =>
+        {
+            FillColorField.DragBegin += ViewModel.DragBegin;
+            FillColorField.DragEnd += ViewModel.DragEnd;
+            LineColorField.DragBegin += ViewModel.DragBegin;
+            LineColorField.DragEnd += ViewModel.DragEnd;
+        };
+
+        Unloaded += (_, _) =>
+        {
+            FillColorField.DragBegin -= ViewModel.DragBegin;
+            FillColorField.DragEnd -= ViewModel.DragEnd;
+            LineColorField.DragBegin -= ViewModel.DragBegin;
+            LineColorField.DragEnd -= ViewModel.DragEnd;
+        };
     }
 
     protected override void OnClosed(EventArgs e)

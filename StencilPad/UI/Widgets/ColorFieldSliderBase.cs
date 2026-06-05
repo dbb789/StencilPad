@@ -24,7 +24,9 @@ public abstract class ColorFieldSliderBase : UserControl
     private TextBox? _entryBox;
     private bool _updatingBox;
     private bool _dragging;
-
+    
+    public event Action? DragBegin;
+    public event Action? DragEnd;
     public event EventHandler? ValueChanged;
 
     protected void InitializeSlider(Canvas dragCanvas, Rectangle marker)
@@ -112,6 +114,8 @@ public abstract class ColorFieldSliderBase : UserControl
     private void DragCanvas_MouseDown(object sender, MouseButtonEventArgs e)
     {
         _dragging = true;
+        DragBegin?.Invoke();
+        
         _dragCanvas!.CaptureMouse();
         
         SetValueFromPoint(e.GetPosition(_dragCanvas));
@@ -135,6 +139,7 @@ public abstract class ColorFieldSliderBase : UserControl
         }
 
         _dragging = false;
+        DragEnd?.Invoke();
         _dragCanvas!.ReleaseMouseCapture();
     }
 

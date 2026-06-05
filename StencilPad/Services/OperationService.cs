@@ -6,6 +6,16 @@ namespace StencilPad.Services;
 
 public class OperationService : IOperationService
 {
+    private class DummyContext : IDisposable
+    {
+        public void Dispose()
+        {
+            // ...
+        }
+    }
+    
+    private static readonly IDisposable DummyContextInstance = new DummyContext();
+    
     public bool HasEditContext => _currentEditContext is not null;
     
     public event Action<IOperation, bool>? OperationPushed;
@@ -17,12 +27,14 @@ public class OperationService : IOperationService
     {
         if (_currentEditContext is not null)
         {
-            throw new InvalidOperationException("Cannot create a new edit context while another one is active");
+            // This is a warning rather than an error because a nested context
+            // is a bug and an annoyance that will lose undo steps, but throwing
+            // an exception would be outright disruptive to the user, possibly
+            // losing work.
+            Debug.WriteLine("Trying to create a new edit context while another one is active");
         }
 
-        _currentEditContext = new EditSheetElementContext(sheet, elements, this);
-
-        return _currentEditContext;
+        return TryCreateEditContext(sheet, elements);
     }
     
     public IDisposable CreateEditContext(Sheet sheet,
@@ -30,7 +42,34 @@ public class OperationService : IOperationService
     {
         if (_currentEditContext is not null)
         {
-            throw new InvalidOperationException("Cannot create a new edit context while another one is active");
+            Debug.WriteLine("Trying to create a new edit context while another one is active");
+        }
+
+        return TryCreateEditContext(sheet, element);
+    }
+
+    // These methods are used when we may or may not be in an edit context
+    // depending on a widget's internal state, such as dragging vs manual entry,
+    // so they fail gracefully.
+    public IDisposable TryCreateEditContext(Sheet sheet,
+                                            IEnumerable<ISheetElement> elements)
+    {
+        if (_currentEditContext is not null)
+        {
+            return DummyContextInstance;
+        }
+
+        _currentEditContext = new EditSheetElementContext(sheet, elements, this);
+
+        return _currentEditContext;
+    }
+    
+    public IDisposable TryCreateEditContext(Sheet sheet,
+                                            ISheetElement element)
+    {
+        if (_currentEditContext is not null)
+        {
+            return DummyContextInstance;
         }
 
         _currentEditContext = new EditSheetElementContext(sheet, element, this);

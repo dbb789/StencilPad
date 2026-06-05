@@ -26,11 +26,13 @@
 
         <TabControl Grid.Row="0" Height="400" IsEnabled="{Binding HasElements}">
             <TabItem Header="Fill Colour">
-                <widgets:ColorField Margin="8"
+                <widgets:ColorField x:Name="FillColorField"
+                                    Margin="8"
                                     Value="{Binding FillColor}"/>
             </TabItem>
             <TabItem Header="Line Colour">
-                <widgets:ColorField Margin="8"
+                <widgets:ColorField x:Name="LineColorField"
+                                    Margin="8"
                                     Value="{Binding LineColor}"/>
             </TabItem>
             <TabItem Header="Line Style">
