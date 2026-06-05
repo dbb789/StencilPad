@@ -48,7 +48,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new MarkerPathPropertiesWindow(_resourceService, sheet)
+        var window = new MarkerPathPropertiesWindow(sheet, _resourceService, _operationService)
         {
             Owner = _owner
         };

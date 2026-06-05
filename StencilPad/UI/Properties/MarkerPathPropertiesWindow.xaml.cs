@@ -11,12 +11,15 @@ public partial class MarkerPathPropertiesWindow : Window
 {
     public MarkerPathPropertiesViewModel ViewModel { get; }
 
-    public MarkerPathPropertiesWindow(IResourceService resourceService,
-                                      Sheet sheet)
+    public MarkerPathPropertiesWindow(Sheet sheet,
+                                      IResourceService resourceService,
+                                      IOperationService operationService)
     {
         InitializeComponent();
         
-        ViewModel = new MarkerPathPropertiesViewModel(resourceService, sheet);
+        ViewModel = new MarkerPathPropertiesViewModel(sheet,
+                                                      resourceService,
+                                                      operationService);
         DataContext = ViewModel;
 
         var markerTypeItems = ViewModel.MarkerTypeIds.Select(
@@ -24,6 +27,22 @@ public partial class MarkerPathPropertiesWindow : Window
                 CreateMarkerGeometry(resourceService, id))).ToList();
 
         MarkerTypeDropdown.Items = markerTypeItems;
+
+        Loaded += (_, _) =>
+        {
+            MarkerColorField.DragBegin += ViewModel.DragBegin;
+            MarkerColorField.DragEnd += ViewModel.DragEnd;
+            LineColorField.DragBegin += ViewModel.DragBegin;
+            LineColorField.DragEnd += ViewModel.DragEnd;
+        };
+
+        Unloaded += (_, _) =>
+        {
+            MarkerColorField.DragBegin -= ViewModel.DragBegin;
+            MarkerColorField.DragEnd -= ViewModel.DragEnd;
+            LineColorField.DragBegin -= ViewModel.DragBegin;
+            LineColorField.DragEnd -= ViewModel.DragEnd;
+        };
     }
     
     protected override void OnClosed(EventArgs e)

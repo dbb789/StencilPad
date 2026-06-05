@@ -17,6 +17,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         {
             _spacing = value;
             
+            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
+
             foreach (var markerPath in Elements)
             {
                 markerPath.Spacing = value;
@@ -34,6 +36,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         {
             _offset = value;
             
+            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
+
             foreach (var markerPath in Elements)
             {
                 markerPath.Offset = value;
@@ -50,6 +54,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _markerColor = value;
+            
+            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
 
             foreach (var markerPath in Elements)
             {
@@ -67,6 +73,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _lineColor = value;
+            
+            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
 
             foreach (var markerPath in Elements)
             {
@@ -84,6 +92,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _markerTypeIndex = value;
+            
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
 
             foreach (var markerPath in Elements)
             {
@@ -95,16 +105,33 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
     }
 
     public IReadOnlyList<GeometryResourceId> MarkerTypeIds => _markerTypeIds;
-
+    
+    private readonly Sheet _sheet;
+    private readonly IOperationService _operationService;
     private List<GeometryResourceId> _markerTypeIds;
+    private IDisposable? _dragContext;
 
-    public MarkerPathPropertiesViewModel(IResourceService resourceService,
-                                         Sheet sheet)
+    public MarkerPathPropertiesViewModel(Sheet sheet,
+                                         IResourceService resourceService,
+                                         IOperationService operationService)
         : base(sheet)
     {
+        _sheet = sheet;
+        _operationService = operationService;
+
         _markerTypeIds = new(resourceService.GetGeometryResourceIds(GeometryResourceType.Marker));
         
         OnElementsChanged();
+    }
+    
+    public void DragBegin()
+    {
+        _dragContext = _operationService.CreateEditContext(_sheet, Elements);
+    }
+
+    public void DragEnd()
+    {
+        _dragContext?.Dispose();
     }
 
     protected override void OnElementsChanged()

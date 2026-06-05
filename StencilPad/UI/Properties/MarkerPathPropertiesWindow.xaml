@@ -62,11 +62,13 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Marker Colour">
-                <widgets:ColorField Margin="8"
+                <widgets:ColorField x:Name="MarkerColorField"
+                                    Margin="8"
                                     Value="{Binding MarkerColor}"/>
             </TabItem>
             <TabItem Header="Line Colour">
-                <widgets:ColorField Margin="8"
+                <widgets:ColorField x:Name="LineColorField"
+                                    Margin="8"
                                     Value="{Binding LineColor}"/>
             </TabItem>
         </TabControl>

@@ -169,6 +169,10 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         Transform = other.Transform;
         Spacing = other.Spacing;
         Offset = other.Offset;
+        Balanced = other.Balanced;
+        MarkerType = other.MarkerType;
+        MarkerColor = other.MarkerColor;
+        LineColor = other.LineColor;
     }
 
     public override MarkerPath DeepClone()
