@@ -28,7 +28,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Font name + size -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -45,11 +44,9 @@
                                       Value="{Binding FontSize}"/>
         </Grid>
 
-        <!-- Colour label -->
         <TextBlock Grid.Row="2" Text="Colour:"/>
-
-        <!-- Colour picker -->
-        <widgets:ColorField Grid.Row="4"
+        <widgets:ColorField x:Name="ColorField"
+                            Grid.Row="4"
                             Value="{Binding Color}"/>
 
         <Button Grid.Row="6" Content="Close"

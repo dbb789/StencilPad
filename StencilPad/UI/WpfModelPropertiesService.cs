@@ -78,7 +78,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new TextPropertiesWindow(sheet)
+        var window = new TextPropertiesWindow(sheet, _operationService)
         {
             Owner = _owner
         };
