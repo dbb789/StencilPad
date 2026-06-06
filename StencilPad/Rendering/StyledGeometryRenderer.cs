@@ -48,7 +48,7 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
         }
 
         var geometry = GetGeometryGroup();
-
+        
         dc.DrawGeometry(_brush, _pen, geometry);
         
         foreach (var (_, entry) in _entryMap)

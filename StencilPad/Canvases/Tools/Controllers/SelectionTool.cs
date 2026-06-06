@@ -129,10 +129,11 @@ public class SelectionTool : ITool
         // modify the selection based on modifier keys so the logic is a bit
         // convoluted.
         
-        // Firstly, let's find everything under the mouse and put it in a list.
+        // Firstly, let's find everything under the mouse and put it in a list,
+        // topmost first.
         var hitList = new List<ISheetElement>(8);
 
-        foreach (var element in _sheet.Elements)
+        foreach (var element in _sheet.Elements.Reverse())
         {
             if (element.ContainsPoint(point))
             {

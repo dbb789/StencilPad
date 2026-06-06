@@ -44,7 +44,7 @@ public static class PngExporter
         transform.Freeze();
 
         var visual = new DrawingVisual();
-        
+
         using (var dc = visual.RenderOpen())
         {
             // dc.DrawRectangle(Brushes.White,
@@ -63,6 +63,7 @@ public static class PngExporter
         int heightPx = (int)Math.Round(height * scale);
 
         var bitmap = new RenderTargetBitmap(widthPx, heightPx, BaseDpi * scale, BaseDpi * scale, PixelFormats.Pbgra32);
+
         bitmap.Render(visual);
 
         var encoder = new PngBitmapEncoder();
