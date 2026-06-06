@@ -38,6 +38,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="8"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Spacing:"
@@ -53,11 +55,18 @@
                                              Value="{Binding Offset}"
                                              SliderMinimum="0"
                                              SliderMaximum="100"/>
-                    
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Marker Type:"
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Line Width:"
+                               VerticalAlignment="Center"
+                               Margin="2"/>
+                    <widgets:UnitField MinWidth="160"
+                                       Grid.Row="4" Grid.Column="2"
+                                       Value="{Binding LineWidth}"/>
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Marker Type:"
                                VerticalAlignment="Center"/>
                     <widgets:GeometryDropdown x:Name="MarkerTypeDropdown"
-                                              Grid.Row="4" Grid.Column="2"
+                                              Grid.Row="6" Grid.Column="2"
                                               SelectedIndex="{Binding MarkerTypeIndex}"/>
                 </Grid>
             </TabItem>

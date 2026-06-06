@@ -99,6 +99,20 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
             }
         }
     }
+    
+    private Unit _lineWidth = Unit.FromMillimeters(0.2);
+    public Unit LineWidth
+    {
+        get => _lineWidth;
+        set
+        {
+            if (_lineWidth != value)
+            {
+                _lineWidth = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public bool HasBalancePoint => _pointList.Balanced;
 
@@ -173,6 +187,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         MarkerType = other.MarkerType;
         MarkerColor = other.MarkerColor;
         LineColor = other.LineColor;
+        LineWidth = other.LineWidth;
     }
 
     public override MarkerPath DeepClone()

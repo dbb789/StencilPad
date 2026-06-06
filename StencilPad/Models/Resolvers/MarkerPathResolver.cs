@@ -92,12 +92,14 @@ public class MarkerPathResolver : IModelResolver
     {
         return new GeometryStyle
         {
-            LineColor = _markerPath.LineColor
+            LineColor = _markerPath.LineColor,
+            LineWidth = _markerPath.LineWidth
         };
     }
 
     private static bool IsStyleProperty(string? propertyName)
     {
-        return propertyName == nameof(MarkerPath.LineColor);
+        return propertyName == nameof(MarkerPath.LineColor) ||
+            propertyName == nameof(MarkerPath.LineWidth);
     }
 }

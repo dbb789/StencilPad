@@ -40,6 +40,7 @@ public partial class ColorField : UserControl
         AttachDragHandlers(RedSlider);
         AttachDragHandlers(GreenSlider);
         AttachDragHandlers(BlueSlider);
+        AttachDragHandlers(AlphaSlider);
 
         SvPicker.DragBegin += () => DragBegin?.Invoke();
         SvPicker.DragEnd += () => DragEnd?.Invoke();

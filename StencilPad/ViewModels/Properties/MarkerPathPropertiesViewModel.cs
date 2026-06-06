@@ -66,6 +66,25 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         }
     }
 
+    private Unit _lineWidth;
+    public Unit LineWidth
+    {
+        get => _lineWidth;
+        set
+        {
+            _lineWidth = value;
+            
+            using var context = _operationService.CreateEditContext(_sheet, Elements);
+
+            foreach (var shape in Elements)
+            {
+                shape.LineWidth = value;
+            }
+
+            OnPropertyChanged();
+        }
+    }
+
     private Color _lineColor;
     public Color LineColor
     {
@@ -148,6 +167,9 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         _lineColor = Mode(e => e.LineColor);
         OnPropertyChanged(nameof(LineColor));
 
+        _lineWidth = Mode(e => e.LineWidth);
+        OnPropertyChanged(nameof(LineWidth));
+        
         _markerTypeIndex = Mode(e => _markerTypeIds.IndexOf(e.MarkerType));
         OnPropertyChanged(nameof(MarkerTypeIndex));
     }
