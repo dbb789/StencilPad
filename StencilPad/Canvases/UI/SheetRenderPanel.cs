@@ -16,9 +16,6 @@ public class SheetRenderPanel : ContentControl
     {
         _sheetRenderer = sheetRenderer;
         _viewport = viewport;
-
-        // Disable anti-aliasing for sharper lines.
-        SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
         
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
