@@ -28,7 +28,7 @@ public static class PngExporter
                                       new Unit2D(Unit.FromMillimeters(98),
                                                  Unit.FromMillimeters(98)));
 
-        bounds = bounds.Pad(Unit.FromMillimeters(1));
+        //bounds = bounds.Pad(Unit.FromMillimeters(1));
         
         var size = bounds.Size;
         double width  = size.X.Millimeters;
