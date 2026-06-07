@@ -16,6 +16,8 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
+    public IViewport Viewport => _viewport;
+    
     private readonly IAppConfigService _appConfigService;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;

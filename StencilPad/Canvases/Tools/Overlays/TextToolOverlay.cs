@@ -12,6 +12,7 @@ public class TextToolOverlay : Canvas, IDisposable
 {
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
+    private readonly IUnitSnapContext _unitSnapContext;
     private TextBox? _textBox;
     private Unit2D? _pendingPosition;
 
@@ -24,6 +25,7 @@ public class TextToolOverlay : Canvas, IDisposable
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
+        _unitSnapContext = new DefaultUnitSnapContext(viewport);
         _viewport.ViewportChanged += OnViewportChanged;
     }
 
@@ -48,7 +50,7 @@ public class TextToolOverlay : Canvas, IDisposable
 
         var mousePosition = e.GetPosition(this);
         var unitPosition = _viewport.FromPoint(mousePosition);
-        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, _unitSnapContext);
 
         if (snapPosition.HasValue)
         {

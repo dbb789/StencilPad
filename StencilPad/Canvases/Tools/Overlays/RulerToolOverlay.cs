@@ -5,7 +5,6 @@ using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
-using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
@@ -16,10 +15,11 @@ public class RulerToolOverlay : Canvas, IDisposable
 {
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
+    private readonly IUnitSnapContext _unitSnapContext;
     private readonly Ruler _previewRuler;
     private readonly SheetElementRenderer _previewRenderer;
     private readonly LockAxisState _lockAxisState;
-
+    
     private Unit2D? _start;
     private Unit2D _currentSnappedMousePosition;
 
@@ -31,6 +31,7 @@ public class RulerToolOverlay : Canvas, IDisposable
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
+        _unitSnapContext = new DefaultUnitSnapContext(viewport);
         _previewRuler = new Ruler { Color = Color.FromArgb(128, 0, 0, 0) };
         _previewRenderer = new SheetElementRenderer(_previewRuler, resourceService);
         _lockAxisState = new();
@@ -95,7 +96,7 @@ public class RulerToolOverlay : Canvas, IDisposable
     private Unit2D CurrentSnappedMouseOverPosition(Point mousePosition)
     {
         var unitPosition = _viewport.FromPoint(mousePosition);
-        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, _unitSnapContext);
         
         if (snapPosition.HasValue)
         {

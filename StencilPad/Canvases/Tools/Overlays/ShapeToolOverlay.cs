@@ -15,6 +15,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
 {
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
+    private readonly IUnitSnapContext _unitSnapContext;
     private readonly Polygon _polygon;
     private readonly StreamGeometryWalker _walker;
     private readonly WidgetContainer<HandleWidget> _vertexWidgets;
@@ -28,6 +29,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
+        _unitSnapContext = new DefaultUnitSnapContext(viewport);
         _polygon = new();
         _walker = new();
         _vertexWidgets = new(this);
@@ -132,7 +134,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
     private Unit2D CurrentSnappedMouseOverPosition(Point mousePosition)
     {
         var unitPosition = _viewport.FromPoint(mousePosition);
-        var snapPosition = _unitSnap.UnitSnap(unitPosition, EmptyUnitSnapContext.Instance);
+        var snapPosition = _unitSnap.UnitSnap(unitPosition, _unitSnapContext);
         
         if (snapPosition.HasValue)
         {

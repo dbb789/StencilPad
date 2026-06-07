@@ -10,28 +10,28 @@ namespace StencilPad.Canvases.Tools.Overlays;
 public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
 {
     private static readonly Pen IndicatorPen;
-    private static readonly IUnitSnapContext DefaultContext;
 
     public Unit2D? LastSnapPoint => _lastSnapPoint;
 
-    private bool _isActive;
-    private IViewport _viewport;
-    private IUnitSnap _unitSnap;
+    private readonly IViewport _viewport;
+    private readonly IUnitSnap _unitSnap;
+    private readonly IUnitSnapContext _defaultContext;
     private IUnitSnapContext? _context;
     private Unit2D? _lastSnapPoint;
+    private bool _isActive;
     
     static UnitSnapOverlay()
     {
         IndicatorPen = new Pen(new SolidColorBrush(Color.FromArgb(210, 0, 128, 255)), 1.5);
         IndicatorPen.Freeze();
 
-        DefaultContext = EmptyUnitSnapContext.Instance;
     }
 
     public UnitSnapOverlay(IViewport viewport, IUnitSnap unitSnap)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
+        _defaultContext = new DefaultUnitSnapContext(_viewport);
         _context = null;
     }
 
@@ -60,7 +60,7 @@ public class UnitSnapOverlay : ContentControl, IUnitSnapOverlay
         }
 
         var mousePos = _viewport.FromPoint(e.GetPosition(this));
-        var snapped = _unitSnap.UnitSnap(mousePos, _context ?? DefaultContext);
+        var snapped = _unitSnap.UnitSnap(mousePos, _context ?? _defaultContext);
 
         if (_lastSnapPoint != snapped)
         {

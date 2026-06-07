@@ -20,7 +20,7 @@ public class PolygonSheetElementEditActionSet
 
     private static Func<IPolygonSheetElement, bool> CanDeleteVertices = e =>
     {
-        return e.PolygonSet.Any(p => (p.Vertices.Count - p.GetSelectedVertices().Count()) > 2);
+        return e.PolygonSet.Any(p => (p.Vertices.Count - p.GetSelectedVertices().Count()) > 1);
     };
 
     private static Func<IPolygonSheetElement, bool> PolygonOpen = e =>

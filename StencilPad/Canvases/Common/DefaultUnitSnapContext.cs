@@ -2,11 +2,11 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
 
-public class EmptyUnitSnapContext : BaseUnitSnapContext
+public class DefaultUnitSnapContext : BaseUnitSnapContext
 {
     public override IViewport Viewport { get; }
-    
-    public EmptyUnitSnapContext(IViewport viewport)
+
+    public DefaultUnitSnapContext(IViewport viewport)
     {
         Viewport = viewport;
     }
