@@ -72,8 +72,12 @@ public partial class SheetTab : UserControl
 
             Dispatcher.BeginInvoke(() =>
             {
-                SetZoom(_viewModel.Zoom);
-                CentreScroll();
+                // Potential race condition.
+                if (_viewModel is not null)
+                {
+                    SetZoom(_viewModel.Zoom);
+                    CentreScroll();
+                }
             });
         }
     }

@@ -50,7 +50,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
     {
         if (_textBox is not null)
         {
-            CommitOrCancel(commit: true);
+            CommitOrCancel(true);
             return;
         }
 
