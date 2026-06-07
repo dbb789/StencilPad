@@ -133,6 +133,15 @@
                     ItemsSource="{Binding Tabs}"
                     SelectedItem="{Binding SelectedTab}"
                     TabStripPlacement="Bottom">
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="TabItem">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TabControl}, Path=Items.Count}" Value="1">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TabControl.ItemContainerStyle>
             <TabControl.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Header}"/>
