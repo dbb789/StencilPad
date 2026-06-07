@@ -4,11 +4,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class TextToolOverlay : Canvas, IDisposable
+public class TextToolOverlay : ToolOverlay, IDisposable
 {
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
@@ -21,23 +22,28 @@ public class TextToolOverlay : Canvas, IDisposable
 
     public event Action<Unit2D, Unit2D, string>? OnTextPlaced;
 
-    public TextToolOverlay(IViewport viewport, IUnitSnap unitSnap)
+    public TextToolOverlay(Sheet sheet ,IViewport viewport, IUnitSnap unitSnap)
+        : base(viewport, sheet, false)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
         _viewport.ViewportChanged += OnViewportChanged;
+
+        RegisterOverlay(TextElementToolOverlayRenderer.Factory);
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         _viewport.ViewportChanged -= OnViewportChanged;
-        CommitOrCancel(commit: false);
+        CommitOrCancel(false);
+        
+        base.Dispose();
     }
 
     public void Commit()
     {
-        CommitOrCancel(commit: true);
+        CommitOrCancel(true);
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -64,7 +70,10 @@ public class TextToolOverlay : Canvas, IDisposable
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
+        
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
+
+        RenderOverlay(dc);
     }
 
     private void ShowTextBox(Point screenPosition)
@@ -95,14 +104,14 @@ public class TextToolOverlay : Canvas, IDisposable
     {
         if (e.Key == Key.Escape)
         {
-            CommitOrCancel(commit: false);
+            CommitOrCancel(false);
             e.Handled = true;
         }
     }
 
     private void OnTextBoxLostFocus(object sender, RoutedEventArgs e)
     {
-        CommitOrCancel(commit: true);
+        CommitOrCancel(true);
     }
 
     private void CommitOrCancel(bool commit)
@@ -156,10 +165,10 @@ public class TextToolOverlay : Canvas, IDisposable
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-            FontSize,
+            Unit.FromFontSizePoints(FontSize).Millimeters,
             Brushes.Black,
             1.0);
 
-        return new Unit2D(Unit.FromMillimeters(ft.Width + 0.5), Unit.FromMillimeters(ft.Height));
+        return Unit2D.FromMillimeters(ft.Width, ft.Height);
     }
 }

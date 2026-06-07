@@ -10,27 +10,29 @@ public abstract class ToolOverlay : Canvas
 {
     private readonly IViewport _viewport;
     private readonly Sheet _sheet;
+    private readonly bool _selectionOnly;
     private readonly List<IToolOverlayRendererFactory> _factories;
     private readonly Dictionary<ISheetElement, IToolOverlayRenderer> _renderers;
     
-    public ToolOverlay(IViewport viewport, Sheet sheet)
+    public ToolOverlay(IViewport viewport, Sheet sheet, bool selectionOnly)
     {
         _viewport = viewport;
         _sheet = sheet;
+        _selectionOnly = selectionOnly;
         _factories = new();
         _renderers = new();
 
-        foreach (var element in _sheet.Selection)
+        foreach (var element in GetElements())
         {
             AddRenderer(element);
         }
 
-        _sheet.Selection.CollectionChanged += ElementsChanged;        
+        GetCollection().CollectionChanged += ElementsChanged;        
     }
 
     public virtual void Dispose()
     {
-        _sheet.Selection.CollectionChanged -= ElementsChanged;
+        GetCollection().CollectionChanged -= ElementsChanged;
         
         foreach (var (_, renderer) in _renderers)
         {
@@ -41,11 +43,21 @@ public abstract class ToolOverlay : Canvas
         _renderers.Clear();
     }
 
+    private IEnumerable<ISheetElement> GetElements()
+    {
+        return _selectionOnly ? _sheet.Selection : _sheet.Elements;
+    }
+    
+    private INotifyCollectionChanged GetCollection()
+    {
+        return _selectionOnly ? _sheet.Selection : _sheet.Elements;
+    }
+
     protected void RegisterOverlay(IToolOverlayRendererFactory factory)
     {
         _factories.Add(factory);
 
-        foreach (var element in _sheet.Selection)
+        foreach (var element in GetElements())
         {
             if (!_renderers.ContainsKey(element))
             {
@@ -127,6 +139,8 @@ public abstract class ToolOverlay : Canvas
         renderer.RendererDirty += ForceRedraw;
 
         _renderers.Add(element, renderer);
+
+        ForceRedraw();
     }
 
     private void RemoveRenderer(ISheetElement element)
@@ -139,6 +153,8 @@ public abstract class ToolOverlay : Canvas
         renderer.RendererDirty -= ForceRedraw;
         renderer.Dispose();
         _renderers.Remove(element);
+
+        ForceRedraw();
     }
     
     private IToolOverlayRenderer? CreateRenderer(ISheetElement element)

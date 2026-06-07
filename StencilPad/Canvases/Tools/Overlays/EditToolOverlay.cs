@@ -54,7 +54,7 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
                            IUnitSnap unitSnap,
                            IUnitSnapOverlay unitSnapOverlay,
                            PolygonSheetElementEditActionSet actionSet)
-        : base(viewport, sheet)
+        : base(viewport, sheet, true)
     {
         _sheet = sheet;
         _appConfigService = appConfigService;

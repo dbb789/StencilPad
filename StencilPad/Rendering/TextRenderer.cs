@@ -71,9 +71,11 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
         if (_bounds is not null)
         {
             var clipRect = _bounds.Value.Millimeters;
-
+            var height = _formattedText.Height;
+            var textPos = new Point(clipRect.Left, clipRect.Top + (clipRect.Height - height) / 2);
+            
             dc.PushClip(new RectangleGeometry(clipRect));
-            dc.DrawText(_formattedText, clipRect.TopLeft);
+            dc.DrawText(_formattedText, textPos);
             dc.Pop();
         }
         else
@@ -106,20 +108,6 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
             Trimming = TextTrimming.None,
             TextAlignment = GetTextAlignment(_style.Justification)
         };
-
-        if (_bounds is not null)
-        {
-            var size = _bounds.Value.Size;
-
-            if (size.X.Millimeters > 0)
-            {
-                _formattedText.MaxTextWidth = size.X.Millimeters;
-            }
-            if (size.Y.Millimeters > 0)
-            {
-                _formattedText.MaxTextHeight = size.Y.Millimeters;
-            }
-        }
     }
 
     private static FontFamily ResolveFont(string fontName)
