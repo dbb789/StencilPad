@@ -197,4 +197,13 @@ public static class MathUtil
         
         return valueDiff / angleDiff;
     }
+
+    public static Unit2D ControlPointDirection(Unit2D p0, Unit2D p1, Unit2D p2, double strength = 0.25)
+    {
+        var o0 = p1 - p0;
+        var o1 = p2 - p1;
+        var offset = Unit2D.Slerp(o0, o1, 0.5);
+        
+        return offset.NormalizedTo(offset.Magnitude * strength);
+    }
 }

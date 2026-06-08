@@ -123,8 +123,8 @@ public class KeyedList<T> : IKeyedList<T>
     {
         _data[index] = (value, _data[index].Item2);
     }
-    
-    public T At(int index)
+
+    public int NormalizeIndex(int index)
     {
         index %= _data.Count;
 
@@ -132,8 +132,13 @@ public class KeyedList<T> : IKeyedList<T>
         {
             index += _data.Count;
         }
-        
-        return _data[index].Item1;
+
+        return index;
+    }
+    
+    public T At(int index)
+    {
+        return _data[NormalizeIndex(index)].Item1;
     }
     
     public ulong KeyAt(int index)

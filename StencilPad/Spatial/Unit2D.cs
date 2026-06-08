@@ -76,6 +76,16 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     {
         return a + ((b - a) * t);
     }
+    
+    public static Unit2D Slerp(Unit2D a, Unit2D b, double t)
+    {
+        var magnitude = Unit.Lerp(a.Magnitude, b.Magnitude, t);
+        var angle = MathUtil.LerpAngle(Math.Atan2(a.Y.Millimeters, a.X.Millimeters),
+                                       Math.Atan2(b.Y.Millimeters, b.X.Millimeters),
+                                       t);
+        
+        return new(Math.Cos(angle) * magnitude, Math.Sin(angle) * magnitude);
+    }
 
     public bool ApproximatelyEquals(Unit2D other)
     {

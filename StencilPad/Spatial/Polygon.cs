@@ -158,14 +158,16 @@ public class Polygon : IPolygon
 
     public void SetControlBegin(int edgeIndex, Unit2D position)
     {
-        var offset = position - Vertices.At(edgeIndex).Position;
+        edgeIndex = _edges.NormalizeIndex(edgeIndex);
+
+        var offset = position - _vertices[edgeIndex].Position;
 
         _edges[edgeIndex] = _edges[edgeIndex] with
             { ControlBeginOffset = offset };
 
         if ((edgeIndex != 0) || _closed)
         {
-            var prevIndex = (edgeIndex - 1 + _edges.Count) % _edges.Count;
+            var prevIndex = _edges.NormalizeIndex(edgeIndex - 1);
 
             _edges[prevIndex] = _edges[prevIndex] with
                 { ControlEndOffset = -offset};
@@ -174,18 +176,46 @@ public class Polygon : IPolygon
 
     public void SetControlEnd(int edgeIndex, Unit2D position)
     {
-        var offset = position - Vertices.At(edgeIndex + 1).Position;
+        edgeIndex = _edges.NormalizeIndex(edgeIndex);
+
+        var offset = position - _vertices.At(edgeIndex + 1).Position;
 
         _edges[edgeIndex] = _edges[edgeIndex] with
             { ControlEndOffset = offset };
         
         if ((edgeIndex != _edges.Count - 1) || _closed)
         {
-            var nextIndex = (edgeIndex + 1) % _edges.Count;
+            var nextIndex = _edges.NormalizeIndex(edgeIndex + 1);
 
             _edges[nextIndex] = _edges[nextIndex] with
                 { ControlBeginOffset = -offset };
         }
+    }
+
+    public void InitializeControlPoints(int edgeIndex)
+    {
+        var edge = _edges.At(edgeIndex);
+
+        var p0 = _vertices.At(edgeIndex - 1).Position;
+        var p1 = _vertices.At(edgeIndex).Position;
+        var p2 = _vertices.At(edgeIndex + 1).Position;
+        var p3 = _vertices.At(edgeIndex + 2).Position;
+
+        var controlBegin = edge.ControlBeginOffset;
+        var controlEnd = edge.ControlEndOffset;
+
+        if (controlBegin.ApproximatelyEquals(Unit2D.Zero))
+        {
+            controlBegin = MathUtil.ControlPointDirection(p0, p1, p2);
+        }
+
+        if (controlEnd.ApproximatelyEquals(Unit2D.Zero))
+        {
+            controlEnd = -MathUtil.ControlPointDirection(p1, p2, p3);
+        }
+
+        SetControlBegin(edgeIndex, p1 + controlBegin);
+        SetControlEnd(edgeIndex, p2 + controlEnd);
     }
 
     public UnitBounds CalculateBounds()
@@ -275,13 +305,13 @@ public class Polygon : IPolygon
             var controlBegin = oldVertices[i].Position + edge.ControlBeginOffset;
             var newControlBegin = RemapPoint(controlBegin, oldBounds, newBounds, transform);
 
-            var controlEnd = oldVertices[(i + 1) % _vertices.Count].Position + edge.ControlEndOffset;
+            var controlEnd = oldVertices[_vertices.NormalizeIndex(i + 1)].Position + edge.ControlEndOffset;
             var newControlEnd = RemapPoint(controlEnd, oldBounds, newBounds, transform);
 
             _edges.Set(i, edge with
             {
                 ControlBeginOffset = newControlBegin - _vertices[i].Position,
-                ControlEndOffset = newControlEnd - _vertices[(i + 1) % _vertices.Count].Position
+                ControlEndOffset = newControlEnd - _vertices[_vertices.NormalizeIndex(i + 1)].Position
             });
         }
         

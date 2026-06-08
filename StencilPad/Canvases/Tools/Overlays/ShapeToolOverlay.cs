@@ -179,7 +179,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
     private bool MouseOverVertex(Vertex vertex)
     {
-        const double hitRadius = 5.0;
+        const double hitRadius = 8.0;
         
         var hitRadiusSquared = hitRadius * hitRadius;
 

@@ -183,42 +183,7 @@ public class SheetElementEditActionSet
 
                             polygon.Edges[edgeIndex] = edge with { Type = EdgeType.Bezier };
 
-                            var p0 = polygon.Vertices.At(edgeIndex - 1).Position;
-                            var p1 = polygon.Vertices.At(edgeIndex).Position;
-                            var p2 = polygon.Vertices.At(edgeIndex + 1).Position;
-                            var p3 = polygon.Vertices.At(edgeIndex + 2).Position;
-                            
-                            var controlBegin = edge.ControlBeginOffset;
-                            var controlEnd = edge.ControlEndOffset;
-
-                            if (controlBegin.ApproximatelyEquals(Unit2D.Zero))
-                            {
-                                var o0 = p1 - p0;
-                                var o1 = p2 - p1;
-
-                                o0 = o0.NormalizedTo(Unit.FromMillimeters(10));
-                                o1 = o1.NormalizedTo(Unit.FromMillimeters(10));
-                                
-                                var offset = Unit2D.Lerp(o0, o1, 0.5);
-
-                                controlBegin = offset;
-                            }
-
-                            if (controlEnd.ApproximatelyEquals(Unit2D.Zero))
-                            {
-                                var o0 = p2 - p1;
-                                var o1 = p3 - p2;
-
-                                o0 = o0.NormalizedTo(Unit.FromMillimeters(10));
-                                o1 = o1.NormalizedTo(Unit.FromMillimeters(10));
-                                
-                                var offset = Unit2D.Lerp(o0, o1, 0.5);
-
-                                controlEnd = -offset;
-                            }
-
-                            polygon.SetControlBegin(edgeIndex, p1 + controlBegin);
-                            polygon.SetControlEnd(edgeIndex, p2 + controlEnd);
+                            polygon.InitializeControlPoints(edgeIndex);
                         }
                     }
                 }
