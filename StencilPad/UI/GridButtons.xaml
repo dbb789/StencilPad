@@ -63,7 +63,7 @@
                 </Setter>
             </Style>
         </ListBox.ItemContainerStyle>
-        
+
         <ToggleButton Style="{StaticResource ToolButtonStyle}" 
                       IsChecked="{Binding ShowGrid, ElementName=Root}">
             <Image Source="pack://application:,,,/Resources/Icons/ShowGrid.png"/>

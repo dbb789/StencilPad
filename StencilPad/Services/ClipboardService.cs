@@ -1,47 +1,114 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
 using StencilPad.Models;
+using StencilPad.Models.Operations;
 using StencilPad.Schemas;
+using StencilPad.Spatial;
 
 namespace StencilPad.Services;
 
 public class ClipboardService : IClipboardService
 {
-    private static readonly JsonSerializerOptions JsonOptions = SchemaJsonOptions.Default;
+    private static readonly Unit2D PasteMajorOffset = Unit2D.FromMillimeters(-5, 5);
+    private static readonly Unit2D PasteMinorOffset = Unit2D.FromMillimeters(5, 5);
 
-    public void Copy(IEnumerable<ISheetElement> elements)
+    private readonly IOperationService _operationService;
+    
+    private int _pasteCounter;
+
+    public ClipboardService(IOperationService operationService)
     {
-        var schemas = elements
+        _operationService = operationService;
+        _pasteCounter = 0;
+    }
+    
+    public void Copy(Sheet sheet)
+    {
+        PackToClipboard(sheet, sheet.Selection);
+    }
+
+    public void Cut(Sheet sheet)
+    {
+        Copy(sheet);
+
+        var operations = sheet.Selection
+            .Select(e => new RemoveSheetElementOperation(sheet, e));
+
+        _operationService.Push(new BulkCommandOperation(operations));
+    }
+    
+    public void Paste(Sheet sheet)
+    {
+        var elements = UnpackFromClipboard().ToList();
+
+        if (!elements.Any())
+        {
+            return;
+        }
+
+        ++_pasteCounter;
+        
+        var pasteOffset = PasteMajorOffset * (_pasteCounter / 10);
+        
+        pasteOffset += PasteMinorOffset * (_pasteCounter % 10);
+
+        foreach (var element in elements)
+        {
+            element.Transform = element.Transform with
+                { Position = element.Transform.Position + pasteOffset };
+        }
+
+        var operations = elements
+            .Select(e => new AddSheetElementOperation(sheet, e));
+
+        _operationService.Push(new BulkCommandOperation(operations));
+
+        sheet.Selection.Clear();
+        
+        foreach (var element in elements)
+        {
+            sheet.Selection.Add(element);
+        }
+    }
+
+    private void PackToClipboard(Sheet sheet, IEnumerable<ISheetElement> elements)
+    {
+        // Pack in render order to preserve z-index when pasting.
+        var schemas = elements.OrderBy(e => sheet.Elements.IndexOf(e))
             .Select(SheetElementSchema.Pack)
             .Where(s => s is not null)
             .ToArray();
 
-        Clipboard.SetText(JsonSerializer.Serialize(schemas, JsonOptions));
+        Clipboard.SetText(JsonSerializer.Serialize(schemas, SchemaJsonOptions.Default));
     }
-
-    public IReadOnlyList<ISheetElement> Paste()
+    
+    private IEnumerable<ISheetElement> UnpackFromClipboard()
     {
         if (!Clipboard.ContainsText())
         {
-            return [];
+            return Enumerable.Empty<ISheetElement>();
         }
 
         SheetElementSchema[]? schemas;
 
         try
         {
-            schemas = JsonSerializer.Deserialize<SheetElementSchema[]>(Clipboard.GetText(), JsonOptions);
+            schemas = JsonSerializer.Deserialize<SheetElementSchema[]>(Clipboard.GetText(),
+                                                                       SchemaJsonOptions.Default);
         }
-        catch (JsonException)
+        catch (JsonException je)
         {
-            return [];
+            Debug.WriteLine($"Failed to deserialize clipboard content: {je}");
+            
+            return Enumerable.Empty<ISheetElement>();
         }
 
         if (schemas is null)
         {
-            return [];
+            return Enumerable.Empty<ISheetElement>();
         }
 
-        return schemas.Select(s => s.Unpack()).ToList();
+        return schemas.Select(s => s.Unpack());
     }
 }

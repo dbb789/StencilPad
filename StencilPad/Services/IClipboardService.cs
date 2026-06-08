@@ -4,6 +4,7 @@ namespace StencilPad.Services;
 
 public interface IClipboardService
 {
-    void Copy(IEnumerable<ISheetElement> elements);
-    IReadOnlyList<ISheetElement> Paste();
+    void Copy(Sheet sheet);
+    void Cut(Sheet sheet);
+    void Paste(Sheet sheet);
 }

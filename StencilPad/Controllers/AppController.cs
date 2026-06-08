@@ -48,13 +48,6 @@ public class AppController
     private List<(SheetTabController Controller, SheetTabViewModel ViewModel)> _sheetTabs = new();
     private string? _currentFilePath;
 
-    private Unit2D _pasteMajorOffset = new Unit2D(Unit.FromMillimeters(-5),
-                                                  Unit.FromMillimeters(5));
-    
-    private Unit2D _pasteMinorOffset = new Unit2D(Unit.FromMillimeters(5),
-                                                  Unit.FromMillimeters(5));
-    private int _pasteCounter;
-
     private AppController(Project project,
                           MainWindowViewModel viewModel,
                           IOperationService operationService,
@@ -315,72 +308,36 @@ public class AppController
     {
         var sheet = _viewModel.SelectedTab?.Sheet;
 
-        if (sheet is null || sheet.Selection.Count == 0)
+        if (sheet is null)
         {
             return;
         }
 
-        _pasteCounter = 0;
-        _clipboardService.Copy(sheet.Selection);
+        _clipboardService.Copy(sheet);
     }
 
     private void CutToClipboard()
     {
-        var tab = _viewModel.SelectedTab;
+        var sheet = _viewModel.SelectedTab?.Sheet;
 
-        if (tab is null || tab.Sheet.Selection.Count == 0)
+        if (sheet is null)
         {
             return;
         }
 
-        _pasteCounter = 0;
-        _clipboardService.Copy(tab.Sheet.Selection);
-
-        var operations = tab.Sheet.Selection
-            .Select(e => new RemoveSheetElementOperation(tab.Sheet, e));
-
-        _operationService.Push(new BulkCommandOperation(operations));
+        _clipboardService.Cut(sheet);
     }
 
     private void PasteFromClipboard()
     {
-        var tab = _viewModel.SelectedTab;
+        var sheet = _viewModel.SelectedTab?.Sheet;
 
-        if (tab is null)
+        if (sheet is null)
         {
             return;
         }
 
-        var elements = _clipboardService.Paste();
-
-        if (elements.Count == 0)
-        {
-            return;
-        }
-
-        ++_pasteCounter;
-        
-        var pasteOffset = _pasteMajorOffset * (_pasteCounter / 10);
-        
-        pasteOffset += _pasteMinorOffset * (_pasteCounter % 10);
-        
-        foreach (var element in elements)
-        {
-            element.Transform = element.Transform with
-                { Position = element.Transform.Position + pasteOffset };
-        }
-
-        var operations = elements
-            .Select(e => new AddSheetElementOperation(tab.Sheet, e));
-
-        _operationService.Push(new BulkCommandOperation(operations));
-
-        tab.Sheet.Selection.Clear();
-        
-        foreach (var element in elements)
-        {
-            tab.Sheet.Selection.Add(element);
-        }
+        _clipboardService.Paste(sheet);
     }
     
     private void ImportImage()
