@@ -4,7 +4,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
-using StencilPad.Canvases.Tools.Controllers.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Common;
@@ -53,7 +52,7 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
                            IHandleMap handleMap,
                            IUnitSnap unitSnap,
                            IUnitSnapOverlay unitSnapOverlay,
-                           PolygonSheetElementEditActionSet actionSet)
+                           SheetElementEditActionSet actionSet)
         : base(viewport, sheet, true)
     {
         _sheet = sheet;
