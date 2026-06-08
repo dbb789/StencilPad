@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using System.Diagnostics;
 using StencilPad.Models;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
@@ -14,12 +15,14 @@ public class HandleMap : IHandleMap, IUnitSnap
     }
 
     public ReadOnlyFlatSet<IHandleMapEntry> SelectedHandles => _selectedHandles;
+
+    private readonly IAppConfigService _appConfigService;
+    private readonly Dictionary<Handle, HandleMapEntry> _byHandle;
+    private readonly DynamicQuadTree<HandleMapEntry> _byPosition;
+    private readonly FlatSet<IHandleMapEntry> _selectedHandles;
+    private readonly List<HandleMapEntry> _queryResults;
     
     private Sheet? _sheet;
-    private Dictionary<Handle, HandleMapEntry> _byHandle;
-    private DynamicQuadTree<HandleMapEntry> _byPosition;
-    private FlatSet<IHandleMapEntry> _selectedHandles;
-    private List<HandleMapEntry> _queryResults;
 
     public event Action? SheetSelectionChanged;
 
@@ -28,8 +31,10 @@ public class HandleMap : IHandleMap, IUnitSnap
     public event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
     public event Action? HandleSelectionChanged;
 
-    public HandleMap()
+    public HandleMap(IAppConfigService appConfigService)
     {
+        _appConfigService = appConfigService;
+        
         var maxBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
         var initialBounds = UnitBounds.FromCenterSize(Unit2D.Zero,
                                                       new Unit2D(Unit.FromMillimeters(400),
@@ -139,14 +144,19 @@ public class HandleMap : IHandleMap, IUnitSnap
     public Unit2D? UnitSnap(Unit2D point, IUnitSnapContext context)
     {
         _queryResults.Clear();
-        
-        var querySize = context.Viewport.FromPixels(32);
+
+        var pointSnapPx = _appConfigService.Config.PointSnapPx;
+
+        // Note that pointSnapPx is a radius, so we need to query a bounds with
+        // double the size to ensure we find all potential snaps within the
+        // radius.
+        var querySize = context.Viewport.FromPixels(pointSnapPx * 2);
 
         _byPosition.Query(UnitBounds.FromCenterSize(point, new Unit2D(querySize, querySize)),
                           x => _queryResults.Add(x));
 
         Unit2D? closestSnap = null;
-        Unit closestDistance = context.Viewport.FromPixels(16);
+        Unit closestDistance = context.Viewport.FromPixels(pointSnapPx);
         
         foreach (var entry in _queryResults)
         {

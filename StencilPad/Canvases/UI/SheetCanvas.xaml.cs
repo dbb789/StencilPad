@@ -102,7 +102,7 @@ namespace StencilPad.Canvases.UI
                            IResourceService resourceService)
         {   
             _viewport = new VisualViewport();
-            _handleMap = new HandleMap();
+            _handleMap = new HandleMap(appConfigService);
 
             _sheetRenderer = new SheetRenderer(resourceService);
 

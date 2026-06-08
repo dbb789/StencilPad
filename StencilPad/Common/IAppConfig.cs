@@ -11,4 +11,5 @@ public interface IAppConfig
     Color AdjustHandleColor { get; }
 
     double HandleSizePx { get; }
+    double PointSnapPx { get; }
 }
