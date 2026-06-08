@@ -9,6 +9,7 @@ public readonly record struct Unit
     
     public static readonly Unit Zero = new(0);
     public static readonly Unit Epsilon = new(0.0000001m);
+    public static readonly double SqrEpsilon = Epsilon.Millimeters * Epsilon.Millimeters;
 
     // 1000 kilometers - notably different to regular MaxValue in that we can
     // still work with it without getting overflow issues, but at the same time

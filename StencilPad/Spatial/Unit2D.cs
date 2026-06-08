@@ -16,7 +16,7 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     {
         get
         {
-            return Unit.FromMillimeters(Math.Sqrt((X.Millimeters * X.Millimeters) + (Y.Millimeters * Y.Millimeters)));
+            return Unit.FromMillimeters(Math.Sqrt(SqrMagnitude));
         }
     }
     
@@ -79,7 +79,7 @@ public readonly record struct Unit2D(Unit X, Unit Y)
 
     public bool ApproximatelyEquals(Unit2D other)
     {
-        return (this - other).Magnitude <= Unit.Epsilon;
+        return (this - other).SqrMagnitude <= Unit.SqrEpsilon;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
