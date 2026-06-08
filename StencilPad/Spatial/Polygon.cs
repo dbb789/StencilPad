@@ -192,7 +192,7 @@ public class Polygon : IPolygon
         }
     }
 
-    public void InitializeControlPoints(int edgeIndex)
+    public void CalculateControlPoints(int edgeIndex, bool initializeOnly)
     {
         var edge = _edges.At(edgeIndex);
 
@@ -204,35 +204,38 @@ public class Polygon : IPolygon
         var controlBegin = edge.ControlBeginOffset;
         var controlEnd = edge.ControlEndOffset;
 
-        if (controlBegin.ApproximatelyEquals(Unit2D.Zero))
+        if (!initializeOnly || controlBegin.ApproximatelyEquals(Unit2D.Zero))
         {
-            controlBegin = MathUtil.ControlPointDirection(p0, p1, p2);
+            if (_edges.NormalizeIndex(edgeIndex) == 0)
+            {
+                var offset = p2 - p1;
+                
+                controlBegin = offset.NormalizedTo(offset.Magnitude * 0.25);
+            }
+            else
+            {
+                controlBegin = MathUtil.ControlPointDirection(p0, p1, p2);
+            }
         }
 
-        if (controlEnd.ApproximatelyEquals(Unit2D.Zero))
+        if (!initializeOnly || controlEnd.ApproximatelyEquals(Unit2D.Zero))
         {
-            controlEnd = -MathUtil.ControlPointDirection(p1, p2, p3);
+            if (_edges.NormalizeIndex(edgeIndex) == _edges.Count - 1)
+            {
+                var offset = p1 - p2;
+                
+                controlEnd = offset.NormalizedTo(offset.Magnitude * 0.25);
+            }
+            else
+            {
+                controlEnd = -MathUtil.ControlPointDirection(p1, p2, p3);
+            }
         }
 
         SetControlBegin(edgeIndex, p1 + controlBegin);
         SetControlEnd(edgeIndex, p2 + controlEnd);
     }
     
-    public void ReassignControlPoints(int edgeIndex)
-    {
-        var edge = _edges.At(edgeIndex);
-        var p0 = _vertices.At(edgeIndex - 1).Position;
-        var p1 = _vertices.At(edgeIndex).Position;
-        var p2 = _vertices.At(edgeIndex + 1).Position;
-        var p3 = _vertices.At(edgeIndex + 2).Position;
-
-        var controlBegin = MathUtil.ControlPointDirection(p0, p1, p2);
-        var controlEnd = -MathUtil.ControlPointDirection(p1, p2, p3);
-
-        SetControlBegin(edgeIndex, p1 + controlBegin);
-        SetControlEnd(edgeIndex, p2 + controlEnd);
-    }
-
     public UnitBounds CalculateBounds()
     {
         return CalculateBounds(UnitTransform.Identity);

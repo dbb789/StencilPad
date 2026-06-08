@@ -156,7 +156,7 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
 
         // if (_polygon.Edges.Count > 0)
         // {
-        //     _polygon.ReassignControlPoints(_polygon.Edges.Count - 1);
+        //     _polygon.CalculateControlPoints(_polygon.Edges.Count - 1, false);
         // }
     }
 

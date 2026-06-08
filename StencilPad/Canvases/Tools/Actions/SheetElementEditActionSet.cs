@@ -183,7 +183,7 @@ public class SheetElementEditActionSet
 
                             polygon.Edges[edgeIndex] = edge with { Type = EdgeType.Bezier };
 
-                            polygon.InitializeControlPoints(edgeIndex);
+                            polygon.CalculateControlPoints(edgeIndex, true);
                         }
                     }
                 }
