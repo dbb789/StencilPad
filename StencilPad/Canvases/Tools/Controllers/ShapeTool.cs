@@ -52,6 +52,7 @@ public class ShapeTool : ITool
     {
         _overlay = _overlayFactory.Create();
         _overlay.Element.LineColor = Color.FromArgb(128, 0, 0, 0);
+        _overlay.IsCurved = false;
         _overlayContainer.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 

@@ -18,6 +18,7 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
     where TSheetElement : IPolygonSheetElement, new()
 {
     public TSheetElement Element => _element;
+    public bool IsCurved { get; set; } = false;
 
     private readonly IAppConfigService _appConfigService;
     private readonly IViewport _viewport;
@@ -46,7 +47,7 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
         _element = new();
-        
+
         _polygon = _element.PolygonSet.First();
         
         AddVertexAtMousePosition();
@@ -119,6 +120,14 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
             if (MouseOverFirstVertex())
             {
                 _polygon.Close();
+                
+                if (IsCurved)
+                {
+                    var edge = _polygon.Edges[^1];
+                    
+                    _polygon.Edges[^1] = edge with { Type = EdgeType.Bezier };
+                    _polygon.CalculateControlPoints(_polygon.Edges.Count - 1, false);
+                }
             }
 
             OnPolygonCompleted?.Invoke(_polygon);
@@ -133,12 +142,12 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
     {
         _polygon.AddVertex(new Vertex { Position = _currentSnappedMousePosition });
 
-        // if (_polygon.Vertices.Count > 1)
-        // {
-        //     var edge = _polygon.Edges[^1];
-
-        //     _polygon.Edges[^1] = edge with { Type = EdgeType.Bezier };
-        // }
+        if (IsCurved &&_polygon.Vertices.Count > 1)
+        {
+            var edge = _polygon.Edges[^1];
+            
+            _polygon.Edges[^1] = edge with { Type = EdgeType.Bezier };
+        }
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -154,10 +163,10 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
         
         _polygon.Vertices[^1] = vertex with { Position = _currentSnappedMousePosition };
 
-        // if (_polygon.Edges.Count > 0)
-        // {
-        //     _polygon.CalculateControlPoints(_polygon.Edges.Count - 1, false);
-        // }
+        if (IsCurved && _polygon.Edges.Count > 0)
+        {
+            _polygon.CalculateControlPoints(_polygon.Edges.Count - 1, false);
+        }
     }
 
     protected override void OnRender(DrawingContext dc)
