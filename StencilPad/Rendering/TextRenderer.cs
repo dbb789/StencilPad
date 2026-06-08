@@ -72,8 +72,23 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
         {
             var clipRect = _bounds.Value.Millimeters;
             var height = _formattedText.Height;
-            var textPos = new Point(clipRect.Left, clipRect.Top + (clipRect.Height - height) / 2);
-            
+
+            Point textPos;
+
+            switch (_style.Justification)
+            {
+            case Justification.Center:
+                textPos = new Point((clipRect.Left + clipRect.Right) / 2, clipRect.Top);
+                break;
+            case Justification.Right:
+                textPos = new Point(clipRect.Right, clipRect.Top);
+                break;
+            case Justification.Left:
+            default:
+                textPos = new Point(clipRect.Left, clipRect.Top);
+                break;
+            }
+
             dc.PushClip(new RectangleGeometry(clipRect));
             dc.DrawText(_formattedText, textPos);
             dc.Pop();
@@ -112,7 +127,8 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
 
     private static FontFamily ResolveFont(string fontName)
     {
-        if (Fonts.SystemFontFamilies.Any(f => string.Equals(f.Source, fontName, StringComparison.OrdinalIgnoreCase)))
+        if (Fonts.SystemFontFamilies.Any(
+                f => string.Equals(f.Source, fontName, StringComparison.OrdinalIgnoreCase)))
         {
             return new FontFamily(fontName);
         }
