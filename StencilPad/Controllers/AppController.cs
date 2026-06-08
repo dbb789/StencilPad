@@ -19,6 +19,7 @@ public class AppController
                          IPrintService PrintService,
                          IClipboardService ClipboardService,
                          IFileService FileService,
+                         IImportExportService ImportExportService,
                          SheetTabController.Factory TabControllerFactory)
     {
         public AppController Create(Project project,
@@ -31,6 +32,7 @@ public class AppController
                        PrintService,
                        ClipboardService,
                        FileService,
+                       ImportExportService,
                        TabControllerFactory);
         }
     }
@@ -41,6 +43,7 @@ public class AppController
     private readonly IPrintService _printService;
     private readonly IClipboardService _clipboardService;
     private readonly IFileService _fileService;
+    private readonly IImportExportService _importExportService;
     private readonly MainWindowViewModel _viewModel;
     private readonly SheetTabController.Factory _tabControllerFactory;
     private readonly UndoStack _undoStack;
@@ -55,6 +58,7 @@ public class AppController
                           IPrintService printService,
                           IClipboardService clipboardService,
                           IFileService fileService,
+                          IImportExportService importExportService,
                           SheetTabController.Factory tabControllerFactory)
     {
         _project = project;
@@ -64,6 +68,7 @@ public class AppController
         _printService = printService;
         _clipboardService = clipboardService;
         _fileService = fileService;
+        _importExportService = importExportService;
         _tabControllerFactory = tabControllerFactory;
         _undoStack = new();
         
@@ -71,7 +76,7 @@ public class AppController
         _viewModel.AddSheetCommand = new RelayCommand(AddNewSheet);
         _viewModel.RenameSheetCommand = new RelayCommand(RenameActiveSheet);
         _viewModel.DeleteSheetCommand = new RelayCommand(DeleteActiveSheet);
-        _viewModel.PrintCommand = new RelayCommand(PrintSelectedTab);
+        _viewModel.PrintCommand = new RelayCommand(PrintSelectedTabAsync);
         _viewModel.ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
         
         _viewModel.OpenProjectCommand = new RelayCommand(async () => await OpenProject());
@@ -83,7 +88,7 @@ public class AppController
         _viewModel.DeleteCommand = new RelayCommand(DeleteSelection);
         _viewModel.UndoCommand = new RelayCommand(Undo);
         _viewModel.RedoCommand = new RelayCommand(Redo);
-        _viewModel.ImportImageCommand = new RelayCommand(ImportImage);
+        _viewModel.ImportImageCommand = new RelayCommand(ImportImageAsync);
         _viewModel.ExportSvgCommand = new RelayCommand(ExportSvg);
         _viewModel.ExportPngCommand = new RelayCommand(ExportPng);
 
@@ -236,7 +241,7 @@ public class AppController
         _project.RemoveSheet(selectedSheet);
     }
 
-    private async void PrintSelectedTab()
+    private async void PrintSelectedTabAsync()
     {
         var selectedTab = _viewModel.SelectedTab;
         
@@ -340,145 +345,51 @@ public class AppController
         _clipboardService.Paste(sheet);
     }
     
-    private void ImportImage()
+    private async void ImportImageAsync()
     {
         var tab = _viewModel.SelectedTab;
+        
         if (tab is null)
         {
             return;
         }
 
-        var dialog = new OpenFileDialog
-        {
-            Title = "Import Image",
-            Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
-        };
-
-        if (dialog.ShowDialog() != true)
-        {
-            return;
-        }
-
-        byte[] imageData;
-        try
-        {
-            imageData = File.ReadAllBytes(dialog.FileName);
-        }
-        catch (Exception ex)
-        {
-            _dialogService.ShowError($"Could not read image file: {ex.Message}", "Import Failed");
-            return;
-        }
-
-        var size = MeasureImageSize(imageData);
-        var halfSize = size / 2.0;
-
-        Unit2D center;
         var viewport = tab.Viewport;
+
         if (viewport is not null)
         {
-            center = viewport.Size / 2.0;
+            await _importExportService.ImportImageAsync(tab.Sheet, viewport);
         }
-        else
-        {
-            center = new Unit2D(Unit.FromMillimeters(75), Unit.FromMillimeters(105));
-        }
-
-        var element = new ImageElement(center - halfSize, center + halfSize, imageData);
-
-        _operationService.Push(new AddSheetElementOperation(tab.Sheet.Id, element));
     }
 
-    public static Unit2D MeasureImageSize(byte[] imageData, double maxMm = 150.0)
-    {
-        var bitmap = new BitmapImage();
-        
-        bitmap.BeginInit();
-        bitmap.StreamSource = new MemoryStream(imageData);
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.EndInit();
-        bitmap.Freeze();
-
-        var dpiX = bitmap.DpiX > 0 ? bitmap.DpiX : 96.0;
-        var dpiY = bitmap.DpiY > 0 ? bitmap.DpiY : 96.0;
-
-        var widthMm  = bitmap.PixelWidth  * 25.4 / dpiX;
-        var heightMm = bitmap.PixelHeight * 25.4 / dpiY;
-
-        var larger = Math.Max(widthMm, heightMm);
-        
-        if (larger > maxMm)
-        {
-            var scale = maxMm / larger;
-            widthMm  *= scale;
-            heightMm *= scale;
-        }
-
-        return new Unit2D(Unit.FromMillimeters(widthMm), Unit.FromMillimeters(heightMm));
-    }
-    
     private void ExportSvg()
     {
         var tab = _viewModel.SelectedTab;
+        
         if (tab is null)
         {
             return;
         }
 
-        var dialog = new SaveFileDialog
-        {
-            Title = "Export SVG",
-            Filter = "SVG Files (*.svg)|*.svg",
-            FileName = $"{tab.Sheet.Name}.svg"
-        };
+        var sheet = tab.Sheet;
 
-        if (dialog.ShowDialog() != true)
-        {
-            return;
-        }
-
-        try
-        {
-            var resourceService = (IResourceService)App.ServiceProvider.GetService(typeof(IResourceService))!;
-            SvgExporter.Export(tab.Sheet, resourceService, dialog.FileName);
-        }
-        catch (Exception ex)
-        {
-            _dialogService.ShowError($"Failed to export SVG: {ex.Message}", "Export Failed");
-        }
+        _importExportService.ExportSvg(sheet);
     }
 
     private void ExportPng()
     {
         var tab = _viewModel.SelectedTab;
+        
         if (tab is null)
         {
             return;
         }
 
-        var dialog = new SaveFileDialog
-        {
-            Title = "Export PNG",
-            Filter = "PNG Files (*.png)|*.png",
-            FileName = $"{tab.Sheet.Name}.png"
-        };
+        var sheet = tab.Sheet;
 
-        if (dialog.ShowDialog() != true)
-        {
-            return;
-        }
-
-        try
-        {
-            var resourceService = (IResourceService)App.ServiceProvider.GetService(typeof(IResourceService))!;
-            PngExporter.Export(tab.Sheet, dialog.FileName, resourceService);
-        }
-        catch (Exception ex)
-        {
-            _dialogService.ShowError($"Failed to export PNG: {ex.Message}", "Export Failed");
-        }
+        _importExportService.ExportPng(sheet);
     }
-    
+
     private void SetCurrentFilePath(string? path)
     {
         _currentFilePath = path;

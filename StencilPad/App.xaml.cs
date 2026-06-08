@@ -53,9 +53,10 @@ public partial class App : Application
         });
 
         services.AddSingleton<IAppConfigService, AppConfigService>();
-        services.AddSingleton<IPrintService, PrintService>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IFileService, FileService>();
+        services.AddSingleton<IImportExportService, ImportExportService>();
+        services.AddSingleton<IPrintService, PrintService>();
         services.AddSingleton<IResourceService, ResourceService>();
 
         services.AddSingleton<IOperationService, OperationService>();
