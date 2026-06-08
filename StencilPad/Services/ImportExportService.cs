@@ -59,7 +59,7 @@ public class ImportExportService : IImportExportService
         }
         else
         {
-            center = new Unit2D(Unit.FromMillimeters(75), Unit.FromMillimeters(105));
+            center = Unit2D.FromMillimeters(75, 105);
         }
 
         var element = new ImageElement(center - halfSize, center + halfSize, imageData);

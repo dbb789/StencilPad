@@ -4,11 +4,8 @@ namespace StencilPad.Models;
 
 public record SheetFormat
 {
-    public static Unit2D MaxSize => new Unit2D(Unit.FromMillimeters(1200),
-                                               Unit.FromMillimeters(1200));
-    
-    public static Unit2D MinSize => new Unit2D(Unit.FromMillimeters(100),
-                                               Unit.FromMillimeters(100));
+    public static Unit2D MaxSize => Unit2D.FromMillimeters(1200, 1200);
+    public static Unit2D MinSize => Unit2D.FromMillimeters(100, 100);
 
     public SheetSizeType SizeType { get; init; }
     public SheetOrientation Orientation { get; init; }
@@ -51,15 +48,15 @@ public record SheetFormat
     {
         var size = sizeType switch
         {
-            SheetSizeType.A5 => new Unit2D(Unit.FromMillimeters(148), Unit.FromMillimeters(210)),
-            SheetSizeType.A4 => new Unit2D(Unit.FromMillimeters(210), Unit.FromMillimeters(297)),
-            SheetSizeType.A3 => new Unit2D(Unit.FromMillimeters(297), Unit.FromMillimeters(420)),
-            SheetSizeType.A2 => new Unit2D(Unit.FromMillimeters(420), Unit.FromMillimeters(594)),
-            SheetSizeType.A1 => new Unit2D(Unit.FromMillimeters(594), Unit.FromMillimeters(841)),
-            SheetSizeType.A0 => new Unit2D(Unit.FromMillimeters(841), Unit.FromMillimeters(1189)),
-            SheetSizeType.Letter => new Unit2D(Unit.FromInches(8.5), Unit.FromInches(11)),
-            SheetSizeType.Legal => new Unit2D(Unit.FromInches(8.5), Unit.FromInches(14)),
-            _ => new Unit2D(Unit.FromMillimeters(210), Unit.FromMillimeters(297))
+            SheetSizeType.A5 => Unit2D.FromMillimeters(148, 210),
+            SheetSizeType.A4 => Unit2D.FromMillimeters(210, 297),
+            SheetSizeType.A3 => Unit2D.FromMillimeters(297, 420),
+            SheetSizeType.A2 => Unit2D.FromMillimeters(420, 594),
+            SheetSizeType.A1 => Unit2D.FromMillimeters(594, 841),
+            SheetSizeType.A0 => Unit2D.FromMillimeters(841, 1189),
+            SheetSizeType.Letter => Unit2D.FromInches(8.5, 11),
+            SheetSizeType.Legal => Unit2D.FromInches(8.5, 14),
+            _ => Unit2D.FromMillimeters(210, 297)
         };
 
         if (orientation == SheetOrientation.Landscape)
