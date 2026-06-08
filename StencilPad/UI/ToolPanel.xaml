@@ -43,7 +43,7 @@
     <ListBox ItemsSource="{Binding Tools}"
              SelectedItem="{Binding SelectedTool}"
              BorderThickness="0"
-             Background="#FAFAFA"
+             Background="Transparent"
              Focusable="False">
         <ListBox.ItemContainerStyle>
             <Style TargetType="{x:Type ListBoxItem}">

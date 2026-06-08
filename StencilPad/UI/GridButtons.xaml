@@ -46,7 +46,7 @@
         </Style>
     </UserControl.Resources>
 
-    <ListBox Background="#FAFAFA"
+    <ListBox Background="Transparent"
              BorderThickness="0"
              Focusable="False">
         <ListBox.ItemContainerStyle>

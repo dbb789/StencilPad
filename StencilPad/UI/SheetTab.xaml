@@ -3,11 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="clr-namespace:StencilPad.Canvases.UI"
              xmlns:local="clr-namespace:StencilPad.UI">
-    <DockPanel Background="#FAFAFA">
+    <DockPanel Background="#F0F0F0">
         <Border DockPanel.Dock="Left"
-                Background="#FAFAFA"
-                BorderBrush="#CCCCCC"
-                Margin="0,0,4,0">
+                BorderBrush="#CCCCCC">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
