@@ -2,4 +2,7 @@ Grid size configuration
 Snap to ruler
 Confirm exit without save
 Marker path selection region should include markers
-Line style (dotted lines / start + end caps)
+Review multi-selection resizing behaviour
+Hint label (current object size / key modifiers)
+Unit type configuration
+Unit ratio configuration
