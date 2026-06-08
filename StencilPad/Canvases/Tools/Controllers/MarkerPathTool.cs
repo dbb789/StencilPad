@@ -1,4 +1,4 @@
-using StencilPad.Canvases.Common;
+using System.Windows.Media;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
@@ -14,7 +14,7 @@ public class MarkerPathTool : ITool
                          OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         Factory<ShapeToolOverlay> OverlayFactory) : IToolFactory
+                         Factory<PolygonToolOverlay<MarkerPath>> OverlayFactory) : IToolFactory
     {
         public string IconResource => "MarkerPathTool";
         public string Tooltip => "Marker Path";
@@ -29,14 +29,14 @@ public class MarkerPathTool : ITool
     private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly Factory<ShapeToolOverlay> _overlayFactory;
-    private ShapeToolOverlay? _overlay;
+    private readonly Factory<PolygonToolOverlay<MarkerPath>> _overlayFactory;
+    private PolygonToolOverlay<MarkerPath>? _overlay;
 
     private MarkerPathTool(Sheet sheet,
                            OverlayContainer overlayContainer,
                            IUnitSnapOverlay unitSnapOverlay,
                            IOperationService operationService,
-                           Factory<ShapeToolOverlay> overlayFactory)
+                           Factory<PolygonToolOverlay<MarkerPath>> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
@@ -51,6 +51,9 @@ public class MarkerPathTool : ITool
     public void ToolBegin()
     {
         _overlay = _overlayFactory.Create();
+        _overlay.Element.LineColor = Color.FromArgb(128, 0, 0, 0);
+        _overlay.Element.MarkerColor = Color.FromArgb(128, 0, 0, 0);
+
         _overlayContainer.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 

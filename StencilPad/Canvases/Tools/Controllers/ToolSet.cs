@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
+using StencilPad.Models;
 
 namespace StencilPad.Canvases.Tools.Controllers;
 
@@ -38,7 +39,8 @@ public class ToolSet
 
         FactoryUtil.AddFactory<EditToolOverlay>(services);
         FactoryUtil.AddFactory<SelectionToolOverlay>(services);
-        FactoryUtil.AddFactory<ShapeToolOverlay>(services);
+        FactoryUtil.AddFactory<PolygonToolOverlay<Shape>>(services);
+        FactoryUtil.AddFactory<PolygonToolOverlay<MarkerPath>>(services);
         FactoryUtil.AddFactory<RulerToolOverlay>(services);
         FactoryUtil.AddFactory<TextToolOverlay>(services);
         

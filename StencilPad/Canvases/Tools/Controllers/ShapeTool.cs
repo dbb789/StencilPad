@@ -1,4 +1,4 @@
-using StencilPad.Canvases.Common;
+using System.Windows.Media;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
@@ -14,7 +14,7 @@ public class ShapeTool : ITool
                          OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         Factory<ShapeToolOverlay> OverlayFactory) : IToolFactory
+                         Factory<PolygonToolOverlay<Shape>> OverlayFactory) : IToolFactory
     {
         public string IconResource => "StraightLineTool";
         public string Tooltip => "Shape";
@@ -29,14 +29,14 @@ public class ShapeTool : ITool
     private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly Factory<ShapeToolOverlay> _overlayFactory;
-    private ShapeToolOverlay? _overlay;
+    private readonly Factory<PolygonToolOverlay<Shape>> _overlayFactory;
+    private PolygonToolOverlay<Shape>? _overlay;
 
     private ShapeTool(Sheet sheet,
                       OverlayContainer overlayContainer,
                       IUnitSnapOverlay unitSnapOverlay,
                       IOperationService operationService,
-                      Factory<ShapeToolOverlay> overlayFactory)
+                      Factory<PolygonToolOverlay<Shape>> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
@@ -51,6 +51,7 @@ public class ShapeTool : ITool
     public void ToolBegin()
     {
         _overlay = _overlayFactory.Create();
+        _overlay.Element.LineColor = Color.FromArgb(128, 0, 0, 0);
         _overlayContainer.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 
@@ -72,8 +73,6 @@ public class ShapeTool : ITool
 
     private void PolygonCompleted(Polygon polygon)
     {
-        _operationService.Push(
-            new AddSheetElementOperation(_sheet.Id,
-                                         new Shape(polygon)));
+        _operationService.Push(new AddSheetElementOperation(_sheet.Id, new Shape(polygon)));
     }
 }

@@ -31,6 +31,14 @@ public class MarkerPathPointList
 
     public void GeneratePoints(Polygon polygon, Unit spacing, Unit offset, bool balance)
     {
+        if (polygon.Vertices.Count < 2)
+        {
+            _segments.Clear();
+            _points.Clear();
+            _balanced = false;
+            return;
+        }
+        
         _distanceWalker.Reset(offset);
 
         polygon.Resolver.Walk(_distanceWalker);

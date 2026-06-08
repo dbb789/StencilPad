@@ -5,48 +5,97 @@ using System.Windows.Media;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Canvases.Tools.Common;
+using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
 using StencilPad.Spatial;
+using StencilPad.Services;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class ShapeToolOverlay : Canvas, IDisposable
+public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
+    where TSheetElement : IPolygonSheetElement, new()
 {
+    public TSheetElement Element => _element;
+
+    private readonly IAppConfigService _appConfigService;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapContext _unitSnapContext;
+    private readonly TSheetElement _element;
     private readonly Polygon _polygon;
-    private readonly StreamGeometryWalker _walker;
+    private readonly IModelResolver? _resolver;
+    private readonly ModelRenderer _renderer;
     private readonly WidgetContainer<HandleWidget> _vertexWidgets;
     private readonly LockAxisState _lockAxisState;
 
     private Unit2D _currentSnappedMousePosition;
-    
+    private double _handleSize;
+    private Brush _moveBrush = null!;
+
     public event Action<Polygon>? OnPolygonCompleted;
 
-    public ShapeToolOverlay(IViewport viewport, IUnitSnap unitSnap)
+    public PolygonToolOverlay(IAppConfigService appConfigService,
+                              IViewport viewport,
+                              IUnitSnap unitSnap,
+                              IResourceService resourceService)
     {
+        _appConfigService = appConfigService;
         _viewport = viewport;
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
-        _polygon = new();
-        _walker = new();
+        _element = new();
+        
+        _polygon = _element.PolygonSet.First();
+        
+        AddVertexAtMousePosition();
+
+        _resolver = ResolverFactory.Create(_element, resourceService);
+        _renderer = new ModelRenderer(resourceService);
+
+        _resolver?.Attach(_renderer);
+        _renderer.RendererDirty += InvalidateVisual;
+        
         _vertexWidgets = new(this);
         
         _lockAxisState = new();
-        _polygon.GeometryChanged += GeometryChanged;
-        _viewport.ViewportChanged += RepositionWidgets;
+        _viewport.ViewportChanged += InvalidateVisual;
 
-        RepositionWidgets();
+        BuildPens();
+        
+        _appConfigService.ConfigChanged += OnConfigChanged;
     }
 
     public void Dispose()
     {
         ReleaseMouseCapture();
 
-        _polygon.GeometryChanged -= GeometryChanged;
-        _viewport.ViewportChanged -= RepositionWidgets;
+        _appConfigService.ConfigChanged -= OnConfigChanged;
+        _renderer.RendererDirty -= InvalidateVisual;
+        _resolver?.Detach();
+
+        _viewport.ViewportChanged -= InvalidateVisual;
+    }
+    
+    private void BuildPens()
+    {
+        var config = _appConfigService.Config;
+        var moveHandleColor = config.MoveHandleColor;
+        var adjustHandleColor = config.AdjustHandleColor;
+        var selectionColor = config.SelectionColor;
+        var gridLineColor = config.GridLineColor;
+        
+        _moveBrush = new SolidColorBrush(ColorUtil.WithAlpha(moveHandleColor, 128));
+        _moveBrush.Freeze();
+
+        _handleSize = config.HandleSizePx;
+    }
+    
+    private void OnConfigChanged()
+    {
+        BuildPens();
+        InvalidateVisual();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -60,7 +109,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
         {
             if (!MouseOverExistingVertex())
             {
-                _polygon.AddVertex(new Vertex(_currentSnappedMousePosition));
+                AddVertexAtMousePosition();
             }
         }
         else if (e.ClickCount == 2 && _polygon.Vertices.Count > 1)
@@ -72,11 +121,15 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
             OnPolygonCompleted?.Invoke(_polygon);
             _polygon.Clear();
+            AddVertexAtMousePosition();
         }
 
-        InvalidateVisual();
-
         e.Handled = true;
+    }
+
+    private void AddVertexAtMousePosition()
+    {
+        _polygon.AddVertex(new Vertex { Position = _currentSnappedMousePosition });
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -87,8 +140,10 @@ public class ShapeToolOverlay : Canvas, IDisposable
         {
             return;
         }
-
-        InvalidateVisual();
+        
+        var vertex = _polygon.Vertices[^1];
+        
+        _polygon.Vertices[^1] = vertex with { Position = _currentSnappedMousePosition };
     }
 
     protected override void OnRender(DrawingContext dc)
@@ -104,31 +159,21 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
         dc.PushTransform(_viewport.MillimetersToPixelsTransform);
 
-        var geometry = new StreamGeometry
-        {
-            FillRule = FillRule.EvenOdd
-        };
-
-        using (var ctx = geometry.Open())
-        {
-            _walker.Context = ctx;
-            _polygon.Resolver.Walk(_walker);
-        }
+        _renderer.Render(dc);
         
-        geometry.Freeze();
-        
-        var shapePen = new Pen(Brushes.Black, 0.1);
-
-        dc.DrawGeometry(Brushes.Transparent, shapePen, geometry);
-        
-        if (!_polygon.Closed)
-        {
-            var lastPoint = _polygon.Vertices[^1].Position.Millimeters;
-
-            dc.DrawLine(shapePen, lastPoint, _currentSnappedMousePosition.Millimeters);
-        }
-
         dc.Pop();
+
+        for (int i = 0; i < _polygon.Vertices.Count; ++i)
+        {
+            var point = _viewport.ToPoint(_polygon.Vertices[i].Position);
+
+            dc.DrawRectangle(_moveBrush,
+                             null,
+                             new Rect(point.X - (_handleSize / 2),
+                                      point.Y - (_handleSize / 2),
+                                      _handleSize,
+                                      _handleSize));
+        }
     }
 
     private Unit2D CurrentSnappedMouseOverPosition(Point mousePosition)
@@ -154,7 +199,9 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
     private bool MouseOverExistingVertex()
     {
-        for (int i = 0; i < _polygon.Vertices.Count; ++i)
+        // NOTE: Ignore the last vertex since it's always the one already under
+        // the mouse cursor.
+        for (int i = 0; i < _polygon.Vertices.Count - 1; ++i)
         {
             var vertex = _polygon.Vertices[i];
 
@@ -179,7 +226,7 @@ public class ShapeToolOverlay : Canvas, IDisposable
 
     private bool MouseOverVertex(Vertex vertex)
     {
-        const double hitRadius = 8.0;
+        double hitRadius = _handleSize * 1.25;
         
         var hitRadiusSquared = hitRadius * hitRadius;
 
@@ -189,30 +236,5 @@ public class ShapeToolOverlay : Canvas, IDisposable
         var distanceSquared = (vertexScreenPosition - mousePixelPosition).LengthSquared;
 
         return (distanceSquared <= hitRadiusSquared);
-    }
-
-    private void GeometryChanged(IPolygon polygon)
-    {
-        RepositionWidgets();
-    }
-    
-    private void RepositionWidgets()
-    {
-        _vertexWidgets.Resize(_polygon.Vertices.Count);
-
-        for (var i = 0; i < _polygon.Vertices.Count; i++)
-        {
-            var widget = _vertexWidgets[i];
-
-            widget.Handle = Handle.DisplayOnly;
-            widget.Selectable = false;
-            widget.Draggable = false;
-            widget.InvalidateVisual();
-
-            var point = _viewport.ToPoint(_polygon.Vertices[i].Position);
-
-            SetTop(widget, point.Y);
-            SetLeft(widget, point.X);
-        }
     }
 }
