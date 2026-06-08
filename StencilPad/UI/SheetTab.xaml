@@ -3,10 +3,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="clr-namespace:StencilPad.Canvases.UI"
              xmlns:local="clr-namespace:StencilPad.UI">
-    <DockPanel Background="#EEEEEE">
-        <local:ToolPanel x:Name="ToolPanel"
-                         DockPanel.Dock="Left"
-                         DataContext="{Binding ToolPanelViewModel}"/>
+    <DockPanel Background="#FAFAFA">
+        <Border DockPanel.Dock="Left"
+                Background="#FAFAFA"
+                BorderBrush="#CCCCCC"
+                Margin="0,0,4,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <local:ToolPanel x:Name="ToolPanel"
+                                 Grid.Row="0"
+                                 DataContext="{Binding ToolPanelViewModel}"/>
+                
+                <local:GridButtons Grid.Row="2"
+                                   ShowGrid="{Binding ShowGrid}"
+                                   SnapToGrid="{Binding SnapToGrid}"
+                                   SnapToPoint="{Binding SnapToPoint}"/>
+            </Grid>
+        </Border>
         <ScrollViewer x:Name="Scroll"
                       HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto"

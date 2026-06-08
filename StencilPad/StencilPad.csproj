@@ -11,41 +11,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Icons\MarkerPathTool.png" />
-    <None Remove="Resources\Icons\RulerTool.png" />
-    <None Remove="Resources\Icons\SelectionTool.png" />
-    <None Remove="Resources\Icons\ShapeTool.png" />
-    <None Remove="Resources\Icons\StraightLineTool.png" />
-    <None Remove="Resources\Icons\TextTool.png" />
-    <None Remove="Resources\Icons\testicon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
       <Content Include="Resources\Geometry\Index.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-      <Content Include="Resources\StencilPad.ico" />
+    <Content Include="Resources\StencilPad.ico" />
     <Content Include="Resources\Geometry\*.spad">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Resource Include="Resources\Icons\EditTool.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Icons\MarkerPathTool.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Icons\RulerTool.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Icons\SelectionTool.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Icons\StraightLineTool.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Icons\TextTool.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Resources\Icons\*.png"/>
   </ItemGroup>
 
   <ItemGroup>
