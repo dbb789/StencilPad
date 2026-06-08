@@ -217,6 +217,21 @@ public class Polygon : IPolygon
         SetControlBegin(edgeIndex, p1 + controlBegin);
         SetControlEnd(edgeIndex, p2 + controlEnd);
     }
+    
+    public void ReassignControlPoints(int edgeIndex)
+    {
+        var edge = _edges.At(edgeIndex);
+        var p0 = _vertices.At(edgeIndex - 1).Position;
+        var p1 = _vertices.At(edgeIndex).Position;
+        var p2 = _vertices.At(edgeIndex + 1).Position;
+        var p3 = _vertices.At(edgeIndex + 2).Position;
+
+        var controlBegin = MathUtil.ControlPointDirection(p0, p1, p2);
+        var controlEnd = -MathUtil.ControlPointDirection(p1, p2, p3);
+
+        SetControlBegin(edgeIndex, p1 + controlBegin);
+        SetControlEnd(edgeIndex, p2 + controlEnd);
+    }
 
     public UnitBounds CalculateBounds()
     {

@@ -112,8 +112,10 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
                 AddVertexAtMousePosition();
             }
         }
-        else if (e.ClickCount == 2 && _polygon.Vertices.Count > 1)
+        else if (e.ClickCount == 2 && _polygon.Vertices.Count > 2)
         {
+            _polygon.DeleteVertex(_polygon.Vertices.Count - 1);
+            
             if (MouseOverFirstVertex())
             {
                 _polygon.Close();
@@ -130,6 +132,13 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
     private void AddVertexAtMousePosition()
     {
         _polygon.AddVertex(new Vertex { Position = _currentSnappedMousePosition });
+
+        // if (_polygon.Vertices.Count > 1)
+        // {
+        //     var edge = _polygon.Edges[^1];
+
+        //     _polygon.Edges[^1] = edge with { Type = EdgeType.Bezier };
+        // }
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -144,6 +153,11 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
         var vertex = _polygon.Vertices[^1];
         
         _polygon.Vertices[^1] = vertex with { Position = _currentSnappedMousePosition };
+
+        // if (_polygon.Edges.Count > 0)
+        // {
+        //     _polygon.ReassignControlPoints(_polygon.Edges.Count - 1);
+        // }
     }
 
     protected override void OnRender(DrawingContext dc)
