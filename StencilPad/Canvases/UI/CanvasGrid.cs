@@ -13,18 +13,6 @@ public class CanvasGrid : ContentControl, IUnitSnap
     public static readonly DependencyProperty ShowGridProperty =
         DependencyProperty.Register(nameof(ShowGrid), typeof(bool), typeof(CanvasGrid),
             new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
-    
-    public static readonly DependencyProperty MinorSpacingProperty =
-        DependencyProperty.Register(nameof(MinorSpacing), typeof(Unit), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(Unit.FromMillimeters(1m), FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty MajorSpacingProperty =
-        DependencyProperty.Register(nameof(MajorSpacing), typeof(Unit), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(Unit.FromMillimeters(10), FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty MinimumSpacingPixelsProperty =
-        DependencyProperty.Register(nameof(MinimumSpacingPixels), typeof(double), typeof(CanvasGrid),
-            new FrameworkPropertyMetadata(4.0, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public bool ShowGrid
     {
@@ -32,24 +20,6 @@ public class CanvasGrid : ContentControl, IUnitSnap
         set => SetValue(ShowGridProperty, value);
     }
     
-    public Unit MinorSpacing
-    {
-        get => (Unit)GetValue(MinorSpacingProperty);
-        set => SetValue(MinorSpacingProperty, value);
-    }
-
-    public Unit MajorSpacing
-    {
-        get => (Unit)GetValue(MajorSpacingProperty);
-        set => SetValue(MajorSpacingProperty, value);
-    }
-
-    public double MinimumSpacingPixels
-    {
-        get => (double)GetValue(MinimumSpacingPixelsProperty);
-        set => SetValue(MinimumSpacingPixelsProperty, value);
-    }
-
     private readonly IAppConfigService _appConfigService;
     private readonly IViewport _viewport;
 
@@ -134,11 +104,17 @@ public class CanvasGrid : ContentControl, IUnitSnap
 
         // Clip everything else (grid/axes) to the paper boundary
         dc.PushClip(new RectangleGeometry(pageRect));
-        
-        var minorSpacingPixels = _viewport.ToPixels(MinorSpacing);
-        var majorSpacingPixels = _viewport.ToPixels(MajorSpacing);
 
-        if (_viewport.ToPixels(MinorSpacing) > MinimumSpacingPixels)
+        var config = _appConfigService.Config;
+
+        var spacing = config.GridSpacingMetric;
+        var subdivisions = config.GridSubdivisionsMetric;
+        
+        var majorSpacingPixels = _viewport.ToPixels(spacing);
+        var minorSpacingPixels = _viewport.ToPixels(spacing / subdivisions);
+        var minSpacingPixels = config.GridMinSpacingPx;
+        
+        if (minorSpacingPixels > minSpacingPixels)
         {
             for (double x = 0; x <= xExtentsPixels; x += minorSpacingPixels)
             {
@@ -173,36 +149,30 @@ public class CanvasGrid : ContentControl, IUnitSnap
 
     public Unit2D? UnitSnap(Unit2D point, IUnitSnapContext context)
     {
-        var majorSnapX = Unit.FromMillimeters(Math.Round(point.X.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);
-        var majorSnapY = Unit.FromMillimeters(Math.Round(point.Y.Millimeters / MajorSpacing.Millimeters) * MajorSpacing.Millimeters);
-        var minorSnapX = Unit.FromMillimeters(Math.Round(point.X.Millimeters / MinorSpacing.Millimeters) * MinorSpacing.Millimeters);
-        var minorSnapY = Unit.FromMillimeters(Math.Round(point.Y.Millimeters / MinorSpacing.Millimeters) * MinorSpacing.Millimeters);
+        var config = _appConfigService.Config;
 
-        Unit snapX = point.X;
-        Unit snapY = point.Y;
+        var spacing = config.GridSpacingMetric;
+        var subdivisions = config.GridSubdivisionsMetric;
+        var minSpacingPixels = config.GridMinSpacingPx;
 
-        bool hasMinorSpacing = _viewport.ToPixels(MinorSpacing) > MinimumSpacingPixels;
+        var majorSpacing = spacing;
+        var minorSpacing = spacing / subdivisions;
         
-        if (!hasMinorSpacing ||
-            Math.Abs(point.X.Millimeters - majorSnapX.Millimeters) < Math.Abs(point.X.Millimeters - minorSnapX.Millimeters))
+        var majorSnap = Unit2D.Snap(point, majorSpacing);
+        var minorSnap = Unit2D.Snap(point, minorSpacing);
+        var snap = point;
+
+        bool hasMinorSpacing = _viewport.ToPixels(minorSpacing) > minSpacingPixels;
+        
+        if (!hasMinorSpacing || (point - majorSnap).SqrMagnitude < (point - minorSnap).SqrMagnitude)
         {
-            snapX = majorSnapX;
+            snap = majorSnap;
         }
         else
         {
-            snapX = minorSnapX;
+            snap = minorSnap;
         }
         
-        if (!hasMinorSpacing ||
-            Math.Abs(point.Y.Millimeters - majorSnapY.Millimeters) < Math.Abs(point.Y.Millimeters - minorSnapY.Millimeters))
-        {
-            snapY = majorSnapY;
-        }
-        else
-        {
-            snapY = minorSnapY;
-        }
-        
-        return new Unit2D(snapX, snapY);
+        return snap;
     }
 }

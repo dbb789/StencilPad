@@ -67,6 +67,11 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         return Math.Atan2(Determinant(a, b), Dot(a, b));
     }
     
+    public static Unit2D Snap(Unit2D value, Unit snap)
+    {
+        return new(Unit.Snap(value.X, snap), Unit.Snap(value.Y, snap));
+    }
+
     public static Unit2D Lerp(Unit2D a, Unit2D b, double t)
     {
         return a + ((b - a) * t);

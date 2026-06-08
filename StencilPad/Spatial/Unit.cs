@@ -110,6 +110,10 @@ public readonly record struct Unit
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit Clamp(Unit value, Unit min, Unit max)
         => new(Math.Clamp(value._value, min._value, max._value));
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit Snap(Unit value, Unit snap)
+        => new(Math.Round(value._value / snap._value) * snap._value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit Lerp(Unit a, Unit b, double t)

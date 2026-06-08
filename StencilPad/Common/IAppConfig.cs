@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using StencilPad.Spatial;
 
 namespace StencilPad.Common;
 
@@ -12,4 +13,10 @@ public interface IAppConfig
 
     double HandleSizePx { get; }
     double PointSnapPx { get; }
+
+    Unit GridSpacingMetric { get; }
+    int GridSubdivisionsMetric { get; }
+    Unit GridSpacingImperial { get; }
+    int GridSubdivisionsImperial { get; }
+    double GridMinSpacingPx { get; }
 }
