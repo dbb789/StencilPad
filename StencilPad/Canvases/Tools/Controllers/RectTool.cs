@@ -6,32 +6,32 @@ using StencilPad.Services;
 
 namespace StencilPad.Canvases.Tools.Controllers;
 
-public class StraightLineTool : PolygonTool<LineToolOverlay<Shape>, Shape>
+public class RectTool : PolygonTool<RectToolOverlay<Shape>, Shape>
 {
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         Factory<LineToolOverlay<Shape>> OverlayFactory) : IToolFactory
+                         Factory<RectToolOverlay<Shape>> OverlayFactory) : IToolFactory
     {
-        public string IconResource => "StraightLineTool";
-        public string Tooltip => "Straight Lines";
+        public string IconResource => "RectTool";
+        public string Tooltip => "Rectangles";
 
         public ITool Create(IToolButton button)
         {
-            return new StraightLineTool(Sheet,
-                                        OverlayContainer,
-                                        UnitSnapOverlay,
-                                        OperationService,
-                                        OverlayFactory);
+            return new RectTool(Sheet,
+                                OverlayContainer,
+                                UnitSnapOverlay,
+                                OperationService,
+                                OverlayFactory);
         }
     }
 
-    public StraightLineTool(Sheet sheet,
-                           OverlayContainer overlayContainer,
-                           IUnitSnapOverlay unitSnapOverlay,
-                           IOperationService operationService,
-                           Factory<LineToolOverlay<Shape>> overlayFactory)
+    private RectTool(Sheet sheet,
+                     OverlayContainer overlayContainer,
+                     IUnitSnapOverlay unitSnapOverlay,
+                     IOperationService operationService,
+                     Factory<RectToolOverlay<Shape>> overlayFactory)
         : base(sheet,
                overlayContainer,
                unitSnapOverlay,
@@ -40,7 +40,7 @@ public class StraightLineTool : PolygonTool<LineToolOverlay<Shape>, Shape>
     {
         // ...
     }
-    
+
     public override void ToolBegin()
     {
         base.ToolBegin();
@@ -50,7 +50,6 @@ public class StraightLineTool : PolygonTool<LineToolOverlay<Shape>, Shape>
             return;
         }
 
-        Overlay.IsCurved = false;
         Overlay.Element.LineColor = Color.FromArgb(127, 0, 0, 0);
     }
 }

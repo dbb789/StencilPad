@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
@@ -14,10 +13,10 @@ using StencilPad.Services;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class LineToolOverlay<TSheetElement> : Canvas, IDisposable
+public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetElement>
     where TSheetElement : IPolygonSheetElement, new()
 {
-    public TSheetElement Element => _element;
+    public override TSheetElement Element => _element;
     public bool IsCurved { get; set; } = false;
 
     private readonly IAppConfigService _appConfigService;
@@ -34,8 +33,6 @@ public class LineToolOverlay<TSheetElement> : Canvas, IDisposable
     private Unit2D _currentSnappedMousePosition;
     private double _handleSize;
     private Brush _moveBrush = null!;
-
-    public event Action<Polygon>? OnPolygonCompleted;
 
     public LineToolOverlay(IAppConfigService appConfigService,
                               IViewport viewport,
@@ -68,7 +65,7 @@ public class LineToolOverlay<TSheetElement> : Canvas, IDisposable
         _appConfigService.ConfigChanged += OnConfigChanged;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         ReleaseMouseCapture();
 
@@ -130,7 +127,7 @@ public class LineToolOverlay<TSheetElement> : Canvas, IDisposable
                 }
             }
 
-            OnPolygonCompleted?.Invoke(_polygon);
+            InvokePolygonCompleted(_polygon);
             _polygon.Clear();
             AddVertexAtMousePosition();
         }

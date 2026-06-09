@@ -15,6 +15,7 @@ public class ToolSet
                    EditTool.Factory editHandleSetToolFactory,
                    StraightLineTool.Factory straightLineToolFactory,
                    CurvedLineTool.Factory curvedLineToolFactory,
+                   RectTool.Factory rectToolFactory,
                    MarkerPathTool.Factory markerPathToolFactory,
                    RulerTool.Factory rulerToolFactory,
                    TextTool.Factory textToolFactory)
@@ -24,6 +25,7 @@ public class ToolSet
             editHandleSetToolFactory,
             straightLineToolFactory,
             curvedLineToolFactory,
+            rectToolFactory,
             markerPathToolFactory,
             rulerToolFactory,
             textToolFactory
@@ -36,6 +38,7 @@ public class ToolSet
         services.AddSingleton<EditTool.Factory>();
         services.AddSingleton<StraightLineTool.Factory>();
         services.AddSingleton<CurvedLineTool.Factory>();
+        services.AddSingleton<RectTool.Factory>();
         services.AddSingleton<MarkerPathTool.Factory>();
         services.AddSingleton<RulerTool.Factory>();
         services.AddSingleton<TextTool.Factory>();
@@ -44,6 +47,7 @@ public class ToolSet
         FactoryUtil.AddFactory<SelectionToolOverlay>(services);
         FactoryUtil.AddFactory<LineToolOverlay<Shape>>(services);
         FactoryUtil.AddFactory<LineToolOverlay<MarkerPath>>(services);
+        FactoryUtil.AddFactory<RectToolOverlay<Shape>>(services);
         FactoryUtil.AddFactory<RulerToolOverlay>(services);
         FactoryUtil.AddFactory<TextToolOverlay>(services);
         

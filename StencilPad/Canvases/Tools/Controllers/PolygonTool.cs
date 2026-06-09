@@ -8,22 +8,24 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Controllers;
 
-public abstract class LineTool : ITool
+public abstract class PolygonTool<TOverlay, TSheetElement> : ITool
+    where TOverlay : PolygonToolOverlayBase<TSheetElement>
+    where TSheetElement : IPolygonSheetElement, new()
 {
-    protected abstract bool IsCurved { get; }
+    protected TOverlay? Overlay => _overlay;
     
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly Factory<LineToolOverlay<Shape>> _overlayFactory;
-    private LineToolOverlay<Shape>? _overlay;
+    private readonly Factory<TOverlay> _overlayFactory;
+    private TOverlay? _overlay;
 
-    protected LineTool(Sheet sheet,
-                       OverlayContainer overlayContainer,
-                       IUnitSnapOverlay unitSnapOverlay,
-                       IOperationService operationService,
-                       Factory<LineToolOverlay<Shape>> overlayFactory)
+    protected PolygonTool(Sheet sheet,
+                          OverlayContainer overlayContainer,
+                          IUnitSnapOverlay unitSnapOverlay,
+                          IOperationService operationService,
+                          Factory<TOverlay> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
@@ -35,18 +37,16 @@ public abstract class LineTool : ITool
     public void Dispose()
     { }
 
-    public void ToolBegin()
+    public virtual void ToolBegin()
     {
         _overlay = _overlayFactory.Create();
-        _overlay.Element.LineColor = Color.FromArgb(128, 0, 0, 0);
-        _overlay.IsCurved = IsCurved;
         _overlayContainer.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 
         _overlay.OnPolygonCompleted += PolygonCompleted;
     }
 
-    public void ToolEnd()
+    public virtual void ToolEnd()
     {
         _overlayContainer.ActiveOverlay = null;
         _unitSnapOverlay.End();
