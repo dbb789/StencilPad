@@ -28,21 +28,9 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="60"/>
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Column="0" Text="Font:" VerticalAlignment="Center"/>
-            <widgets:FontNameComboBox Grid.Column="2"
-                                      Value="{Binding FontName}"/>
-            <widgets:FontSizeComboBox Grid.Column="4"
-                                      Value="{Binding FontSize}"/>
-        </Grid>
+        <widgets:TextProperties Grid.Row="0"
+                                FontName="{Binding FontName}"
+                                FontSize="{Binding FontSize}"/>
 
         <TextBlock Grid.Row="2" Text="Colour:"/>
         <widgets:ColorField x:Name="ColorField"

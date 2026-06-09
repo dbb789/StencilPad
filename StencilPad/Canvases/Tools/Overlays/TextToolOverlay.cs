@@ -7,6 +7,8 @@ using StencilPad.Canvases.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
 
+using StencilPad.Canvases.Tools.Widgets;
+
 namespace StencilPad.Canvases.Tools.Overlays;
 
 public class TextToolOverlay : ToolOverlay, IDisposable
@@ -14,7 +16,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapContext _unitSnapContext;
-    private TextBox? _textBox;
+    private InlineTextField? _textField;
     private Unit2D? _pendingPosition;
 
     public double FontSize { get; set; } = 12.0;
@@ -48,7 +50,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
-        if (_textBox is not null)
+        if (_textField is not null)
         {
             CommitOrCancel(true);
             return;
@@ -63,7 +65,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
             _pendingPosition = snapPosition.Value;
         }
 
-        ShowTextBox(mousePosition);
+        ShowTextField(mousePosition);
         e.Handled = true;
     }
 
@@ -76,57 +78,32 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         RenderOverlay(dc);
     }
 
-    private void ShowTextBox(Point screenPosition)
+    private void ShowTextField(Point screenPosition)
     {
-        _textBox = new TextBox
+        _textField = new InlineTextField
         {
-            Background = Brushes.White,
-            BorderBrush = Brushes.CornflowerBlue,
-            MinWidth = 100,
-            Padding = new Thickness(0),
-            FontFamily = new FontFamily(FontFamilyName),
-            FontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize)),
-            AcceptsReturn = true,
-            TextWrapping = TextWrapping.Wrap,
+            TextFontFamily = new FontFamily(FontFamilyName),
+            TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize)),
         };
 
-        _textBox.KeyDown += OnTextBoxKeyDown;
-        _textBox.LostFocus += OnTextBoxLostFocus;
+        _textField.Cancelled += () => CommitOrCancel(false);
+        _textField.Committed += () => CommitOrCancel(true);
 
-        Children.Add(_textBox);
-        SetLeft(_textBox, screenPosition.X);
-        SetTop(_textBox, screenPosition.Y);
-
-        _textBox.Focus();
-    }
-
-    private void OnTextBoxKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Escape)
-        {
-            CommitOrCancel(false);
-            e.Handled = true;
-        }
-    }
-
-    private void OnTextBoxLostFocus(object sender, RoutedEventArgs e)
-    {
-        CommitOrCancel(true);
+        Children.Add(_textField);
+        SetLeft(_textField, screenPosition.X);
+        SetTop(_textField, screenPosition.Y);
     }
 
     private void CommitOrCancel(bool commit)
     {
-        if (_textBox is null)
+        if (_textField is null)
         {
             return;
         }
 
-        _textBox.KeyDown -= OnTextBoxKeyDown;
-        _textBox.LostFocus -= OnTextBoxLostFocus;
-
-        var text = _textBox.Text;
-        Children.Remove(_textBox);
-        _textBox = null;
+        var text = _textField.Text;
+        Children.Remove(_textField);
+        _textField = null;
 
         if (commit && _pendingPosition.HasValue && !string.IsNullOrWhiteSpace(text))
         {
@@ -138,14 +115,14 @@ public class TextToolOverlay : ToolOverlay, IDisposable
 
     private void OnViewportChanged()
     {
-        if (_textBox is not null && _pendingPosition.HasValue)
+        if (_textField is not null && _pendingPosition.HasValue)
         {
-            _textBox.FontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize));
+            _textField.TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize));
 
             var newScreenPos = _viewport.ToPoint(_pendingPosition.Value);
             
-            SetLeft(_textBox, newScreenPos.X);
-            SetTop(_textBox, newScreenPos.Y);
+            SetLeft(_textField, newScreenPos.X);
+            SetTop(_textField, newScreenPos.Y);
         }
 
         InvalidateVisual();
