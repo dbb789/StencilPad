@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
@@ -85,9 +85,44 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
             return;
         }
 
+        // Alternative implementation that creates a circle out of curved
+        // corners, and a pill when the width and height are different. The
+        // circle is created by placing 4 vertices at the cardinal points, and
+        // setting the corner type to rounded with a corner size equal to the
+        // distance from the vertex to the center.
+        //
+        // We might want to enable this as a setting.
+        //
+        // (_polygon.Vertices.Count < 4) {
+        // _polygon.AddVertex(CreateCircleVertex(Unit2D.Zero)); }
+
+        // if (!_polygon.Closed)
+        // {
+        //     _polygon.Close();
+        // }
+
+        // var offset = Unit2D.Abs(_currentSnappedMousePosition - _initialPoint.Value);
+
+        // _polygon.Vertices[0] = CreateCircleVertex(_initialPoint.Value - offset);
+        // _polygon.Vertices[1] = CreateCircleVertex(new Unit2D(_initialPoint.Value.X - offset.X,
+        //                                                      _initialPoint.Value.Y + offset.Y));
+        // _polygon.Vertices[2] = CreateCircleVertex(_initialPoint.Value + offset);
+        // _polygon.Vertices[3] = CreateCircleVertex(new Unit2D(_initialPoint.Value.X + offset.X,
+        //                                                      _initialPoint.Value.Y - offset.Y));
+        //
+        // Vertex CreateCircleVertex(Unit2D position)
+        // {
+        //     return new Vertex
+        //     {
+        //         Position = position,
+        //         CornerType = CornerType.Rounded,
+        //         CornerSize = CornerSize.FromProportion(1)
+        //     };
+        // }
+
         while (_polygon.Vertices.Count < 4)
         {
-            _polygon.AddVertex(CreateCircleVertex(Unit2D.Zero));
+            _polygon.AddVertex(new Vertex());
         }
 
         if (!_polygon.Closed)
@@ -97,24 +132,47 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
 
         var offset = Unit2D.Abs(_currentSnappedMousePosition - _initialPoint.Value);
 
-        _polygon.Vertices[0] = CreateCircleVertex(_initialPoint.Value - offset);
-        _polygon.Vertices[1] = CreateCircleVertex(new Unit2D(_initialPoint.Value.X - offset.X,
-                                                             _initialPoint.Value.Y + offset.Y));
-        _polygon.Vertices[2] = CreateCircleVertex(_initialPoint.Value + offset);
-        _polygon.Vertices[3] = CreateCircleVertex(new Unit2D(_initialPoint.Value.X + offset.X,
-                                                             _initialPoint.Value.Y - offset.Y));
-    }
-
-    private Vertex CreateCircleVertex(Unit2D position)
-    {
-        return new Vertex
+        if (ModifierUtil.IsLockAspect())
         {
-            Position = position,
-            CornerType = CornerType.Rounded,
-            CornerSize = CornerSize.FromProportion(1)
+            var maxOffset = Unit.Max(offset.X, offset.Y);
+            
+            offset = new Unit2D(maxOffset, maxOffset);
+        }
+
+        _polygon.Vertices[0] = new Vertex(new Unit2D(_initialPoint.Value.X, _initialPoint.Value.Y - offset.Y));
+        _polygon.Vertices[1] = new Vertex(new Unit2D(_initialPoint.Value.X + offset.X, _initialPoint.Value.Y));
+        _polygon.Vertices[2] = new Vertex(new Unit2D(_initialPoint.Value.X, _initialPoint.Value.Y + offset.Y));
+        _polygon.Vertices[3] = new Vertex(new Unit2D(_initialPoint.Value.X - offset.X, _initialPoint.Value.Y));
+
+        _polygon.Edges[0] = new Edge
+        {
+            Type = EdgeType.Bezier,
+            ControlBeginOffset = new Unit2D(offset.X * MathUtil.Kappa, Unit.Zero),
+            ControlEndOffset = new Unit2D(Unit.Zero, -offset.Y * MathUtil.Kappa)
+        };
+        
+        _polygon.Edges[1] = new Edge
+        {
+            Type = EdgeType.Bezier,
+            ControlBeginOffset = new Unit2D(Unit.Zero, offset.Y * MathUtil.Kappa),
+            ControlEndOffset = new Unit2D(offset.X * MathUtil.Kappa, Unit.Zero)
+        };
+        
+        _polygon.Edges[2] = new Edge
+        {
+            Type = EdgeType.Bezier,
+            ControlBeginOffset = new Unit2D(-offset.X * MathUtil.Kappa, Unit.Zero),
+            ControlEndOffset = new Unit2D(Unit.Zero, offset.Y * MathUtil.Kappa)
+        };
+
+        _polygon.Edges[3] = new Edge
+        {
+            Type = EdgeType.Bezier,
+            ControlBeginOffset = new Unit2D(Unit.Zero, -offset.Y * MathUtil.Kappa),
+            ControlEndOffset = new Unit2D(-offset.X * MathUtil.Kappa, Unit.Zero)
         };
     }
-    
+
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);

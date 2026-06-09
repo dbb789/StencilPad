@@ -100,12 +100,29 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator -(Unit2D u)  => new(-u.X, -u.Y);
-    
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit2D operator *(Unit2D u, decimal scalar) => new(u.X * scalar, u.Y * scalar);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit2D operator *(decimal scalar, Unit2D u) => u * scalar;
+
+    public static Unit2D operator *(Unit2D u, int scalar) => new(u.X * scalar, u.Y * scalar);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit2D operator *(int scalar, Unit2D u) => u * scalar;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator *(Unit2D u, double scalar) => new(u.X * scalar, u.Y * scalar);
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator *(double scalar, Unit2D u) => u * scalar;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit2D operator /(Unit2D u, decimal scalar) => new(u.X / scalar, u.Y / scalar);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit2D operator /(Unit2D u, int scalar) => new(u.X / scalar, u.Y / scalar);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit2D operator /(Unit2D u, double scalar) => new(u.X / scalar, u.Y / scalar);
