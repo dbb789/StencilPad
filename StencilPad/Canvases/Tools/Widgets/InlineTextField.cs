@@ -29,6 +29,18 @@ public class InlineTextField : UserControl
         set => _textBox.FontFamily = value;
     }
 
+    public double Rotation
+    {
+        get => _rotation;
+        set
+        {
+            _rotation = value;
+            RenderTransform = new RotateTransform(_rotation);
+        }
+    }
+
+    private double _rotation;
+
     public Unit2D TextSize => MeasureText();
     
     public event Action? Committed;

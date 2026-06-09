@@ -57,11 +57,15 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         }
 
         var mousePosition = _viewport.FromPoint(e.GetPosition(this));
-        var textElement = GetTextElementAtPosition(Sheet.Elements, mousePosition);
+        var (textElement, parentTransform) = GetTextElementAtPosition(Sheet.Elements, mousePosition, UnitTransform.Identity);
         
         if (textElement is not null)
         {
-            ShowTextField(textElement.Transform.Apply(textElement.Min), textElement.Text);
+            var transform = parentTransform * textElement.Transform;
+
+            ShowTextField(transform.Apply(textElement.Min),
+                          (double)transform.Angle,
+                          textElement.Text);
             _editingTextElement = textElement;
             return;
         }
@@ -77,31 +81,35 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         e.Handled = true;
     }
 
-    private TextElement? GetTextElementAtPosition(IEnumerable<ISheetElement> elements, Unit2D position)
+    private (TextElement?, UnitTransform) GetTextElementAtPosition(IEnumerable<ISheetElement> elements,
+                                                                    Unit2D position,
+                                                                    UnitTransform parentTransform)
     {
         foreach (var element in elements.Reverse())
         {
             if (element is TextElement textElement)
             {
-                var elementBounds = textElement.GetTransformedBounds();
+                var elementBounds = textElement.GetBounds(parentTransform * textElement.Transform);
 
                 if (elementBounds.Contains(position))
                 {
-                    return textElement;
+                    return (textElement, parentTransform);
                 }
             }
             else if (element is ElementGroup group)
             {
-                var childElement = GetTextElementAtPosition(group.Children, position);
+                var (childElement, childElementTransform) = GetTextElementAtPosition(group.Children,
+                                                                                     position,
+                                                                                     parentTransform * group.Transform);
                 
                 if (childElement is not null)
                 {
-                    return childElement;
+                    return (childElement, childElementTransform);
                 }
             }
         }
 
-        return null;
+        return (null, parentTransform);
     }
 
     protected override void OnRender(DrawingContext dc)
@@ -113,7 +121,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         RenderOverlay(dc);
     }
 
-    private void ShowTextField(Unit2D point, string text = "")
+    private void ShowTextField(Unit2D point, double rotation = 0.0, string text = "")
     {
         var screenPosition = _viewport.ToPoint(point);
         
@@ -122,6 +130,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
             Text = text,
             TextFontFamily = new FontFamily(DefaultFontFamilyName),
             TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize)),
+            Rotation = rotation
         };
 
         _textField.Cancelled += () => CommitOrCancel(false);
