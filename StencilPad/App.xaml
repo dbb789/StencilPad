@@ -7,6 +7,7 @@
             <BitmapImage x:Key="SelectionTool" UriSource="Resources/Icons/SelectionTool.png"/>
             <BitmapImage x:Key="EditTool" UriSource="Resources/Icons/EditTool.png"/>
             <BitmapImage x:Key="StraightLineTool" UriSource="Resources/Icons/StraightLineTool.png"/>
+            <BitmapImage x:Key="CurvedLineTool" UriSource="Resources/Icons/CurvedLineTool.png"/>
             <BitmapImage x:Key="MarkerPathTool" UriSource="Resources/Icons/MarkerPathTool.png"/>
             <BitmapImage x:Key="RulerTool" UriSource="Resources/Icons/RulerTool.png"/>
             <BitmapImage x:Key="TextTool" UriSource="Resources/Icons/TextTool.png"/>

@@ -8,23 +8,10 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Controllers;
 
-public class ShapeTool : ITool
+public abstract class LineTool : ITool
 {
-    public class Factory(Sheet Sheet,
-                         OverlayContainer OverlayContainer,
-                         IUnitSnapOverlay UnitSnapOverlay,
-                         IOperationService OperationService,
-                         Factory<PolygonToolOverlay<Shape>> OverlayFactory) : IToolFactory
-    {
-        public string IconResource => "StraightLineTool";
-        public string Tooltip => "Shape";
-
-        public ITool Create(IToolButton button)
-        {
-            return new ShapeTool(Sheet, OverlayContainer, UnitSnapOverlay, OperationService, OverlayFactory);
-        }
-    }
-
+    protected abstract bool IsCurved { get; }
+    
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
@@ -32,11 +19,11 @@ public class ShapeTool : ITool
     private readonly Factory<PolygonToolOverlay<Shape>> _overlayFactory;
     private PolygonToolOverlay<Shape>? _overlay;
 
-    private ShapeTool(Sheet sheet,
-                      OverlayContainer overlayContainer,
-                      IUnitSnapOverlay unitSnapOverlay,
-                      IOperationService operationService,
-                      Factory<PolygonToolOverlay<Shape>> overlayFactory)
+    protected LineTool(Sheet sheet,
+                       OverlayContainer overlayContainer,
+                       IUnitSnapOverlay unitSnapOverlay,
+                       IOperationService operationService,
+                       Factory<PolygonToolOverlay<Shape>> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
@@ -52,7 +39,7 @@ public class ShapeTool : ITool
     {
         _overlay = _overlayFactory.Create();
         _overlay.Element.LineColor = Color.FromArgb(128, 0, 0, 0);
-        _overlay.IsCurved = false;
+        _overlay.IsCurved = IsCurved;
         _overlayContainer.ActiveOverlay = _overlay;
         _unitSnapOverlay.Begin();
 

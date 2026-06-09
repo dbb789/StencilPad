@@ -13,7 +13,8 @@ public class ToolSet
 
     public ToolSet(SelectionTool.Factory selectionToolFactory,
                    EditTool.Factory editHandleSetToolFactory,
-                   ShapeTool.Factory shapeToolFactory,
+                   StraightLineTool.Factory straightLineToolFactory,
+                   CurvedLineTool.Factory curvedLineToolFactory,
                    MarkerPathTool.Factory markerPathToolFactory,
                    RulerTool.Factory rulerToolFactory,
                    TextTool.Factory textToolFactory)
@@ -21,7 +22,8 @@ public class ToolSet
         _tools = [
             selectionToolFactory,
             editHandleSetToolFactory,
-            shapeToolFactory,
+            straightLineToolFactory,
+            curvedLineToolFactory,
             markerPathToolFactory,
             rulerToolFactory,
             textToolFactory
@@ -32,7 +34,8 @@ public class ToolSet
     {
         services.AddSingleton<SelectionTool.Factory>();
         services.AddSingleton<EditTool.Factory>();
-        services.AddSingleton<ShapeTool.Factory>();
+        services.AddSingleton<StraightLineTool.Factory>();
+        services.AddSingleton<CurvedLineTool.Factory>();
         services.AddSingleton<MarkerPathTool.Factory>();
         services.AddSingleton<RulerTool.Factory>();
         services.AddSingleton<TextTool.Factory>();
