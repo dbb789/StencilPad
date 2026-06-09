@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Common;
 using StencilPad.Models;
@@ -27,7 +26,6 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     private readonly Polygon _polygon;
     private readonly IModelResolver? _resolver;
     private readonly ModelRenderer _renderer;
-    private readonly WidgetContainer<HandleWidget> _vertexWidgets;
     private readonly LockAxisState _lockAxisState;
 
     private Unit2D _currentSnappedMousePosition;
@@ -54,8 +52,6 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
 
         _resolver?.Attach(_renderer);
         _renderer.RendererDirty += InvalidateVisual;
-        
-        _vertexWidgets = new(this);
         
         _lockAxisState = new();
         _viewport.ViewportChanged += InvalidateVisual;
@@ -247,11 +243,9 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     private bool MouseOverVertex(Vertex vertex)
     {
         double hitRadius = _handleSize * 1.25;
-        
         var hitRadiusSquared = hitRadius * hitRadius;
-
         var mousePixelPosition = _viewport.ToPoint(_currentSnappedMousePosition);
-
+        
         var vertexScreenPosition = _viewport.ToPoint(vertex.Position);
         var distanceSquared = (vertexScreenPosition - mousePixelPosition).LengthSquared;
 

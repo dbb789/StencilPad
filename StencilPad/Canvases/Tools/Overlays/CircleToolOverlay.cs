@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
@@ -10,7 +11,7 @@ using StencilPad.Services;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetElement>
+public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetElement>
     where TSheetElement : IPolygonSheetElement, new()
 {
     public override TSheetElement Element => _element;
@@ -26,9 +27,9 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     private Unit2D? _initialPoint;
     private Unit2D _currentSnappedMousePosition;
 
-    public RectToolOverlay(IViewport viewport,
-                           IUnitSnap unitSnap,
-                           IResourceService resourceService)
+    public CircleToolOverlay(IViewport viewport,
+                             IUnitSnap unitSnap,
+                             IResourceService resourceService)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
@@ -86,7 +87,7 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
 
         while (_polygon.Vertices.Count < 4)
         {
-            _polygon.AddVertex(new Vertex());
+            _polygon.AddVertex(CreateCircleVertex(Unit2D.Zero));
         }
 
         if (!_polygon.Closed)
@@ -94,12 +95,26 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
             _polygon.Close();
         }
 
-        _polygon.Vertices[0] = new Vertex(new Unit2D(_initialPoint.Value.X, _initialPoint.Value.Y));
-        _polygon.Vertices[1] = new Vertex(new Unit2D(_currentSnappedMousePosition.X, _initialPoint.Value.Y));
-        _polygon.Vertices[2] = new Vertex(new Unit2D(_currentSnappedMousePosition.X, _currentSnappedMousePosition.Y));
-        _polygon.Vertices[3] = new Vertex(new Unit2D(_initialPoint.Value.X, _currentSnappedMousePosition.Y));
+        var offset = Unit2D.Abs(_currentSnappedMousePosition - _initialPoint.Value);
+
+        _polygon.Vertices[0] = CreateCircleVertex(_initialPoint.Value - offset);
+        _polygon.Vertices[1] = CreateCircleVertex(new Unit2D(_initialPoint.Value.X - offset.X,
+                                                             _initialPoint.Value.Y + offset.Y));
+        _polygon.Vertices[2] = CreateCircleVertex(_initialPoint.Value + offset);
+        _polygon.Vertices[3] = CreateCircleVertex(new Unit2D(_initialPoint.Value.X + offset.X,
+                                                             _initialPoint.Value.Y - offset.Y));
     }
 
+    private Vertex CreateCircleVertex(Unit2D position)
+    {
+        return new Vertex
+        {
+            Position = position,
+            CornerType = CornerType.Rounded,
+            CornerSize = CornerSize.FromProportion(1)
+        };
+    }
+    
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
