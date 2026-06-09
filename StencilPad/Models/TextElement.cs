@@ -127,7 +127,9 @@ public class TextElement : SheetElement<TextElement>
     public override void NormalizePosition()
     {
         var midpoint = _boundsHandleSource.Bounds.Center;
+        
         _boundsHandleSource.Bounds = _boundsHandleSource.Bounds - midpoint;
+        
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
@@ -146,9 +148,12 @@ public class TextElement : SheetElement<TextElement>
     public override void AssignFrom(TextElement other)
     {
         _boundsHandleSource.AssignFrom(other._boundsHandleSource);
+
+        Transform = other.Transform;
         Text = other.Text;
         FontName = other.FontName;
         FontSize = other.FontSize;
+        Justification = other.Justification;
         Color = other.Color;
     }
 

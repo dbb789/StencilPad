@@ -83,13 +83,6 @@ public class TextTool : ITool
 
     private void TextUpdated(TextElement element, string text)
     {
-        // Safety - check we haven't somehow deleted this element while editing
-        // it.
-        if (!_sheet.Elements.Contains(element))
-        {
-            return;
-        }
-        
         element.Text = text;
     }
 }

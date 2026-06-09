@@ -80,14 +80,19 @@ public class ElementGroup : SheetElement<ElementGroup>
             return;
         }
 
-        var sum = Unit2D.Zero;
+        foreach (var child in _children)
+        {
+            child.NormalizePosition();
+        }
+        
+        var midpoint = Unit2D.Zero;
 
         foreach (var child in _children)
         {
-            sum += child.Transform.Position;
+            midpoint += child.Transform.Position;
         }
 
-        var midpoint = sum / _children.Count;
+        midpoint /= _children.Count;
 
         foreach (var child in _children)
         {

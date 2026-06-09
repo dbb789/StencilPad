@@ -81,9 +81,10 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         e.Handled = true;
     }
 
+    // We should break this out into a utility method if we start using it anywhere else.
     private (TextElement?, UnitTransform) GetTextElementAtPosition(IEnumerable<ISheetElement> elements,
-                                                                    Unit2D position,
-                                                                    UnitTransform parentTransform)
+                                                                   Unit2D position,
+                                                                   UnitTransform parentTransform)
     {
         foreach (var element in elements.Reverse())
         {
