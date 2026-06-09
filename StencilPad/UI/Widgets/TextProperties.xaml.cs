@@ -5,24 +5,24 @@ namespace StencilPad.UI.Widgets;
 
 public partial class TextProperties : UserControl
 {
-    public static readonly DependencyProperty FontNameProperty =
-        DependencyProperty.Register(nameof(FontName), typeof(string), typeof(TextProperties),
+    public static readonly DependencyProperty TextFontNameProperty =
+        DependencyProperty.Register(nameof(TextFontName), typeof(string), typeof(TextProperties),
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
-    public static readonly DependencyProperty FontSizeProperty =
-        DependencyProperty.Register(nameof(FontSize), typeof(double), typeof(TextProperties),
+    public static readonly DependencyProperty TextFontSizeProperty =
+        DependencyProperty.Register(nameof(TextFontSize), typeof(double), typeof(TextProperties),
             new FrameworkPropertyMetadata(12.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
-    public string? FontName
+    public string? TextFontName
     {
-        get => (string?)GetValue(FontNameProperty);
-        set => SetValue(FontNameProperty, value);
+        get => (string?)GetValue(TextFontNameProperty);
+        set => SetValue(TextFontNameProperty, value);
     }
 
-    public double FontSize
+    public double TextFontSize
     {
-        get => (double)GetValue(FontSizeProperty);
-        set => SetValue(FontSizeProperty, value);
+        get => (double)GetValue(TextFontSizeProperty);
+        set => SetValue(TextFontSizeProperty, value);
     }
 
     public TextProperties()

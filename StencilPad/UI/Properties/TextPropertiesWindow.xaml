@@ -29,8 +29,8 @@
         </Grid.RowDefinitions>
 
         <widgets:TextProperties Grid.Row="0"
-                                FontName="{Binding FontName}"
-                                FontSize="{Binding FontSize}"/>
+                                TextFontName="{Binding FontName}"
+                                TextFontSize="{Binding FontSize}"/>
 
         <TextBlock Grid.Row="2" Text="Colour:"/>
         <widgets:ColorField x:Name="ColorField"

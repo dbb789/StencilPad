@@ -17,8 +17,8 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
 {
     // Limit mouse move event handling to 60hz so we don't clog up WPF.
     private const long MouseMoveEventThrottleMs = 16;
+    
     private record struct HandleEntry(ISheetElement Element, Handle Handle);
-    private record struct WidgetEntry(ISheetElement Element, HandleWidget Widget);
     
     public IViewport Viewport => _viewport;
     

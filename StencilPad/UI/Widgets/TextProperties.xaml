@@ -14,8 +14,8 @@
 
         <TextBlock Grid.Column="0" Text="Font:" VerticalAlignment="Center"/>
         <widgets:FontNameComboBox Grid.Column="2"
-                                  Value="{Binding FontName, ElementName=Root}"/>
+                                  Value="{Binding TextFontName, ElementName=Root}"/>
         <widgets:FontSizeComboBox Grid.Column="4"
-                                  Value="{Binding FontSize, ElementName=Root}"/>
+                                  Value="{Binding TextFontSize, ElementName=Root}"/>
     </Grid>
 </UserControl>
