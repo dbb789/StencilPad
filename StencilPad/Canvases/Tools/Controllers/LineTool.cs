@@ -16,14 +16,14 @@ public abstract class LineTool : ITool
     private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly Factory<PolygonToolOverlay<Shape>> _overlayFactory;
-    private PolygonToolOverlay<Shape>? _overlay;
+    private readonly Factory<LineToolOverlay<Shape>> _overlayFactory;
+    private LineToolOverlay<Shape>? _overlay;
 
     protected LineTool(Sheet sheet,
                        OverlayContainer overlayContainer,
                        IUnitSnapOverlay unitSnapOverlay,
                        IOperationService operationService,
-                       Factory<PolygonToolOverlay<Shape>> overlayFactory)
+                       Factory<LineToolOverlay<Shape>> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;

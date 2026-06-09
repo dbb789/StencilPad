@@ -14,7 +14,7 @@ public class MarkerPathTool : ITool
                          OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         Factory<PolygonToolOverlay<MarkerPath>> OverlayFactory) : IToolFactory
+                         Factory<LineToolOverlay<MarkerPath>> OverlayFactory) : IToolFactory
     {
         public string IconResource => "MarkerPathTool";
         public string Tooltip => "Marker Path";
@@ -29,14 +29,14 @@ public class MarkerPathTool : ITool
     private readonly OverlayContainer _overlayContainer;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
-    private readonly Factory<PolygonToolOverlay<MarkerPath>> _overlayFactory;
-    private PolygonToolOverlay<MarkerPath>? _overlay;
+    private readonly Factory<LineToolOverlay<MarkerPath>> _overlayFactory;
+    private LineToolOverlay<MarkerPath>? _overlay;
 
     private MarkerPathTool(Sheet sheet,
                            OverlayContainer overlayContainer,
                            IUnitSnapOverlay unitSnapOverlay,
                            IOperationService operationService,
-                           Factory<PolygonToolOverlay<MarkerPath>> overlayFactory)
+                           Factory<LineToolOverlay<MarkerPath>> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;

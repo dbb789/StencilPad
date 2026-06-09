@@ -11,7 +11,7 @@ public class CurvedLineTool : LineTool
                          OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         Factory<PolygonToolOverlay<Shape>> OverlayFactory) : IToolFactory
+                         Factory<LineToolOverlay<Shape>> OverlayFactory) : IToolFactory
     {
         public string IconResource => "CurvedLineTool";
         public string Tooltip => "Curved Lines";
@@ -32,7 +32,7 @@ public class CurvedLineTool : LineTool
                              OverlayContainer overlayContainer,
                              IUnitSnapOverlay unitSnapOverlay,
                              IOperationService operationService,
-                             Factory<PolygonToolOverlay<Shape>> overlayFactory)
+                             Factory<LineToolOverlay<Shape>> overlayFactory)
         : base(sheet,
                overlayContainer,
                unitSnapOverlay,

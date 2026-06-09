@@ -11,7 +11,7 @@ public class StraightLineTool : LineTool
                          OverlayContainer OverlayContainer,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
-                         Factory<PolygonToolOverlay<Shape>> OverlayFactory) : IToolFactory
+                         Factory<LineToolOverlay<Shape>> OverlayFactory) : IToolFactory
     {
         public string IconResource => "StraightLineTool";
         public string Tooltip => "Straight Lines";
@@ -32,7 +32,7 @@ public class StraightLineTool : LineTool
                              OverlayContainer overlayContainer,
                              IUnitSnapOverlay unitSnapOverlay,
                              IOperationService operationService,
-                             Factory<PolygonToolOverlay<Shape>> overlayFactory)
+                             Factory<LineToolOverlay<Shape>> overlayFactory)
         : base(sheet,
                overlayContainer,
                unitSnapOverlay,

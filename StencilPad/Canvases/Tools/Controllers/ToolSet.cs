@@ -42,8 +42,8 @@ public class ToolSet
 
         FactoryUtil.AddFactory<EditToolOverlay>(services);
         FactoryUtil.AddFactory<SelectionToolOverlay>(services);
-        FactoryUtil.AddFactory<PolygonToolOverlay<Shape>>(services);
-        FactoryUtil.AddFactory<PolygonToolOverlay<MarkerPath>>(services);
+        FactoryUtil.AddFactory<LineToolOverlay<Shape>>(services);
+        FactoryUtil.AddFactory<LineToolOverlay<MarkerPath>>(services);
         FactoryUtil.AddFactory<RulerToolOverlay>(services);
         FactoryUtil.AddFactory<TextToolOverlay>(services);
         

@@ -14,7 +14,7 @@ using StencilPad.Services;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
+public class LineToolOverlay<TSheetElement> : Canvas, IDisposable
     where TSheetElement : IPolygonSheetElement, new()
 {
     public TSheetElement Element => _element;
@@ -37,7 +37,7 @@ public class PolygonToolOverlay<TSheetElement> : Canvas, IDisposable
 
     public event Action<Polygon>? OnPolygonCompleted;
 
-    public PolygonToolOverlay(IAppConfigService appConfigService,
+    public LineToolOverlay(IAppConfigService appConfigService,
                               IViewport viewport,
                               IUnitSnap unitSnap,
                               IResourceService resourceService)
