@@ -4,7 +4,7 @@ namespace StencilPad.Spatial;
 
 // It may be possible to replace this with a C#15 union in the future as long as
 // any boxing concerns are addressed.
-public struct CornerSize
+public readonly struct CornerSize
 {
     public enum Type : byte
     {
@@ -22,7 +22,7 @@ public struct CornerSize
         public double Proportion;
     }
 
-    public static CornerSize Zero = FromUnit(Unit.Zero);
+    public static readonly CornerSize Zero = FromUnit(Unit.Zero);
 
     public static CornerSize FromUnit(Unit unit)
     {
