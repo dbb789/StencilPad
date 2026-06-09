@@ -9,7 +9,7 @@
         xmlns:vm="clr-namespace:StencilPad.ViewModels"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
-        Title="{Binding Title}" Height="650" Width="1100"
+        Title="{Binding Title}" Height="700" Width="1200"
         WindowStartupLocation="CenterScreen">
 
     <Window.InputBindings>
