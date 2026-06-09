@@ -8,6 +8,8 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public abstract class ToolOverlay : Canvas
 {
+    protected Sheet Sheet => _sheet;
+    
     private readonly IViewport _viewport;
     private readonly Sheet _sheet;
     private readonly bool _selectionOnly;

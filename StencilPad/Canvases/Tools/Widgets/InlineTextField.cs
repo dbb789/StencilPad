@@ -1,7 +1,9 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Widgets;
 
@@ -27,6 +29,8 @@ public class InlineTextField : UserControl
         set => _textBox.FontFamily = value;
     }
 
+    public Unit2D TextSize => MeasureText();
+    
     public event Action? Committed;
     public event Action? Cancelled;
 
@@ -38,7 +42,7 @@ public class InlineTextField : UserControl
             BorderBrush = Brushes.CornflowerBlue,
             MinWidth = 100,
             Padding = new Thickness(0),
-            AcceptsReturn = true,
+            AcceptsReturn = false,
             TextWrapping = TextWrapping.Wrap,
         };
 
@@ -52,7 +56,12 @@ public class InlineTextField : UserControl
 
     private void OnTextBoxKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape)
+        if (e.Key == Key.Enter)
+        {
+            Committed?.Invoke();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape)
         {
             Cancelled?.Invoke();
             e.Handled = true;
@@ -67,5 +76,26 @@ public class InlineTextField : UserControl
     public new void Focus()
     {
         _textBox.Focus();
+    }
+    
+    private Unit2D MeasureText()
+    {
+        if (string.IsNullOrEmpty(Text))
+        {
+            return Unit2D.Zero;
+        }
+
+        var fontFamily = TextFontFamily;
+
+        var ft = new FormattedText(
+            Text,
+            CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+            Unit.FromFontSizePoints(FontSize).Millimeters,
+            Brushes.Black,
+            1.0);
+
+        return Unit2D.FromMillimeters(ft.Width, ft.Height);
     }
 }

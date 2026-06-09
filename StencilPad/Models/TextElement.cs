@@ -131,7 +131,10 @@ public class TextElement : SheetElement<TextElement>
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds(UnitTransform transform) => _boundsHandleSource.Bounds.ApplyTransform(transform);
+    public override UnitBounds GetBounds(UnitTransform transform)
+    {
+        return _boundsHandleSource.Bounds.ApplyTransform(transform);
+    }
 
     public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
     {

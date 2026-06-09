@@ -54,6 +54,7 @@ public class TextTool : ITool
         _unitSnapOverlay.Begin();
 
         _overlay.OnTextPlaced += TextPlaced;
+        _overlay.OnTextUpdated += TextUpdated;
     }
 
     public void ToolEnd()
@@ -65,6 +66,7 @@ public class TextTool : ITool
         {
             _overlay.Commit();
             _overlay.OnTextPlaced -= TextPlaced;
+            _overlay.OnTextUpdated -= TextUpdated;
             _overlay.Dispose();
             _overlay = null;
         }
@@ -77,5 +79,17 @@ public class TextTool : ITool
         element.Max = position + size;
 
         _operationService.Push(new AddSheetElementOperation(_sheet.Id, element));
+    }
+
+    private void TextUpdated(TextElement element, string text)
+    {
+        // Safety - check we haven't somehow deleted this element while editing
+        // it.
+        if (!_sheet.Elements.Contains(element))
+        {
+            return;
+        }
+        
+        element.Text = text;
     }
 }

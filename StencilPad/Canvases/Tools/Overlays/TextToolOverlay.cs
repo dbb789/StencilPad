@@ -1,6 +1,4 @@
-using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
@@ -13,16 +11,18 @@ namespace StencilPad.Canvases.Tools.Overlays;
 
 public class TextToolOverlay : ToolOverlay, IDisposable
 {
+    public const string DefaultFontFamilyName = "Arial";
+    public const double DefaultFontSize = 12.0;
+
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapContext _unitSnapContext;
     private InlineTextField? _textField;
+    private TextElement? _editingTextElement;
     private Unit2D? _pendingPosition;
 
-    public double FontSize { get; set; } = 12.0;
-    public string FontFamilyName { get; set; } = "Arial";
-
     public event Action<Unit2D, Unit2D, string>? OnTextPlaced;
+    public event Action<TextElement, string>? OnTextUpdated;
 
     public TextToolOverlay(Sheet sheet ,IViewport viewport, IUnitSnap unitSnap)
         : base(viewport, sheet, false)
@@ -56,9 +56,17 @@ public class TextToolOverlay : ToolOverlay, IDisposable
             return;
         }
 
-        var mousePosition = e.GetPosition(this);
-        var unitPosition = _viewport.FromPoint(mousePosition);
-        var snapPosition = _unitSnap.UnitSnap(unitPosition, _unitSnapContext);
+        var mousePosition = _viewport.FromPoint(e.GetPosition(this));
+        var textElement = GetTextElementAtPosition(Sheet.Elements, mousePosition);
+        
+        if (textElement is not null)
+        {
+            ShowTextField(textElement.Transform.Apply(textElement.Min), textElement.Text);
+            _editingTextElement = textElement;
+            return;
+        }
+        
+        var snapPosition = _unitSnap.UnitSnap(mousePosition, _unitSnapContext);
 
         if (snapPosition.HasValue)
         {
@@ -67,6 +75,33 @@ public class TextToolOverlay : ToolOverlay, IDisposable
 
         ShowTextField(mousePosition);
         e.Handled = true;
+    }
+
+    private TextElement? GetTextElementAtPosition(IEnumerable<ISheetElement> elements, Unit2D position)
+    {
+        foreach (var element in elements.Reverse())
+        {
+            if (element is TextElement textElement)
+            {
+                var elementBounds = textElement.GetTransformedBounds();
+
+                if (elementBounds.Contains(position))
+                {
+                    return textElement;
+                }
+            }
+            else if (element is ElementGroup group)
+            {
+                var childElement = GetTextElementAtPosition(group.Children, position);
+                
+                if (childElement is not null)
+                {
+                    return childElement;
+                }
+            }
+        }
+
+        return null;
     }
 
     protected override void OnRender(DrawingContext dc)
@@ -78,12 +113,15 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         RenderOverlay(dc);
     }
 
-    private void ShowTextField(Point screenPosition)
+    private void ShowTextField(Unit2D point, string text = "")
     {
+        var screenPosition = _viewport.ToPoint(point);
+        
         _textField = new InlineTextField
         {
-            TextFontFamily = new FontFamily(FontFamilyName),
-            TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize)),
+            Text = text,
+            TextFontFamily = new FontFamily(DefaultFontFamilyName),
+            TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize)),
         };
 
         _textField.Cancelled += () => CommitOrCancel(false);
@@ -102,22 +140,30 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         }
 
         var text = _textField.Text;
+        var size = _textField.TextSize;
+        
         Children.Remove(_textField);
         _textField = null;
 
-        if (commit && _pendingPosition.HasValue && !string.IsNullOrWhiteSpace(text))
+        if (commit)
         {
-            OnTextPlaced?.Invoke(_pendingPosition.Value, Measure(text), text);
+            if (_editingTextElement is not null)
+            {
+                OnTextUpdated?.Invoke(_editingTextElement, text);
+            }
+            else if (_pendingPosition.HasValue && !string.IsNullOrWhiteSpace(text))
+            {
+                OnTextPlaced?.Invoke(_pendingPosition.Value, size, text);
+                _pendingPosition = null;
+            }
         }
-
-        _pendingPosition = null;
     }
 
     private void OnViewportChanged()
     {
         if (_textField is not null && _pendingPosition.HasValue)
         {
-            _textField.TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(FontSize));
+            _textField.TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize));
 
             var newScreenPos = _viewport.ToPoint(_pendingPosition.Value);
             
@@ -126,26 +172,5 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         }
 
         InvalidateVisual();
-    }
-    
-    private Unit2D Measure(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return Unit2D.Zero;
-        }
-
-        var fontFamily = new FontFamily(FontFamilyName);
-
-        var ft = new FormattedText(
-            text,
-            CultureInfo.InvariantCulture,
-            FlowDirection.LeftToRight,
-            new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-            Unit.FromFontSizePoints(FontSize).Millimeters,
-            Brushes.Black,
-            1.0);
-
-        return Unit2D.FromMillimeters(ft.Width, ft.Height);
     }
 }
