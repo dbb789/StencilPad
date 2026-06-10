@@ -180,6 +180,12 @@ public readonly record struct Unit
     public static Unit operator *(double scalar, Unit u) => u * scalar;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit operator *(Unit u, Fraction scalar) => new((u._value * scalar.Numerator) / scalar.Denominator);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit operator *(Fraction scalar, Unit u) => u * scalar;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator /(Unit u, decimal scalar) => new(u._value / scalar);
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

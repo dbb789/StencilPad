@@ -36,6 +36,7 @@ public class RulerResolver : IModelResolver
         _ruler.GeometryChanged += OnGeometryChanged;
         _ruler.TransformChanged += OnTransformChanged;
         _ruler.PropertyChanged += OnPropertyChanged;
+        _settings.Changed += OnSettingsChanged;
     }
 
     public void Dispose()
@@ -45,6 +46,7 @@ public class RulerResolver : IModelResolver
         _ruler.GeometryChanged -= OnGeometryChanged;
         _ruler.TransformChanged -= OnTransformChanged;
         _ruler.PropertyChanged -= OnPropertyChanged;
+        _settings.Changed += OnSettingsChanged;
     }
 
     public void Attach(IModelWalker walker)
@@ -100,6 +102,11 @@ public class RulerResolver : IModelResolver
         }
     }
 
+    private void OnSettingsChanged()
+    {
+        _textWalker?.SetText(GetText());
+    }
+
     private UnitTransform GetTextTransform()
     {
         var mid = (_ruler.Min + _ruler.Max) / 2;
@@ -117,7 +124,7 @@ public class RulerResolver : IModelResolver
 
     private string GetText()
     {
-        return $"{_ruler.Length.Millimeters:F1} mm";
+        return UnitUtil.Format(_ruler.Length, _settings.UnitSettings);
     }
 
     private GeometrySet CreateGeometrySet()
