@@ -47,7 +47,7 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
         
         AddVertexAtMousePosition();
 
-        _resolver = ResolverFactory.Create(_element, resourceService);
+        _resolver = ResolverFactory.Create(_element, _settings, resourceService);
         _renderer = new ModelRenderer(resourceService);
 
         _resolver?.Attach(_renderer);

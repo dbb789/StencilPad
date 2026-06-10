@@ -104,7 +104,7 @@ namespace StencilPad.Canvases.UI
             _viewport = new VisualViewport();
             _handleMap = new HandleMap(settings);
 
-            _sheetRenderer = new SheetRenderer(resourceService);
+            _sheetRenderer = new SheetRenderer(settings, resourceService);
 
             _canvasGrid = new CanvasGrid(settings, _viewport);
 

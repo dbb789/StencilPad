@@ -1,8 +1,12 @@
+using StencilPad.Common;
+using StencilPad.Spatial;
+
 namespace StencilPad.Models.Resolvers;
 
 public static class ResolverFactory
 {
     public static IModelResolver? Create(ISheetElement element,
+                                         ISettings settings,
                                          IResourceSet resourceSet)
     {
         if (element is Shape shape)
@@ -17,7 +21,7 @@ public static class ResolverFactory
         
         if (element is Ruler ruler)
         {
-            return new RulerResolver(ruler, resourceSet);
+            return new RulerResolver(ruler, settings, resourceSet);
         }
         
         if (element is TextElement textElement)
@@ -32,7 +36,7 @@ public static class ResolverFactory
 
         if (element is ElementGroup elementGroup)
         {
-            return new GroupResolver(elementGroup, resourceSet);
+            return new GroupResolver(elementGroup, settings, resourceSet);
         }
 
         return null;

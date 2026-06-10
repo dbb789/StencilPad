@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 
@@ -13,14 +14,17 @@ public class SheetRenderer : IDisposable
         set => AssignSheet(value);
     }
 
+    private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
     private Sheet? _sheet;
     private OrderedDictionary<ISheetElement, SheetElementRenderer> _renderers;
     
     public event Action? RendererDirty;
 
-    public SheetRenderer(IResourceSet resourceSet)
+    public SheetRenderer(ISettings settings,
+                         IResourceSet resourceSet)
     {
+        _settings = settings;
         _resourceSet = resourceSet;
         _renderers = new();
     }
@@ -110,7 +114,7 @@ public class SheetRenderer : IDisposable
     
     private void AddRenderer(ISheetElement element, int index = -1)
     {
-        var renderer = new SheetElementRenderer(element, _resourceSet);
+        var renderer = new SheetElementRenderer(element, _settings, _resourceSet);
 
         if (!renderer.HasContent)
         {

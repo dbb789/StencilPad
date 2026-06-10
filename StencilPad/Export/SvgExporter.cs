@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Media;
 using System.Xml.Linq;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Services;
@@ -14,7 +15,7 @@ public static class SvgExporter
 {
     private static readonly XNamespace SvgNs = "http://www.w3.org/2000/svg";
 
-    public static void Export(Sheet sheet, IResourceService resourceService, string path)
+    public static void Export(Sheet sheet, ISettings settings, IResourceService resourceService, string path)
     {
         UnitBounds? sheetBounds = null;
 
@@ -44,7 +45,7 @@ public static class SvgExporter
         {
             foreach (var element in sheet.Elements)
             {
-                using var resolver = ResolverFactory.Create(element, resourceService);
+                using var resolver = ResolverFactory.Create(element, settings, resourceService);
 
                 if (resolver is not null)
                 {

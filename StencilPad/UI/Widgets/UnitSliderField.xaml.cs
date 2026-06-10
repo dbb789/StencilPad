@@ -13,7 +13,7 @@ public partial class UnitSliderField : UserControl
 
     public static readonly DependencyProperty UnitTypeProperty =
         DependencyProperty.Register(nameof(UnitType), typeof(UnitType), typeof(UnitSliderField),
-            new FrameworkPropertyMetadata(UnitType.Metric, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
+            new FrameworkPropertyMetadata(UnitType.Millimeters, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
     public static readonly DependencyProperty MinimumProperty =
         DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(UnitSliderField),

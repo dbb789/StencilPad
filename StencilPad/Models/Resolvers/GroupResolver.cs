@@ -1,16 +1,22 @@
+using StencilPad.Common;
+
 namespace StencilPad.Models.Resolvers;
 
 public class GroupResolver : IModelResolver
 {
     private readonly ElementGroup _group;
+    private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
     private readonly List<(IModelResolver, IModelWalker)> _children;
 
     private IModelWalker? _walker;
 
-    public GroupResolver(ElementGroup group, IResourceSet resourceSet)
+    public GroupResolver(ElementGroup group,
+                         ISettings settings,
+                         IResourceSet resourceSet)
     {
         _group = group;
+        _settings = settings;
         _resourceSet = resourceSet;
         _children = new();
 
@@ -81,7 +87,7 @@ public class GroupResolver : IModelResolver
             return;
         }
         
-        var childResolver = ResolverFactory.Create(element, _resourceSet);
+        var childResolver = ResolverFactory.Create(element, _settings, _resourceSet);
 
         if (childResolver is not null)
         {

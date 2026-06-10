@@ -8,7 +8,9 @@ namespace StencilPad.Services;
 
 public class SettingsService : ISettings
 {
-    public UnitType UnitType => _project?.UnitType ?? UnitType.Metric;
+    public UnitSystem UnitSystem => _project?.UnitSystem ?? UnitSystem.Metric;
+    public Fraction UnitRatio => _project?.UnitRatio ?? Fraction.One;
+    public UnitSettings UnitSettings => new(UnitSystem, UnitRatio);
     
     public Color GridLineColor => _appConfigService.Config.GridLineColor;
     public Color SelectionColor => _appConfigService.Config.SelectionColor;
@@ -19,10 +21,10 @@ public class SettingsService : ISettings
     public double HandleSizePx => _appConfigService.Config.HandleSizePx;
     public double PointSnapPx => _appConfigService.Config.PointSnapPx;
 
-    public Unit GridSpacing => (UnitType == UnitType.Metric) ?
+    public Unit GridSpacing => (UnitSystem == UnitSystem.Metric) ?
         _appConfigService.Config.GridSpacingMetric : _appConfigService.Config.GridSpacingImperial;
     
-    public int GridSubdivisions => (UnitType == UnitType.Metric) ?
+    public int GridSubdivisions => (UnitSystem == UnitSystem.Metric) ?
         _appConfigService.Config.GridSubdivisionsMetric : _appConfigService.Config.GridSubdivisionsImperial;
     
     public double GridMinSpacingPx => _appConfigService.Config.GridMinSpacingPx;

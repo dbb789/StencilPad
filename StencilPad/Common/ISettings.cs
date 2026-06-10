@@ -7,8 +7,10 @@ public interface ISettings
 {
     event Action? Changed;
 
-    UnitType UnitType { get; }
-    
+    UnitSystem UnitSystem { get; }
+    Fraction UnitRatio { get; }
+    UnitSettings UnitSettings { get; }
+
     Color GridLineColor { get; }
     Color SelectionColor { get; }
     Color GroupSelectionColor { get; }

@@ -14,15 +14,29 @@ public class Project : INotifyPropertyChanged
     public event Action<Sheet>? SheetRemoved;
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private UnitType _unitType = UnitType.Metric;
-    public UnitType UnitType
+    private UnitSystem _unitSystem = UnitSystem.Metric;
+    public UnitSystem UnitSystem
     {
-        get => _unitType;
+        get => _unitSystem;
         set
         {
-            if (_unitType != value)
+            if (_unitSystem != value)
             {
-                _unitType = value;
+                _unitSystem = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private Fraction _unitRatio = Fraction.One;
+    public Fraction UnitRatio
+    {
+        get => _unitRatio;
+        set
+        {
+            if (_unitRatio != value)
+            {
+                _unitRatio = value;
                 OnPropertyChanged();
             }
         }

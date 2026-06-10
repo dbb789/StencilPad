@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
@@ -28,6 +29,7 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
 
     public RectToolOverlay(IViewport viewport,
                            IUnitSnap unitSnap,
+                           ISettings settings,
                            IResourceService resourceService)
     {
         _viewport = viewport;
@@ -37,7 +39,7 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
 
         _polygon = _element.PolygonSet.First();
         
-        _resolver = ResolverFactory.Create(_element, resourceService);
+        _resolver = ResolverFactory.Create(_element, settings, resourceService);
         _renderer = new ModelRenderer(resourceService);
 
         _resolver?.Attach(_renderer);

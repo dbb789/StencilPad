@@ -1,6 +1,7 @@
 using System.IO;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Spatial;
@@ -11,14 +12,17 @@ namespace StencilPad.Services;
 public class ImportExportService : IImportExportService
 {
     private readonly IDialogService _dialogService;
+    private readonly ISettings _settings;
     private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
 
     public ImportExportService(IDialogService dialogService,
+                               ISettings settings,
                                IResourceService resourceService,
                                IOperationService operationService)
     {
         _dialogService = dialogService;
+        _settings = settings;
         _resourceService = resourceService;
         _operationService = operationService;
     }
@@ -83,7 +87,7 @@ public class ImportExportService : IImportExportService
 
         try
         {
-            SvgExporter.Export(sheet, _resourceService, dialog.FileName);
+            SvgExporter.Export(sheet, _settings, _resourceService, dialog.FileName);
         }
         catch (Exception ex)
         {
@@ -107,7 +111,7 @@ public class ImportExportService : IImportExportService
 
         try
         {
-            PngExporter.Export(sheet, dialog.FileName, _resourceService);
+            PngExporter.Export(sheet, dialog.FileName, _settings, _resourceService);
         }
         catch (Exception ex)
         {

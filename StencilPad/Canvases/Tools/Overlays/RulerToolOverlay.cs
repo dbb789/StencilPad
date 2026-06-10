@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
@@ -27,13 +28,14 @@ public class RulerToolOverlay : Canvas, IDisposable
 
     public RulerToolOverlay(IViewport viewport,
                             IUnitSnap unitSnap,
+                            ISettings settings,
                             IResourceService resourceService)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
         _previewRuler = new Ruler { Color = Color.FromArgb(128, 0, 0, 0) };
-        _previewRenderer = new SheetElementRenderer(_previewRuler, resourceService);
+        _previewRenderer = new SheetElementRenderer(_previewRuler, settings, resourceService);
         _lockAxisState = new();
 
         _viewport.ViewportChanged += OnViewportChanged;

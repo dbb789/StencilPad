@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Rendering;
 
@@ -9,10 +10,13 @@ namespace StencilPad.Services;
 
 public class PrintService : IPrintService
 {
+    private readonly ISettings _settings;
     private readonly IResourceService _resourceService;
     
-    public PrintService(IResourceService resourceService)
-    {
+    public PrintService(ISettings settings,
+                        IResourceService resourceService)
+    {   
+        _settings = settings;
         _resourceService = resourceService;
     }
     
@@ -22,7 +26,7 @@ public class PrintService : IPrintService
         {
             foreach (var element in sheet.Elements)
             {
-                var renderer = new SheetElementRenderer(element, _resourceService);
+                var renderer = new SheetElementRenderer(element, _settings, _resourceService);
                 
                 if (renderer is not null)
                 {

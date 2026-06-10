@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
@@ -29,6 +30,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
 
     public CircleToolOverlay(IViewport viewport,
                              IUnitSnap unitSnap,
+                             ISettings settings,
                              IResourceService resourceService)
     {
         _viewport = viewport;
@@ -38,7 +40,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
 
         _polygon = _element.PolygonSet.First();
         
-        _resolver = ResolverFactory.Create(_element, resourceService);
+        _resolver = ResolverFactory.Create(_element, settings, resourceService);
         _renderer = new ModelRenderer(resourceService);
 
         _resolver?.Attach(_renderer);

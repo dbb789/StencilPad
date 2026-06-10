@@ -63,11 +63,11 @@
             <MenuItem Header="_Settings">
                 <MenuItem Header="Units">
                     <MenuItem Header="Metric" IsCheckable="True"
-                              IsChecked="{local:EnumBinding Project.UnitType,
-                                         TargetValue={x:Static spatial:UnitType.Metric}}"/>
+                              IsChecked="{local:EnumBinding Project.UnitSystem,
+                                         TargetValue={x:Static spatial:UnitSystem.Metric}}"/>
                     <MenuItem Header="Imperial" IsCheckable="True"
-                              IsChecked="{local:EnumBinding Project.UnitType,
-                                         TargetValue={x:Static spatial:UnitType.Imperial}}"/>
+                              IsChecked="{local:EnumBinding Project.UnitSystem,
+                                         TargetValue={x:Static spatial:UnitSystem.Imperial}}"/>
                 </MenuItem>
             </MenuItem>
 

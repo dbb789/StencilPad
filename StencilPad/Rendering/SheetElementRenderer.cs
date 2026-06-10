@@ -1,6 +1,8 @@
-using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
+using StencilPad.Spatial;
+using System.Windows.Media;
 
 namespace StencilPad.Rendering;
 
@@ -13,9 +15,11 @@ public class SheetElementRenderer
     
     public event Action? RendererDirty;
 
-    public SheetElementRenderer(ISheetElement element, IResourceSet resourceSet)
+    public SheetElementRenderer(ISheetElement element,
+                                ISettings settings,
+                                IResourceSet resourceSet)
     {
-        _resolver = ResolverFactory.Create(element, resourceSet);
+        _resolver = ResolverFactory.Create(element, settings, resourceSet);
 
         if (_resolver is not null)
         {
