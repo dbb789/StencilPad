@@ -27,10 +27,9 @@ public partial class App : Application
         ConfigureServices(services, mainWindow, viewModel, project);
         
         ServiceProvider = services.BuildServiceProvider();
+        ServiceProvider.GetRequiredService<AppController>().Initialize();
         
         mainWindow.Show();
-
-        ServiceProvider.GetRequiredService<AppController>().Initialize();
     }
 
     private static void ConfigureServices(IServiceCollection services,
