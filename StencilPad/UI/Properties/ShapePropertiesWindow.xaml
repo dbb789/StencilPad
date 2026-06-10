@@ -41,6 +41,7 @@
                                VerticalAlignment="Center"
                                Margin="2"/>
                     <widgets:UnitField MinWidth="160"
+                                       UnitSettings="{Binding UnitSettings}"
                                        Value="{Binding LineWidth}"/>
                     <Separator Background="Transparent"/>
                     <TextBlock Text="Line Style:"

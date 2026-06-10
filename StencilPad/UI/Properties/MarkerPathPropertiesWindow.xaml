@@ -46,6 +46,7 @@
                                VerticalAlignment="Center"/>
                     <widgets:UnitSliderField Grid.Row="0" Grid.Column="2" MinWidth="180"
                                              Value="{Binding Spacing}"
+                                             UnitSettings="{Binding UnitSettings}"
                                              SliderMinimum="1"
                                              SliderMaximum="10"/>
 
@@ -53,6 +54,7 @@
                                VerticalAlignment="Center"/>
                     <widgets:UnitSliderField Grid.Row="2" Grid.Column="2" MinWidth="180"
                                              Value="{Binding Offset}"
+                                             UnitSettings="{Binding UnitSettings}"
                                              SliderMinimum="0"
                                              SliderMaximum="100"/>
 
@@ -61,6 +63,7 @@
                                Margin="2"/>
                     <widgets:UnitField MinWidth="160"
                                        Grid.Row="4" Grid.Column="2"
+                                       UnitSettings="{Binding UnitSettings}"
                                        Value="{Binding LineWidth}"/>
 
                     <TextBlock Grid.Row="6" Grid.Column="0" Text="Marker Type:"

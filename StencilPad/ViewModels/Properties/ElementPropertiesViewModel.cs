@@ -1,5 +1,7 @@
 using System.Collections.Specialized;
+using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Spatial;
 
 namespace StencilPad.ViewModels.Properties;
 
@@ -17,14 +19,21 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
         }
     }
     
+    public UnitSettings UnitSettings
+    {
+        get => _settings.UnitSettings;
+    }
+
     protected IEnumerable<TElement> Elements => _elements;
     
     private readonly Sheet _sheet;
+    private readonly ISettings _settings;
     private readonly List<TElement> _elements;
 
-    protected ElementPropertiesViewModel(Sheet sheet)
+    protected ElementPropertiesViewModel(Sheet sheet, ISettings settings)
     {
         _sheet = sheet;
+        _settings = settings;
         _elements = _sheet.Selection.OfType<TElement>().ToList();
 
         HasElements = _elements.Count > 0;

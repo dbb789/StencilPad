@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 
@@ -70,8 +71,9 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
     private IDisposable? _dragContext;
         
     public RulerPropertiesViewModel(Sheet sheet,
+                                    ISettings settings,
                                     IOperationService operationService)
-        : base(sheet)
+        : base(sheet, settings)
     {
         _sheet = sheet;
         _operationService = operationService;

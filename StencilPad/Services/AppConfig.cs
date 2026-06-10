@@ -17,6 +17,6 @@ public class AppConfig
     public Unit GridSpacingMetric { get; } = Unit.FromMillimeters(10);
     public int GridSubdivisionsMetric { get; } = 5;
     public Unit GridSpacingImperial { get; } = Unit.FromInches(1);
-    public int GridSubdivisionsImperial { get; } = 4;
+    public int GridSubdivisionsImperial { get; } = 8;
     public double GridMinSpacingPx { get; } = 8.0;
 }

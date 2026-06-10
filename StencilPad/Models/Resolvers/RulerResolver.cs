@@ -124,7 +124,7 @@ public class RulerResolver : IModelResolver
 
     private string GetText()
     {
-        return UnitUtil.Format(_ruler.Length, _settings.UnitSettings);
+        return UnitUtil.FormatSuffix(_ruler.Length, _settings.UnitSettings);
     }
 
     private GeometrySet CreateGeometrySet()

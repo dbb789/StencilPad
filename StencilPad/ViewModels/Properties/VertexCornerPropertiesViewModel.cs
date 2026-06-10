@@ -1,3 +1,4 @@
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.Spatial;
@@ -72,12 +73,15 @@ public class VertexCornerPropertiesViewModel : ViewModelBase
     }
 
     private readonly Sheet _sheet;
+    private readonly ISettings _settings;
     private readonly IOperationService _operationService;
 
     public VertexCornerPropertiesViewModel(Sheet sheet,
+                                           ISettings settings,
                                            IOperationService operationService)
     {
         _sheet = sheet;
+        _settings = settings;
         _operationService = operationService;
 
         var cornerTypes = new List<CornerType>();

@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.UI.Widgets;
@@ -12,12 +13,14 @@ public partial class MarkerPathPropertiesWindow : Window
     public MarkerPathPropertiesViewModel ViewModel { get; }
 
     public MarkerPathPropertiesWindow(Sheet sheet,
+                                      ISettings settings,
                                       IResourceService resourceService,
                                       IOperationService operationService)
     {
         InitializeComponent();
         
         ViewModel = new MarkerPathPropertiesViewModel(sheet,
+                                                      settings,
                                                       resourceService,
                                                       operationService);
         DataContext = ViewModel;

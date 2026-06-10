@@ -45,10 +45,12 @@ public partial class App : Application
 
         services.AddSingleton<IModelPropertiesService>(sp =>
         {
+            var settings = sp.GetRequiredService<ISettings>();
             var resourceService = sp.GetRequiredService<IResourceService>();
             var operationService = sp.GetRequiredService<IOperationService>();
 
             return new WpfModelPropertiesService(mainWindow,
+                                                 settings,
                                                  resourceService,
                                                  operationService);
         });

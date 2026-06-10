@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.UI.Widgets;
@@ -12,12 +13,16 @@ public partial class ShapePropertiesWindow : Window
     public ShapePropertiesViewModel ViewModel { get; }
 
     public ShapePropertiesWindow(Sheet sheet,
+                                 ISettings settings,
                                  IResourceService resourceService,
                                  IOperationService operationService)
     {
         InitializeComponent();
 
-        ViewModel = new ShapePropertiesViewModel(sheet, resourceService, operationService);
+        ViewModel = new ShapePropertiesViewModel(sheet,
+                                                 settings,
+                                                 resourceService,
+                                                 operationService);
         DataContext = ViewModel;
         
         var startCapItems = ViewModel.CapIds.Select(

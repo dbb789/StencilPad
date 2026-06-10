@@ -1,4 +1,5 @@
 using System.Windows;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.ViewModels.Properties;
@@ -10,11 +11,13 @@ public partial class TextPropertiesWindow : Window
     public TextPropertiesViewModel ViewModel { get; }
 
     public TextPropertiesWindow(Sheet sheet,
+                                ISettings settings,
                                 IOperationService operationService)
     {
         InitializeComponent();
 
         ViewModel = new TextPropertiesViewModel(sheet,
+                                                settings,
                                                 operationService);
         DataContext = ViewModel;
         

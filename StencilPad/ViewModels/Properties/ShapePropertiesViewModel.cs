@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
 using StencilPad.Spatial;
@@ -137,9 +138,10 @@ public class ShapePropertiesViewModel : ElementPropertiesViewModel<Shape>
     private IDisposable? _dragContext;
     
     public ShapePropertiesViewModel(Sheet sheet,
+                                    ISettings settings,
                                     IResourceService resourceService,
                                     IOperationService operationService)
-        : base(sheet)
+        : base(sheet, settings)
     {
         _sheet = sheet;
         _operationService = operationService;

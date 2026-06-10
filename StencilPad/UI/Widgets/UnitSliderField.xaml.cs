@@ -15,6 +15,10 @@ public partial class UnitSliderField : UserControl
         DependencyProperty.Register(nameof(UnitType), typeof(UnitType), typeof(UnitSliderField),
             new FrameworkPropertyMetadata(UnitType.Millimeters, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
+    public static readonly DependencyProperty UnitSettingsProperty =
+        DependencyProperty.Register(nameof(UnitSettings), typeof(UnitSettings), typeof(UnitSliderField),
+            new FrameworkPropertyMetadata(UnitSettings.Default, FrameworkPropertyMetadataOptions.None, OnUnitSettingsChanged));
+
     public static readonly DependencyProperty MinimumProperty =
         DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(UnitSliderField),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(0), OnConstraintChanged));
@@ -39,6 +43,12 @@ public partial class UnitSliderField : UserControl
     {
         get => (UnitType)GetValue(UnitTypeProperty);
         set => SetValue(UnitTypeProperty, value);
+    }
+    
+    public UnitSettings UnitSettings
+    {
+        get => (UnitSettings)GetValue(UnitSettingsProperty);
+        set => SetValue(UnitSettingsProperty, value);
     }
 
     public Unit Minimum
@@ -114,6 +124,16 @@ public partial class UnitSliderField : UserControl
         field.UpdateSliderValue();
     }
     
+    private static void OnUnitSettingsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not UnitSliderField field)
+        {
+            return;
+        }
+
+        field.UnitType = UnitUtil.GetDefaultUnitType(field.UnitSettings);
+    }
+
     private void ValueField_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == System.Windows.Input.Key.Enter)

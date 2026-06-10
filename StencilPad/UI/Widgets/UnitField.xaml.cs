@@ -15,6 +15,10 @@ public partial class UnitField : UserControl
         DependencyProperty.Register(nameof(UnitType), typeof(UnitType), typeof(UnitField),
             new FrameworkPropertyMetadata(UnitType.Millimeters, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
+    public static readonly DependencyProperty UnitSettingsProperty =
+        DependencyProperty.Register(nameof(UnitSettings), typeof(UnitSettings), typeof(UnitField),
+            new FrameworkPropertyMetadata(UnitSettings.Default, FrameworkPropertyMetadataOptions.None, OnUnitSettingsChanged));
+
     public static readonly DependencyProperty MinimumProperty =
         DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(UnitField),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(0), OnConstraintChanged));
@@ -33,6 +37,12 @@ public partial class UnitField : UserControl
     {
         get => (UnitType)GetValue(UnitTypeProperty);
         set => SetValue(UnitTypeProperty, value);
+    }
+
+    public UnitSettings UnitSettings
+    {
+        get => (UnitSettings)GetValue(UnitSettingsProperty);
+        set => SetValue(UnitSettingsProperty, value);
     }
     
     public Unit Minimum
@@ -91,6 +101,16 @@ public partial class UnitField : UserControl
 
         field.UpdateTextValue();
     }
+
+    private static void OnUnitSettingsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not UnitField field)
+        {
+            return;
+        }
+
+        field.UnitType = UnitUtil.GetDefaultUnitType(field.UnitSettings);
+    }
     
     private void ValueField_KeyDown(object sender, KeyEventArgs e)
     {
@@ -117,7 +137,7 @@ public partial class UnitField : UserControl
 
     private void UpdateTextValue()
     {
-        _textValue = Value.ToType(UnitType).ToString("0.###");
+        _textValue = UnitUtil.Format(Value, UnitType, UnitSettings);
         ValueField.Text = _textValue;
     }
     
@@ -129,6 +149,6 @@ public partial class UnitField : UserControl
 
 public class UnitItem
 {
-    public UnitSystem Value { get; set; }
+    public UnitType Value { get; set; }
     public string Description { get; set; } = "";
 }

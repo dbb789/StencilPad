@@ -10,15 +10,18 @@ namespace StencilPad.UI;
 public class WpfModelPropertiesService : IModelPropertiesService
 {
     private readonly Window _owner;
+    private readonly ISettings _settings;
     private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
     private Window? _openWindow;
 
     public WpfModelPropertiesService(Window owner,
+                                     ISettings settings,
                                      IResourceService resourceService,
                                      IOperationService operationService)
     {
         _owner = owner;
+        _settings = settings;
         _resourceService = resourceService;
         _operationService = operationService;
     }
@@ -33,7 +36,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new VertexCornerPropertiesWindow(sheet, _operationService)
+        var window = new VertexCornerPropertiesWindow(sheet, _settings, _operationService)
         {
             Owner = _owner
         };
@@ -48,7 +51,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new MarkerPathPropertiesWindow(sheet, _resourceService, _operationService)
+        var window = new MarkerPathPropertiesWindow(sheet, _settings, _resourceService, _operationService)
         {
             Owner = _owner
         };
@@ -63,7 +66,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new ShapePropertiesWindow(sheet, _resourceService, _operationService)
+        var window = new ShapePropertiesWindow(sheet, _settings, _resourceService, _operationService)
         {
             Owner = _owner
         };
@@ -78,7 +81,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new TextPropertiesWindow(sheet, _operationService)
+        var window = new TextPropertiesWindow(sheet, _settings, _operationService)
         {
             Owner = _owner
         };
@@ -93,7 +96,7 @@ public class WpfModelPropertiesService : IModelPropertiesService
     {
         _openWindow?.Close();
 
-        var window = new RulerPropertiesWindow(sheet, _operationService)
+        var window = new RulerPropertiesWindow(sheet, _settings, _operationService)
         {
             Owner = _owner
         };

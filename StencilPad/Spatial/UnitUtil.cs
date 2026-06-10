@@ -4,11 +4,36 @@ public static class UnitUtil
 {
     public static string Format(Unit unit, UnitSettings settings)
     {
-        var type = GetDefaultUnitType(settings.System);
+        var type = GetDefaultUnitType(settings);
+
+        return Format(unit, type, settings);
+    }
+    
+    public static string Format(Unit unit, UnitType type, UnitSettings settings)
+    {
+        var val = (unit * settings.Ratio).ToType(type);
+
+        return $"{val:0.###}";
+    }
+    
+    public static string FormatSuffix(Unit unit, UnitSettings settings)
+    {
+        var type = GetDefaultUnitType(settings);
+
+        return FormatSuffix(unit, type, settings);
+    }
+    
+    public static string FormatSuffix(Unit unit, UnitType type, UnitSettings settings)
+    {
         var val = (unit * settings.Ratio).ToType(type);
         var suffix = GetSuffix(type);
 
-        return $"{val:0.##} {suffix}";
+        return $"{val:0.###} {suffix}";
+    }
+    
+    public static UnitType GetDefaultUnitType(UnitSettings settings)
+    {
+        return GetDefaultUnitType(settings.System);
     }
 
     public static UnitType GetDefaultUnitType(UnitSystem unitSystem)
