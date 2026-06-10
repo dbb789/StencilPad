@@ -117,6 +117,9 @@
         </Menu>
 
         <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem HorizontalAlignment="Left">
+                <TextBlock Text="{Binding SelectedTab.HintText}"/>
+            </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
                     <Slider Name="RectangleHeight" 

@@ -38,6 +38,13 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
         get => _snapToPoint;
         set => SetProperty(ref _snapToPoint, value);
     }
+    
+    private string _hintText = "";
+    public string HintText
+    {
+        get => _hintText;
+        set => SetProperty(ref _hintText, value);
+    }
 
     private SheetSizeType _sizeType = SheetSizeType.A4;
     public SheetSizeType SizeType

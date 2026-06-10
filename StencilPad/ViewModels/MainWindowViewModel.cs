@@ -22,13 +22,6 @@ public class MainWindowViewModel : ViewModelBase
         set => SetProperty(ref _selectedTab, value);
     }
 
-    private string _statusText = string.Empty;
-    public string StatusText
-    {
-        get => _statusText;
-        set => SetProperty(ref _statusText, value);
-    }
-
     private string _title = "StencilPad";
     public string Title
     {

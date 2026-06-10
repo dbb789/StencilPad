@@ -31,7 +31,8 @@ public class SheetTabController : IDisposable
     private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
     private readonly IModelPropertiesService _modelPropertiesService;
-
+    private readonly HintService _hintService;
+    
     private SheetCanvas? _currentCanvas;
     private ToolController? _toolController;
     private ServiceProvider? _scopedServiceProvider;
@@ -47,21 +48,29 @@ public class SheetTabController : IDisposable
         _resourceService = resourceService;
         _operationService = operationService;
         _modelPropertiesService = modelPropertiesService;
-
-        _tabViewModel.CanvasAttached += CanvasAttached;
-        _tabViewModel.CanvasDetached += CanvasDetached;
+        _hintService = new HintService();
+        
+        _hintService.HintChanged += OnHintTextChanged;
+        _tabViewModel.CanvasAttached += OnCanvasAttached;
+        _tabViewModel.CanvasDetached += OnCanvasDetached;
     }
 
     public void Dispose()
     {
-        _tabViewModel.CanvasAttached -= CanvasAttached;
-        _tabViewModel.CanvasDetached -= CanvasDetached;
+        _hintService.HintChanged += OnHintTextChanged;
+        _tabViewModel.CanvasAttached -= OnCanvasAttached;
+        _tabViewModel.CanvasDetached -= OnCanvasDetached;
 
         _toolController?.Dispose();
         _scopedServiceProvider?.Dispose();
     }
 
-    private void CanvasAttached(SheetCanvas sheetCanvas)
+    private void OnHintTextChanged(string text)
+    {
+        _tabViewModel.HintText = text;
+    }
+
+    private void OnCanvasAttached(SheetCanvas sheetCanvas)
     {
         if (_currentCanvas != sheetCanvas)
         {
@@ -84,7 +93,7 @@ public class SheetTabController : IDisposable
         _toolController.ActivateCurrentTool();
     }
 
-    private void CanvasDetached()
+    private void OnCanvasDetached()
     {
         _tabViewModel.Viewport = null;
         _toolController?.DeactivateCurrentTool();
@@ -106,6 +115,7 @@ public class SheetTabController : IDisposable
         services.AddSingleton<IResourceService>(_resourceService);
         services.AddSingleton<IOperationService>(_operationService);
         services.AddSingleton<IModelPropertiesService>(_modelPropertiesService);
+        services.AddSingleton<IHintService>(_hintService);
 
         FactoryUtil.AddFactory<ToolController>(services);
 

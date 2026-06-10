@@ -19,6 +19,8 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapContext _unitSnapContext;
+    private readonly ISettings _settings;
+    private readonly IHintService _hintService;
     private readonly TSheetElement _element;
     private readonly Polygon _polygon;
     private readonly IModelResolver? _resolver;
@@ -30,16 +32,19 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     public RectToolOverlay(IViewport viewport,
                            IUnitSnap unitSnap,
                            ISettings settings,
+                           IHintService hintService,
                            IResourceService resourceService)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
+        _settings = settings;
+        _hintService = hintService;
         _element = new();
 
         _polygon = _element.PolygonSet.First();
         
-        _resolver = ResolverFactory.Create(_element, settings, resourceService);
+        _resolver = ResolverFactory.Create(_element, _settings, resourceService);
         _renderer = new ModelRenderer(resourceService);
 
         _resolver?.Attach(_renderer);
@@ -56,6 +61,7 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
         _resolver?.Detach();
 
         _viewport.ViewportChanged -= InvalidateVisual;
+        _hintService.ClearAll();
     }
     
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -83,6 +89,7 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
         
         if (_initialPoint is null)
         {
+            _hintService.ClearHint();
             return;
         }
 
@@ -100,6 +107,10 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
         _polygon.Vertices[1] = new Vertex(new Unit2D(_currentSnappedMousePosition.X, _initialPoint.Value.Y));
         _polygon.Vertices[2] = new Vertex(new Unit2D(_currentSnappedMousePosition.X, _currentSnappedMousePosition.Y));
         _polygon.Vertices[3] = new Vertex(new Unit2D(_initialPoint.Value.X, _currentSnappedMousePosition.Y));
+
+        var size = Unit2D.Abs(_currentSnappedMousePosition - _initialPoint.Value);
+        
+        _hintService.SetHint($"{UnitUtil.FormatSuffix(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y, _settings.UnitSettings)}");
     }
 
     protected override void OnRender(DrawingContext dc)
