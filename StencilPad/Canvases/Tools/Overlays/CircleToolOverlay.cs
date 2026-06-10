@@ -20,6 +20,8 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapContext _unitSnapContext;
+    private readonly ISettings _settings;
+    private readonly IHintService _hintService;
     private readonly TSheetElement _element;
     private readonly Polygon _polygon;
     private readonly IModelResolver? _resolver;
@@ -31,16 +33,19 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
     public CircleToolOverlay(IViewport viewport,
                              IUnitSnap unitSnap,
                              ISettings settings,
+                             IHintService hintService,
                              IResourceService resourceService)
     {
         _viewport = viewport;
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
+        _settings = settings;
+        _hintService = hintService;
         _element = new();
 
         _polygon = _element.PolygonSet.First();
         
-        _resolver = ResolverFactory.Create(_element, settings, resourceService);
+        _resolver = ResolverFactory.Create(_element, _settings, resourceService);
         _renderer = new ModelRenderer(resourceService);
 
         _resolver?.Attach(_renderer);
@@ -84,6 +89,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
         
         if (_initialPoint is null)
         {
+            _hintService.ClearHint();
             return;
         }
 
@@ -132,47 +138,49 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
             _polygon.Close();
         }
 
-        var offset = Unit2D.Abs(_currentSnappedMousePosition - _initialPoint.Value);
+        var size = Unit2D.Abs(_currentSnappedMousePosition - _initialPoint.Value);
 
         if (ModifierUtil.IsLockAspect())
         {
-            var maxOffset = Unit.Max(offset.X, offset.Y);
+            var maxSize = Unit.Max(size.X, size.Y);
             
-            offset = new Unit2D(maxOffset, maxOffset);
+            size = new Unit2D(maxSize, maxSize);
         }
 
-        _polygon.Vertices[0] = new Vertex(new Unit2D(_initialPoint.Value.X, _initialPoint.Value.Y - offset.Y));
-        _polygon.Vertices[1] = new Vertex(new Unit2D(_initialPoint.Value.X + offset.X, _initialPoint.Value.Y));
-        _polygon.Vertices[2] = new Vertex(new Unit2D(_initialPoint.Value.X, _initialPoint.Value.Y + offset.Y));
-        _polygon.Vertices[3] = new Vertex(new Unit2D(_initialPoint.Value.X - offset.X, _initialPoint.Value.Y));
+        _polygon.Vertices[0] = new Vertex(new Unit2D(_initialPoint.Value.X, _initialPoint.Value.Y - size.Y));
+        _polygon.Vertices[1] = new Vertex(new Unit2D(_initialPoint.Value.X + size.X, _initialPoint.Value.Y));
+        _polygon.Vertices[2] = new Vertex(new Unit2D(_initialPoint.Value.X, _initialPoint.Value.Y + size.Y));
+        _polygon.Vertices[3] = new Vertex(new Unit2D(_initialPoint.Value.X - size.X, _initialPoint.Value.Y));
 
         _polygon.Edges[0] = new Edge
         {
             Type = EdgeType.Bezier,
-            ControlBeginOffset = new Unit2D(offset.X * MathUtil.Kappa, Unit.Zero),
-            ControlEndOffset = new Unit2D(Unit.Zero, -offset.Y * MathUtil.Kappa)
+            ControlBeginOffset = new Unit2D(size.X * MathUtil.Kappa, Unit.Zero),
+            ControlEndOffset = new Unit2D(Unit.Zero, -size.Y * MathUtil.Kappa)
         };
         
         _polygon.Edges[1] = new Edge
         {
             Type = EdgeType.Bezier,
-            ControlBeginOffset = new Unit2D(Unit.Zero, offset.Y * MathUtil.Kappa),
-            ControlEndOffset = new Unit2D(offset.X * MathUtil.Kappa, Unit.Zero)
+            ControlBeginOffset = new Unit2D(Unit.Zero, size.Y * MathUtil.Kappa),
+            ControlEndOffset = new Unit2D(size.X * MathUtil.Kappa, Unit.Zero)
         };
         
         _polygon.Edges[2] = new Edge
         {
             Type = EdgeType.Bezier,
-            ControlBeginOffset = new Unit2D(-offset.X * MathUtil.Kappa, Unit.Zero),
-            ControlEndOffset = new Unit2D(Unit.Zero, offset.Y * MathUtil.Kappa)
+            ControlBeginOffset = new Unit2D(-size.X * MathUtil.Kappa, Unit.Zero),
+            ControlEndOffset = new Unit2D(Unit.Zero, size.Y * MathUtil.Kappa)
         };
 
         _polygon.Edges[3] = new Edge
         {
             Type = EdgeType.Bezier,
-            ControlBeginOffset = new Unit2D(Unit.Zero, -offset.Y * MathUtil.Kappa),
-            ControlEndOffset = new Unit2D(-offset.X * MathUtil.Kappa, Unit.Zero)
+            ControlBeginOffset = new Unit2D(Unit.Zero, -size.Y * MathUtil.Kappa),
+            ControlEndOffset = new Unit2D(-size.X * MathUtil.Kappa, Unit.Zero)
         };
+
+        _hintService.SetHint($"{UnitUtil.FormatSuffix(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y, _settings.UnitSettings)}");
     }
 
     protected override void OnRender(DrawingContext dc)
