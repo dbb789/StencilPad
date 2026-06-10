@@ -1,9 +1,9 @@
 using System.Windows.Media;
 using StencilPad.Spatial;
 
-namespace StencilPad.Common;
+namespace StencilPad.Services;
 
-public class AppConfig : IAppConfig
+public class AppConfig
 {
     public Color GridLineColor { get; set; } = Color.FromRgb(0, 127, 255);
     public Color SelectionColor { get; set; } = Color.FromRgb(0, 0, 255);

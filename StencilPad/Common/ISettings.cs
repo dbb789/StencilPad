@@ -3,8 +3,12 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Common;
 
-public interface IAppConfig
+public interface ISettings
 {
+    event Action? Changed;
+
+    UnitType UnitType { get; }
+    
     Color GridLineColor { get; }
     Color SelectionColor { get; }
     Color GroupSelectionColor { get; }
@@ -14,9 +18,7 @@ public interface IAppConfig
     double HandleSizePx { get; }
     double PointSnapPx { get; }
 
-    Unit GridSpacingMetric { get; }
-    int GridSubdivisionsMetric { get; }
-    Unit GridSpacingImperial { get; }
-    int GridSubdivisionsImperial { get; }
+    Unit GridSpacing { get; }
+    int GridSubdivisions { get; }
     double GridMinSpacingPx { get; }
 }

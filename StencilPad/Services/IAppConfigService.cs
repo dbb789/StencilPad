@@ -4,7 +4,7 @@ namespace StencilPad.Services;
 
 public interface IAppConfigService
 {
-    IAppConfig Config { get; }
+    AppConfig Config { get; }
 
-    event Action? ConfigChanged;
+    event Action? Applied;
 }

@@ -1,6 +1,10 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using StencilPad.Spatial;
+
 namespace StencilPad.Models;
 
-public class Project
+public class Project : INotifyPropertyChanged
 {
     public IEnumerable<Sheet> Sheets => _sheets.Values;
     
@@ -8,6 +12,21 @@ public class Project
 
     public event Action<Sheet>? SheetAdded;
     public event Action<Sheet>? SheetRemoved;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private UnitType _unitType = UnitType.Metric;
+    public UnitType UnitType
+    {
+        get => _unitType;
+        set
+        {
+            if (_unitType != value)
+            {
+                _unitType = value;
+                OnPropertyChanged();
+            }
+        }
+    }
     
     public Project()
     {
@@ -48,5 +67,10 @@ public class Project
         {
             RemoveSheet(sheet);
         }
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

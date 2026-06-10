@@ -55,15 +55,15 @@ public readonly record struct Unit
     {
         return type switch
         {
-            UnitType.Millimeters => FromMillimeters(value),
-            UnitType.Inches => FromInches(value),
+            UnitType.Metric => FromMillimeters(value),
+            UnitType.Imperial => FromInches(value),
             _ => throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported unit type: {type}")
         };
     }
 
     public static bool TryParse(string s, out Unit result)
     {
-        return TryParse(s, UnitType.Millimeters, out result);
+        return TryParse(s, UnitType.Metric, out result);
     }
 
     public static bool TryParse(string s, UnitType type, out Unit result)
@@ -93,8 +93,8 @@ public readonly record struct Unit
     {
         return type switch
         {
-            UnitType.Millimeters => Millimeters,
-            UnitType.Inches => Inches,
+            UnitType.Metric => Millimeters,
+            UnitType.Imperial => Inches,
             _ => throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported unit type: {type}")
         };
     }

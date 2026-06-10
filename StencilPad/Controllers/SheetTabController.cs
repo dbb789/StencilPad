@@ -11,7 +11,7 @@ namespace StencilPad.Controllers;
 
 public class SheetTabController : IDisposable
 {
-    public class Factory(IAppConfigService AppConfigService,
+    public class Factory(ISettings Settings,
                          IResourceService ResourceService,
                          IModelPropertiesService ModelPropertiesService,
                          IOperationService OperationService)
@@ -19,14 +19,14 @@ public class SheetTabController : IDisposable
         public SheetTabController Create(SheetTabViewModel tabViewModel)
         {
             return new(tabViewModel,
-                       AppConfigService,
+                       Settings,
                        ResourceService,
                        OperationService,
                        ModelPropertiesService);
         }
     }
 
-    private readonly IAppConfigService _appConfigService;
+    private readonly ISettings _settings;
     private readonly SheetTabViewModel _tabViewModel;
     private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
@@ -37,13 +37,13 @@ public class SheetTabController : IDisposable
     private ServiceProvider? _scopedServiceProvider;
 
     private SheetTabController(SheetTabViewModel tabViewModel,
-                               IAppConfigService appConfigService,
+                               ISettings settings,
                                IResourceService resourceService,
                                IOperationService operationService,
                                IModelPropertiesService modelPropertiesService)
     {
         _tabViewModel = tabViewModel;
-        _appConfigService = appConfigService;
+        _settings = settings;
         _resourceService = resourceService;
         _operationService = operationService;
         _modelPropertiesService = modelPropertiesService;
@@ -102,7 +102,7 @@ public class SheetTabController : IDisposable
 
         services.AddSingleton<Sheet>(_tabViewModel.Sheet);
         services.AddSingleton<ToolPanelViewModel>(_tabViewModel.ToolPanelViewModel);
-        services.AddSingleton<IAppConfigService>(_appConfigService);
+        services.AddSingleton<ISettings>(_settings);
         services.AddSingleton<IResourceService>(_resourceService);
         services.AddSingleton<IOperationService>(_operationService);
         services.AddSingleton<IModelPropertiesService>(_modelPropertiesService);

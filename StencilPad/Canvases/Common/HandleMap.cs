@@ -1,7 +1,7 @@
 using System.Collections.Specialized;
 using System.Diagnostics;
+using StencilPad.Common;
 using StencilPad.Models;
-using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Common;
@@ -16,7 +16,7 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     public ReadOnlyFlatSet<IHandleMapEntry> SelectedHandles => _selectedHandles;
 
-    private readonly IAppConfigService _appConfigService;
+    private readonly ISettings _settings;
     private readonly Dictionary<Handle, HandleMapEntry> _byHandle;
     private readonly DynamicQuadTree<HandleMapEntry> _byPosition;
     private readonly FlatSet<IHandleMapEntry> _selectedHandles;
@@ -31,9 +31,9 @@ public class HandleMap : IHandleMap, IUnitSnap
     public event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
     public event Action? HandleSelectionChanged;
 
-    public HandleMap(IAppConfigService appConfigService)
+    public HandleMap(ISettings settings)
     {
-        _appConfigService = appConfigService;
+        _settings = settings;
         
         var maxBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
         var initialBounds = UnitBounds.FromCenterSize(Unit2D.Zero,
@@ -145,7 +145,7 @@ public class HandleMap : IHandleMap, IUnitSnap
     {
         _queryResults.Clear();
 
-        var pointSnapPx = _appConfigService.Config.PointSnapPx;
+        var pointSnapPx = _settings.PointSnapPx;
 
         // Note that pointSnapPx is a radius, so we need to query a bounds with
         // double the size to ensure we find all potential snaps within the

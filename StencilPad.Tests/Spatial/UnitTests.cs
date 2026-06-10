@@ -32,16 +32,16 @@ public class UnitTests
     [Test]
     public void FromType_CreatesCorrectUnit()
     {
-        Assert.That(Unit.FromType(10, UnitType.Millimeters).Millimeters, Is.EqualTo(10));
-        Assert.That(Unit.FromType(1, UnitType.Inches).Millimeters, Is.EqualTo(25.4));
+        Assert.That(Unit.FromType(10, UnitType.Metric).Millimeters, Is.EqualTo(10));
+        Assert.That(Unit.FromType(1, UnitType.Imperial).Millimeters, Is.EqualTo(25.4));
     }
 
     [Test]
     public void ToType_ReturnsCorrectValue()
     {
         var unit = Unit.FromMillimeters(25.4);
-        Assert.That(unit.ToType(UnitType.Millimeters), Is.EqualTo(25.4));
-        Assert.That(unit.ToType(UnitType.Inches), Is.EqualTo(1.0).Within(0.0000001));
+        Assert.That(unit.ToType(UnitType.Metric), Is.EqualTo(25.4));
+        Assert.That(unit.ToType(UnitType.Imperial), Is.EqualTo(1.0).Within(0.0000001));
     }
 
     [Test]
@@ -52,7 +52,7 @@ public class UnitTests
             Assert.That(Unit.TryParse("10.5", out var result1), Is.True);
             Assert.That(result1.Millimeters, Is.EqualTo(10.5));
 
-            Assert.That(Unit.TryParse("1", UnitType.Inches, out var result2), Is.True);
+            Assert.That(Unit.TryParse("1", UnitType.Imperial, out var result2), Is.True);
             Assert.That(result2.Millimeters, Is.EqualTo(25.4));
         });
     }

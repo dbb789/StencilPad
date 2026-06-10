@@ -1,11 +1,19 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using StencilPad.Models;
 
 namespace StencilPad.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
     public ObservableCollection<SheetTabViewModel> Tabs { get; } = new();
+
+    private Project? _project = null;
+    public Project? Project
+    {
+        get => _project;
+        set => SetProperty(ref _project, value);
+    }
 
     private SheetTabViewModel? _selectedTab;
     public SheetTabViewModel? SelectedTab

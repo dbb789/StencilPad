@@ -20,7 +20,7 @@ public class CanvasGrid : ContentControl, IUnitSnap
         set => SetValue(ShowGridProperty, value);
     }
     
-    private readonly IAppConfigService _appConfigService;
+    private readonly ISettings _settings;
     private readonly IViewport _viewport;
 
     private Pen _pageOutlinePen = null!;
@@ -28,10 +28,10 @@ public class CanvasGrid : ContentControl, IUnitSnap
     private Pen _majorPen = null!;
     private Pen _axisPen = null!;
     
-    public CanvasGrid(IAppConfigService appConfigService,
+    public CanvasGrid(ISettings settings,
                       IViewport viewport)
     {
-        _appConfigService = appConfigService;
+        _settings = settings;
         _viewport = viewport;
 
         _pageOutlinePen = new Pen(Brushes.LightGray, 1) { DashStyle = DashStyles.Solid };
@@ -41,18 +41,18 @@ public class CanvasGrid : ContentControl, IUnitSnap
         
         Loaded += (s, e) =>
         {
-            _appConfigService.ConfigChanged += OnConfigChanged;
+            _settings.Changed += SettingsChanged;
         };
 
         Unloaded += (s, e) =>
         {
-            _appConfigService.ConfigChanged -= OnConfigChanged;
+            _settings.Changed -= SettingsChanged;
         };
     }
 
     private void BuildPens()
     {
-        var gridLineColor = _appConfigService.Config.GridLineColor;
+        var gridLineColor = _settings.GridLineColor;
         
         var minorBrush = new SolidColorBrush(ColorUtil.WithAlpha(gridLineColor, 64));
         minorBrush.Freeze();
@@ -73,7 +73,7 @@ public class CanvasGrid : ContentControl, IUnitSnap
         _axisPen.Freeze();
     }
     
-    private void OnConfigChanged()
+    private void SettingsChanged()
     {
         BuildPens();
         InvalidateVisual();
@@ -105,14 +105,12 @@ public class CanvasGrid : ContentControl, IUnitSnap
         // Clip everything else (grid/axes) to the paper boundary
         dc.PushClip(new RectangleGeometry(pageRect));
 
-        var config = _appConfigService.Config;
-
-        var spacing = config.GridSpacingMetric;
-        var subdivisions = config.GridSubdivisionsMetric;
+        var spacing = _settings.GridSpacing;
+        var subdivisions = _settings.GridSubdivisions;
         
         var majorSpacingPixels = _viewport.ToPixels(spacing);
         var minorSpacingPixels = _viewport.ToPixels(spacing / subdivisions);
-        var minSpacingPixels = config.GridMinSpacingPx;
+        var minSpacingPixels = _settings.GridMinSpacingPx;
         
         if (minorSpacingPixels > minSpacingPixels)
         {
@@ -149,11 +147,9 @@ public class CanvasGrid : ContentControl, IUnitSnap
 
     public Unit2D? UnitSnap(Unit2D point, IUnitSnapContext context)
     {
-        var config = _appConfigService.Config;
-
-        var spacing = config.GridSpacingMetric;
-        var subdivisions = config.GridSubdivisionsMetric;
-        var minSpacingPixels = config.GridMinSpacingPx;
+        var spacing = _settings.GridSpacing;
+        var subdivisions = _settings.GridSubdivisions;
+        var minSpacingPixels = _settings.GridMinSpacingPx;
 
         var majorSpacing = spacing;
         var minorSpacing = spacing / subdivisions;

@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:StencilPad.UI"
         xmlns:common="clr-namespace:StencilPad.Common"
         xmlns:models="clr-namespace:StencilPad.Models"
+        xmlns:spatial="clr-namespace:StencilPad.Spatial"
         xmlns:vm="clr-namespace:StencilPad.ViewModels"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
@@ -57,6 +58,17 @@
                 <Separator/>
                 <MenuItem Header="Select _All" Command="{x:Static common:GlobalCommands.SelectAll}" InputGestureText="Ctrl+A"/>
                 <MenuItem Header="C_lear Selection" Command="{x:Static common:GlobalCommands.ClearSelection}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_Settings">
+                <MenuItem Header="Units">
+                    <MenuItem Header="Metric" IsCheckable="True"
+                              IsChecked="{local:EnumBinding Project.UnitType,
+                                         TargetValue={x:Static spatial:UnitType.Metric}}"/>
+                    <MenuItem Header="Imperial" IsCheckable="True"
+                              IsChecked="{local:EnumBinding Project.UnitType,
+                                         TargetValue={x:Static spatial:UnitType.Imperial}}"/>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="_Sheet">

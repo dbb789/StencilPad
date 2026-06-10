@@ -23,8 +23,8 @@
                   DisplayMemberPath="Description"
                   MinWidth="60">
             <ComboBox.Items>
-                <local:UnitItem Value="{x:Static sp:UnitType.Millimeters}" Description="mm"/>
-                <local:UnitItem Value="{x:Static sp:UnitType.Inches}" Description="in"/>
+                <local:UnitItem Value="{x:Static sp:UnitType.Metric}" Description="mm"/>
+                <local:UnitItem Value="{x:Static sp:UnitType.Imperial}" Description="in"/>
             </ComboBox.Items>
         </ComboBox>
     </Grid>

@@ -13,7 +13,7 @@ public partial class UnitField : UserControl
     
     public static readonly DependencyProperty UnitTypeProperty =
         DependencyProperty.Register(nameof(UnitType), typeof(UnitType), typeof(UnitField),
-            new FrameworkPropertyMetadata(UnitType.Millimeters, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
+            new FrameworkPropertyMetadata(UnitType.Metric, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
     public static readonly DependencyProperty MinimumProperty =
         DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(UnitField),

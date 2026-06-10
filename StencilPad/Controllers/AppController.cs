@@ -1,42 +1,14 @@
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
-using System.Windows.Media.Imaging;
-using Microsoft.Win32;
 using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Services;
-using StencilPad.Spatial;
 using StencilPad.ViewModels;
-using StencilPad.Export;
 
 namespace StencilPad.Controllers;
 
 public class AppController
 {
-    public class Factory(IOperationService OperationService,
-                         IDialogService DialogService,
-                         IPrintService PrintService,
-                         IClipboardService ClipboardService,
-                         IFileService FileService,
-                         IImportExportService ImportExportService,
-                         SheetTabController.Factory TabControllerFactory)
-    {
-        public AppController Create(Project project,
-                                    MainWindowViewModel viewModel)
-        {
-            return new(project,
-                       viewModel,
-                       OperationService,
-                       DialogService,
-                       PrintService,
-                       ClipboardService,
-                       FileService,
-                       ImportExportService,
-                       TabControllerFactory);
-        }
-    }
-    
     private readonly Project _project;
     private readonly IOperationService _operationService;
     private readonly IDialogService _dialogService;
@@ -51,15 +23,15 @@ public class AppController
     private List<(SheetTabController Controller, SheetTabViewModel ViewModel)> _sheetTabs = new();
     private string? _currentFilePath;
 
-    private AppController(Project project,
-                          MainWindowViewModel viewModel,
-                          IOperationService operationService,
-                          IDialogService dialogService,
-                          IPrintService printService,
-                          IClipboardService clipboardService,
-                          IFileService fileService,
-                          IImportExportService importExportService,
-                          SheetTabController.Factory tabControllerFactory)
+    public AppController(Project project,
+                         MainWindowViewModel viewModel,
+                         IOperationService operationService,
+                         IDialogService dialogService,
+                         IPrintService printService,
+                         IClipboardService clipboardService,
+                         IFileService fileService,
+                         IImportExportService importExportService,
+                         SheetTabController.Factory tabControllerFactory)
     {
         _project = project;
         _viewModel = viewModel;

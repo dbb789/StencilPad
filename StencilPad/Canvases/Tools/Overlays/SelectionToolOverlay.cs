@@ -17,8 +17,8 @@ namespace StencilPad.Canvases.Tools.Overlays;
 public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalCommandTarget, IDisposable
 {
     public IViewport Viewport => _viewport;
-    
-    private readonly IAppConfigService _appConfigService;
+
+    private readonly ISettings _settings;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly Sheet _sheet;
@@ -56,13 +56,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     
     public event Action<ISheetElementAction>? ActionInvoked;
 
-    public SelectionToolOverlay(IAppConfigService appConfigService,
+    public SelectionToolOverlay(ISettings settings,
                                 IViewport viewport,
                                 IUnitSnap unitSnap,
                                 Sheet sheet,
                                 SheetElementActionSet actionSet)
     {
-        _appConfigService = appConfigService;
+        _settings = settings;
         _viewport = viewport;
         _unitSnap = unitSnap;
         _sheet = sheet;
@@ -83,12 +83,12 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
             element.GeometryChanged += OnTransformChanged;
         }
 
-        _appConfigService.ConfigChanged += OnConfigChanged;
+        _settings.Changed += SettingsChanged;
     }
     
     public void Dispose()
     {
-        _appConfigService.ConfigChanged -= OnConfigChanged;
+        _settings.Changed -= SettingsChanged;
         
         _sheet.Selection.CollectionChanged -= SelectionChanged;
 
@@ -101,9 +101,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
     private void BuildPens()
     {
-        var config = _appConfigService.Config;
-        var selectionColor = config.SelectionColor;
-        var groupSelectionColor = config.GroupSelectionColor;
+        var selectionColor = _settings.SelectionColor;
+        var groupSelectionColor = _settings.GroupSelectionColor;
 
         _elementPen = new Pen(new SolidColorBrush(ColorUtil.WithAlpha(selectionColor, 128)), 2);
         _elementPen.Freeze();
@@ -117,11 +116,11 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         _groupFill = new SolidColorBrush(ColorUtil.WithAlpha(groupSelectionColor, 10));
         _groupFill.Freeze();
 
-        _resizeHandleSize = config.HandleSizePx;
-        _rotateHandleRadius = config.HandleSizePx / 2;
+        _resizeHandleSize = _settings.HandleSizePx;
+        _rotateHandleRadius = _settings.HandleSizePx / 2;
     }
     
-    private void OnConfigChanged()
+    private void SettingsChanged()
     {
         BuildPens();
         InvalidateVisual();

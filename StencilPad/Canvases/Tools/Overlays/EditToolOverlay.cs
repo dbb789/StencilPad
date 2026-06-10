@@ -29,7 +29,7 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
     public event Action<ISheetElementAction>? ActionInvoked;
 
     private readonly Sheet _sheet;
-    private readonly IAppConfigService _appConfigService;
+    private readonly ISettings _settings;
     private readonly IViewport _viewport;
     private readonly IHandleMap _handleMap;
     private readonly IUnitSnap _unitSnap;
@@ -47,7 +47,7 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
     private Pen _axisLockPen = null!;
     
     public EditToolOverlay(Sheet sheet,
-                           IAppConfigService appConfigService,
+                           ISettings settings,
                            IViewport viewport,
                            IHandleMap handleMap,
                            IUnitSnap unitSnap,
@@ -56,7 +56,7 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
         : base(viewport, sheet, true)
     {
         _sheet = sheet;
-        _appConfigService = appConfigService;
+        _settings = settings;
         _viewport = viewport;
         _handleMap = handleMap;
         _unitSnap = unitSnap;
@@ -82,12 +82,12 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
         
-        _appConfigService.ConfigChanged += OnConfigChanged;
+        _settings.Changed += SettingsChanged;
     }
 
     public override void Dispose()
     {
-        _appConfigService.ConfigChanged -= OnConfigChanged;
+        _settings.Changed -= SettingsChanged;
                 
         _viewport.ViewportChanged -= ForceRedraw;
 
@@ -102,11 +102,10 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
 
     private void BuildPens()
     {
-        var config = _appConfigService.Config;
-        var moveHandleColor = config.MoveHandleColor;
-        var adjustHandleColor = config.AdjustHandleColor;
-        var selectionColor = config.SelectionColor;
-        var gridLineColor = config.GridLineColor;
+        var moveHandleColor = _settings.MoveHandleColor;
+        var adjustHandleColor = _settings.AdjustHandleColor;
+        var selectionColor = _settings.SelectionColor;
+        var gridLineColor = _settings.GridLineColor;
         
         _moveBrush = new SolidColorBrush(ColorUtil.WithAlpha(moveHandleColor, 128));
         _moveBrush.Freeze();
@@ -120,10 +119,10 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
         _axisLockPen = new Pen(new SolidColorBrush(ColorUtil.WithAlpha(gridLineColor, 128)), 2);
         _axisLockPen.Freeze();
 
-        _handleSize = config.HandleSizePx;
+        _handleSize = _settings.HandleSizePx;
     }
     
-    private void OnConfigChanged()
+    private void SettingsChanged()
     {
         BuildPens();
         InvalidateVisual();

@@ -1,16 +1,13 @@
-using StencilPad.Common;
-
 namespace StencilPad.Services;
 
 public class AppConfigService : IAppConfigService
 {
-    public IAppConfig Config { get; private set; } = new AppConfig();
+    public AppConfig Config { get; private set; } = new();
 
-    public event Action? ConfigChanged;
+    public event Action? Applied;
 
-    public void ApplyConfig(IAppConfig newConfig)
+    public void Apply()
     {
-        Config = newConfig;
-        ConfigChanged?.Invoke();
+        Applied?.Invoke();
     }
 }

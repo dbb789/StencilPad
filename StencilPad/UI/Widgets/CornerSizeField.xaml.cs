@@ -90,7 +90,7 @@ public partial class CornerSizeField : UserControl
                 }
                 else
                 {
-                    var unitType = field.SizeMode == CornerSizeField_Mode.Inches ? UnitType.Inches : UnitType.Millimeters;
+                    var unitType = field.SizeMode == CornerSizeField_Mode.Inches ? UnitType.Imperial : UnitType.Metric;
 
                     if (size.IsUnit)
                     {
@@ -110,7 +110,7 @@ public partial class CornerSizeField : UserControl
                 }
                 else
                 {
-                    var unitType = field.SizeMode == CornerSizeField_Mode.Inches ? UnitType.Inches : UnitType.Millimeters;
+                    var unitType = field.SizeMode == CornerSizeField_Mode.Inches ? UnitType.Imperial : UnitType.Metric;
 
                     if (Unit.TryParse(field.TextValue, unitType, out var parsedUnit))
                     {

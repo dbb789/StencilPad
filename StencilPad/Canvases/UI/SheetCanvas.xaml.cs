@@ -88,7 +88,7 @@ namespace StencilPad.Canvases.UI
         public event Action? CanvasReady;
 
         public SheetCanvas()
-            : this(App.ServiceProvider.GetRequiredService<IAppConfigService>(),
+            : this(App.ServiceProvider.GetRequiredService<ISettings>(),
                    App.ServiceProvider.GetRequiredService<IResourceService>())
         {
             // Slightly nasty to do things this way but it avoids a ton of
@@ -98,16 +98,15 @@ namespace StencilPad.Canvases.UI
             // funny machinery just to instantiate it.
         }
         
-        public SheetCanvas(IAppConfigService appConfigService,
+        public SheetCanvas(ISettings settings,
                            IResourceService resourceService)
         {   
             _viewport = new VisualViewport();
-            _handleMap = new HandleMap(appConfigService);
+            _handleMap = new HandleMap(settings);
 
             _sheetRenderer = new SheetRenderer(resourceService);
 
-            _canvasGrid = new CanvasGrid(appConfigService,
-                                         _viewport);
+            _canvasGrid = new CanvasGrid(settings, _viewport);
 
             _renderer = new SheetRenderPanel(_sheetRenderer,
                                              _viewport);

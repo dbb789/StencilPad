@@ -6,3 +6,4 @@ Review multi-selection resizing behaviour
 Hint label (current object size / key modifiers)
 Unit type configuration
 Unit ratio configuration
+Per-tab undo stack / emacs-style undo stack

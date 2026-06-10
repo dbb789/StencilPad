@@ -18,7 +18,7 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     public override TSheetElement Element => _element;
     public bool IsCurved { get; set; } = false;
 
-    private readonly IAppConfigService _appConfigService;
+    private readonly ISettings _settings;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapContext _unitSnapContext;
@@ -32,12 +32,12 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     private double _handleSize;
     private Brush _moveBrush = null!;
 
-    public LineToolOverlay(IAppConfigService appConfigService,
-                              IViewport viewport,
-                              IUnitSnap unitSnap,
-                              IResourceService resourceService)
+    public LineToolOverlay(ISettings settings,
+                           IViewport viewport,
+                           IUnitSnap unitSnap,
+                           IResourceService resourceService)
     {
-        _appConfigService = appConfigService;
+        _settings = settings;
         _viewport = viewport;
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
@@ -58,14 +58,14 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
 
         BuildPens();
         
-        _appConfigService.ConfigChanged += OnConfigChanged;
+        _settings.Changed += SettingsChanged;
     }
 
     public override void Dispose()
     {
         ReleaseMouseCapture();
 
-        _appConfigService.ConfigChanged -= OnConfigChanged;
+        _settings.Changed -= SettingsChanged;
         _renderer.RendererDirty -= InvalidateVisual;
         _resolver?.Detach();
 
@@ -74,19 +74,18 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     
     private void BuildPens()
     {
-        var config = _appConfigService.Config;
-        var moveHandleColor = config.MoveHandleColor;
-        var adjustHandleColor = config.AdjustHandleColor;
-        var selectionColor = config.SelectionColor;
-        var gridLineColor = config.GridLineColor;
+        var moveHandleColor = _settings.MoveHandleColor;
+        var adjustHandleColor = _settings.AdjustHandleColor;
+        var selectionColor = _settings.SelectionColor;
+        var gridLineColor = _settings.GridLineColor;
         
         _moveBrush = new SolidColorBrush(ColorUtil.WithAlpha(moveHandleColor, 128));
         _moveBrush.Freeze();
 
-        _handleSize = config.HandleSizePx;
+        _handleSize = _settings.HandleSizePx;
     }
     
-    private void OnConfigChanged()
+    private void SettingsChanged()
     {
         BuildPens();
         InvalidateVisual();
