@@ -169,7 +169,7 @@ public partial class UnitSliderField : UserControl
 
     private void UpdateTextValue()
     {
-        _textValue = Value.ToType(UnitType).ToString("0.###");
+        _textValue = UnitUtil.Format(Value, UnitType, UnitSettings);
         ValueField.Text = _textValue;
     }
 
