@@ -19,13 +19,9 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
         }
     }
     
-    public UnitSettings UnitSettings
-    {
-        get => _settings.UnitSettings;
-    }
-
+    public UnitSettings UnitSettings => _settings.UnitSettings;
     protected IEnumerable<TElement> Elements => _elements;
-    
+
     private readonly Sheet _sheet;
     private readonly ISettings _settings;
     private readonly List<TElement> _elements;
@@ -37,7 +33,7 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
         _elements = _sheet.Selection.OfType<TElement>().ToList();
 
         HasElements = _elements.Count > 0;
-
+        
         _sheet.Selection.CollectionChanged += SelectionChanged;
     }
 

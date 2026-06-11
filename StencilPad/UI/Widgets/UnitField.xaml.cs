@@ -120,6 +120,32 @@ public partial class UnitField : UserControl
         }
     }
 
+    private void Up_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyValueField();
+        Value = ClampValue(Value + GetStep());
+    }
+
+    private void Down_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyValueField();
+        Value = ClampValue(Value - GetStep());
+    }
+
+    private Unit GetStep()
+    {
+        var majorStep = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
+        if (UnitSettings.System == UnitSystem.Metric)
+        {
+            return Unit.FromMillimeters(majorStep ? 1 : 0.1);
+        }
+        else
+        {
+            return Unit.FromInches(majorStep ? 0.25 : 0.0625);
+        }
+    }
+
     private void ApplyValueField()
     {
         if (_textValue == ValueField.Text)
