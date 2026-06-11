@@ -180,7 +180,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
             ControlEndOffset = new Unit2D(-size.X * MathUtil.Kappa, Unit.Zero)
         };
 
-        _hintService.SetHint($"{UnitUtil.FormatSuffix(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y, _settings.UnitSettings)}");
+        _hintService.SetHint($"{UnitUtil.FormatSuffix(size.X * 2, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y * 2, _settings.UnitSettings)}");
     }
 
     protected override void OnRender(DrawingContext dc)
