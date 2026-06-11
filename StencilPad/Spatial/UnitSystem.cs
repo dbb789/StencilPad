@@ -2,6 +2,6 @@ namespace StencilPad.Spatial;
 
 public enum UnitSystem
 {
-    Metric,
-    Imperial
+    Metric = 0,
+    Imperial = 1
 }

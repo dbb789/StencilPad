@@ -1,5 +1,6 @@
 using System.Windows;
 using StencilPad.Services;
+using StencilPad.Spatial;
 
 namespace StencilPad.UI.Dialogs;
 
@@ -22,6 +23,25 @@ public class WpfDialogService : IDialogService
         if (dialog.ShowDialog() == true)
         {
             return dialog.ViewModel.Name.Trim();
+        }
+
+        return null;
+    }
+
+    public (Unit Spacing, int Subdivisions)? ShowGridSettingsDialog(Unit currentSpacing,
+                                                                    int currentSubdivisions,
+                                                                    UnitSettings unitSettings)
+    {
+        var dialog = new GridSettingsDialog(currentSpacing,
+                                            currentSubdivisions,
+                                            unitSettings)
+        {
+            Owner = _owner
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            return (dialog.ViewModel.Spacing, dialog.ViewModel.Subdivisions);
         }
 
         return null;

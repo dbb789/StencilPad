@@ -11,6 +11,7 @@ public static class SchemaJsonOptions
             new JsonStringEnumConverter(),
             new UnitConverter(),
             new Unit2DConverter(),
+            new FractionConverter(),
             new ColorConverter()
         },
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull

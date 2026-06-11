@@ -41,6 +41,64 @@ public class Project : INotifyPropertyChanged
             }
         }
     }
+
+    public UnitSettings UnitSettings => new(UnitSystem, UnitRatio);
+    
+    public Unit _gridSpacingMetric = Unit.FromMillimeters(10);
+    public Unit GridSpacingMetric
+    {
+        get => _gridSpacingMetric;
+        set
+        {
+            if (_gridSpacingMetric != value)
+            {
+                _gridSpacingMetric = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public int _gridSubdivisionsMetric = 5;
+    public int GridSubdivisionsMetric
+    {
+        get => _gridSubdivisionsMetric;
+        set
+        {
+            if (_gridSubdivisionsMetric != value)
+            {
+                _gridSubdivisionsMetric = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public Unit _gridSpacingImperial = Unit.FromInches(1);
+    public Unit GridSpacingImperial
+    {
+        get => _gridSpacingImperial;
+        set
+        {
+            if (_gridSpacingImperial != value)
+            {
+                _gridSpacingImperial = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public int _gridSubdivisionsImperial = 8;
+    public int GridSubdivisionsImperial
+    {
+        get => _gridSubdivisionsImperial;
+        set
+        {
+            if (_gridSubdivisionsImperial != value)
+            {
+                _gridSubdivisionsImperial = value;
+                OnPropertyChanged();
+            }
+        }
+    }
     
     public Project()
     {

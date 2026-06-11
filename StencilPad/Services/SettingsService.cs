@@ -10,7 +10,7 @@ public class SettingsService : ISettings
 {
     public UnitSystem UnitSystem => _project?.UnitSystem ?? UnitSystem.Metric;
     public Fraction UnitRatio => _project?.UnitRatio ?? Fraction.One;
-    public UnitSettings UnitSettings => new(UnitSystem, UnitRatio);
+    public UnitSettings UnitSettings => _project?.UnitSettings ?? UnitSettings.Default;
     
     public Color GridLineColor => _appConfigService.Config.GridLineColor;
     public Color SelectionColor => _appConfigService.Config.SelectionColor;
@@ -21,11 +21,33 @@ public class SettingsService : ISettings
     public double HandleSizePx => _appConfigService.Config.HandleSizePx;
     public double PointSnapPx => _appConfigService.Config.PointSnapPx;
 
-    public Unit GridSpacing => (UnitSystem == UnitSystem.Metric) ?
-        _appConfigService.Config.GridSpacingMetric : _appConfigService.Config.GridSpacingImperial;
-    
-    public int GridSubdivisions => (UnitSystem == UnitSystem.Metric) ?
-        _appConfigService.Config.GridSubdivisionsMetric : _appConfigService.Config.GridSubdivisionsImperial;
+    public Unit GridSpacing
+    {
+        get
+        {
+            if (_project is null)
+            {
+                return Unit.FromMillimeters(10);
+            }
+
+            return (UnitSystem == UnitSystem.Metric) ?
+                _project.GridSpacingMetric : _project.GridSpacingImperial;
+        }
+    }
+
+    public int GridSubdivisions
+    {
+        get
+        {
+            if (_project is null)
+            {
+                return 5;
+            }
+
+            return (UnitSystem == UnitSystem.Metric) ?
+                _project.GridSubdivisionsMetric : _project.GridSubdivisionsImperial;
+        }
+    }
     
     public double GridMinSpacingPx => _appConfigService.Config.GridMinSpacingPx;
 

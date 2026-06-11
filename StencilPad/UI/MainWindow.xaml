@@ -61,7 +61,7 @@
             </MenuItem>
             
             <MenuItem Header="_Settings">
-                <MenuItem Header="Units">
+                <MenuItem Header="Unit System">
                     <MenuItem Header="Metric" IsCheckable="True"
                               IsChecked="{local:EnumBinding Project.UnitSystem,
                                          TargetValue={x:Static spatial:UnitSystem.Metric}}"/>
@@ -69,6 +69,7 @@
                               IsChecked="{local:EnumBinding Project.UnitSystem,
                                          TargetValue={x:Static spatial:UnitSystem.Imperial}}"/>
                 </MenuItem>
+                <MenuItem Header="_Grid…" Command="{Binding GridSettingsCommand}"/>
             </MenuItem>
 
             <MenuItem Header="_Sheet">

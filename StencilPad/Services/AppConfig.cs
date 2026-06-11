@@ -13,10 +13,5 @@ public class AppConfig
     
     public double HandleSizePx { get; set; } = 12.0;
     public double PointSnapPx { get; set; } = 32.0;
-
-    public Unit GridSpacingMetric { get; } = Unit.FromMillimeters(10);
-    public int GridSubdivisionsMetric { get; } = 5;
-    public Unit GridSpacingImperial { get; } = Unit.FromInches(1);
-    public int GridSubdivisionsImperial { get; } = 8;
-    public double GridMinSpacingPx { get; } = 8.0;
+    public double GridMinSpacingPx { get; } = 5.0;
 }

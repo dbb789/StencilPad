@@ -30,6 +30,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public ICommand NewProjectCommand { get; set; } = null!;
+    public ICommand GridSettingsCommand { get; set; } = null!;
     public ICommand AddSheetCommand { get; set; } = null!;
     public ICommand RenameSheetCommand { get; set; } = null!;
     public ICommand DeleteSheetCommand { get; set; } = null!;

@@ -4,6 +4,7 @@ using StencilPad.Models;
 using StencilPad.Models.Operations;
 using StencilPad.Services;
 using StencilPad.ViewModels;
+using StencilPad.Spatial;
 
 namespace StencilPad.Controllers;
 
@@ -46,6 +47,7 @@ public class AppController
         _undoStack = new();
         
         _viewModel.NewProjectCommand = new RelayCommand(NewProject);
+        _viewModel.GridSettingsCommand = new RelayCommand(GridSettings);
         _viewModel.AddSheetCommand = new RelayCommand(AddNewSheet);
         _viewModel.RenameSheetCommand = new RelayCommand(RenameActiveSheet);
         _viewModel.DeleteSheetCommand = new RelayCommand(DeleteActiveSheet);
@@ -140,6 +142,43 @@ public class AppController
         }
     }
 
+    private void GridSettings()
+    {
+        Unit gridSpacing;
+        int gridSubdivisions;
+        
+        if (_project.UnitSystem == UnitSystem.Metric)
+        {
+            gridSpacing = _project.GridSpacingMetric;
+            gridSubdivisions = _project.GridSubdivisionsMetric;
+        }
+        else
+        {
+            gridSpacing = _project.GridSpacingImperial;
+            gridSubdivisions = _project.GridSubdivisionsImperial;
+        }
+
+        var result = _dialogService.ShowGridSettingsDialog(gridSpacing,
+                                                           gridSubdivisions,
+                                                           _project.UnitSettings);
+
+        if (result is null)
+        {
+            return;
+        }
+
+        if (_project.UnitSystem == UnitSystem.Metric)
+        {
+            _project.GridSpacingMetric = result.Value.Spacing;
+            _project.GridSubdivisionsMetric = result.Value.Subdivisions;
+        }
+        else
+        {
+            _project.GridSpacingImperial = result.Value.Spacing;
+            _project.GridSubdivisionsImperial = result.Value.Subdivisions;
+        }
+    }
+    
     private void SheetAdded(Sheet sheet)
     {
         var tabViewModel = new SheetTabViewModel(sheet);
