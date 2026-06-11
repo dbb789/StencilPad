@@ -13,7 +13,7 @@ public static class UnitUtil
     {
         var val = (unit * settings.Ratio).ToType(type);
 
-        return $"{val:0.###}";
+        return $"{val:0.####}";
     }
     
     public static string FormatSuffix(Unit unit, UnitSettings settings)
@@ -28,7 +28,7 @@ public static class UnitUtil
         var val = (unit * settings.Ratio).ToType(type);
         var suffix = GetSuffix(type);
 
-        return $"{val:0.###} {suffix}";
+        return $"{val:0.####} {suffix}";
     }
     
     public static UnitType GetDefaultUnitType(UnitSettings settings)

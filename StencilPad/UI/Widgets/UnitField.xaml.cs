@@ -136,7 +136,7 @@ public partial class UnitField : UserControl
     {
         var majorStep = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
-        if (UnitSettings.System == UnitSystem.Metric)
+        if (UnitType == UnitType.Millimeters)
         {
             return Unit.FromMillimeters(majorStep ? 1 : 0.1);
         }
