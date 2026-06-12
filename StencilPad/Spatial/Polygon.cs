@@ -206,7 +206,7 @@ public class Polygon : IPolygon
 
         if (!initializeOnly || controlBegin.ApproximatelyEquals(Unit2D.Zero))
         {
-            if (_edges.NormalizeIndex(edgeIndex) == 0)
+            if (!_closed && _edges.NormalizeIndex(edgeIndex) == 0)
             {
                 var offset = p2 - p1;
                 
@@ -220,7 +220,7 @@ public class Polygon : IPolygon
 
         if (!initializeOnly || controlEnd.ApproximatelyEquals(Unit2D.Zero))
         {
-            if (_edges.NormalizeIndex(edgeIndex) == _edges.Count - 1)
+            if (!_closed && _edges.NormalizeIndex(edgeIndex) == _edges.Count - 1)
             {
                 var offset = p1 - p2;
                 
