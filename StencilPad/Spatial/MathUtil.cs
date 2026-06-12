@@ -120,13 +120,20 @@ public static class MathUtil
 
     public static (double?, double?) SolveQuadratic(double a, double b, double c)
     {
-        // When a is zero this isn't a quadratic equation, it's a linear one
-        // (note the 2a term becomes zero). This can occur (for example) in a
-        // perfectly symmetrical bezier where the control points are perfectly
-        // in line with the start and end points, which means the derivative is
-        // a linear function rather than a quadratic one.
+        // When a is zero this isn't a quadratic equation, it's a linear one ie;
+        // Ax^2 + Bx + C = 0 where A = 0 gives us Bx + C = 0, which we can
+        // rearrange to x = -C / B.
+        //
+        // This can occur (for example) in a perfectly symmetrical bezier where
+        // the control points are perfectly in line with the start and end
+        // points, which means the derivative is a linear function rather than a
+        // quadratic one.
         if (Math.Abs(a) < 1e-10)
         {
+            // if B = 0 then that rearranges to C = 0, which is only true when C
+            // is also zero, which means every value of x is a solution. In this
+            // case we return null for both values to indicate that there are
+            // either no solutions or infinite solutions.
             if (Math.Abs(b) < 1e-10)
             {
                 return (null, null);
@@ -139,7 +146,7 @@ public static class MathUtil
         
         double discriminant = b * b - 4 * a * c;
 
-        if (discriminant < 0 || Math.Abs(a) < 1e-10)
+        if (discriminant < 0)
         {
             return (null, null);
         }
