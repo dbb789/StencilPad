@@ -107,13 +107,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         _elementPen = new Pen(new SolidColorBrush(ColorUtil.WithAlpha(selectionColor, 128)), 2);
         _elementPen.Freeze();
 
-        _elementFill = new SolidColorBrush(ColorUtil.WithAlpha(selectionColor, 10));
+        _elementFill = new SolidColorBrush(ColorUtil.WithAlpha(selectionColor, 32));
         _elementFill.Freeze();
 
         _groupPen = new Pen(new SolidColorBrush(ColorUtil.WithAlpha(groupSelectionColor, 128)), 2);
         _groupPen.Freeze();
 
-        _groupFill = new SolidColorBrush(ColorUtil.WithAlpha(groupSelectionColor, 10));
+        _groupFill = new SolidColorBrush(ColorUtil.WithAlpha(groupSelectionColor, 32));
         _groupFill.Freeze();
 
         _resizeHandleSize = _settings.HandleSizePx;
