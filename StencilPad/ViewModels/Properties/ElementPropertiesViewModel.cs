@@ -107,4 +107,24 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
 
         return highest;
     }
+
+    protected Unit? All(Func<TElement, Unit> selector)
+    {
+        if (_elements.Count == 0)
+        {
+            return null;
+        }
+
+        var first = selector(_elements[0]);
+
+        for (int i = 1; i < _elements.Count; ++i)
+        {
+            if (!first.ApproximatelyEquals(selector(_elements[i])))
+            {
+                return null;
+            }
+        }
+
+        return first;
+    }
 }

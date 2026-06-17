@@ -1,35 +1,45 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using StencilPad.Spatial;
 
 namespace StencilPad.UI.Widgets;
 
-public partial class UnitField : UserControl
+public partial class Unit2DField : UserControl
 {
-    public static readonly DependencyProperty ValueProperty =
-        DependencyProperty.Register(nameof(Value), typeof(Unit), typeof(UnitField),
+    public static readonly DependencyProperty ValueXProperty =
+        DependencyProperty.Register(nameof(ValueX), typeof(Unit?), typeof(Unit2DField),
             new FrameworkPropertyMetadata(Unit.Zero, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
     
+    public static readonly DependencyProperty ValueYProperty =
+        DependencyProperty.Register(nameof(ValueY), typeof(Unit?), typeof(Unit2DField),
+            new FrameworkPropertyMetadata(Unit.Zero, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
     public static readonly DependencyProperty UnitTypeProperty =
-        DependencyProperty.Register(nameof(UnitType), typeof(UnitType), typeof(UnitField),
+        DependencyProperty.Register(nameof(UnitType), typeof(UnitType), typeof(Unit2DField),
             new FrameworkPropertyMetadata(UnitType.Millimeters, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
     public static readonly DependencyProperty UnitSettingsProperty =
-        DependencyProperty.Register(nameof(UnitSettings), typeof(UnitSettings), typeof(UnitField),
+        DependencyProperty.Register(nameof(UnitSettings), typeof(UnitSettings), typeof(Unit2DField),
             new FrameworkPropertyMetadata(UnitSettings.Default, FrameworkPropertyMetadataOptions.None));
 
     public static readonly DependencyProperty MinimumProperty =
-        DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(UnitField),
-            new FrameworkPropertyMetadata(Unit.FromMillimeters(0)));
+        DependencyProperty.Register(nameof(Minimum), typeof(Unit), typeof(Unit2DField),
+            new FrameworkPropertyMetadata(Unit.FromMillimeters(-1000000)));
 
     public static readonly DependencyProperty MaximumProperty =
-        DependencyProperty.Register(nameof(Maximum), typeof(Unit), typeof(UnitField),
+        DependencyProperty.Register(nameof(Maximum), typeof(Unit), typeof(Unit2DField),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(1000000)));
     
-    public Unit Value
+    public Unit? ValueX
     {
-        get => (Unit)GetValue(ValueProperty);
-        set => SetValue(ValueProperty, value);
+        get => (Unit?)GetValue(ValueXProperty);
+        set => SetValue(ValueXProperty, value);
+    }
+
+    public Unit? ValueY
+    {
+        get => (Unit?)GetValue(ValueYProperty);
+        set => SetValue(ValueYProperty, value);
     }
     
     public UnitType UnitType
@@ -56,7 +66,7 @@ public partial class UnitField : UserControl
         set => SetValue(MaximumProperty, value);
     }
 
-    public UnitField()
+    public Unit2DField()
     {
         InitializeComponent();
     }

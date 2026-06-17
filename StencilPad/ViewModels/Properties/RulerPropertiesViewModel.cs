@@ -2,6 +2,7 @@ using System.Windows.Media;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;
+using StencilPad.Spatial;
 
 namespace StencilPad.ViewModels.Properties;
 
@@ -65,6 +66,87 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
             OnPropertyChanged();
         }
     }
+    
+    private Unit? _minX;
+    public Unit? MinX
+    {
+        get => _minX;
+        set
+        {
+            _minX = value;
+
+            if (_minX is not null)
+            {
+                foreach (var element in Elements)
+                {
+                    element.Min = element.Min with { X = _minX.Value };
+                }
+            }
+
+            OnPropertyChanged();
+        }
+    }
+
+    private Unit? _minY;
+    public Unit? MinY
+    {
+        get => _minY;
+        set
+        {
+            _minY = value;
+
+
+            if (_minY is not null)
+            {
+                foreach (var element in Elements)
+                {
+                    element.Min = element.Min with { Y = _minY.Value };
+                }
+            }
+
+            OnPropertyChanged();
+        }
+    }
+    
+    private Unit? _maxX;
+    public Unit? MaxX
+    {
+        get => _maxX;
+        set
+        {
+            _maxX = value;
+
+            if (_maxX is not null)
+            {
+                foreach (var element in Elements)
+                {
+                    element.Max = element.Max with { X = _maxX.Value };
+                }
+            }
+
+            OnPropertyChanged();
+        }
+    }
+
+    private Unit? _maxY;
+    public Unit? MaxY
+    {
+        get => _maxY;
+        set
+        {
+            _maxY = value;
+
+            if (_maxY is not null)
+            {
+                foreach (var element in Elements)
+                {
+                    element.Max = element.Max with { Y = _maxY.Value };
+                }
+            }
+
+            OnPropertyChanged();
+        }
+    }
 
     private readonly Sheet _sheet;
     private readonly IOperationService _operationService;
@@ -92,7 +174,19 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
     }
 
     protected override void OnElementsChanged()
-    {
+    {        
+        _minX = All(e => e.Min.X);
+        OnPropertyChanged(nameof(MinX));
+
+        _minY = All(e => e.Min.Y);
+        OnPropertyChanged(nameof(MinY));
+
+        _maxX = All(e => e.Max.X);
+        OnPropertyChanged(nameof(MaxX));
+
+        _maxY = All(e => e.Max.Y);
+        OnPropertyChanged(nameof(MaxY));
+
         _color = Mode(e => e.Color);
         OnPropertyChanged(nameof(Color));
 

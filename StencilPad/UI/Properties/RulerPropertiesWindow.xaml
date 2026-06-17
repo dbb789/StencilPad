@@ -17,27 +17,56 @@
     <Window.CommandBindings>
         <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}" Executed="Close_Click"/>
     </Window.CommandBindings>
-    <Grid Margin="12" IsEnabled="{Binding HasElements}">
+
+    <Grid Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="8"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="8"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="12"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        
+        <TabControl Grid.Row="0" Height="400" IsEnabled="{Binding HasElements}">
+            <TabItem Header="Properties">
+                <StackPanel Margin="8">
+                    <TextBlock Text="Start Position:"
+                               VerticalAlignment="Center"
+                               Margin="2"/>
+                    <widgets:Unit2DField MinWidth="160"
+                                         ValueX="{Binding MinX}"
+                                         ValueY="{Binding MinY}"/>
+                    <TextBlock Text="End Position:"
+                               VerticalAlignment="Center"
+                               Margin="2"/>
+                    <widgets:Unit2DField MinWidth="160"
+                                         ValueX="{Binding MaxX}"
+                                         ValueY="{Binding MaxY}"/>
+                </StackPanel>
+            </TabItem>
 
-        <widgets:TextProperties Grid.Row="0"
-                                TextFontName="{Binding FontName}"
-                                TextFontSize="{Binding FontSize}"/>
+            <TabItem Header="Style">
+                <Grid Margin="12" IsEnabled="{Binding HasElements}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <widgets:TextProperties Grid.Row="0"
+                                            TextFontName="{Binding FontName}"
+                                            TextFontSize="{Binding FontSize}"/>
+                    
+                    <TextBlock Grid.Row="2" Text="Colour:"/>
+                    <widgets:ColorField x:Name="ColorField"
+                                        Grid.Row="4"
+                                        Value="{Binding Color}"/>
 
-        <TextBlock Grid.Row="2" Text="Colour:"/>
-        <widgets:ColorField x:Name="ColorField"
-                            Grid.Row="4"
-                            Value="{Binding Color}"/>
-
-        <Button Grid.Row="6" Content="Close"
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+        <Button Grid.Row="2" Content="Close"
                 MinWidth="75" HorizontalAlignment="Right" Click="Close_Click"/>
     </Grid>
 </Window>
