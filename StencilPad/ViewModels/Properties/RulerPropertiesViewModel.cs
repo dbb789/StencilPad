@@ -148,6 +148,28 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
         }
     }
 
+    private Unit? _length;
+    public Unit? Length
+    {
+        get => _length;
+        set
+        {
+            _length = value;
+
+            if (_length is not null)
+            {
+                foreach (var element in Elements)
+                {
+                    var offset = element.Max - element.Min;
+
+                    element.Max = element.Min + offset.NormalizedTo(_length.Value);
+                }
+            }
+            
+            OnPropertyChanged();
+        }
+    }
+
     private readonly Sheet _sheet;
     private readonly IOperationService _operationService;
     private IDisposable? _dragContext;
@@ -186,6 +208,9 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
 
         _maxY = All(e => e.Max.Y);
         OnPropertyChanged(nameof(MaxY));
+        
+        _length = All(e => e.Length);
+        OnPropertyChanged(nameof(Length));
 
         _color = Mode(e => e.Color);
         OnPropertyChanged(nameof(Color));

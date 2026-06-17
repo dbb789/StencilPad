@@ -7,7 +7,7 @@ namespace StencilPad.UI.Widgets;
 public partial class UnitField : UserControl
 {
     public static readonly DependencyProperty ValueProperty =
-        DependencyProperty.Register(nameof(Value), typeof(Unit), typeof(UnitField),
+        DependencyProperty.Register(nameof(Value), typeof(Unit?), typeof(UnitField),
             new FrameworkPropertyMetadata(Unit.Zero, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
     
     public static readonly DependencyProperty UnitTypeProperty =
@@ -26,9 +26,9 @@ public partial class UnitField : UserControl
         DependencyProperty.Register(nameof(Maximum), typeof(Unit), typeof(UnitField),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(1000000)));
     
-    public Unit Value
+    public Unit? Value
     {
-        get => (Unit)GetValue(ValueProperty);
+        get => (Unit?)GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
     }
     

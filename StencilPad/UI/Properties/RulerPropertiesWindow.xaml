@@ -40,6 +40,11 @@
                     <widgets:Unit2DField MinWidth="160"
                                          ValueX="{Binding MaxX}"
                                          ValueY="{Binding MaxY}"/>
+                    <TextBlock Text="Length:"
+                               VerticalAlignment="Center"
+                               Margin="2"/>
+                    <widgets:UnitField MinWidth="160"
+                                       Value="{Binding Length}"/>
                 </StackPanel>
             </TabItem>
 
