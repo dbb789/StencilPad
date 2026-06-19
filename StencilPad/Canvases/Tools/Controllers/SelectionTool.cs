@@ -242,7 +242,10 @@ public class SelectionTool : ITool
                 continue;
             }
 
-            var newBounds = UnitBounds.FromMinMax(initialBounds.Min, initialBounds.SE + seDelta);
+            // TODO: Handle resizing below (0,0).
+            var newBounds = UnitBounds.FromMinMax(initialBounds.Min + new Unit2D(Unit.Zero, seDelta.Y),
+                                                  initialBounds.Max + new Unit2D(seDelta.X, Unit.Zero));
+            
             selected.SetBounds(newBounds, selected.Transform);
         }
     }

@@ -72,11 +72,9 @@ public class TextTool : ITool
         }
     }
 
-    private void TextPlaced(Unit2D position, Unit2D size, string text)
+    private void TextPlaced(UnitBounds bounds, string text)
     {
-        var element = new TextElement(position, text);
-
-        element.Max = position + size;
+        var element = new TextElement(bounds, text);
 
         _operationService.Push(new AddSheetElementOperation(_sheet.Id, element));
     }

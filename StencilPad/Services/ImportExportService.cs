@@ -54,17 +54,7 @@ public class ImportExportService : IImportExportService
 
         var size = MeasureImageSize(imageData);
         var halfSize = size / 2.0;
-
-        Unit2D center;
-
-        if (viewport is not null)
-        {
-            center = viewport.Size / 2.0;
-        }
-        else
-        {
-            center = Unit2D.FromMillimeters(75, 105);
-        }
+        var center = Unit2D.Zero;
 
         var element = new ImageElement(center - halfSize, center + halfSize, imageData);
 

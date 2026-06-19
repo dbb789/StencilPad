@@ -8,6 +8,14 @@ namespace StencilPad.Rendering;
 
 public class ImageRenderer : IImageWalker, IWalkerRenderer
 {
+    private static readonly Transform FlipY;
+
+    static ImageRenderer()
+    {
+        FlipY = new ScaleTransform(1, -1);
+        FlipY.Freeze();
+    }
+    
     private UnitBounds? _bounds;
     private BitmapImage? _bitmap;
 
@@ -56,14 +64,20 @@ public class ImageRenderer : IImageWalker, IWalkerRenderer
             return;
         }
 
-        var rect = UnitBounds.FromMinMax(_bounds.Value.Min, _bounds.Value.Max).Millimeters;
+        var flippedBounds = UnitBounds.FromCenterSize(new Unit2D(_bounds.Value.Center.X, -_bounds.Value.Center.Y),
+                                                      _bounds.Value.Size);
+
+        var rect = flippedBounds.Millimeters;
 
         if (rect.Width <= 0 || rect.Height <= 0)
         {
             return;
         }
-
+        
+        // Account for WPF's inverted Y-axis by flipping the Y-axis for image rendering.
+        dc.PushTransform(FlipY);
         dc.DrawImage(_bitmap, rect);
+        dc.Pop();
     }
     
     private void InvokeRendererDirty()

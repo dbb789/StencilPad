@@ -52,10 +52,10 @@ public readonly record struct UnitBounds
     public Unit2D Min => _min;
     public Unit2D Max => _max;
 
-    public Unit2D NW => _min;
-    public Unit2D NE => new Unit2D(_max.X, _min.Y);
-    public Unit2D SW => new Unit2D(_min.X, _max.Y);
-    public Unit2D SE => _max;
+    public Unit2D NW => new Unit2D(_min.X, _max.Y);
+    public Unit2D NE => _max;
+    public Unit2D SW => _min;
+    public Unit2D SE => new Unit2D(_max.X, _min.Y);
     
     private readonly Unit2D _min;
     private readonly Unit2D _max;

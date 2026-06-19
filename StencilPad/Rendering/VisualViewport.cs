@@ -56,7 +56,7 @@ public class VisualViewport : IViewport
             }
 
             _size = value;
-
+            
             OnViewportChanged();
         }
     }
@@ -91,6 +91,7 @@ public class VisualViewport : IViewport
     private Visual? _visual = null;
     private Unit2D _sheetSize;
     private Unit2D _size;
+    private Vector _halfPixelSize;
     private double _zoom;
     private double _dpi;
     private Transform _millimetersToPixelsTransform;
@@ -105,6 +106,8 @@ public class VisualViewport : IViewport
         _zoom = 1.0;
         _dpi = 96.0;
         _millimetersToPixelsTransform = GetMillimetersToPixelsTransform();
+
+        OnViewportChanged();
     }
     
     public double ToPixels(Unit unit)
@@ -114,8 +117,7 @@ public class VisualViewport : IViewport
 
     public Point ToPoint(Unit2D position)
     {
-        return new Point(ToPixels(position.X) + ToPixels(Size.X) / 2.0,
-                         ToPixels(position.Y) + ToPixels(Size.Y) / 2.0);
+        return new Point(ToPixels(position.X), ToPixels(-position.Y)) + _halfPixelSize;
     }
 
     public Rect ToRect(UnitBounds bounds)
@@ -131,20 +133,23 @@ public class VisualViewport : IViewport
         return Unit.FromMillimeters(pixels * MmPerInch / _dpi / Zoom);
     }
 
-    public Unit2D FromPixels(double pixelsX, double pixelsY)
+    public Unit2D FromVector(Vector vector)
     {
-        return new Unit2D(FromPixels(pixelsX), FromPixels(pixelsY));
+        return new Unit2D(FromPixels(vector.X),
+                          -FromPixels(vector.Y));
     }
 
     public Unit2D FromPoint(Point point)
     {
-        return new Unit2D(FromPixels(point.X - ToPixels(Size.X) / 2.0),
-                          FromPixels(point.Y - ToPixels(Size.Y) / 2.0));
+        return new Unit2D(FromPixels(point.X - _halfPixelSize.X),
+                          -FromPixels(point.Y - _halfPixelSize.Y));
     }
 
     private void OnViewportChanged()
     {
         _millimetersToPixelsTransform = GetMillimetersToPixelsTransform();
+        _halfPixelSize = new Vector(ToPixels(_size.X) / 2.0, ToPixels(_size.Y) / 2.0);
+        
         ViewportChanged?.Invoke();
     }
     
@@ -154,8 +159,8 @@ public class VisualViewport : IViewport
         var transform = new TransformGroup();
 
         transform.Children.Add(new TranslateTransform(_size.X.Millimeters / 2.0,
-                                                      _size.Y.Millimeters / 2.0));
-        transform.Children.Add(new ScaleTransform(scale, scale));
+                                                      -_size.Y.Millimeters / 2.0));
+        transform.Children.Add(new ScaleTransform(scale, -scale));
 
         transform.Freeze();
         

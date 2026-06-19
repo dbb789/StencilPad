@@ -29,9 +29,8 @@ public class TextElementSchema : SheetElementSchema
 
     public override TextElement Unpack()
     {
-        return new TextElement(Min, Text)
+        return new TextElement(UnitBounds.FromMinMax(Min, Max), Text)
         {
-            Max = Max,
             FontName = Font,
             FontSize = FSz,
             Color = Col,

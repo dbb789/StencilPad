@@ -10,7 +10,14 @@ namespace StencilPad.Rendering;
 public class TextRenderer : ITextWalker, IWalkerRenderer
 {
     private static readonly FontFamily FallbackFont = new("Arial");
-
+    private static readonly Transform FlipY;
+    
+    static TextRenderer()
+    {
+        FlipY = new ScaleTransform(1, -1);
+        FlipY.Freeze();
+    }
+    
     private Transform _transform;
     private TextStyle _style;
     private UnitBounds? _bounds;
@@ -68,9 +75,14 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
 
         dc.PushTransform(_transform);
 
+        // Account for WPF's inverted Y-axis by flipping the Y-axis for text rendering.
+        dc.PushTransform(FlipY);
+
         if (_bounds is not null)
         {
-            var clipRect = _bounds.Value.Millimeters;
+            var flippedBounds = UnitBounds.FromCenterSize(new Unit2D(_bounds.Value.Center.X, -_bounds.Value.Center.Y),
+                                                          _bounds.Value.Size);
+            var clipRect = flippedBounds.Millimeters;
             var height = _formattedText.Height;
 
             Point textPos;
@@ -97,7 +109,8 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
         {
             dc.DrawText(_formattedText, new Point(0, 0));
         }
-
+        
+        dc.Pop();
         dc.Pop();
     }
     

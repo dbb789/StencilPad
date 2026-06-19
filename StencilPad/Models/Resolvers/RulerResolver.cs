@@ -118,8 +118,8 @@ public class RulerResolver : IModelResolver
 
     private UnitBounds GetTextBounds()
     {
-        return UnitBounds.FromCenterSize(Unit2D.FromMillimeters(0, 51),
-                                         Unit2D.FromMillimeters(1000, 100));
+        return UnitBounds.FromCenterSize(Unit2D.FromMillimeters(0, -6),
+                                         Unit2D.FromMillimeters(100, 10));
     }
 
     private string GetText()

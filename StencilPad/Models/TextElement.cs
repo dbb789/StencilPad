@@ -98,9 +98,9 @@ public class TextElement : SheetElement<TextElement>
         SetHandleSource(_boundsHandleSource);
     }
 
-    public TextElement(Unit2D start, string text)
+    public TextElement(UnitBounds bounds, string text)
     {
-        _boundsHandleSource = new BoundsHandleSource(UnitBounds.FromMinMax(start, start));
+        _boundsHandleSource = new BoundsHandleSource(bounds);
         _boundsHandleSource.HandleMoved += (_, _, _) => FireGeometryChanged();
         SetHandleSource(_boundsHandleSource);
         _text = text;

@@ -81,7 +81,7 @@ public class DragState<T>
 
         if (_isDragging)
         {
-            var elementTargetPosition = _initialElementPosition.Value + viewport.FromPixels(dragDelta.X, dragDelta.Y);
+            var elementTargetPosition = _initialElementPosition.Value + viewport.FromVector(dragDelta);
 
             return new DragResult(_draggedElement,
                                   elementTargetPosition,

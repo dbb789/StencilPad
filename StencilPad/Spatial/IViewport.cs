@@ -13,10 +13,10 @@ public interface IViewport
     
     event Action? ViewportChanged;
     
+    double ToPixels(Unit unit);
     Point ToPoint(Unit2D position);
     Rect ToRect(UnitBounds bounds);
-    double ToPixels(Unit unit);
-    Unit2D FromPixels(double pixelsX, double pixelsY);
-    Unit2D FromPoint(Point point);
     Unit FromPixels(double pixels);
+    Unit2D FromVector(Vector vector);
+    Unit2D FromPoint(Point point);
 }

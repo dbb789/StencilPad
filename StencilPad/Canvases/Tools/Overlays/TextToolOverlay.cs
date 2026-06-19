@@ -21,7 +21,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
     private TextElement? _editingTextElement;
     private Unit2D? _pendingPosition;
 
-    public event Action<Unit2D, Unit2D, string>? OnTextPlaced;
+    public event Action<UnitBounds, string>? OnTextPlaced;
     public event Action<TextElement, string>? OnTextUpdated;
 
     public TextToolOverlay(Sheet sheet ,IViewport viewport, IUnitSnap unitSnap)
@@ -72,12 +72,9 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         
         var snapPosition = _unitSnap.UnitSnap(mousePosition, _unitSnapContext);
 
-        if (snapPosition.HasValue)
-        {
-            _pendingPosition = snapPosition.Value;
-        }
+        _pendingPosition = snapPosition.HasValue ? snapPosition.Value : mousePosition;
 
-        ShowTextField(mousePosition);
+        ShowTextField(_pendingPosition.Value);
         e.Handled = true;
     }
 
@@ -138,8 +135,12 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         _textField.Committed += () => CommitOrCancel(true);
 
         Children.Add(_textField);
-        SetLeft(_textField, screenPosition.X);
-        SetTop(_textField, screenPosition.Y);
+
+        // Offset the text field slightly to the left and up to account for the
+        // widget border and so that the widget text is lined up to the rendered
+        // text.
+        SetLeft(_textField, screenPosition.X - 3);
+        SetTop(_textField, screenPosition.Y - 1);
     }
 
     private void CommitOrCancel(bool commit)
@@ -163,7 +164,11 @@ public class TextToolOverlay : ToolOverlay, IDisposable
             }
             else if (_pendingPosition.HasValue && !string.IsNullOrWhiteSpace(text))
             {
-                OnTextPlaced?.Invoke(_pendingPosition.Value, size, text);
+                // NOTE: Click is at the top left of the text.
+                var bounds = UnitBounds.FromMinMax(_pendingPosition.Value - new Unit2D(Unit.Zero, size.Y),
+                                                   _pendingPosition.Value + new Unit2D(size.X, Unit.Zero));
+                
+                OnTextPlaced?.Invoke(bounds, text);
                 _pendingPosition = null;
             }
         }
@@ -176,9 +181,10 @@ public class TextToolOverlay : ToolOverlay, IDisposable
             _textField.TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize));
 
             var newScreenPos = _viewport.ToPoint(_pendingPosition.Value);
-            
-            SetLeft(_textField, newScreenPos.X);
-            SetTop(_textField, newScreenPos.Y);
+
+            // See above.
+            SetLeft(_textField, newScreenPos.X - 3);
+            SetTop(_textField, newScreenPos.Y - 1);
         }
 
         InvalidateVisual();
