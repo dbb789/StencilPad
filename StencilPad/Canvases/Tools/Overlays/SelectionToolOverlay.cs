@@ -429,7 +429,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         if (Unit.Abs(seAy - dy) <= Unit.Abs(seBx - dx))
         {
-            return new Unit2D(targetSE.X, _resizeInitialNW.Y + seAy);
+            return new Unit2D(targetSE.X, _resizeInitialNW.Y - seAy);
         }
         else
         {
