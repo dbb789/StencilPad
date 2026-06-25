@@ -422,7 +422,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     private Unit2D LockAspect(Unit2D targetSE)
     {
         var dx = targetSE.X - _resizeInitialNW.X;
-        var dy = targetSE.Y - _resizeInitialNW.Y;
+        var dy = _resizeInitialNW.Y - targetSE.Y;
 
         var seAy = dx / _resizeAspectRatio;
         var seBx = dy * _resizeAspectRatio;
