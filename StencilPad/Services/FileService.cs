@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Win32;
 using StencilPad.Models;
 using StencilPad.Schemas;
@@ -50,7 +51,17 @@ public class FileService : IFileService
     {
         try
         {
-            await SchemaUtil.SaveProjectAsync(ProjectSchema.Pack(project, FileVersion), filePath);
+            // Write to a temporary file first to avoid data loss in case of an error during the write process.
+            var tempFilePath = filePath + ".tmp." + Guid.NewGuid().ToString("N");
+            
+            await SchemaUtil.SaveProjectAsync(ProjectSchema.Pack(project, FileVersion), tempFilePath);
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            File.Move(tempFilePath, filePath);
         }
         catch (Exception e)
         {
