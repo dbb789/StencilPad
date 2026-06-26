@@ -92,7 +92,10 @@ public class ImageElement : SheetElement<ImageElement>
     public override void AssignFrom(ImageElement other)
     {
         _boundsHandleSource.AssignFrom(other._boundsHandleSource);
+
+        Transform = other.Transform;
         ImageData = other.ImageData;
+        Opacity = other.Opacity;
     }
 
     public override ImageElement DeepClone()
