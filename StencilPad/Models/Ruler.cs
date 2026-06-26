@@ -110,6 +110,7 @@ public class Ruler : SheetElement<Ruler>
     public override void NormalizePosition()
     {
         var midpoint = (_minMaxHandleSource.Min + _minMaxHandleSource.Max) / 2;
+        
         _minMaxHandleSource.Min -= midpoint;
         _minMaxHandleSource.Max -= midpoint;
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
