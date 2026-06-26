@@ -11,15 +11,18 @@ public class MarkerPathResolver : IModelResolver
     private readonly IResourceSet _resourceSet;
     
     private IModelWalker? _walker;
-    private IStyledGeometryWalker? _geometryWalker;
+    private IStyledGeometryWalker? _pathGeometryWalker;
+    private IStyledGeometryWalker? _markerGeometryWalker;
 
-    private GeometryStyle _style;
+    private GeometryStyle _pathStyle;
+    private GeometryStyle _markerStyle;
 
     public MarkerPathResolver(MarkerPath markerPath, IResourceSet resourceSet)
     {
         _markerPath = markerPath;
         _resourceSet = resourceSet;
-        _style = CreateStyle();
+        _pathStyle = CreatePathStyle();
+        _markerStyle = CreateMarkerStyle();
 
         _markerPath.GeometryChanged += OnGeometryChanged;
         _markerPath.TransformChanged += OnTransformChanged;
@@ -40,21 +43,30 @@ public class MarkerPathResolver : IModelResolver
         _walker = walker;
         _walker.SetTransform(_markerPath.Transform);
         
-        _geometryWalker = walker.CreateStyledGeometryWalker();
-        _geometryWalker.SetStyle(_style);
-        _geometryWalker.Create(GeometryId, CreateGeometrySet());
+        _pathGeometryWalker = walker.CreateStyledGeometryWalker();
+        _pathGeometryWalker.SetStyle(_pathStyle);
+        _pathGeometryWalker.Create(GeometryId, CreatePathGeometrySet());
+
+        _markerGeometryWalker = walker.CreateStyledGeometryWalker();
+        _markerGeometryWalker.SetStyle(_markerStyle);
+        _markerGeometryWalker.Create(GeometryId, CreateMarkerGeometrySet());
     }
 
     public void Detach()
     {
-        _geometryWalker?.Destroy(GeometryId);
-        _geometryWalker = null;
+        _pathGeometryWalker?.Destroy(GeometryId);
+        _pathGeometryWalker = null;
+
+        _markerGeometryWalker?.Destroy(GeometryId);
+        _markerGeometryWalker = null;
+        
         _walker = null;
     }
     
     private void OnGeometryChanged(ISheetElement element)
     {
-        _geometryWalker?.Update(GeometryId, CreateGeometrySet());
+        _pathGeometryWalker?.Update(GeometryId, CreatePathGeometrySet());
+        _markerGeometryWalker?.Update(GeometryId, CreateMarkerGeometrySet());
     }
 
     private void OnTransformChanged(ISheetElement element)
@@ -64,18 +76,30 @@ public class MarkerPathResolver : IModelResolver
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (IsStyleProperty(e.PropertyName))
+        if (IsPathStyleProperty(e.PropertyName))
         {
-            _style = CreateStyle();
-            _geometryWalker?.SetStyle(_style);
+            _pathStyle = CreatePathStyle();
+            _pathGeometryWalker?.SetStyle(_pathStyle);
+        }
+        else if (IsMarkerStyleProperty(e.PropertyName))
+        {
+            _markerStyle = CreateMarkerStyle();
+            _markerGeometryWalker?.SetStyle(_markerStyle);
         }
         else if (e.PropertyName == nameof(MarkerPath.MarkerType))
         {
-            _geometryWalker?.Update(GeometryId, CreateGeometrySet());
+            _markerGeometryWalker?.Update(GeometryId, CreateMarkerGeometrySet());
         }
     }
 
-    private GeometrySet CreateGeometrySet()
+    private GeometrySet CreatePathGeometrySet()
+    {
+        var markerResource = _resourceSet.Get(_markerPath.MarkerType);
+
+        return new GeometrySet(_markerPath.Polygon.Resolver);
+    }
+
+    private GeometrySet CreateMarkerGeometrySet()
     {
         var markerResource = _resourceSet.Get(_markerPath.MarkerType);
         var overlays = new List<(GeometryResource, UnitTransform)>(_markerPath.PointList.Count);
@@ -85,10 +109,10 @@ public class MarkerPathResolver : IModelResolver
             overlays.Add((markerResource, _markerPath.PointList[i]));
         }
 
-        return new GeometrySet(_markerPath.Polygon.Resolver, overlays);
+        return new GeometrySet(EmptyGeometryResolver.Instance, overlays);
     }
 
-    private GeometryStyle CreateStyle()
+    private GeometryStyle CreatePathStyle()
     {
         return new GeometryStyle
         {
@@ -97,9 +121,22 @@ public class MarkerPathResolver : IModelResolver
         };
     }
 
-    private static bool IsStyleProperty(string? propertyName)
+    private GeometryStyle CreateMarkerStyle()
+    {
+        return new GeometryStyle
+        {
+            LineColor = _markerPath.MarkerColor,
+        };
+    }
+
+    private static bool IsPathStyleProperty(string? propertyName)
     {
         return propertyName == nameof(MarkerPath.LineColor) ||
             propertyName == nameof(MarkerPath.LineWidth);
+    }
+
+    private static bool IsMarkerStyleProperty(string? propertyName)
+    {
+        return propertyName == nameof(MarkerPath.MarkerColor);
     }
 }
