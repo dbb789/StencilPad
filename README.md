@@ -1,6 +1,8 @@
 > [!IMPORTANT]
 > **ALPHA STATE** This project is mostly functionally complete, but still in early development. It's stable enough for experimentation, but expect bugs. This project will eventually be released in packages when it becomes more mature.
 
+![alt text](https://github.com/dbb789/StencilPad/blob/main/Docs/Screenshot.png)
+
 # StencilPad
 
 StencilPad is a 2D CAD/drawing application that sits somewhere between Inkscape, Notepad and a CAD application.
