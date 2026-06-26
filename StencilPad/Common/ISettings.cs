@@ -19,6 +19,7 @@ public interface ISettings
 
     double HandleSizePx { get; }
     double PointSnapPx { get; }
+    double AngleSnapDegrees { get; }
 
     Unit GridSpacing { get; }
     int GridSubdivisions { get; }

@@ -56,6 +56,8 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
 
     public override void Dispose()
     {
+        _hintService.ClearHint();
+        
         ReleaseMouseCapture();
 
         _renderer.RendererDirty -= InvalidateVisual;
@@ -180,7 +182,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
             ControlEndOffset = new Unit2D(-size.X * MathUtil.Kappa, Unit.Zero)
         };
 
-        _hintService.SetHint($"{UnitUtil.FormatSuffix(size.X * 2, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y * 2, _settings.UnitSettings)}");
+        _hintService.SetHint($"Ellipse: {UnitUtil.FormatSuffix(size.X * 2, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y * 2, _settings.UnitSettings)}");
     }
 
     protected override void OnRender(DrawingContext dc)

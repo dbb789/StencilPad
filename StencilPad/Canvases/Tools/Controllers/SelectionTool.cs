@@ -4,7 +4,6 @@ using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
-using StencilPad.Models.Operations;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
@@ -12,8 +11,6 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class SelectionTool : ITool
 {
-    private const decimal AngleSnapDegrees = 15m;
-
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
                          IRubberBand RubberBand,
@@ -276,18 +273,8 @@ public class SelectionTool : ITool
 
         decimal effectiveDelta;
 
-        if (ModifierUtil.IsAngleSnap())
-        {
-            var snapped = Math.Round(_rotateAccumulatedAngle / AngleSnapDegrees) * AngleSnapDegrees;
-            
-            effectiveDelta = snapped - _rotateLastSnappedAngle;
-            _rotateLastSnappedAngle = snapped;
-        }
-        else
-        {
-            effectiveDelta = _rotateAccumulatedAngle - _rotateLastSnappedAngle;
-            _rotateLastSnappedAngle = _rotateAccumulatedAngle;
-        }
+        effectiveDelta = _rotateAccumulatedAngle - _rotateLastSnappedAngle;
+        _rotateLastSnappedAngle = _rotateAccumulatedAngle;
 
         if (effectiveDelta == 0m)
         {

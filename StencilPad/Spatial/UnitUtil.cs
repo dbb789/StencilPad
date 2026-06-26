@@ -11,7 +11,7 @@ public static class UnitUtil
     
     public static string Format(Unit unit, UnitType type, UnitSettings settings)
     {
-        var val = (unit * settings.Ratio).ToType(type);
+        var val = ToType(unit, type, settings);
 
         return $"{val:0.####}";
     }
@@ -25,7 +25,7 @@ public static class UnitUtil
     
     public static string FormatSuffix(Unit unit, UnitType type, UnitSettings settings)
     {
-        var val = (unit * settings.Ratio).ToType(type);
+        var val = ToType(unit, type, settings);
         var suffix = GetSuffix(type);
 
         return $"{val:0.####} {suffix}";
@@ -54,5 +54,18 @@ public static class UnitUtil
             UnitType.Inches => "in",
             _ => ""
         };
+    }
+
+    private static double ToType(Unit unit, UnitType type, UnitSettings settings)
+    {
+        var val = (unit * settings.Ratio).ToType(type);
+
+        // Filters out odd small values, especially anything like negative zero.
+        if (Math.Abs(val) < 0.0000001)
+        {
+            val = 0;
+        }
+
+        return val;
     }
 }

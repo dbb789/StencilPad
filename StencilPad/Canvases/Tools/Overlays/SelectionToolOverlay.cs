@@ -21,6 +21,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     private readonly ISettings _settings;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
+    private readonly IHintService _hintService;
     private readonly Sheet _sheet;
 
     private DragState<ISheetElement> _dragState;
@@ -60,11 +61,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                                 IViewport viewport,
                                 IUnitSnap unitSnap,
                                 Sheet sheet,
+                                IHintService hintService,
                                 SheetElementActionSet actionSet)
     {
         _settings = settings;
         _viewport = viewport;
         _unitSnap = unitSnap;
+        _hintService = hintService;
         _sheet = sheet;
         _sheet.Selection.CollectionChanged += SelectionChanged;
         _dragState = new();
@@ -88,6 +91,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     
     public void Dispose()
     {
+        _hintService.ClearHint();
+
         _settings.Changed -= SettingsChanged;
         
         _sheet.Selection.CollectionChanged -= SelectionChanged;
@@ -217,6 +222,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                     targetSE = LockAspect(targetSE);
                 }
 
+                var size = Unit2D.Abs(targetSE - _resizeInitialNW);
+
+                _hintService.SetHint($"Resize: {UnitUtil.FormatSuffix(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y, _settings.UnitSettings)}");
+
                 SelectionResized?.Invoke(targetSE - _resizeInitialSE);
                 e.Handled = true;
             }
@@ -238,10 +247,20 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                 var initialVec = _rotateInitialHandlePos - _rotateDragCenter;
                 var currentVec = result.Value.TargetElementPosition - _rotateDragCenter;
                 var totalAngle = Unit2D.SignedAngle(initialVec, currentVec);
+
+                if (ModifierUtil.IsAngleSnap())
+                {
+                    var snapAngle = _settings.AngleSnapDegrees * MathUtil.Deg2Rad;
+                    
+                    totalAngle = Math.Round(totalAngle / snapAngle) * snapAngle;
+                }
+                
                 var angleDelta = totalAngle - _lastRotateAngle;
                 
                 _lastRotateAngle = totalAngle;
                 
+                _hintService.SetHint($"Rotate: {totalAngle * MathUtil.Rad2Deg:F2}°");
+
                 SelectionRotated?.Invoke(angleDelta);
                 e.Handled = true;
             }
@@ -273,6 +292,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
                 var delta = snappedCenter - elementBounds.Center;
 
+                var totalDelta = snappedCenter - _dragState.InitialElementPosition;
+                
+                _hintService.SetHint($"Move: {UnitUtil.FormatSuffix(totalDelta.X, _settings.UnitSettings)}, {UnitUtil.FormatSuffix(totalDelta.Y, _settings.UnitSettings)}");
+                
                 SelectionDragged?.Invoke(delta);
                 e.Handled = true;
             }
@@ -285,6 +308,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     {
         // Capture drag state before we clear everything out.
         bool dragHandled = false;
+
+        _hintService.ClearHint();
 
         if (_dragState.IsDragging)
         {

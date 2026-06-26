@@ -20,6 +20,7 @@ public class SettingsService : ISettings
     
     public double HandleSizePx => _appConfigService.Config.HandleSizePx;
     public double PointSnapPx => _appConfigService.Config.PointSnapPx;
+    public double AngleSnapDegrees => _appConfigService.Config.AngleSnapDegrees;
 
     public Unit GridSpacing
     {

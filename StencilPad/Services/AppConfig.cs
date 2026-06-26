@@ -13,5 +13,6 @@ public class AppConfig
     
     public double HandleSizePx { get; set; } = 12.0;
     public double PointSnapPx { get; set; } = 32.0;
+    public double AngleSnapDegrees { get; set; } = 15.0;
     public double GridMinSpacingPx { get; } = 5.0;
 }
