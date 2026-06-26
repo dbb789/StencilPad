@@ -168,13 +168,16 @@ public class EditTool : ITool
             }
         }
 
+        int index = 0;
+
         for (int i = 0; i < selectedHandles.Count; ++i)
         {
             var entry = selectedHandles[i];
 
             if (entry.Handle.CanGroupMove)
             {
-                entry.SetPosition(_originalPositions[i] + delta);
+                entry.SetPosition(_originalPositions[index] + delta);
+                ++index;
             }
         }
     }
