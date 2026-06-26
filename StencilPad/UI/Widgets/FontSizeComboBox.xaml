@@ -4,6 +4,8 @@
              x:Name="Root">
     <ComboBox IsEditable="True"
               Text="{Binding Value, ElementName=Root, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.##}}">
+        <ComboBoxItem>4</ComboBoxItem>
+        <ComboBoxItem>6</ComboBoxItem>
         <ComboBoxItem>8</ComboBoxItem>
         <ComboBoxItem>9</ComboBoxItem>
         <ComboBoxItem>10</ComboBoxItem>
