@@ -31,6 +31,7 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
     private Unit2D _currentSnappedMousePosition;
     private double _handleSize;
     private Brush _moveBrush = null!;
+    private Pen _axisLockPen = null!;
 
     public LineToolOverlay(ISettings settings,
                            IViewport viewport,
@@ -81,6 +82,9 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
         
         _moveBrush = new SolidColorBrush(ColorUtil.WithAlpha(moveHandleColor, 128));
         _moveBrush.Freeze();
+        
+        _axisLockPen = new Pen(new SolidColorBrush(ColorUtil.WithAlpha(gridLineColor, 128)), 2);
+        _axisLockPen.Freeze();
 
         _handleSize = _settings.HandleSizePx;
     }
@@ -189,6 +193,26 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
                                       _handleSize,
                                       _handleSize));
         }
+
+        if (_lockAxisState.LockedAxis is not null && _lockAxisState.LockPosition is not null)
+        {
+            if (_lockAxisState.LockedAxis == UnitAxis.X)
+            {
+                var lockPoint = _viewport.ToPoint(new Unit2D(Unit.Zero, _lockAxisState.LockPosition.Value));
+                
+                dc.DrawLine(_axisLockPen,
+                            new Point(0, lockPoint.Y),
+                            new Point(RenderSize.Width, lockPoint.Y));
+            }
+            else
+            {
+                var lockPoint = _viewport.ToPoint(new Unit2D(_lockAxisState.LockPosition.Value, Unit.Zero));
+
+                dc.DrawLine(_axisLockPen,
+                            new Point(lockPoint.X, 0),
+                            new Point(lockPoint.X, RenderSize.Height));
+            }
+        }
     }
 
     private Unit2D CurrentSnappedMouseOverPosition(Point mousePosition)
@@ -201,11 +225,11 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
             unitPosition = snapPosition.Value;
         }
         
-        if (_polygon.Vertices.Count > 0)
+        if (_polygon.Vertices.Count > 1)
         {
             unitPosition = _lockAxisState.OnDragMove(ModifierUtil.IsLockToAxis(),
                                                      _viewport.FromPixels(12),
-                                                     _polygon.Vertices[^1].Position,
+                                                     _polygon.Vertices[^2].Position,
                                                      unitPosition);
         }
 

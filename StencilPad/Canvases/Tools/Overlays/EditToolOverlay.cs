@@ -9,7 +9,6 @@ using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
-using StencilPad.Services;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
