@@ -79,6 +79,12 @@ public class Ruler : SheetElement<Ruler>
     
     public override void MirrorX(Unit centerY)
     {
+        var min = _minMaxHandleSource.Min;
+        var max = _minMaxHandleSource.Max;
+
+        _minMaxHandleSource.Min = new Unit2D(min.X, -min.Y);
+        _minMaxHandleSource.Max = new Unit2D(max.X, -max.Y);
+        
         Transform = Transform with 
         { 
             Position = Transform.Position with { Y = (centerY * 2) - Transform.Position.Y },
@@ -88,6 +94,12 @@ public class Ruler : SheetElement<Ruler>
     
     public override void MirrorY(Unit centerX)
     {
+        var min = _minMaxHandleSource.Min;
+        var max = _minMaxHandleSource.Max;
+
+        _minMaxHandleSource.Min = new Unit2D(-min.X, min.Y);
+        _minMaxHandleSource.Max = new Unit2D(-max.X, max.Y);
+        
         Transform = Transform with 
         { 
             Position = Transform.Position with { X = (centerX * 2) - Transform.Position.X },
