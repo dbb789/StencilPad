@@ -10,4 +10,5 @@ public interface IModelPropertiesService
     void ShowShapeProperties(Sheet sheet);
     void ShowTextProperties(Sheet sheet);
     void ShowRulerProperties(Sheet sheet);
+    void ShowImageProperties(Sheet sheet);
 }

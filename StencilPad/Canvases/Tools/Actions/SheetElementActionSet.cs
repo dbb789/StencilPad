@@ -46,6 +46,14 @@ public class SheetElementActionSet
                     modelPropertiesService.ShowRulerProperties(sheet);
                 }
             },
+            new MultiSheetElementAction<ImageElement>
+            {
+                Name = "Image Properties…",
+                Action = (sheet, _) =>
+                {
+                    modelPropertiesService.ShowImageProperties(sheet);
+                }
+            },
             new MultiSheetElementAction<Shape>
             {
                 Name = "Combine Shapes",

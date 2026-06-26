@@ -317,6 +317,7 @@ public static class SvgExporter
         private readonly UnitTransform _transform;
         private UnitBounds? _bounds;
         private byte[]? _imageData;
+        private double _opacity = 1.0;
 
         public SvgImageWalker(XElement svg, UnitTransform transform)
         {
@@ -326,6 +327,7 @@ public static class SvgExporter
 
         public void SetBounds(UnitBounds? bounds) => _bounds = bounds;
         public void SetImageData(byte[] imageData) => _imageData = imageData;
+        public void SetOpacity(double opacity) => _opacity = opacity;
 
         public void Dispose()
         {
@@ -346,6 +348,11 @@ public static class SvgExporter
                 new XAttribute("width",  width),
                 new XAttribute("height", height),
                 new XAttribute("href",   $"data:{mime};base64,{base64}"));
+
+            if (Math.Abs(_opacity - 1.0) > 1e-6)
+            {
+                elem.Add(new XAttribute("opacity", Num(_opacity)));
+            }
 
             var tx = Num(_transform.Position.X.Millimeters);
             var ty = Num(_transform.Position.Y.Millimeters);

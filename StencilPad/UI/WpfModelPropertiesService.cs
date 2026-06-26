@@ -107,6 +107,21 @@ public class WpfModelPropertiesService : IModelPropertiesService
         PositionAndShow(window);
     }
 
+    public void ShowImageProperties(Sheet sheet)
+    {
+        _openWindow?.Close();
+
+        var window = new ImagePropertiesWindow(sheet, _settings, _operationService)
+        {
+            Owner = _owner
+        };
+
+        _openWindow = window;
+        window.Closed += (_, _) => _openWindow = null;
+
+        PositionAndShow(window);
+    }
+
     private void PositionAndShow(Window window)
     {
         window.WindowStartupLocation = WindowStartupLocation.Manual;

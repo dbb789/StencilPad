@@ -35,6 +35,7 @@ public class ImageElementResolver : IModelResolver
         _imageWalker = walker.CreateImageWalker();
         _imageWalker.SetBounds(UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max));
         _imageWalker.SetImageData(_imageElement.ImageData);
+        _imageWalker.SetOpacity(_imageElement.Opacity);
     }
 
     public void Detach()
@@ -55,6 +56,13 @@ public class ImageElementResolver : IModelResolver
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        _imageWalker?.SetImageData(_imageElement.ImageData);
+        if (e.PropertyName == nameof(ImageElement.ImageData))
+        {
+            _imageWalker?.SetImageData(_imageElement.ImageData);
+        }
+        else if (e.PropertyName == nameof(ImageElement.Opacity))
+        {
+            _imageWalker?.SetOpacity(_imageElement.Opacity);
+        }
     }
 }

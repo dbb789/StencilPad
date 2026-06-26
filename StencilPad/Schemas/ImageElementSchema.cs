@@ -10,6 +10,7 @@ public class ImageElementSchema : SheetElementSchema
     
     // System.Text.Json serializes byte[] as a base64 string automatically.
     public byte[] Data { get; set; } = [];
+    public double? Opac { get; set; }
 
     public static ImageElementSchema Pack(ImageElement element)
     {
@@ -18,6 +19,7 @@ public class ImageElementSchema : SheetElementSchema
             Min = element.Min,
             Max = element.Max,
             Data = element.ImageData,
+            Opac = (Math.Abs(element.Opacity - 1.0) < 1e-6) ? null : element.Opacity,
             Trns = UnitTransformSchema.Pack(element.Transform)
         };
     }
@@ -26,6 +28,7 @@ public class ImageElementSchema : SheetElementSchema
     {
         return new ImageElement(Min, Max, Data)
         {
+            Opacity = Opac ?? 1.0,
             Transform = UnitTransformSchema.Unpack(Trns)
         };
     }

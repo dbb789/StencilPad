@@ -6,4 +6,5 @@ public interface IImageWalker
 {
     void SetBounds(UnitBounds? bounds);
     void SetImageData(byte [] imageData);
+    void SetOpacity(double opacity);
 }

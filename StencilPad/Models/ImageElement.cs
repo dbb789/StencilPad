@@ -29,6 +29,17 @@ public class ImageElement : SheetElement<ImageElement>
         }
     }
 
+    public double _opacity = 1.0;
+    public double Opacity
+    {
+        get => _opacity;
+        set
+        {
+            _opacity = value;
+            OnPropertyChanged();
+        }
+    }
+
     public ImageElement()
     {
         _boundsHandleSource = new BoundsHandleSource(UnitBounds.Empty);

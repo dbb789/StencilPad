@@ -18,6 +18,7 @@ public class ImageRenderer : IImageWalker, IWalkerRenderer
     
     private UnitBounds? _bounds;
     private BitmapImage? _bitmap;
+    private double _opacity = 1.0;
 
     public event Action? RendererDirty;
     
@@ -50,10 +51,20 @@ public class ImageRenderer : IImageWalker, IWalkerRenderer
         _bitmap = new BitmapImage();
         _bitmap.BeginInit();
         _bitmap.StreamSource = new MemoryStream(imageData);
+
+        // NOTE: As per the docs, this closes the stream after the BitmapImage is created.
         _bitmap.CacheOption = BitmapCacheOption.OnLoad;
+        
         _bitmap.EndInit();
         _bitmap.Freeze();
 
+        InvokeRendererDirty();
+    }
+
+    public void SetOpacity(double opacity)
+    {
+        _opacity = opacity;
+        
         InvokeRendererDirty();
     }
     
@@ -76,7 +87,11 @@ public class ImageRenderer : IImageWalker, IWalkerRenderer
         
         // Account for WPF's inverted Y-axis by flipping the Y-axis for image rendering.
         dc.PushTransform(FlipY);
+
+        dc.PushOpacity(_opacity);
         dc.DrawImage(_bitmap, rect);
+        dc.Pop();
+        
         dc.Pop();
     }
     
