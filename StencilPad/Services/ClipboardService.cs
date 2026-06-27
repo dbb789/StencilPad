@@ -10,8 +10,8 @@ namespace StencilPad.Services;
 
 public class ClipboardService : IClipboardService
 {
-    private static readonly Unit2D PasteMajorOffset = Unit2D.FromMillimeters(-5, 5);
-    private static readonly Unit2D PasteMinorOffset = Unit2D.FromMillimeters(5, 5);
+    private static readonly Unit2D PasteMajorOffset = Unit2D.FromMillimeters(-5, -5);
+    private static readonly Unit2D PasteMinorOffset = Unit2D.FromMillimeters(5, -5);
 
     private readonly IOperationService _operationService;
     
@@ -25,6 +25,8 @@ public class ClipboardService : IClipboardService
     
     public void Copy(Sheet sheet)
     {
+        _pasteCounter = 0;
+
         PackToClipboard(sheet, sheet.Selection);
     }
 
