@@ -222,6 +222,15 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                     targetSE = LockAspect(targetSE);
                 }
 
+                // Clamp target to not go past the initial NW corner - this
+                // avoids both destroying all information about an object by
+                // setting all it's points to converge on a single point, and
+                // also avoids technically valid but weird and unexpected
+                // behaviour where we resize in reverse across the NW corner.
+                
+                targetSE = new Unit2D(Unit.Max(targetSE.X, _resizeInitialNW.X + Unit.FromMillimeters(0.1)),
+                                      Unit.Min(targetSE.Y, _resizeInitialNW.Y - Unit.FromMillimeters(0.1)));
+
                 var size = Unit2D.Abs(targetSE - _resizeInitialNW);
 
                 _hintService.SetHint($"Resize: {UnitUtil.FormatSuffix(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y, _settings.UnitSettings)}");
