@@ -72,9 +72,10 @@ public class GroupResolver : IModelResolver
 
     private void ClearChildren()
     {
-        foreach (var (childResolver, _) in _children)
+        foreach (var (childResolver, childWalker) in _children)
         {
             childResolver.Dispose();
+            childWalker.Dispose();
         }
 
         _children.Clear();

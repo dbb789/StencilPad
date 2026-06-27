@@ -61,6 +61,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
         ReleaseMouseCapture();
 
         _renderer.RendererDirty -= InvalidateVisual;
+        _renderer.Dispose();
         _resolver?.Detach();
 
         _viewport.ViewportChanged -= InvalidateVisual;

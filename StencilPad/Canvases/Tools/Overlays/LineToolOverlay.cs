@@ -68,6 +68,7 @@ public class LineToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
 
         _settings.Changed -= SettingsChanged;
         _renderer.RendererDirty -= InvalidateVisual;
+        _renderer.Dispose();
         _resolver?.Detach();
 
         _viewport.ViewportChanged -= InvalidateVisual;

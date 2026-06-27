@@ -2,7 +2,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models.Resolvers;
 
-public interface IModelWalker
+public interface IModelWalker : IDisposable
 {
     void SetTransform(UnitTransform transform);
 

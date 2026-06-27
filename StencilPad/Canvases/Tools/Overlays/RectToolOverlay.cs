@@ -58,8 +58,9 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
         ReleaseMouseCapture();
 
         _renderer.RendererDirty -= InvalidateVisual;
+        _renderer.Dispose();
         _resolver?.Detach();
-
+        
         _viewport.ViewportChanged -= InvalidateVisual;
         _hintService.ClearAll();
     }
