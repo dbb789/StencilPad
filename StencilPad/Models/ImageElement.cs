@@ -85,7 +85,7 @@ public class ImageElement : SheetElement<ImageElement>
         return _boundsHandleSource.Bounds.ApplyTransform(transform);
     }
 
-    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    public override void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform)
     {
         _boundsHandleSource.Bounds = UnitBounds.FromMinMax(
             transform.InverseApply(newBounds.Min),

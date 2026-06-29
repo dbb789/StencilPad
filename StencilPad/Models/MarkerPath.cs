@@ -170,7 +170,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         return Polygon.CalculateBounds(transform);
     }
     
-    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    public override void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform)
     {
         var oldBounds = Polygon.CalculateBounds(transform);
         Polygon.SetBounds(oldBounds, newBounds, transform);

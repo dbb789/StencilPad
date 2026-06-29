@@ -163,7 +163,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
     public abstract void MirrorY(Unit centerX);
     public abstract void NormalizePosition();
     public abstract UnitBounds GetTransformedBounds(UnitTransform transform);
-    public abstract void SetBounds(UnitBounds newBounds, UnitTransform transform);
+    public abstract void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform);
     public abstract void AssignFromElement(ISheetElement other);
     public abstract ISheetElement DeepClone();
 

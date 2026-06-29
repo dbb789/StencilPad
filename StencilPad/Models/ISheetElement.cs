@@ -18,7 +18,7 @@ public interface ISheetElement : IHandleSource<ISheetElement>
     UnitBounds GetBounds();
     bool ContainsPoint(Unit2D point);
     bool IntersectsBounds(UnitBounds bounds);
-    void SetBounds(UnitBounds newBounds, UnitTransform transform);
+    void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform);
     void AssignFromElement(ISheetElement other);
     ISheetElement DeepClone();
 }

@@ -188,7 +188,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         return _polygonList.CalculateBounds(transform);
     }
 
-    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    public override void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform)
     {
         _polygonList.SetBounds(newBounds, transform);
     }

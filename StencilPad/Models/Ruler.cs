@@ -121,7 +121,7 @@ public class Ruler : SheetElement<Ruler>
         return UnitBounds.FromMinMax(_minMaxHandleSource.Min, _minMaxHandleSource.Max).ApplyTransform(transform);
     }
 
-    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    public override void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform)
     {
         _minMaxHandleSource.Min = transform.InverseApply(newBounds.Min);
         _minMaxHandleSource.Max = transform.InverseApply(newBounds.Max);

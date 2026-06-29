@@ -243,7 +243,7 @@ public class SelectionTool : ITool
                                                   initialBounds.Max + new Unit2D(seDelta.X, Unit.Zero));
 
 
-            selected.SetBounds(newBounds, selected.Transform);
+            selected.SetTransformedBounds(newBounds, selected.Transform);
         }
     }
     

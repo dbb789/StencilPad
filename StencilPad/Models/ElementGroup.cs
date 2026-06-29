@@ -124,7 +124,7 @@ public class ElementGroup : SheetElement<ElementGroup>
         FireGeometryChanged();
     }
 
-    public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
+    public override void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform)
     {
         var oldBounds = GetTransformedBounds(transform);
 
@@ -133,7 +133,7 @@ public class ElementGroup : SheetElement<ElementGroup>
             var childCombinedTransform = transform * child.Transform;
             var oldChildWorldBounds = child.GetTransformedBounds(childCombinedTransform);
             var newChildWorldBounds = RemapWorldBounds(oldChildWorldBounds, oldBounds, newBounds);
-            child.SetBounds(newChildWorldBounds, childCombinedTransform);
+            child.SetTransformedBounds(newChildWorldBounds, childCombinedTransform);
         }
     }
 
