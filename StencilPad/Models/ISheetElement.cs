@@ -14,8 +14,8 @@ public interface ISheetElement : IHandleSource<ISheetElement>
     void MirrorX(Unit centerY);
     void MirrorY(Unit centerX);
     void NormalizePosition();
-    UnitBounds GetBounds(UnitTransform transform);
-    UnitBounds GetTransformedBounds();
+    UnitBounds GetTransformedBounds(UnitTransform transform);
+    UnitBounds GetBounds();
     bool ContainsPoint(Unit2D point);
     bool IntersectsBounds(UnitBounds bounds);
     void SetBounds(UnitBounds newBounds, UnitTransform transform);

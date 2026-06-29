@@ -226,7 +226,7 @@ public class SelectionTool : ITool
 
         foreach (var selected in _sheet.Selection)
         {
-            _resizeInitialBounds[selected] = selected.GetTransformedBounds();
+            _resizeInitialBounds[selected] = selected.GetBounds();
         }
     }
 

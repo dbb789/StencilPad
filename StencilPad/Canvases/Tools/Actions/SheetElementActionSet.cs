@@ -353,7 +353,7 @@ public class SheetElementActionSet
         
         foreach (var element in elements)
         {
-            var delta = getDelta(bounds.Value, element.GetTransformedBounds());
+            var delta = getDelta(bounds.Value, element.GetBounds());
             
             element.Transform = element.Transform with
                 { Position = element.Transform.Position + delta };
@@ -366,7 +366,7 @@ public class SheetElementActionSet
 
         foreach (var element in elements)
         {
-            bounds = UnitBounds.Union(bounds, element.GetTransformedBounds());
+            bounds = UnitBounds.Union(bounds, element.GetBounds());
         }
 
         return bounds;

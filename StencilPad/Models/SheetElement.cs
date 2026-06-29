@@ -87,15 +87,15 @@ public abstract class SheetElement : ModelBase, ISheetElement
         }
     }
 
-    public UnitBounds GetTransformedBounds()
+    public UnitBounds GetBounds()
     {
-        return GetBounds(Transform);
+        return GetTransformedBounds(Transform);
     }
 
     public virtual bool ContainsPoint(Unit2D point)
     {
         var localPoint = Transform.InverseApply(point);
-        var bounds = GetBounds(UnitTransform.Identity);
+        var bounds = GetTransformedBounds(UnitTransform.Identity);
 
         var size = bounds.Size;
 
@@ -109,9 +109,9 @@ public abstract class SheetElement : ModelBase, ISheetElement
 
     public virtual bool IntersectsBounds(UnitBounds bounds)
     {
-        var transformedBounds = GetTransformedBounds();
+        var elementBounds = GetBounds();
         
-        return transformedBounds.Intersects(bounds);
+        return elementBounds.Intersects(bounds);
     }
     
     private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
@@ -162,7 +162,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
     public abstract void MirrorX(Unit centerY);
     public abstract void MirrorY(Unit centerX);
     public abstract void NormalizePosition();
-    public abstract UnitBounds GetBounds(UnitTransform transform);
+    public abstract UnitBounds GetTransformedBounds(UnitTransform transform);
     public abstract void SetBounds(UnitBounds newBounds, UnitTransform transform);
     public abstract void AssignFromElement(ISheetElement other);
     public abstract ISheetElement DeepClone();

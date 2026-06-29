@@ -87,7 +87,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         {
             if (element is TextElement textElement)
             {
-                var elementBounds = textElement.GetBounds(parentTransform * textElement.Transform);
+                var elementBounds = textElement.GetTransformedBounds(parentTransform * textElement.Transform);
 
                 if (elementBounds.Contains(position))
                 {

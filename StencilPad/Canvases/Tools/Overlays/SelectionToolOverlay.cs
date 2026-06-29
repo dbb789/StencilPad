@@ -151,7 +151,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var element in _sheet.Selection)
         {
-            var unitBounds = element.GetTransformedBounds();
+            var unitBounds = element.GetBounds();
             var screenBounds = _viewport.ToRect(unitBounds);
             var resizeRect = ResizeHandleRect(screenBounds);
 
@@ -186,7 +186,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         if (elementUnderMouse is not null)
         {
-            var elementBounds = elementUnderMouse.GetTransformedBounds();
+            var elementBounds = elementUnderMouse.GetBounds();
 
             _dragState.OnDragStart(mousePosition,
                                    elementUnderMouse,
@@ -279,7 +279,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         if (_dragState.DragStarted)
         {
-            var elementBounds = _dragState.DraggedElement.GetTransformedBounds();
+            var elementBounds = _dragState.DraggedElement.GetBounds();
             var result = _dragState.OnDragMove(_viewport,
                                                    mousePosition);
 
@@ -484,7 +484,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var selected in _sheet.Selection)
         {
-            var unitBounds = selected.GetTransformedBounds();
+            var unitBounds = selected.GetBounds();
             var screenBounds = _viewport.ToRect(unitBounds);
 
             Pen pen = (selected is ElementGroup) ? _groupPen : _elementPen;

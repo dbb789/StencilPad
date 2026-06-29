@@ -21,7 +21,7 @@ public static class SvgExporter
 
         foreach (var element in sheet.Elements)
         {
-            sheetBounds = UnitBounds.Union(sheetBounds, element.GetTransformedBounds());
+            sheetBounds = UnitBounds.Union(sheetBounds, element.GetBounds());
         }
 
         var bounds = sheetBounds ??

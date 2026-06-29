@@ -102,13 +102,13 @@ public class ElementGroup : SheetElement<ElementGroup>
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds(UnitTransform transform)
+    public override UnitBounds GetTransformedBounds(UnitTransform transform)
     {
         UnitBounds? bounds = null;
 
         foreach (var child in _children)
         {
-            bounds = UnitBounds.Union(bounds, child.GetBounds(transform * child.Transform));
+            bounds = UnitBounds.Union(bounds, child.GetTransformedBounds(transform * child.Transform));
         }
 
         return bounds ?? UnitBounds.Empty;
@@ -126,12 +126,12 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     public override void SetBounds(UnitBounds newBounds, UnitTransform transform)
     {
-        var oldBounds = GetBounds(transform);
+        var oldBounds = GetTransformedBounds(transform);
 
         foreach (var child in _children)
         {
             var childCombinedTransform = transform * child.Transform;
-            var oldChildWorldBounds = child.GetBounds(childCombinedTransform);
+            var oldChildWorldBounds = child.GetTransformedBounds(childCombinedTransform);
             var newChildWorldBounds = RemapWorldBounds(oldChildWorldBounds, oldBounds, newBounds);
             child.SetBounds(newChildWorldBounds, childCombinedTransform);
         }

@@ -165,7 +165,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds(UnitTransform transform)
+    public override UnitBounds GetTransformedBounds(UnitTransform transform)
     {
         return Polygon.CalculateBounds(transform);
     }

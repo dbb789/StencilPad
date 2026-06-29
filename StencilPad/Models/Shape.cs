@@ -183,7 +183,7 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         Transform = Transform with { Position = Transform.Position + Transform.Rotate(midpoint) };
     }
 
-    public override UnitBounds GetBounds(UnitTransform transform)
+    public override UnitBounds GetTransformedBounds(UnitTransform transform)
     {
         return _polygonList.CalculateBounds(transform);
     }
