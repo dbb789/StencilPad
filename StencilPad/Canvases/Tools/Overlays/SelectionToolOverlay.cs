@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -82,8 +83,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var element in _sheet.Selection)
         {
-            element.TransformChanged += OnTransformChanged;
-            element.GeometryChanged += OnTransformChanged;
+            element.TransformChanged += OnElementChanged;
+            element.GeometryChanged += OnElementChanged;
+            element.PropertyChanged += OnPropertyChanged;
         }
 
         _settings.Changed += SettingsChanged;
@@ -99,8 +101,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var element in _sheet.Selection)
         {
-            element.TransformChanged -= OnTransformChanged;
-            element.GeometryChanged -= OnTransformChanged;
+            element.TransformChanged -= OnElementChanged;
+            element.GeometryChanged -= OnElementChanged;
+            element.PropertyChanged -= OnPropertyChanged;
         }
     }
 
@@ -152,7 +155,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         foreach (var element in _sheet.Selection)
         {
             var unitBounds = element.GetBounds();
-            var screenBounds = _viewport.ToRect(unitBounds);
+            var screenBounds = _viewport.ToRect(element.GetSelectionBounds());
             var resizeRect = ResizeHandleRect(screenBounds);
 
             if (resizeRect.Contains(mousePosition))
@@ -406,8 +409,9 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         {
             foreach (ISheetElement element in e.OldItems)
             {
-                element.TransformChanged -= OnTransformChanged;
-                element.GeometryChanged -= OnTransformChanged;
+                element.TransformChanged -= OnElementChanged;
+                element.GeometryChanged -= OnElementChanged;
+                element.PropertyChanged -= OnPropertyChanged;
             }
         }
 
@@ -415,15 +419,21 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         {
             foreach (ISheetElement element in e.NewItems)
             {
-                element.TransformChanged += OnTransformChanged;
-                element.GeometryChanged += OnTransformChanged;
+                element.TransformChanged += OnElementChanged;
+                element.GeometryChanged += OnElementChanged;
+                element.PropertyChanged += OnPropertyChanged;
             }
         }
 
         ForceRedraw();
     }
 
-    private void OnTransformChanged(ISheetElement element)
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        ForceRedraw();
+    }
+
+    private void OnElementChanged(ISheetElement element)
     {
         ForceRedraw();
     }
@@ -484,8 +494,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         foreach (var selected in _sheet.Selection)
         {
-            var unitBounds = selected.GetBounds();
-            var screenBounds = _viewport.ToRect(unitBounds);
+            var screenBounds = _viewport.ToRect(selected.GetSelectionBounds());
 
             Pen pen = (selected is ElementGroup) ? _groupPen : _elementPen;
             Brush? fill = null;

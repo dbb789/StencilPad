@@ -136,6 +136,11 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         SetHandleSource(_singlePolygon.HandleSource);
     }
     
+    public override UnitBounds GetTransformedSelectionBounds(UnitTransform transform)
+    {
+        return GetTransformedBounds(transform).Pad(LineWidth / 2);
+    }
+
     public override void MirrorX(Unit centerY)
     {
         Transform = Transform with 

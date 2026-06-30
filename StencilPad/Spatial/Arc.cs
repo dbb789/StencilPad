@@ -168,6 +168,29 @@ public readonly struct Arc
         return (t0, t1);
     }
 
+    public Unit DistanceTo(Unit2D point)
+    {
+        double theta = Math.Atan2((point.Y - _center.Y).Millimeters,
+                                  (point.X - _center.X).Millimeters);
+
+        double arcAngle = MathUtil.SignedAngleDifference(_startAngle, _endAngle);
+        double t = MathUtil.SignedAngleDifference(_startAngle, theta) / arcAngle;
+
+        if (t >= 0.0 && t <= 1.0)
+        {
+            double dx = (point.X - _center.X).Millimeters;
+            double dy = (point.Y - _center.Y).Millimeters;
+            double distFromCenter = Math.Sqrt(dx * dx + dy * dy);
+
+            return Unit.FromMillimeters(Math.Abs(distFromCenter - _radius.Millimeters));
+        }
+
+        var toStart = (point - Start).Magnitude;
+        var toEnd   = (point - End).Magnitude;
+
+        return toStart < toEnd ? toStart : toEnd;
+    }
+
     public Arc Subsegment(double start, double end)
     {
         var startAngle = (start <= 0.0) ? _startAngle : MathUtil.LerpAngle(_startAngle, _endAngle, start);

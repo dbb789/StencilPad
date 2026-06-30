@@ -188,7 +188,9 @@ public class SelectionTool : ITool
 
         foreach (var element in _sheet.Elements)
         {
-            if (element.IntersectsBounds(bounds))
+            var selectionBounds = element.GetSelectionBounds();
+            
+            if (bounds.Contains(selectionBounds))
             {
                 _sheet.Selection.Add(element);
             }

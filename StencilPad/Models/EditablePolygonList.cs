@@ -120,11 +120,11 @@ public class EditablePolygonList : IEditablePolygonSet
         return sum / _polygons.Count;
     }
 
-    public bool ContainsPoint(Unit2D point, Unit tolerance)
+    public bool ContainsPoint(Unit2D point, Unit lineWidth)
     {
         foreach (var polygon in _polygons)
         {
-            if (PolygonUtil.ContainsPoint(polygon, point, tolerance))
+            if (PolygonUtil.ContainsPoint(polygon, point, lineWidth))
             {
                 return true;
             }

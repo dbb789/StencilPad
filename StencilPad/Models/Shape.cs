@@ -143,6 +143,11 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         _polygonList.Add(editablePolygon);
     }
 
+    public override UnitBounds GetTransformedSelectionBounds(UnitTransform transform)
+    {
+        return GetTransformedBounds(transform).Pad(LineWidth / 2);
+    }
+    
     public override void MirrorX(Unit centerY)
     {
         Transform = Transform with 
@@ -202,9 +207,8 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
         }
         
         var localPoint = Transform.InverseApply(point);
-        var tolerance = LineWidth / 2;
 
-        return _polygonList.ContainsPoint(localPoint, tolerance);
+        return _polygonList.ContainsPoint(localPoint, LineWidth);
     }
 
     public override void AssignFrom(Shape other)

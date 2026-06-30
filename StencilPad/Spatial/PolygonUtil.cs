@@ -2,7 +2,7 @@ namespace StencilPad.Spatial;
 
 public static class PolygonUtil
 {
-    public static bool ContainsPoint(Polygon polygon, Unit2D point, Unit tolerance)
+    public static bool ContainsPoint(Polygon polygon, Unit2D point, Unit lineWidth)
     {
         if (polygon.Vertices.Count < 2)
         {
@@ -14,20 +14,20 @@ public static class PolygonUtil
             var line = new Line(polygon.Vertices[0].Position,
                                 polygon.Vertices[1].Position);
 
-            return line.DistanceTo(point) <= Unit.FromMillimeters(1);
+            return line.DistanceTo(point) <= Unit.Max(lineWidth / 2, Unit.FromMillimeters(1));
         }
 
-        var walker = new EvenOddWalker(point);
+        var walker = new EvenOddWalker(point, lineWidth);
 
         polygon.Resolver.Walk(walker);
 
-        if (!polygon.Closed)
+        if (!walker.Hit && !polygon.Closed)
         {
             walker.AddLine(
                 polygon.Vertices[polygon.Vertices.Count - 1].Position,
                 polygon.Vertices[0].Position);
         }
 
-        return (walker.Count % 2) == 1;
+        return walker.Hit;
     }
 }
