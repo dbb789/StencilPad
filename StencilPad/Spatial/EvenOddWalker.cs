@@ -13,6 +13,12 @@ public class EvenOddWalker : IGeometryWalker
     {
         _point = point;
         _halfThickness = lineWidth / 2;
+
+        Reset();
+    }
+
+    public void Reset()
+    {
         _count = 0;
         _hit = false;
     }
