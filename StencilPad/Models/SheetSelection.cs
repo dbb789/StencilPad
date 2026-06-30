@@ -27,6 +27,11 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
         public bool MoveNext()
         {
+            if (_parent is null)
+            {
+                return false;
+            }
+
             if (_version != _parent._version)
             {
                 throw new InvalidOperationException("Collection was modified during enumeration.");

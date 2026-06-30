@@ -4,6 +4,7 @@ using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 using StencilPad.Services;
 using StencilPad.Spatial;
 
@@ -14,6 +15,7 @@ public class SelectionTool : ITool
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
                          IRubberBand RubberBand,
+                         SheetResolver SheetResolver,
                          IModelPropertiesService ModelPropertiesService,
                          IOperationService OperationService,
                          Factory<SelectionToolOverlay> OverlayFactory) : IToolFactory
@@ -26,6 +28,7 @@ public class SelectionTool : ITool
             return new SelectionTool(Sheet,
                                      OverlayContainer,
                                      RubberBand,
+                                     SheetResolver,
                                      ModelPropertiesService,
                                      OperationService,
                                      OverlayFactory);
@@ -35,6 +38,7 @@ public class SelectionTool : ITool
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
     private readonly IRubberBand _rubberBand;
+    private readonly SheetResolver _sheetResolver;
     private readonly IModelPropertiesService _modelPropertiesService;
     private readonly IOperationService _operationService;
     private readonly Factory<SelectionToolOverlay> _overlayFactory;
@@ -49,6 +53,7 @@ public class SelectionTool : ITool
     private SelectionTool(Sheet sheet,
                           OverlayContainer overlayContainer,
                           IRubberBand rubberBand,
+                          SheetResolver sheetResolver,
                           IModelPropertiesService modelPropertiesService,
                           IOperationService operationService,
                           Factory<SelectionToolOverlay> overlayFactory)
@@ -56,6 +61,7 @@ public class SelectionTool : ITool
         _sheet = sheet;
         _overlayContainer = overlayContainer;
         _rubberBand = rubberBand;
+        _sheetResolver = sheetResolver;
         _modelPropertiesService = modelPropertiesService;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -130,11 +136,11 @@ public class SelectionTool : ITool
         // topmost first.
         var hitList = new List<ISheetElement>(8);
 
-        foreach (var element in _sheet.Elements.Reverse())
+        foreach (var resolver in _sheetResolver.Elements.Reverse())
         {
-            if (element.ContainsPoint(point))
+            if (resolver.OutlineContainsPoint(point))
             {
-                hitList.Add(element);
+                hitList.Add(resolver.Element);
             }
         }
         
@@ -186,13 +192,13 @@ public class SelectionTool : ITool
             _sheet.Selection.Clear();
         }
 
-        foreach (var element in _sheet.Elements)
+        foreach (var resolver in _sheetResolver.Elements)
         {
-            var selectionBounds = element.GetSelectionBounds();
+            var selectionBounds = resolver.GetOutlineBounds();
             
             if (bounds.Contains(selectionBounds))
             {
-                _sheet.Selection.Add(element);
+                _sheet.Selection.Add(resolver.Element);
             }
         }
     }

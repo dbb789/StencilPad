@@ -1,9 +1,10 @@
-using System.ComponentModel;
 using StencilPad.Spatial;
+using System.ComponentModel;
+using System.Windows.Shapes;
 
 namespace StencilPad.Models.Resolvers;
 
-public class MarkerPathResolver : IModelResolver
+public class MarkerPathResolver : SheetElementResolver
 {
     private const int GeometryId = 1;
 
@@ -18,6 +19,7 @@ public class MarkerPathResolver : IModelResolver
     private GeometryStyle _markerStyle;
 
     public MarkerPathResolver(MarkerPath markerPath, IResourceSet resourceSet)
+        : base(markerPath)
     {
         _markerPath = markerPath;
         _resourceSet = resourceSet;
@@ -29,7 +31,7 @@ public class MarkerPathResolver : IModelResolver
         _markerPath.PropertyChanged += OnPropertyChanged;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Detach();
 
@@ -37,8 +39,33 @@ public class MarkerPathResolver : IModelResolver
         _markerPath.TransformChanged -= OnTransformChanged;
         _markerPath.PropertyChanged -= OnPropertyChanged;
     }
-    
-    public void Attach(IModelWalker walker)
+    public override UnitBounds GetOutlineBounds(UnitTransform transform)
+    {
+        return _markerPath.GetTransformedBounds(transform).Pad(_markerPath.LineWidth / 2);
+    }
+
+    public override bool OutlineContainsPoint(Unit2D point)
+    {
+        // Fast check against bounding box.
+        if (!base.OutlineContainsPoint(point))
+        {
+            return false;
+        }
+
+        var localPoint = _markerPath.Transform.InverseApply(point);
+
+        foreach (var polygon in _markerPath.PolygonSet)
+        {
+            if (PolygonUtil.ContainsPoint(polygon, localPoint, _markerPath.LineWidth))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public override void Attach(IModelWalker walker)
     {
         _walker = walker;
         _walker.SetTransform(_markerPath.Transform);
@@ -52,7 +79,7 @@ public class MarkerPathResolver : IModelResolver
         _markerGeometryWalker.Create(GeometryId, CreateMarkerGeometrySet());
     }
 
-    public void Detach()
+    public override void Detach()
     {
         _pathGeometryWalker?.Destroy(GeometryId);
         _pathGeometryWalker = null;
@@ -67,11 +94,15 @@ public class MarkerPathResolver : IModelResolver
     {
         _pathGeometryWalker?.Update(GeometryId, CreatePathGeometrySet());
         _markerGeometryWalker?.Update(GeometryId, CreateMarkerGeometrySet());
+
+        InvokeOutlineChanged();
     }
 
     private void OnTransformChanged(ISheetElement element)
     {
         _walker?.SetTransform(_markerPath.Transform);
+
+        InvokeOutlineChanged();
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -90,6 +121,8 @@ public class MarkerPathResolver : IModelResolver
         {
             _markerGeometryWalker?.Update(GeometryId, CreateMarkerGeometrySet());
         }
+
+        InvokeOutlineChanged();
     }
 
     private GeometrySet CreatePathGeometrySet()

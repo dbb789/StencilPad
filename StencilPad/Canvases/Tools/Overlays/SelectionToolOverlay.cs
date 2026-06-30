@@ -1,17 +1,19 @@
+using StencilPad.Canvases.Common;
+using StencilPad.Canvases.Tools.Actions;
+using StencilPad.Canvases.Tools.Common;
+using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Common;
+using StencilPad.Models;
+using StencilPad.Models.Resolvers;
+using StencilPad.Services;
+using StencilPad.Spatial;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using StencilPad.Common;
-using StencilPad.Canvases.Common;
-using StencilPad.Canvases.Tools.Actions;
-using StencilPad.Canvases.Tools.Common;
-using StencilPad.Canvases.Tools.Widgets;
-using StencilPad.Models;
-using StencilPad.Spatial;
-using StencilPad.Services;
+using System.Xml.Linq;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
@@ -22,13 +24,14 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     private readonly ISettings _settings;
     private readonly IViewport _viewport;
     private readonly IUnitSnap _unitSnap;
+    private readonly SheetResolver _sheetResolver;
     private readonly IHintService _hintService;
     private readonly Sheet _sheet;
 
-    private DragState<ISheetElement> _dragState;
-    private LockAxisState _lockAxisState;
-    private DragState<ISheetElement> _resizeDragState;
-    private DragState<ISheetElement> _rotateDragState;
+    private readonly DragState<ISheetElement> _dragState;
+    private readonly LockAxisState _lockAxisState;
+    private readonly DragState<ISheetElement> _resizeDragState;
+    private readonly DragState<ISheetElement> _rotateDragState;
 
     private Unit2D _resizeInitialNW;
     private Unit2D _resizeInitialSE;
@@ -62,15 +65,16 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
                                 IViewport viewport,
                                 IUnitSnap unitSnap,
                                 Sheet sheet,
+                                SheetResolver sheetResolver,
                                 IHintService hintService,
                                 SheetElementActionSet actionSet)
     {
         _settings = settings;
         _viewport = viewport;
         _unitSnap = unitSnap;
+        _sheetResolver = sheetResolver;
         _hintService = hintService;
         _sheet = sheet;
-        _sheet.Selection.CollectionChanged += SelectionChanged;
         _dragState = new();
         _lockAxisState = new();
         _resizeDragState = new();
@@ -81,11 +85,12 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
 
-        foreach (var element in _sheet.Selection)
+        _sheetResolver.SelectionAdded += OnSelectionAdded;
+        _sheetResolver.SelectionRemoved += OnSelectionRemoved;
+
+        foreach (var resolver in _sheetResolver.Selection)
         {
-            element.TransformChanged += OnElementChanged;
-            element.GeometryChanged += OnElementChanged;
-            element.PropertyChanged += OnPropertyChanged;
+            OnSelectionAdded(resolver);
         }
 
         _settings.Changed += SettingsChanged;
@@ -97,13 +102,12 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         _settings.Changed -= SettingsChanged;
         
-        _sheet.Selection.CollectionChanged -= SelectionChanged;
+        _sheetResolver.SelectionAdded += OnSelectionAdded;
+        _sheetResolver.SelectionRemoved += OnSelectionRemoved;
 
-        foreach (var element in _sheet.Selection)
+        foreach (var resolver in _sheetResolver.Selection)
         {
-            element.TransformChanged -= OnElementChanged;
-            element.GeometryChanged -= OnElementChanged;
-            element.PropertyChanged -= OnPropertyChanged;
+            OnSelectionRemoved(resolver);
         }
     }
 
@@ -152,10 +156,11 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     {
         var mousePosition = e.GetPosition(this);
 
-        foreach (var element in _sheet.Selection)
+        foreach (var resolver in _sheetResolver.Selection)
         {
+            var element = resolver.Element;
             var unitBounds = element.GetBounds();
-            var screenBounds = _viewport.ToRect(element.GetSelectionBounds());
+            var screenBounds = _viewport.ToRect(resolver.GetOutlineBounds());
             var resizeRect = ResizeHandleRect(screenBounds);
 
             if (resizeRect.Contains(mousePosition))
@@ -392,49 +397,28 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
     private ISheetElement? PointOverSelection(Unit2D point)
     {
-        foreach (var selected in _sheet.Selection)
+        foreach (var resolver in _sheetResolver.Selection)
         {
-            if (selected.ContainsPoint(point))
+            if (resolver.OutlineContainsPoint(point))
             {
-                return selected;
+                return resolver.Element;
             }
         }
 
         return null;
     }
 
-    private void SelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {       
-        if (e.OldItems != null)
-        {
-            foreach (ISheetElement element in e.OldItems)
-            {
-                element.TransformChanged -= OnElementChanged;
-                element.GeometryChanged -= OnElementChanged;
-                element.PropertyChanged -= OnPropertyChanged;
-            }
-        }
-
-        if (e.NewItems != null)
-        {
-            foreach (ISheetElement element in e.NewItems)
-            {
-                element.TransformChanged += OnElementChanged;
-                element.GeometryChanged += OnElementChanged;
-                element.PropertyChanged += OnPropertyChanged;
-            }
-        }
+    private void OnSelectionAdded(ISheetElementResolver resolver)
+    {
+        resolver.OutlineChanged += ForceRedraw;
 
         ForceRedraw();
     }
 
-    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnSelectionRemoved(ISheetElementResolver resolver)
     {
-        ForceRedraw();
-    }
+        resolver.OutlineChanged -= ForceRedraw;
 
-    private void OnElementChanged(ISheetElement element)
-    {
         ForceRedraw();
     }
 
@@ -492,18 +476,19 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
-        foreach (var selected in _sheet.Selection)
+        foreach (var resolver in _sheetResolver.Selection)
         {
-            var screenBounds = _viewport.ToRect(selected.GetSelectionBounds());
+            var screenBounds = _viewport.ToRect(resolver.GetOutlineBounds());
+            var element = resolver.Element;
 
-            Pen pen = (selected is ElementGroup) ? _groupPen : _elementPen;
+            Pen pen = (element is ElementGroup) ? _groupPen : _elementPen;
             Brush? fill = null;
 
-            if (_dragState.DraggedElement == selected ||
-                _rotateDragState.DraggedElement == selected ||
-                _resizeDragState.DraggedElement == selected)
+            if (_dragState.DraggedElement == element ||
+                _rotateDragState.DraggedElement == element ||
+                _resizeDragState.DraggedElement == element)
             {
-                fill = (selected is ElementGroup) ? _groupFill : _elementFill;
+                fill = (element is ElementGroup) ? _groupFill : _elementFill;
             }
             
             dc.DrawRectangle(fill, pen, screenBounds);

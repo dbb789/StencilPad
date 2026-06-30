@@ -92,31 +92,6 @@ public abstract class SheetElement : ModelBase, ISheetElement
         return GetTransformedBounds(Transform);
     }
     
-    public UnitBounds GetSelectionBounds()
-    {
-        return GetTransformedSelectionBounds(Transform);
-    }
-
-    public virtual UnitBounds GetTransformedSelectionBounds(UnitTransform transform)
-    {
-        return GetTransformedBounds(Transform);
-    }
-
-    public virtual bool ContainsPoint(Unit2D point)
-    {
-        var localPoint = Transform.InverseApply(point);
-        var bounds = GetTransformedSelectionBounds(UnitTransform.Identity);
-
-        var size = bounds.Size;
-
-        size = new Unit2D(Unit.Max(size.X, Unit.FromMillimeters(1)),
-                          Unit.Max(size.Y, Unit.FromMillimeters(1)));
-
-        bounds = UnitBounds.FromCenterSize(bounds.Center, size);
-        
-        return bounds.Contains(localPoint);
-    }
-
     private void InvokeHandleAdded(IHandleSource source, Handle handle, Unit2D position, bool selected)
     {
         HandleAdded?.Invoke(this, handle, Transform.Apply(position), selected);

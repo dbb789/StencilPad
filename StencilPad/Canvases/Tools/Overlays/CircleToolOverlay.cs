@@ -24,7 +24,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
     private readonly IHintService _hintService;
     private readonly TSheetElement _element;
     private readonly Polygon _polygon;
-    private readonly IModelResolver? _resolver;
+    private readonly ISheetElementResolver? _resolver;
     private readonly ModelRenderer _renderer;
 
     private Unit2D? _initialPoint;

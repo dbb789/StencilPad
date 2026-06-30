@@ -1,19 +1,21 @@
 using StencilPad.Common;
+using StencilPad.Spatial;
 
 namespace StencilPad.Models.Resolvers;
 
-public class GroupResolver : IModelResolver
+public class GroupResolver : SheetElementResolver
 {
     private readonly ElementGroup _group;
     private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
-    private readonly List<(IModelResolver, IModelWalker)> _children;
+    private readonly List<(ISheetElementResolver, IModelWalker)> _children;
 
     private IModelWalker? _walker;
 
     public GroupResolver(ElementGroup group,
                          ISettings settings,
                          IResourceSet resourceSet)
+        : base(group)
     {
         _group = group;
         _settings = settings;
@@ -24,7 +26,7 @@ public class GroupResolver : IModelResolver
         _group.ChildrenChanged += OnChildrenChanged;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Detach();
         
@@ -32,7 +34,7 @@ public class GroupResolver : IModelResolver
         _group.ChildrenChanged -= OnChildrenChanged;
     }
 
-    public void Attach(IModelWalker walker)
+    public override void Attach(IModelWalker walker)
     {
         _walker = walker;
         _walker.SetTransform(_group.Transform);
@@ -43,7 +45,7 @@ public class GroupResolver : IModelResolver
         }
     }
 
-    public void Detach()
+    public override void Detach()
     {
         ClearChildren();
 
@@ -53,6 +55,8 @@ public class GroupResolver : IModelResolver
     private void TransformChanged(ISheetElement element)
     {
         _walker?.SetTransform(_group.Transform);
+
+        InvokeOutlineChanged();
     }
 
     private void OnChildrenChanged()
@@ -68,12 +72,15 @@ public class GroupResolver : IModelResolver
         {
             AddElement(element);
         }
+
+        InvokeOutlineChanged();
     }
 
     private void ClearChildren()
     {
         foreach (var (childResolver, childWalker) in _children)
         {
+            childResolver.OutlineChanged -= InvokeOutlineChanged;
             childResolver.Dispose();
             childWalker.Dispose();
         }
@@ -94,6 +101,7 @@ public class GroupResolver : IModelResolver
         {
             var childWalker = _walker.CreateModelWalker();
 
+            childResolver.OutlineChanged += InvokeOutlineChanged;
             childResolver.Attach(childWalker);
             _children.Add((childResolver, childWalker));
         }

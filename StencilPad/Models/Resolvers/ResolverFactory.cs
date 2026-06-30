@@ -5,7 +5,7 @@ namespace StencilPad.Models.Resolvers;
 
 public static class ResolverFactory
 {
-    public static IModelResolver? Create(ISheetElement element,
+    public static ISheetElementResolver? Create(ISheetElement element,
                                          ISettings settings,
                                          IResourceSet resourceSet)
     {

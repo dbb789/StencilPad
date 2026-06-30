@@ -1,78 +1,71 @@
 using System.Collections;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using StencilPad.Common;
+using StencilPad.Spatial;
+using System.Collections.Specialized;
 
 namespace StencilPad.Models.Resolvers;
 
 public class SheetResolver : IDisposable
 {
-    public struct Enumerator : IEnumerator<(ISheetElement Element, IModelResolver Resolver)>
+    public struct ElementsView(SheetResolver SheetResolver) : IEnumerable<ISheetElementResolver>
     {
-        public (ISheetElement Element, IModelResolver Resolver) Current => _current;
-        object IEnumerator.Current => _current;
-
-        private readonly SheetResolver _parent;
-        private readonly int _version;
-        private int _index;
-        private (ISheetElement, IModelResolver) _current;
-
-        public Enumerator(SheetResolver parent)
+        public SheetResolverEnumerator<SheetElementList.Enumerator> GetEnumerator()
         {
-            _parent = parent;
-            _version = parent._version;
-            _index = -1;
-            _current = default;
+            return CreateEnumerator();
+        }
+        
+        IEnumerator<ISheetElementResolver> IEnumerable<ISheetElementResolver>.GetEnumerator()
+        {
+            return CreateEnumerator();
         }
 
-        public bool MoveNext()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            if (_version != _parent._version)
-            {
-                throw new InvalidOperationException("Collection was modified during enumeration.");
-            }
-
-            var elements = _parent._sheet?.Elements;
-
-            if (elements is null)
-            {
-                return false;
-            }
-
-            while (++_index < elements.Count)
-            {
-                var element = elements[_index];
-
-                if (_parent._resolvers.TryGetValue(element, out var resolver))
-                {
-                    _current = (element, resolver);
-                    
-                    return true;
-                }
-            }
-
-            return false;
+            return CreateEnumerator();
         }
 
-        public void Reset()
+        private SheetResolverEnumerator<SheetElementList.Enumerator> CreateEnumerator()
         {
-            _index = -1;
-            _current = default;
-        }
-
-        public void Dispose()
-        {
-            // ..
+            return new(SheetResolver, SheetResolver._sheet?.Elements.GetEnumerator() ?? default);
         }
     }
+
+    public struct SelectedView(SheetResolver SheetResolver) : IEnumerable<ISheetElementResolver>
+    {
+        public SheetResolverEnumerator<SheetSelection.Enumerator> GetEnumerator()
+        {
+            return CreateEnumerator();
+        }
+
+        IEnumerator<ISheetElementResolver> IEnumerable<ISheetElementResolver>.GetEnumerator()
+        {
+            return CreateEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return CreateEnumerator();
+        }
+
+        private SheetResolverEnumerator<SheetSelection.Enumerator> CreateEnumerator()
+        {
+            return new(SheetResolver, SheetResolver._sheet?.Selection.GetEnumerator() ?? default);
+        }
+    }
+
+    public ElementsView Elements => new(this);
+    public SelectedView Selection => new(this);
 
     private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
     private Sheet? _sheet;
-    private readonly OrderedDictionary<ISheetElement, IModelResolver> _resolvers = new();
+    private readonly OrderedDictionary<ISheetElement, ISheetElementResolver> _resolvers = new();
     private int _version;
 
-    public event Action<ISheetElement, IModelResolver>? ResolverAdded;
-    public event Action<ISheetElement, IModelResolver>? ResolverRemoved;
+    public event Action<ISheetElementResolver>? ElementAdded;
+    public event Action<ISheetElementResolver>? ElementRemoved;
+    public event Action<ISheetElementResolver>? SelectionAdded;
+    public event Action<ISheetElementResolver>? SelectionRemoved;
 
     public SheetResolver(ISettings settings,
                          IResourceSet resourceSet)
@@ -97,9 +90,9 @@ public class SheetResolver : IDisposable
         set => SetSheet(value);
     }
 
-    public bool TryGetResolver(ISheetElement element, out IModelResolver? resolver)
+    public bool TryGetResolver(ISheetElement element, out ISheetElementResolver resolver)
     {
-        return _resolvers.TryGetValue(element, out resolver);
+        return _resolvers.TryGetValue(element, out resolver!);
     }
 
     public void Dispose()
@@ -117,6 +110,7 @@ public class SheetResolver : IDisposable
         if (_sheet is not null)
         {
             _sheet.Elements.CollectionChanged -= OnElementsChanged;
+            _sheet.Selection.CollectionChanged -= OnSelectionChanged;
         }
 
         foreach (var resolver in _resolvers.Values)
@@ -138,6 +132,8 @@ public class SheetResolver : IDisposable
             {
                 AddResolver(element);
             }
+
+            _sheet.Selection.CollectionChanged += OnSelectionChanged;
         }
     }
 
@@ -166,6 +162,37 @@ public class SheetResolver : IDisposable
         }
     }
 
+    private void OnSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems is not null)
+        {
+            foreach (var item in e.OldItems)
+            {
+                if (item is ISheetElement element)
+                {
+                    if (_resolvers.TryGetValue(element, out var resolver))
+                    {
+                        SelectionRemoved?.Invoke(resolver);
+                    }
+                }
+            }
+        }
+
+        if (e.NewItems is not null)
+        {
+            foreach (var item in e.NewItems)
+            {
+                if (item is ISheetElement element)
+                {
+                    if (_resolvers.TryGetValue(element, out var resolver))
+                    {
+                        SelectionAdded?.Invoke(resolver);
+                    }
+                }
+            }
+        }
+    }
+
     private void AddResolver(ISheetElement element, int index = -1)
     {
         var resolver = ResolverFactory.Create(element, _settings, _resourceSet);
@@ -184,7 +211,7 @@ public class SheetResolver : IDisposable
         
         ++_version;
         
-        ResolverAdded?.Invoke(element, resolver);
+        ElementAdded?.Invoke(resolver);
     }
 
     private void RemoveResolver(ISheetElement element)
@@ -196,13 +223,8 @@ public class SheetResolver : IDisposable
             
             ++_version;
             
-            ResolverRemoved?.Invoke(element, resolver);
+            ElementRemoved?.Invoke(resolver);
         }
-    }
-
-    public Enumerator GetEnumerator()
-    {
-        return new Enumerator(this);
     }
 }
 

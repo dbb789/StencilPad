@@ -1,6 +1,5 @@
 using System.Windows.Media;
 using StencilPad.Common;
-using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 
 namespace StencilPad.Rendering;
@@ -10,7 +9,7 @@ public class SheetRenderer : IDisposable
     private readonly SheetResolver _resolver;
     private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
-    private OrderedDictionary<IModelResolver, ModelRenderer> _renderers;
+    private readonly OrderedDictionary<ISheetElementResolver, ModelRenderer> _renderers;
     
     public event Action? RendererDirty;
 
@@ -23,19 +22,19 @@ public class SheetRenderer : IDisposable
         _resourceSet = resourceSet;
         _renderers = new();
 
-        foreach (var (element, modelResolver) in _resolver)
+        foreach (var modelResolver in _resolver.Elements)
         {
-            OnResolverAdded(element, modelResolver);
+            OnElementAdded(modelResolver);
         }
         
-        _resolver.ResolverAdded += OnResolverAdded;
-        _resolver.ResolverRemoved += OnResolverRemoved;
+        _resolver.ElementAdded += OnElementAdded;
+        _resolver.ElementRemoved += OnElementRemoved;
     }
 
     public void Dispose()
     {
-        _resolver.ResolverAdded -= OnResolverAdded;
-        _resolver.ResolverRemoved -= OnResolverRemoved;
+        _resolver.ElementAdded -= OnElementAdded;
+        _resolver.ElementRemoved -= OnElementRemoved;
     }
 
     public void Render(DrawingContext dc)
@@ -46,7 +45,7 @@ public class SheetRenderer : IDisposable
         }
     }
 
-    private void OnResolverAdded(ISheetElement element, IModelResolver resolver)
+    private void OnElementAdded(ISheetElementResolver resolver)
     {
         var renderer = new ModelRenderer(_resourceSet);
 
@@ -57,7 +56,7 @@ public class SheetRenderer : IDisposable
         InvokeRendererDirty();
     }
 
-    private void OnResolverRemoved(ISheetElement element, IModelResolver resolver)
+    private void OnElementRemoved(ISheetElementResolver resolver)
     {
         if (!_renderers.TryGetValue(resolver, out var renderer))
         {

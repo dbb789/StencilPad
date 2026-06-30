@@ -1,10 +1,10 @@
-using System.ComponentModel;
 using StencilPad.Common;
 using StencilPad.Spatial;
+using System.ComponentModel;
 
 namespace StencilPad.Models.Resolvers;
 
-public class RulerResolver : IModelResolver
+public class RulerResolver : SheetElementResolver
 {
     private const int GeometryId = 1;
 
@@ -20,10 +20,11 @@ public class RulerResolver : IModelResolver
     
     private GeometryStyle _geometryStyle;
     private TextStyle _textStyle;
-    
+
     public RulerResolver(Ruler ruler,
                          ISettings settings,
                          IResourceSet resourceSet)
+        : base(ruler)
     {
         _ruler = ruler;
         _settings = settings;
@@ -39,17 +40,17 @@ public class RulerResolver : IModelResolver
         _settings.Changed += OnSettingsChanged;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Detach();
         
         _ruler.GeometryChanged -= OnGeometryChanged;
         _ruler.TransformChanged -= OnTransformChanged;
         _ruler.PropertyChanged -= OnPropertyChanged;
-        _settings.Changed += OnSettingsChanged;
+        _settings.Changed -= OnSettingsChanged;
     }
 
-    public void Attach(IModelWalker walker)
+    public override void Attach(IModelWalker walker)
     {
         _walker = walker;
         _walker.SetTransform(_ruler.Transform);
@@ -65,7 +66,7 @@ public class RulerResolver : IModelResolver
         _textWalker.SetText(GetText());
     }
 
-    public void Detach()
+    public override void Detach()
     {
         _geometryWalker?.Destroy(GeometryId);
         _geometryWalker = null;
@@ -79,11 +80,15 @@ public class RulerResolver : IModelResolver
         _textWalker?.SetTransform(GetTextTransform());
         _textWalker?.SetBounds(GetTextBounds());
         _textWalker?.SetText(GetText());
+
+        InvokeOutlineChanged();
     }
 
     private void OnTransformChanged(ISheetElement element)
     {
         _walker?.SetTransform(_ruler.Transform);
+
+        InvokeOutlineChanged();
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -100,6 +105,8 @@ public class RulerResolver : IModelResolver
         {
             _geometryWalker?.Update(GeometryId, CreateGeometrySet());
         }
+
+        InvokeOutlineChanged();
     }
 
     private void OnSettingsChanged()

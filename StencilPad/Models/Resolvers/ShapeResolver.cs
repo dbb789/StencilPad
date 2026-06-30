@@ -1,9 +1,9 @@
-using System.ComponentModel;
 using StencilPad.Spatial;
+using System.ComponentModel;
 
 namespace StencilPad.Models.Resolvers;
 
-public class ShapeResolver : IModelResolver
+public class ShapeResolver : SheetElementResolver
 {
     private class PolygonState
     {
@@ -25,8 +25,9 @@ public class ShapeResolver : IModelResolver
     private CapDistanceWalker? _capDistanceWalker;
     private GeometryStyle _style;
     private int _idCounter;
-    
+   
     public ShapeResolver(Shape shape, IResourceSet resourceSet)
+        : base(shape)
     {
         _shape = shape;
         _resourceSet = resourceSet;
@@ -45,7 +46,7 @@ public class ShapeResolver : IModelResolver
         _shape.PolygonSet.PolygonRemoved += RemovePolygon;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Detach();
 
@@ -59,8 +60,34 @@ public class ShapeResolver : IModelResolver
             RemovePolygon(polygon);
         }
     }
-    
-    public void Attach(IModelWalker walker)
+
+    public override UnitBounds GetOutlineBounds(UnitTransform transform)
+    {
+        return _shape.GetTransformedBounds(transform).Pad(_shape.LineWidth / 2);
+    }
+
+    public override bool OutlineContainsPoint(Unit2D point)
+    {
+        // Fast check against bounding box.
+        if (!base.OutlineContainsPoint(point))
+        {
+            return false;
+        }
+
+        var localPoint = _shape.Transform.InverseApply(point);
+
+        foreach (var polygon in _shape.PolygonSet)
+        {
+            if (PolygonUtil.ContainsPoint(polygon, localPoint, _shape.LineWidth))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public override void Attach(IModelWalker walker)
     {
         _walker = walker;
         _walker.SetTransform(_shape.Transform);
@@ -73,9 +100,9 @@ public class ShapeResolver : IModelResolver
         }
     }
 
-    public void Detach()
+    public override void Detach()
     {
-        foreach (var (polygon, state) in _polygonMap)
+        foreach (var (_, state) in _polygonMap)
         {
             _geometryWalker?.Destroy(state.Id);
         }
@@ -113,11 +140,15 @@ public class ShapeResolver : IModelResolver
         {
             _geometryWalker?.Update(state.Id, CreateGeometrySet(polygon));
         }
+
+        InvokeOutlineChanged();
     }
 
     private void TransformChanged(ISheetElement element)
     {
         _walker?.SetTransform(_shape.Transform);
+
+        InvokeOutlineChanged();
     }
 
     private void PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -134,6 +165,8 @@ public class ShapeResolver : IModelResolver
                 _geometryWalker?.Update(state.Id, CreateGeometrySet(polygon));
             }
         }
+
+        InvokeOutlineChanged();
     }
 
     private GeometrySet CreateGeometrySet(IPolygon polygon)

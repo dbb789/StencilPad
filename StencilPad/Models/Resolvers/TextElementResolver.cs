@@ -1,9 +1,9 @@
-using System.ComponentModel;
 using StencilPad.Spatial;
+using System.ComponentModel;
 
 namespace StencilPad.Models.Resolvers;
 
-public class TextElementResolver : IModelResolver
+public class TextElementResolver : SheetElementResolver
 {
     private readonly TextElement _textElement;
 
@@ -11,8 +11,9 @@ public class TextElementResolver : IModelResolver
     private ITextWalker? _textWalker;
     
     private TextStyle _textStyle;
-    
+
     public TextElementResolver(TextElement textElement)
+        : base(textElement)
     {
         _textElement = textElement;
         _textStyle = CreateTextStyle();
@@ -22,7 +23,7 @@ public class TextElementResolver : IModelResolver
         _textElement.PropertyChanged += OnPropertyChanged;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Detach();
         
@@ -31,7 +32,7 @@ public class TextElementResolver : IModelResolver
         _textElement.PropertyChanged -= OnPropertyChanged;
     }
 
-    public void Attach(IModelWalker walker)
+    public override void Attach(IModelWalker walker)
     {
         _walker = walker;
         _walker.SetTransform(_textElement.Transform);
@@ -42,7 +43,7 @@ public class TextElementResolver : IModelResolver
         _textWalker.SetText(_textElement.Text);
     }
 
-    public void Detach()
+    public override void Detach()
     {
         _textWalker = null;
         _walker = null;
@@ -51,11 +52,15 @@ public class TextElementResolver : IModelResolver
     private void OnGeometryChanged(ISheetElement element)
     {
         _textWalker?.SetBounds(UnitBounds.FromMinMax(_textElement.Min, _textElement.Max));
+
+        InvokeOutlineChanged();
     }
 
     private void OnTransformChanged(ISheetElement element)
     {
         _walker?.SetTransform(_textElement.Transform);
+
+        InvokeOutlineChanged();
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -69,6 +74,8 @@ public class TextElementResolver : IModelResolver
         {
             _textWalker?.SetText(_textElement.Text);
         }
+
+        InvokeOutlineChanged();
     }
 
     private TextStyle CreateTextStyle()

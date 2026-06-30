@@ -165,6 +165,7 @@ namespace StencilPad.Canvases.UI
             services.AddSingleton<IRubberBand>(_rubberBandEventPanel);
             services.AddSingleton<IUnitSnap>(_unitSnap);
             services.AddSingleton<IUnitSnapOverlay>(_unitSnapOverlay);
+            services.AddSingleton<SheetResolver>(_resolver);
         }
         
         private static void OnSheetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

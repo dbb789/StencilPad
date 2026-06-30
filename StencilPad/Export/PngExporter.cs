@@ -22,23 +22,22 @@ public static class PngExporter
     {
         UnitBounds? sheetBounds = null;
 
-        foreach (var element in sheet.Elements)
+        using var resolver = new SheetResolver(sheet, settings, resourceService);
+
+        foreach (var elementResolver in resolver.Elements)
         {
-            sheetBounds = UnitBounds.Union(sheetBounds, element.GetBounds());
+            sheetBounds = UnitBounds.Union(sheetBounds, elementResolver.GetOutlineBounds());
         }
 
         var bounds = sheetBounds ??
             UnitBounds.FromCenterSize(Unit2D.Zero,
-                                      new Unit2D(Unit.FromMillimeters(98),
-                                                 Unit.FromMillimeters(98)));
-
-        //bounds = bounds.Pad(Unit.FromMillimeters(1));
+                                      new Unit2D(Unit.FromMillimeters(100),
+                                                 Unit.FromMillimeters(100)));
         
         var size = bounds.Size;
         double width  = size.X.Millimeters;
         double height = size.Y.Millimeters;
 
-        using var resolver = new SheetResolver(sheet, settings, resourceService);
         using var renderer = new SheetRenderer(resolver, settings, resourceService);
         
         var transform = new TransformGroup();
@@ -66,7 +65,11 @@ public static class PngExporter
         int widthPx  = (int)Math.Round(width * scale);
         int heightPx = (int)Math.Round(height * scale);
 
-        var bitmap = new RenderTargetBitmap(widthPx, heightPx, BaseDpi * scale, BaseDpi * scale, PixelFormats.Pbgra32);
+        var bitmap = new RenderTargetBitmap(widthPx,
+                                            heightPx,
+                                            BaseDpi * scale,
+                                            BaseDpi * scale,
+                                            PixelFormats.Pbgra32);
 
         bitmap.Render(visual);
 

@@ -1,16 +1,17 @@
-using System.ComponentModel;
 using StencilPad.Spatial;
+using System.ComponentModel;
 
 namespace StencilPad.Models.Resolvers;
 
-public class ImageElementResolver : IModelResolver
+public class ImageElementResolver : SheetElementResolver
 {
     private readonly ImageElement _imageElement;
 
     private IModelWalker? _walker;
     private IImageWalker? _imageWalker;
-    
+
     public ImageElementResolver(ImageElement imageElement)
+        : base(imageElement)
     {
         _imageElement = imageElement;
         _imageElement.GeometryChanged += OnGeometryChanged;
@@ -18,7 +19,7 @@ public class ImageElementResolver : IModelResolver
         _imageElement.PropertyChanged += OnPropertyChanged;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Detach();
         
@@ -27,7 +28,7 @@ public class ImageElementResolver : IModelResolver
         _imageElement.PropertyChanged -= OnPropertyChanged;
     }
 
-    public void Attach(IModelWalker walker)
+    public override void Attach(IModelWalker walker)
     {
         _walker = walker;
         _walker.SetTransform(_imageElement.Transform);
@@ -38,7 +39,7 @@ public class ImageElementResolver : IModelResolver
         _imageWalker.SetOpacity(_imageElement.Opacity);
     }
 
-    public void Detach()
+    public override void Detach()
     {
         _imageWalker = null;
         _walker = null;

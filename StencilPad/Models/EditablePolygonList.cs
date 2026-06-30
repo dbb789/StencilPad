@@ -120,19 +120,6 @@ public class EditablePolygonList : IEditablePolygonSet
         return sum / _polygons.Count;
     }
 
-    public bool ContainsPoint(Unit2D point, Unit lineWidth)
-    {
-        foreach (var polygon in _polygons)
-        {
-            if (PolygonUtil.ContainsPoint(polygon, point, lineWidth))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public List<EditablePolygon>.Enumerator GetEnumerator()
     {
         return _polygons.GetEnumerator();

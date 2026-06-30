@@ -118,7 +118,10 @@ public class Ruler : SheetElement<Ruler>
 
     public override UnitBounds GetTransformedBounds(UnitTransform transform)
     {
-        return UnitBounds.FromMinMax(_minMaxHandleSource.Min, _minMaxHandleSource.Max).ApplyTransform(transform);
+        var min = transform.Apply(_minMaxHandleSource.Min);
+        var max = transform.Apply(_minMaxHandleSource.Max);
+
+        return UnitBounds.FromMinMax(min, max);
     }
 
     public override void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform)
