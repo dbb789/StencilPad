@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
 
 namespace StencilPad.Services;
@@ -24,14 +25,17 @@ public class PrintService : IPrintService
     {
         return PrintAsync(documentName, (dc) =>
         {
-            foreach (var element in sheet.Elements)
+            using var sheetResolver = new SheetResolver(sheet, _settings, _resourceService);
+            
+            foreach (var (_, modelResolver) in sheetResolver)
             {
-                var renderer = new SheetElementRenderer(element, _settings, _resourceService);
+                var renderer = new ModelRenderer(_resourceService);
+
+                modelResolver.Attach(renderer);
                 
-                if (renderer is not null)
-                {
-                    renderer.Render(dc);
-                }
+                renderer.Render(dc);
+
+                modelResolver.Detach();
             }
         });
     }

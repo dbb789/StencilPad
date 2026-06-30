@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Windows.Media;
 using StencilPad.Common;
 using StencilPad.Models;
@@ -8,138 +7,63 @@ namespace StencilPad.Rendering;
 
 public class SheetRenderer : IDisposable
 {
-    public Sheet? Sheet
-    {
-        get => _sheet;
-        set => AssignSheet(value);
-    }
-
+    private readonly SheetResolver _resolver;
     private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
-    private Sheet? _sheet;
-    private OrderedDictionary<ISheetElement, SheetElementRenderer> _renderers;
+    private OrderedDictionary<IModelResolver, ModelRenderer> _renderers;
     
     public event Action? RendererDirty;
 
-    public SheetRenderer(ISettings settings,
+    public SheetRenderer(SheetResolver resolver,
+                         ISettings settings,
                          IResourceSet resourceSet)
     {
+        _resolver = resolver;
         _settings = settings;
         _resourceSet = resourceSet;
         _renderers = new();
+
+        _resolver.ResolverAdded += OnResolverAdded;
+        _resolver.ResolverRemoved += OnResolverRemoved;
     }
 
     public void Dispose()
     {
-        AssignSheet(null);
+        _resolver.ResolverAdded -= OnResolverAdded;
+        _resolver.ResolverRemoved -= OnResolverRemoved;
     }
 
     public void Render(DrawingContext dc)
     {
-        if (_sheet is null)
-        {
-            return;
-        }
-
         foreach (var (_, renderer) in _renderers)
         {
             renderer.Render(dc);
         }
     }
-    
-    private void AssignSheet(Sheet? sheet)
+
+    private void OnResolverAdded(ISheetElement element, IModelResolver resolver)
     {
-        if (_sheet == sheet)
-        {
-            return;
-        }
-        
-        if (_sheet is not null)
-        {
-            _sheet.Elements.CollectionChanged -= ElementsChanged;
-        }
-
-        _sheet = sheet;
-
-        if (_sheet is not null)
-        {
-            _sheet.Elements.CollectionChanged += ElementsChanged;
-        }
-
-        foreach (var renderer in _renderers.Values)
-        {
-            renderer.RendererDirty -= InvokeRendererDirty;
-            renderer.Dispose();
-        }
-        
-        _renderers.Clear();
-        
-        if (_sheet is not null)
-        {
-            foreach (var element in _sheet.Elements)
-            {
-                AddRenderer(element);
-            }
-        }
-
-        InvokeRendererDirty();
-    }
-
-    private void ElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.OldItems is not null)
-        {
-            foreach (var item in e.OldItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    RemoveRenderer(element);
-                }
-            }
-        }
-
-        if (e.NewItems is not null)
-        {
-            foreach (var item in e.NewItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    AddRenderer(element, e.NewStartingIndex);
-                }
-            }
-        }
-
-        InvokeRendererDirty();
-    }
-    
-    private void AddRenderer(ISheetElement element, int index = -1)
-    {
-        var renderer = new SheetElementRenderer(element, _settings, _resourceSet);
-
-        if (!renderer.HasContent)
-        {
-            renderer.Dispose();
-            return;
-        }
+        var renderer = new ModelRenderer(_resourceSet);
 
         renderer.RendererDirty += InvokeRendererDirty;
-
-        if (index < 0)
-        {
-            index = _renderers.Count;
-        }
-
-        _renderers.Insert(index, element, renderer);
+        resolver.Attach(renderer);
+        _renderers.Add(resolver, renderer);
+        
+        InvokeRendererDirty();
     }
 
-    private void RemoveRenderer(ISheetElement element)
+    private void OnResolverRemoved(ISheetElement element, IModelResolver resolver)
     {
-        if (_renderers.TryGetValue(element, out var renderer))
+        if (!_renderers.TryGetValue(resolver, out var renderer))
         {
-            renderer.RendererDirty -= InvokeRendererDirty;
-            renderer.Dispose();
-            _renderers.Remove(element);
+            return;
         }
+
+        renderer.RendererDirty -= InvokeRendererDirty;
+        renderer.Dispose();
+        _renderers.Remove(resolver);
+        
+        InvokeRendererDirty();
     }
     
     private void InvokeRendererDirty()

@@ -7,6 +7,7 @@ using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
@@ -67,7 +68,7 @@ namespace StencilPad.Canvases.UI
 
         public OverlayContainer OverlayContainer => _overlayContainer;
         public CanvasGrid CanvasGrid => _canvasGrid;
-        public SheetRenderer SheetRenderer => _sheetRenderer;
+        public SheetRenderer SheetRenderer => _renderer;
         public IViewport Viewport => _viewport;
         public IHandleMap HandleMap => _handleMap;
         public IRubberBand RubberBand => _rubberBandEventPanel;
@@ -76,10 +77,11 @@ namespace StencilPad.Canvases.UI
         
         private readonly VisualViewport _viewport;
         private readonly HandleMap _handleMap;
-        private readonly SheetRenderer _sheetRenderer;
         private readonly CanvasGrid _canvasGrid;
         private readonly RubberBandEventPanel _rubberBandEventPanel;
-        private readonly SheetRenderPanel _renderer;
+        private readonly SheetResolver _resolver;
+        private readonly SheetRenderer _renderer;
+        private readonly SheetRenderPanel _rendererPanel;
         private readonly OverlayContainer _overlayContainer;
         private readonly RubberBandRenderPanel _rubberBandRenderPanel;
         private readonly UnitSnapOverlay _unitSnapOverlay;
@@ -104,16 +106,15 @@ namespace StencilPad.Canvases.UI
             _viewport = new VisualViewport();
             _handleMap = new HandleMap(settings);
 
-            _sheetRenderer = new SheetRenderer(settings, resourceService);
-
             _canvasGrid = new CanvasGrid(settings, _viewport);
 
-            _renderer = new SheetRenderPanel(_sheetRenderer,
-                                             _viewport);
-            _canvasGrid.Content = _renderer;
+            _resolver = new SheetResolver(settings, resourceService);
+            _renderer = new SheetRenderer(_resolver, settings, resourceService);
+            _rendererPanel = new SheetRenderPanel(_renderer,_viewport);
+            _canvasGrid.Content = _rendererPanel;
 
             _rubberBandEventPanel = new RubberBandEventPanel(_viewport);
-            _renderer.Content = _rubberBandEventPanel;
+            _rendererPanel.Content = _rubberBandEventPanel;
 
             _unitSnap = new CompositeUnitSnap();
             _unitSnapOverlay = new UnitSnapOverlay(_viewport, _unitSnap);
@@ -184,8 +185,8 @@ namespace StencilPad.Canvases.UI
             {
                 return;
             }
-            
-            sheetCanvas._sheetRenderer.Sheet = sheet;
+
+            sheetCanvas._resolver.Sheet = sheet;
             sheetCanvas._handleMap.Sheet = sheet;
             
             sheet.PropertyChanged += sheetCanvas.Sheet_PropertyChanged;
@@ -265,7 +266,7 @@ namespace StencilPad.Canvases.UI
             Height = _viewport.ToPixels(_viewport.Size.Y);
 
             _canvasGrid.InvalidateVisual();
-            _renderer.InvalidateVisual();
+            _rendererPanel.InvalidateVisual();
         }
     }
 }

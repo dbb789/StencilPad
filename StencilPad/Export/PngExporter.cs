@@ -1,9 +1,9 @@
 using System.IO;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
@@ -15,7 +15,10 @@ public static class PngExporter
     private const double Dpi = 960.0;
     private const double BaseDpi = 96.0;
 
-    public static void Export(Sheet sheet, string path, ISettings settings, IResourceService resourceService)
+    public static void Export(Sheet sheet,
+                              string path,
+                              ISettings settings,
+                              IResourceService resourceService)
     {
         UnitBounds? sheetBounds = null;
 
@@ -34,11 +37,13 @@ public static class PngExporter
         var size = bounds.Size;
         double width  = size.X.Millimeters;
         double height = size.Y.Millimeters;
-        
-        var renderer = new SheetRenderer(settings, resourceService);
-        
-        renderer.Sheet = sheet;
 
+        using var resolver = new SheetResolver(settings, resourceService);
+
+        resolver.Sheet = sheet;
+        
+        using var renderer = new SheetRenderer(resolver, settings, resourceService);
+        
         var transform = new TransformGroup();
         transform.Children.Add(new TranslateTransform(-bounds.Min.X.Millimeters,
                                                       -bounds.Min.Y.Millimeters));

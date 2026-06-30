@@ -6,6 +6,7 @@ using StencilPad.Common;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Models;
+using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
 using StencilPad.Services;
 using StencilPad.Spatial;
@@ -18,7 +19,8 @@ public class RulerToolOverlay : Canvas, IDisposable
     private readonly IUnitSnap _unitSnap;
     private readonly IUnitSnapContext _unitSnapContext;
     private readonly Ruler _previewRuler;
-    private readonly SheetElementRenderer _previewRenderer;
+    private readonly RulerResolver _previewResolver;
+    private readonly ModelRenderer _previewRenderer;
     private readonly LockAxisState _lockAxisState;
     
     private Unit2D? _start;
@@ -35,7 +37,11 @@ public class RulerToolOverlay : Canvas, IDisposable
         _unitSnap = unitSnap;
         _unitSnapContext = new DefaultUnitSnapContext(viewport);
         _previewRuler = new Ruler { Color = Color.FromArgb(128, 0, 0, 0) };
-        _previewRenderer = new SheetElementRenderer(_previewRuler, settings, resourceService);
+        _previewResolver = new RulerResolver(_previewRuler, settings, resourceService);
+        _previewRenderer = new ModelRenderer(resourceService);
+
+        _previewResolver.Attach(_previewRenderer);
+        
         _lockAxisState = new();
 
         _viewport.ViewportChanged += OnViewportChanged;
@@ -44,6 +50,9 @@ public class RulerToolOverlay : Canvas, IDisposable
     public void Dispose()
     {
         _viewport.ViewportChanged -= OnViewportChanged;
+
+        _previewResolver.Detach();
+        _previewResolver.Dispose();
         _previewRenderer.Dispose();
     }
 
