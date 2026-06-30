@@ -38,13 +38,11 @@ public static class PngExporter
         double width  = size.X.Millimeters;
         double height = size.Y.Millimeters;
 
-        using var resolver = new SheetResolver(settings, resourceService);
-
-        resolver.Sheet = sheet;
-        
+        using var resolver = new SheetResolver(sheet, settings, resourceService);
         using var renderer = new SheetRenderer(resolver, settings, resourceService);
         
         var transform = new TransformGroup();
+        transform.Children.Add(new ScaleTransform(1, -1));
         transform.Children.Add(new TranslateTransform(-bounds.Min.X.Millimeters,
                                                       -bounds.Min.Y.Millimeters));
         transform.Freeze();

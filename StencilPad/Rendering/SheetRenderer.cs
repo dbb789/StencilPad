@@ -23,6 +23,11 @@ public class SheetRenderer : IDisposable
         _resourceSet = resourceSet;
         _renderers = new();
 
+        foreach (var (element, modelResolver) in _resolver)
+        {
+            OnResolverAdded(element, modelResolver);
+        }
+        
         _resolver.ResolverAdded += OnResolverAdded;
         _resolver.ResolverRemoved += OnResolverRemoved;
     }

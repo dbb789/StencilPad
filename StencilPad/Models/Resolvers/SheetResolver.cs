@@ -74,13 +74,16 @@ public class SheetResolver : IDisposable
     public event Action<ISheetElement, IModelResolver>? ResolverAdded;
     public event Action<ISheetElement, IModelResolver>? ResolverRemoved;
 
-    public SheetResolver(ISettings settings, IResourceSet resourceSet)
+    public SheetResolver(ISettings settings,
+                         IResourceSet resourceSet)
     {
         _settings = settings;
         _resourceSet = resourceSet;
     }
     
-    public SheetResolver(Sheet sheet, ISettings settings, IResourceSet resourceSet)
+    public SheetResolver(Sheet sheet,
+                         ISettings settings,
+                         IResourceSet resourceSet)
     {
         _settings = settings;
         _resourceSet = resourceSet;

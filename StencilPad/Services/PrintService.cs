@@ -25,18 +25,14 @@ public class PrintService : IPrintService
     {
         return PrintAsync(documentName, (dc) =>
         {
-            using var sheetResolver = new SheetResolver(sheet, _settings, _resourceService);
+            using var resolver = new SheetResolver(sheet, _settings, _resourceService);
+            using var renderer = new SheetRenderer(resolver, _settings, _resourceService);
+
+            dc.PushTransform(new ScaleTransform(1, -1));
+
+            renderer.Render(dc);
             
-            foreach (var (_, modelResolver) in sheetResolver)
-            {
-                var renderer = new ModelRenderer(_resourceService);
-
-                modelResolver.Attach(renderer);
-                
-                renderer.Render(dc);
-
-                modelResolver.Detach();
-            }
+            dc.Pop();
         });
     }
     
