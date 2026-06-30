@@ -1,5 +1,4 @@
 using StencilPad.Common;
-using StencilPad.Spatial;
 
 namespace StencilPad.Models.Resolvers;
 

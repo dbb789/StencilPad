@@ -49,6 +49,23 @@ public class RulerResolver : SheetElementResolver
         _ruler.PropertyChanged -= OnPropertyChanged;
         _settings.Changed -= OnSettingsChanged;
     }
+    public override UnitBounds GetOutlineBounds(UnitTransform transform)
+    {
+        var bounds = base.GetOutlineBounds(transform);
+        var capResource = _resourceSet.Get(GeometryResourceId.First);
+
+        if (capResource is not null)
+        {
+            var min = transform.Apply(_ruler.Min);
+            var max = transform.Apply(_ruler.Max);
+            var direction = max - min;
+
+            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(min + direction.NormalizedTo(capResource.Size.Y), capResource.Size));
+            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(max - direction.NormalizedTo(capResource.Size.Y), capResource.Size));
+        }
+
+        return bounds;
+    }
 
     public override void Attach(IModelWalker walker)
     {
@@ -73,7 +90,7 @@ public class RulerResolver : SheetElementResolver
         _textWalker = null;
         _walker = null;
     }
-    
+
     private void OnGeometryChanged(ISheetElement element)
     {
         _geometryWalker?.Update(GeometryId, CreateGeometrySet());

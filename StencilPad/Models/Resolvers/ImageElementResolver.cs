@@ -48,11 +48,15 @@ public class ImageElementResolver : SheetElementResolver
     private void OnGeometryChanged(ISheetElement element)
     {
         _imageWalker?.SetBounds(UnitBounds.FromMinMax(_imageElement.Min, _imageElement.Max));
+
+        InvokeOutlineChanged();
     }
 
     private void OnTransformChanged(ISheetElement element)
     {
         _walker?.SetTransform(_imageElement.Transform);
+
+        InvokeOutlineChanged();
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -60,6 +64,7 @@ public class ImageElementResolver : SheetElementResolver
         if (e.PropertyName == nameof(ImageElement.ImageData))
         {
             _imageWalker?.SetImageData(_imageElement.ImageData);
+            InvokeOutlineChanged();
         }
         else if (e.PropertyName == nameof(ImageElement.Opacity))
         {
