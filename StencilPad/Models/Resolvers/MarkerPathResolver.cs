@@ -41,7 +41,17 @@ public class MarkerPathResolver : SheetElementResolver
     }
     public override UnitBounds GetOutlineBounds(UnitTransform transform)
     {
-        return _markerPath.GetTransformedBounds(transform).Pad(_markerPath.LineWidth / 2);
+        var bounds = _markerPath.GetTransformedBounds(transform);
+        var padding = _markerPath.LineWidth / 2;
+
+        var markerResource = _resourceSet.Get(_markerPath.MarkerType);
+
+        if (markerResource is not null)
+        {
+            padding = Unit.Max(padding, markerResource.Size.Magnitude / 2);
+        }
+        
+        return bounds.Pad(padding);
     }
 
     public override bool OutlineContainsPoint(Unit2D point)
