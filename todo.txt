@@ -1,5 +1,4 @@
 Confirm exit without save
-Marker path selection region should include markers
 Review multi-selection resizing behaviour
 Unit ratio configuration
 Per-tab undo stack / emacs-style undo stack
