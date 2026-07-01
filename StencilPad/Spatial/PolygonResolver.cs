@@ -8,8 +8,7 @@ public class PolygonResolver : IGeometryResolver
     private List<Unit> _scaledCornerTangents;
     private List<Unit2D> _edgeBegin;
     private List<Unit2D> _edgeEnd;
-    private List<Unit2D> _clippedC1;
-    private List<Unit2D> _clippedC2;
+    private List<Bezier2D?> _clippedBeziers;
     private int _edgeCount;
     private int _cornerCount;
     
@@ -21,8 +20,7 @@ public class PolygonResolver : IGeometryResolver
         _scaledCornerTangents = new();
         _edgeBegin = new();
         _edgeEnd = new();
-        _clippedC1 = new();
-        _clippedC2 = new();
+        _clippedBeziers = new();
         _edgeCount = 0;
         _cornerCount = 0;
     }
@@ -164,10 +162,11 @@ public class PolygonResolver : IGeometryResolver
         
         if (edge.Type == EdgeType.Bezier)
         {
+            var bezier = _clippedBeziers[index]!.Value;
             next = walker.Segment(segmentIndex,
                                   PolygonSegment.FromBezier(new Bezier2D(edgeBegin,
-                                                                         _clippedC1[index],
-                                                                         _clippedC2[index],
+                                                                         bezier.P1,
+                                                                         bezier.P2,
                                                                          EdgeEnd(index))));
             ++segmentIndex;
         }
@@ -229,10 +228,11 @@ public class PolygonResolver : IGeometryResolver
         
         if (edge.Type == EdgeType.Bezier)
         {
+            var bezier = _clippedBeziers[index]!.Value;
             next = walker.Segment(segmentIndex,
                                   PolygonSegment.FromBezier(new Bezier2D(EdgeEnd(index),
-                                                                         _clippedC2[index],
-                                                                         _clippedC1[index],
+                                                                         bezier.P2,
+                                                                         bezier.P1,
                                                                          edgeBegin)));
             --segmentIndex;
         }
@@ -301,8 +301,7 @@ public class PolygonResolver : IGeometryResolver
         _cornerTangents.Clear();
         _edgeBegin.Clear();
         _edgeEnd.Clear();
-        _clippedC1.Clear();
-        _clippedC2.Clear();
+        _clippedBeziers.Clear();
         
         if (_polygon is null)
         {
@@ -329,10 +328,7 @@ public class PolygonResolver : IGeometryResolver
 
         for (int i = 0; i < _polygon.Vertices.Count; ++i)
         {
-            var (c1, c2) = CalculateClippedBezierControls(i);
-            
-            _clippedC1.Add(c1);
-            _clippedC2.Add(c2);
+            _clippedBeziers.Add(CalculateClippedBezier(i));
         }
 
         for (int i = 0; i < _polygon.Vertices.Count - 1; ++i)
@@ -511,7 +507,7 @@ public class PolygonResolver : IGeometryResolver
     private double CornerAngle(int index)
     {
         var prevIndex = NormalizeVertexIndex(index - 1);
-        var vertex    = _polygon.Vertices[index];
+        var vertex = _polygon.Vertices[index];
 
         var incomingEdge = _polygon.Edges.At(index - 1);
         Unit2D incomingDir = incomingEdge.Type == EdgeType.Bezier && incomingEdge.ControlEndOffset.SqrMagnitude > 0
@@ -519,7 +515,7 @@ public class PolygonResolver : IGeometryResolver
             ? -incomingEdge.ControlEndOffset
             : vertex.Position - _polygon.Vertices[prevIndex].Position;
 
-        var nextIndex    = NormalizeVertexIndex(index + 1);
+        var nextIndex = NormalizeVertexIndex(index + 1);
         var outgoingEdge = _polygon.Edges.At(index);
         Unit2D outgoingDir = outgoingEdge.Type == EdgeType.Bezier && outgoingEdge.ControlBeginOffset.SqrMagnitude > 0
             // Tangent at bezier start: C1 - P0 = ControlBeginOffset
@@ -529,30 +525,29 @@ public class PolygonResolver : IGeometryResolver
         return Unit2D.SignedAngle(incomingDir, outgoingDir);
     }
 
-    private (Unit2D c1, Unit2D c2) CalculateClippedBezierControls(int index)
+    private Bezier2D? CalculateClippedBezier(int index)
     {
         if (index >= _polygon.Edges.Count)
         {
-            return (Unit2D.Zero, Unit2D.Zero);
+            return null;
         }
 
         var edge = _polygon.Edges[index];
 
         if (edge.Type != EdgeType.Bezier)
         {
-            return (Unit2D.Zero, Unit2D.Zero);
+            return null;
         }
 
-        var p0       = _polygon.Vertices[index].Position;
+        var p0 = _polygon.Vertices[index].Position;
         var nextIndex = NormalizeVertexIndex(index + 1);
-        var p3       = _polygon.Vertices[nextIndex].Position;
-        var c1       = p0 + edge.ControlBeginOffset;
-        var c2       = p3 + edge.ControlEndOffset;
+        var p3 = _polygon.Vertices[nextIndex].Position;
+        var c1 = p0 + edge.ControlBeginOffset;
+        var c2 = p3 + edge.ControlEndOffset;
 
         var beginArmLength = edge.ControlBeginOffset.Magnitude;
         var endArmLength   = edge.ControlEndOffset.Magnitude;
 
-        // t approximation: distance along control arm / arm length
         double tBegin = beginArmLength > Unit.Epsilon
             ? Math.Clamp(_scaledCornerTangents[index] / beginArmLength, 0.0, 1.0)
             : 0.0;
@@ -561,43 +556,6 @@ public class PolygonResolver : IGeometryResolver
             ? Math.Clamp(1.0 - _scaledCornerTangents[nextIndex] / endArmLength, 0.0, 1.0)
             : 1.0;
 
-        if (tBegin > 0)
-        {
-            (p0, c1, c2, p3) = SplitBezierRight(p0, c1, c2, p3, tBegin);
-            tEnd = tBegin < 1.0 ? (tEnd - tBegin) / (1.0 - tBegin) : 0.0;
-        }
-
-        if (tEnd < 1)
-        {
-            (_, c1, c2, _) = SplitBezierLeft(p0, c1, c2, p3, tEnd);
-        }
-
-        return (c1, c2);
-    }
-
-    private static (Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3) SplitBezierRight(
-        Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3, double t)
-    {
-        var p01   = p0  + (c1  - p0)  * t;
-        var p12   = c1  + (c2  - c1)  * t;
-        var p23   = c2  + (p3  - c2)  * t;
-        var p012  = p01 + (p12 - p01) * t;
-        var p123  = p12 + (p23 - p12) * t;
-        var p0123 = p012 + (p123 - p012) * t;
-
-        return (p0123, p123, p23, p3);
-    }
-
-    private static (Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3) SplitBezierLeft(
-        Unit2D p0, Unit2D c1, Unit2D c2, Unit2D p3, double t)
-    {
-        var p01   = p0  + (c1  - p0)  * t;
-        var p12   = c1  + (c2  - c1)  * t;
-        var p23   = c2  + (p3  - c2)  * t;
-        var p012  = p01 + (p12 - p01) * t;
-        var p123  = p12 + (p23 - p12) * t;
-        var p0123 = p012 + (p123 - p012) * t;
-
-        return (p0, p01, p012, p0123);
+        return new Bezier2D(p0, c1, c2, p3).Subsegment(tBegin, tEnd);
     }
 }
