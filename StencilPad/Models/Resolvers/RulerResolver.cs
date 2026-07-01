@@ -53,6 +53,7 @@ public class RulerResolver : SheetElementResolver
     {
         var bounds = base.GetOutlineBounds(transform);
         var capResource = _resourceSet.Get(GeometryResourceId.First);
+        var capOffset = capResource.Size.Y + _geometryStyle.LineWidth;
 
         if (capResource is not null)
         {
@@ -60,8 +61,8 @@ public class RulerResolver : SheetElementResolver
             var max = transform.Apply(_ruler.Max);
             var direction = max - min;
 
-            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(min + direction.NormalizedTo(capResource.Size.Y), capResource.Size));
-            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(max - direction.NormalizedTo(capResource.Size.Y), capResource.Size));
+            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(min + direction.NormalizedTo(capOffset), capResource.Size));
+            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(max - direction.NormalizedTo(capOffset), capResource.Size));
         }
 
         return bounds;
@@ -155,9 +156,10 @@ public class RulerResolver : SheetElementResolver
     {
         var capResource = _resourceSet.Get(GeometryResourceId.First);
         var direction = _ruler.Max - _ruler.Min;
-        
-        _lineResolver.Line = new Line(_ruler.Min + direction.NormalizedTo(capResource.Size.Y),
-                                      _ruler.Max - direction.NormalizedTo(capResource.Size.Y));
+        var capOffset = capResource.Size.Y + _geometryStyle.LineWidth;
+
+        _lineResolver.Line = new Line(_ruler.Min + direction.NormalizedTo(capOffset),
+                                      _ruler.Max - direction.NormalizedTo(capOffset));
         
         _caps.Clear();
         _caps.Add((capResource, GetStartCapTransform()));
@@ -170,16 +172,22 @@ public class RulerResolver : SheetElementResolver
     {
         var rotation = Math.Atan2((_ruler.Max.Y - _ruler.Min.Y).Millimeters,
                                   (_ruler.Max.X - _ruler.Min.X).Millimeters) * MathUtil.Rad2Deg;
+        
+        var direction = _ruler.Max - _ruler.Min;
+        var capPosition = _ruler.Min + direction.NormalizedTo(_geometryStyle.LineWidth);
 
-        return new UnitTransform(_ruler.Min, rotation - 90);
+        return new UnitTransform(capPosition, rotation - 90);
     }
 
     private UnitTransform GetEndCapTransform()
     {
         var rotation = Math.Atan2((_ruler.Max.Y - _ruler.Min.Y).Millimeters,
                                   (_ruler.Max.X - _ruler.Min.X).Millimeters) * MathUtil.Rad2Deg;
+        
+        var direction = _ruler.Max - _ruler.Min;
+        var capPosition = _ruler.Max - direction.NormalizedTo(_geometryStyle.LineWidth);
 
-        return new UnitTransform(_ruler.Max, rotation + 90);
+        return new UnitTransform(capPosition, rotation + 90);
     }
 
     private GeometryStyle CreateGeometryStyle()

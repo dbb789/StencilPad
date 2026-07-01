@@ -63,7 +63,7 @@ public class ShapeResolver : SheetElementResolver
 
     public override UnitBounds GetOutlineBounds(UnitTransform transform)
     {
-        return _shape.GetTransformedBounds(transform).Pad(_shape.LineWidth / 2);
+        return _shape.GetTransformedBounds(transform).Pad(_shape.LineWidth / 2 * Math.Sqrt(2));
     }
 
     public override bool OutlineContainsPoint(Unit2D point)
@@ -182,7 +182,7 @@ public class ShapeResolver : SheetElementResolver
         if (startCap is not null)
         {
             _capDistanceWalker ??= new CapDistanceWalker();
-            _capDistanceWalker.Reset(startCap.Size.Y + _style.LineWidth);
+            _capDistanceWalker.Reset(startCap.Size.Y + _style.LineWidth * Math.Sqrt(2));
             
             polygon.Resolver.Walk(_capDistanceWalker);
             
@@ -195,7 +195,7 @@ public class ShapeResolver : SheetElementResolver
         if (endCap is not null)
         {
             _capDistanceWalker ??= new CapDistanceWalker();
-            _capDistanceWalker.Reset(endCap.Size.Y + _style.LineWidth);
+            _capDistanceWalker.Reset(endCap.Size.Y + _style.LineWidth * Math.Sqrt(2));
 
             polygon.Resolver.WalkReverse(_capDistanceWalker);
 

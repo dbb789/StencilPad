@@ -42,7 +42,7 @@ public class MarkerPathResolver : SheetElementResolver
     public override UnitBounds GetOutlineBounds(UnitTransform transform)
     {
         var bounds = _markerPath.GetTransformedBounds(transform);
-        var padding = _markerPath.LineWidth / 2;
+        var padding = _markerPath.LineWidth / 2 * Math.Sqrt(2);
 
         var markerResource = _resourceSet.Get(_markerPath.MarkerType);
 
