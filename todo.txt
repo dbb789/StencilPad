@@ -2,7 +2,6 @@ Confirm exit without save
 Review multi-selection resizing behaviour
 Per-tab undo stack / emacs-style undo stack
 Ruler resizing doesn't work with some orientations
-Print preview / paper orientation
 Rulers don't always render correctly in SVG
 Include ruler label in bounds?
 Text editing still flaky

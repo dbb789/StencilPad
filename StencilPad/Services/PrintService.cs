@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Printing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -23,7 +24,7 @@ public class PrintService : IPrintService
     
     public Task<bool> PrintAsync(string documentName, Sheet sheet)
     {
-        return PrintAsync(documentName, (dc) =>
+        return PrintAsync(documentName, sheet.Format, (dc) =>
         {
             using var resolver = new SheetResolver(sheet, _settings, _resourceService);
             using var renderer = new SheetRenderer(resolver, _settings, _resourceService);
@@ -36,11 +37,11 @@ public class PrintService : IPrintService
         });
     }
     
-    private async Task<bool> PrintAsync(string documentName, Action<DrawingContext> drawFunc)
+    private async Task<bool> PrintAsync(string documentName, SheetFormat format, Action<DrawingContext> drawFunc)
     {
         try
         {
-            return await Application.Current.Dispatcher.InvokeAsync(() => Print(documentName, drawFunc));
+            return await Application.Current.Dispatcher.InvokeAsync(() => Print(documentName, format, drawFunc));
         }
         catch (Exception ex)
         {
@@ -49,7 +50,7 @@ public class PrintService : IPrintService
         }
     }
 
-    private bool Print(string documentName, Action<DrawingContext> drawFunc)
+    private bool Print(string documentName, SheetFormat format, Action<DrawingContext> drawFunc)
     {
         try
         {
@@ -57,7 +58,13 @@ public class PrintService : IPrintService
 
             if (printDialog.ShowDialog() == true)
             {
-                var visual = BuildVisual(drawFunc, printDialog.PrintableAreaWidth, printDialog.PrintableAreaHeight);
+                var sheetIsLandscape = format.Orientation == SheetOrientation.Landscape;
+                var pageIsLandscape = printDialog.PrintableAreaWidth > printDialog.PrintableAreaHeight;
+                var rotate = sheetIsLandscape != pageIsLandscape;
+
+                var visual = BuildVisual(drawFunc, printDialog.PrintableAreaWidth, printDialog.PrintableAreaHeight, rotate);
+
+                System.Diagnostics.Debug.WriteLine($"Printing {documentName} to {printDialog.PrintQueue.FullName} ({printDialog.PrintTicket.PageOrientation})");
                 
                 printDialog.PrintVisual(visual, documentName);
                 
@@ -75,7 +82,7 @@ public class PrintService : IPrintService
         }
     }
 
-    private DrawingVisual BuildVisual(Action<DrawingContext> drawFunc, double pageWidth, double pageHeight)
+    private DrawingVisual BuildVisual(Action<DrawingContext> drawFunc, double pageWidth, double pageHeight, bool rotate)
     {
         // Geometry is in mm centred at (0,0). WPF print units are DIPs (1/96 inch).
         // Scale mm => DIPs then translate so (0,0) maps to the page centre.
@@ -84,6 +91,12 @@ public class PrintService : IPrintService
         var transform = new TransformGroup();
         
         transform.Children.Add(new ScaleTransform(mmToDip, mmToDip));
+
+        if (rotate)
+        {
+            transform.Children.Add(new RotateTransform(90));
+        }
+        
         transform.Children.Add(new TranslateTransform(pageWidth / 2, pageHeight / 2));
 
         var visual = new DrawingVisual();
