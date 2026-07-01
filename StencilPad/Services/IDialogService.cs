@@ -8,6 +8,7 @@ public interface IDialogService
     (Unit Spacing, int Subdivisions)? ShowGridSettingsDialog(Unit currentSpacing,
                                                              int currentSubdivisions,
                                                              UnitSettings unitSettings);
+    Fraction? ShowUnitScaleDialog(Fraction current);
     bool ShowConfirmation(string message, string title);
     void ShowWarning(string message, string title);
     void ShowError(string message, string title);

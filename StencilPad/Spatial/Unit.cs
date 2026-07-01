@@ -60,17 +60,27 @@ public readonly record struct Unit
             _ => throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported unit type: {type}")
         };
     }
-
+    
     public static bool TryParse(string s, out Unit result)
     {
         return TryParse(s, UnitType.Millimeters, out result);
     }
 
+    public static bool TryParse(string s, Fraction scale, out Unit result)
+    {
+        return TryParse(s, UnitType.Millimeters, scale, out result);
+    }
+    
     public static bool TryParse(string s, UnitType type, out Unit result)
+    {
+        return TryParse(s, type, Fraction.One, out result);
+    }
+
+    public static bool TryParse(string s, UnitType type, Fraction scale, out Unit result)
     {
         if (decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedValue))
         {
-            result = FromType(parsedValue, type);
+            result = FromType(parsedValue, type) * scale;
             return true;
         }
 
@@ -184,6 +194,12 @@ public readonly record struct Unit
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator *(Fraction scalar, Unit u) => u * scalar;
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit operator /(Unit u, Fraction scalar) => new((u._value * scalar.Denominator) / scalar.Numerator);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit operator /(Fraction scalar, Unit u) => u / scalar;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit operator /(Unit u, decimal scalar) => new(u._value / scalar);

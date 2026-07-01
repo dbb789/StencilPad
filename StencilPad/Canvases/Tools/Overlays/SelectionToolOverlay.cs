@@ -241,7 +241,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
                 var size = Unit2D.Abs(targetSE - _resizeInitialNW);
 
-                _hintService.SetHint($"Resize: {UnitUtil.FormatSuffix(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y, _settings.UnitSettings)}");
+                _hintService.SetHint($"Resize: {UnitUtil.FormatSuffixScaled(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffixScaled(size.Y, _settings.UnitSettings)}");
 
                 SelectionResized?.Invoke(targetSE - _resizeInitialSE);
                 e.Handled = true;
@@ -311,7 +311,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
                 var totalDelta = snappedCenter - _dragState.InitialElementPosition;
                 
-                _hintService.SetHint($"Move: {UnitUtil.FormatSuffix(totalDelta.X, _settings.UnitSettings)}, {UnitUtil.FormatSuffix(totalDelta.Y, _settings.UnitSettings)}");
+                _hintService.SetHint($"Move: {UnitUtil.FormatSuffixScaled(totalDelta.X, _settings.UnitSettings)}, {UnitUtil.FormatSuffixScaled(totalDelta.Y, _settings.UnitSettings)}");
                 
                 SelectionDragged?.Invoke(delta);
                 e.Handled = true;

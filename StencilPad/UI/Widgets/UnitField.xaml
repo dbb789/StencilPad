@@ -18,7 +18,8 @@
                              UnitType="{Binding UnitType, ElementName=Root}"
                              UnitSettings="{Binding UnitSettings, ElementName=Root}"
                              Minimum="{Binding Minimum, ElementName=Root}"
-                             Maximum="{Binding Maximum, ElementName=Root}"/>
+                             Maximum="{Binding Maximum, ElementName=Root}"
+                             Scaled="{Binding Scaled, ElementName=Root}"/>
 
         <ComboBox Grid.Column="1" 
                   Margin="2,0,0,0"

@@ -183,7 +183,7 @@ public class CircleToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEle
             ControlEndOffset = new Unit2D(-size.X * MathUtil.Kappa, Unit.Zero)
         };
 
-        _hintService.SetHint($"Ellipse: {UnitUtil.FormatSuffix(size.X * 2, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y * 2, _settings.UnitSettings)}");
+        _hintService.SetHint($"Ellipse: {UnitUtil.FormatSuffixScaled(size.X * 2, _settings.UnitSettings)} x {UnitUtil.FormatSuffixScaled(size.Y * 2, _settings.UnitSettings)}");
     }
 
     protected override void OnRender(DrawingContext dc)

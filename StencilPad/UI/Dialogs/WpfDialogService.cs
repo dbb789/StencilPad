@@ -47,6 +47,21 @@ public class WpfDialogService : IDialogService
         return null;
     }
 
+    public Fraction? ShowUnitScaleDialog(Fraction current)
+    {
+        var dialog = new UnitScaleDialog(current)
+        {
+            Owner = _owner
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            return dialog.ViewModel.Fraction;
+        }
+
+        return null;
+    }
+
     public bool ShowConfirmation(string message, string title)
     {
         return MessageBox.Show(_owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;

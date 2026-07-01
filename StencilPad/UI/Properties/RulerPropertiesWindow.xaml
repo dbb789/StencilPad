@@ -33,18 +33,24 @@
                                Margin="2"/>
                     <widgets:Unit2DField MinWidth="160"
                                          ValueX="{Binding MinX}"
-                                         ValueY="{Binding MinY}"/>
+                                         ValueY="{Binding MinY}"
+                                         UnitSettings="{Binding UnitSettings}"
+                                         Scaled="True"/>
                     <TextBlock Text="End Position:"
                                VerticalAlignment="Center"
                                Margin="2"/>
                     <widgets:Unit2DField MinWidth="160"
                                          ValueX="{Binding MaxX}"
-                                         ValueY="{Binding MaxY}"/>
+                                         ValueY="{Binding MaxY}"
+                                         UnitSettings="{Binding UnitSettings}"
+                                         Scaled="True"/>
                     <TextBlock Text="Length:"
                                VerticalAlignment="Center"
                                Margin="2"/>
                     <widgets:UnitField MinWidth="160"
-                                       Value="{Binding Length}"/>
+                                       Value="{Binding Length}"
+                                       UnitSettings="{Binding UnitSettings}"
+                                       Scaled="True"/>
                 </StackPanel>
             </TabItem>
 

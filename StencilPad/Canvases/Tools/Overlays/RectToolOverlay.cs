@@ -111,7 +111,7 @@ public class RectToolOverlay<TSheetElement> : PolygonToolOverlayBase<TSheetEleme
 
         var size = Unit2D.Abs(_currentSnappedMousePosition - _initialPoint.Value);
         
-        _hintService.SetHint($"Rectangle: {UnitUtil.FormatSuffix(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffix(size.Y, _settings.UnitSettings)}");
+        _hintService.SetHint($"Rectangle: {UnitUtil.FormatSuffixScaled(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffixScaled(size.Y, _settings.UnitSettings)}");
     }
 
     protected override void OnRender(DrawingContext dc)

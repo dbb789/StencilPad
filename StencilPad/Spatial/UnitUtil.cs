@@ -6,12 +6,12 @@ public static class UnitUtil
     {
         var type = GetDefaultUnitType(settings);
 
-        return Format(unit, type, settings);
+        return Format(unit, type);
     }
     
-    public static string Format(Unit unit, UnitType type, UnitSettings settings)
+    public static string Format(Unit unit, UnitType type)
     {
-        var val = ToType(unit, type, settings);
+        var val = ToType(unit, type);
 
         return $"{val:0.####}";
     }
@@ -20,17 +20,46 @@ public static class UnitUtil
     {
         var type = GetDefaultUnitType(settings);
 
-        return FormatSuffix(unit, type, settings);
+        return FormatSuffix(unit, type);
     }
     
-    public static string FormatSuffix(Unit unit, UnitType type, UnitSettings settings)
+    public static string FormatSuffix(Unit unit, UnitType type)
     {
-        var val = ToType(unit, type, settings);
+        var val = ToType(unit, type);
         var suffix = GetSuffix(type);
 
         return $"{val:0.####} {suffix}";
     }
+
+    public static string FormatScaled(Unit unit, UnitSettings settings)
+    {
+        var type = GetDefaultUnitType(settings);
+
+        return FormatScaled(unit, type, settings);
+    }
+
+    public static string FormatScaled(Unit unit, UnitType type, UnitSettings settings)
+    {
+        var val = ToTypeScaled(unit, type, settings);
+
+        return $"{val:0.####}";
+    }
+
+    public static string FormatSuffixScaled(Unit unit, UnitSettings settings)
+    {
+        var type = GetDefaultUnitType(settings);
+
+        return FormatSuffixScaled(unit, type, settings);
+    }
     
+    public static string FormatSuffixScaled(Unit unit, UnitType type, UnitSettings settings)
+    {
+        var val = ToTypeScaled(unit, type, settings);
+        var suffix = GetSuffix(type);
+
+        return $"{val:0.####} {suffix}";
+    }
+
     public static UnitType GetDefaultUnitType(UnitSettings settings)
     {
         return GetDefaultUnitType(settings.System);
@@ -56,9 +85,22 @@ public static class UnitUtil
         };
     }
 
-    private static double ToType(Unit unit, UnitType type, UnitSettings settings)
+    private static double ToTypeScaled(Unit unit, UnitType type, UnitSettings settings)
     {
-        var val = (unit * settings.Ratio).ToType(type);
+        var val = (unit / settings.Ratio).ToType(type);
+
+        // Filters out odd small values, especially anything like negative zero.
+        if (Math.Abs(val) < 0.0000001)
+        {
+            val = 0;
+        }
+
+        return val;
+    }
+
+    private static double ToType(Unit unit, UnitType type)
+    {
+        var val = unit.ToType(type);
 
         // Filters out odd small values, especially anything like negative zero.
         if (Math.Abs(val) < 0.0000001)

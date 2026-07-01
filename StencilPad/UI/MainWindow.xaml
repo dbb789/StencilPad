@@ -70,6 +70,7 @@
                                          TargetValue={x:Static spatial:UnitSystem.Imperial}}"/>
                 </MenuItem>
                 <MenuItem Header="_Grid…" Command="{Binding GridSettingsCommand}"/>
+                <MenuItem Header="_Unit Scale…" Command="{Binding UnitScaleCommand}"/>
             </MenuItem>
 
             <MenuItem Header="_Sheet">

@@ -149,7 +149,7 @@ public class RulerResolver : SheetElementResolver
 
     private string GetText()
     {
-        return UnitUtil.FormatSuffix(_ruler.Length, _settings.UnitSettings);
+        return UnitUtil.FormatSuffixScaled(_ruler.Length, _settings.UnitSettings);
     }
 
     private GeometrySet CreateGeometrySet()

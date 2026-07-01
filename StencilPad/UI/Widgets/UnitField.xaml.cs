@@ -25,6 +25,10 @@ public partial class UnitField : UserControl
     public static readonly DependencyProperty MaximumProperty =
         DependencyProperty.Register(nameof(Maximum), typeof(Unit), typeof(UnitField),
             new FrameworkPropertyMetadata(Unit.FromMillimeters(1000000)));
+
+    public static readonly DependencyProperty ScaledProperty =
+        DependencyProperty.Register(nameof(Scaled), typeof(bool), typeof(UnitField),
+            new FrameworkPropertyMetadata(false));
     
     public Unit? Value
     {
@@ -54,6 +58,12 @@ public partial class UnitField : UserControl
     {
         get => (Unit)GetValue(MaximumProperty);
         set => SetValue(MaximumProperty, value);
+    }
+
+    public bool Scaled
+    {
+        get => (bool)GetValue(ScaledProperty);
+        set => SetValue(ScaledProperty, value);
     }
 
     public UnitField()

@@ -26,6 +26,10 @@ public partial class BaseUnitField : UserControl
     public static readonly DependencyProperty MaximumProperty =
         DependencyProperty.Register(nameof(Maximum), typeof(Unit), typeof(BaseUnitField),
             new FrameworkPropertyMetadata(OnValueChanged));
+
+    public static readonly DependencyProperty ScaledProperty =
+        DependencyProperty.Register(nameof(Scaled), typeof(bool), typeof(BaseUnitField),
+            new FrameworkPropertyMetadata(false, OnValueChanged));
     
     public Unit? Value
     {
@@ -55,6 +59,12 @@ public partial class BaseUnitField : UserControl
     {
         get => (Unit)GetValue(MaximumProperty);
         set => SetValue(MaximumProperty, value);
+    }
+
+    public bool Scaled
+    {
+        get => (bool)GetValue(ScaledProperty);
+        set => SetValue(ScaledProperty, value);
     }
 
     private string _textValue = "";
@@ -93,6 +103,7 @@ public partial class BaseUnitField : UserControl
         }
 
         field.UnitType = UnitUtil.GetDefaultUnitType(field.UnitSettings);
+        field.UpdateTextValue();
     }
     
     private void ValueField_KeyDown(object sender, KeyEventArgs e)
@@ -145,10 +156,20 @@ public partial class BaseUnitField : UserControl
         }
 
         _textValue = ValueField.Text;
-        
-        if (Unit.TryParse(_textValue, UnitType, out var parsed))
+
+        if (Scaled)
         {
-            Value = ClampValue(parsed);
+            if (Unit.TryParse(_textValue, UnitType, UnitSettings.Ratio, out var parsed))
+            {
+                Value = ClampValue(parsed);
+            }
+        }
+        else
+        {
+            if (Unit.TryParse(_textValue, UnitType, out var parsed))
+            {
+                Value = ClampValue(parsed);
+            }
         }
     }
 
@@ -160,8 +181,16 @@ public partial class BaseUnitField : UserControl
             ValueField.Text = "";
             return;
         }
+
+        if (Scaled)
+        {
+            _textValue = UnitUtil.FormatScaled(Value.Value, UnitType, UnitSettings);
+        }
+        else
+        {
+            _textValue = UnitUtil.Format(Value.Value, UnitType);
+        }
         
-        _textValue = UnitUtil.Format(Value.Value, UnitType, UnitSettings);
         ValueField.Text = _textValue;
     }
     

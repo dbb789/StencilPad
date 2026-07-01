@@ -48,6 +48,7 @@ public class AppController
         
         _viewModel.NewProjectCommand = new RelayCommand(NewProject);
         _viewModel.GridSettingsCommand = new RelayCommand(GridSettings);
+        _viewModel.UnitScaleCommand = new RelayCommand(UnitScale);
         _viewModel.AddSheetCommand = new RelayCommand(AddNewSheet);
         _viewModel.RenameSheetCommand = new RelayCommand(RenameActiveSheet);
         _viewModel.DeleteSheetCommand = new RelayCommand(DeleteActiveSheet);
@@ -140,6 +141,18 @@ public class AppController
         {
             _dialogService.ShowError(ex.Message, "Cannot Save File");
         }
+    }
+
+    private void UnitScale()
+    {
+        var result = _dialogService.ShowUnitScaleDialog(_project.UnitRatio);
+
+        if (result is null)
+        {
+            return;
+        }
+
+        _project.UnitRatio = result.Value;
     }
 
     private void GridSettings()

@@ -1,4 +1,3 @@
 Confirm exit without save
 Review multi-selection resizing behaviour
-Unit ratio configuration
 Per-tab undo stack / emacs-style undo stack
