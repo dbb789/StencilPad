@@ -1,3 +1,4 @@
 Confirm exit without save
 Review multi-selection resizing behaviour
 Per-tab undo stack / emacs-style undo stack
+Ruler resizing doesn't work with some orientations
