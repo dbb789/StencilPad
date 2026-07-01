@@ -91,7 +91,7 @@ public static class UnitUtil
         {
             UnitType.Millimeters => "0.###",
             UnitType.Inches => "0.####",
-            _ => ""
+            _ => "0.####"
         };
     }
 
