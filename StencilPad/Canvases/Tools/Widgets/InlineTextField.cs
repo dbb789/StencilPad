@@ -54,11 +54,11 @@ public class InlineTextField : UserControl
             BorderBrush = Brushes.CornflowerBlue,
             MinWidth = 100,
             Padding = new Thickness(0),
-            AcceptsReturn = false,
-            TextWrapping = TextWrapping.Wrap,
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap
         };
 
-        _textBox.KeyDown += OnTextBoxKeyDown;
+        _textBox.PreviewKeyDown += OnTextBoxKeyDown;
         _textBox.LostFocus += OnTextBoxLostFocus;
 
         Content = _textBox;
@@ -70,6 +70,17 @@ public class InlineTextField : UserControl
     {
         if (e.Key == Key.Enter)
         {
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+            {
+                var pos = _textBox.CaretIndex;
+                
+                _textBox.Text = _textBox.Text.Insert(pos, Environment.NewLine);
+                _textBox.CaretIndex = pos + Environment.NewLine.Length;
+                
+                e.Handled = true;
+                return;
+            }
+            
             Committed?.Invoke();
             e.Handled = true;
         }

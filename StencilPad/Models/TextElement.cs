@@ -19,6 +19,7 @@ public class TextElement : SheetElement<TextElement>
         set => _boundsHandleSource.Bounds = UnitBounds.FromMinMax(_boundsHandleSource.Bounds.Min, value);
     }
 
+    public UnitBounds Bounds => _boundsHandleSource.Bounds;
     public Unit2D Size => Max - Min;
 
     private string _text = "";

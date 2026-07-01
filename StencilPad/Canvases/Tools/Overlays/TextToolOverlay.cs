@@ -62,10 +62,13 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         if (textElement is not null)
         {
             var transform = parentTransform * textElement.Transform;
-
-            ShowTextField(transform.Apply(textElement.Min),
+            
+            _pendingPosition = transform.Apply(textElement.Bounds.NW);
+            
+            ShowTextField(_pendingPosition.Value,
                           (double)transform.Angle,
                           textElement.Text);
+            
             _editingTextElement = textElement;
             return;
         }
@@ -128,7 +131,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
             Text = text,
             TextFontFamily = new FontFamily(DefaultFontFamilyName),
             TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize)),
-            Rotation = rotation
+            Rotation = -rotation
         };
 
         _textField.Cancelled += () => CommitOrCancel(false);
