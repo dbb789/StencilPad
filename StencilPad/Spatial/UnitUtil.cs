@@ -13,7 +13,7 @@ public static class UnitUtil
     {
         var val = ToType(unit, type);
 
-        return $"{val.ToString(GetFormat(type))}";
+        return val.ToString(GetFormat(type));
     }
     
     public static string FormatSuffix(Unit unit, UnitSettings settings)
@@ -26,9 +26,8 @@ public static class UnitUtil
     public static string FormatSuffix(Unit unit, UnitType type)
     {
         var val = ToType(unit, type);
-        var suffix = GetSuffix(type);
 
-        return $"{val.ToString(GetFormat(type))} {suffix}";
+        return val.ToString(GetFormatSuffix(type));
     }
 
     public static string FormatScaled(Unit unit, UnitSettings settings)
@@ -42,7 +41,7 @@ public static class UnitUtil
     {
         var val = ToTypeScaled(unit, type, settings);
 
-        return $"{val.ToString(GetFormat(type))}";
+        return val.ToString(GetFormat(type));
     }
 
     public static string FormatSuffixScaled(Unit unit, UnitSettings settings)
@@ -55,9 +54,8 @@ public static class UnitUtil
     public static string FormatSuffixScaled(Unit unit, UnitType type, UnitSettings settings)
     {
         var val = ToTypeScaled(unit, type, settings);
-        var suffix = GetSuffix(type);
 
-        return $"{val.ToString(GetFormat(type))} {suffix}";
+        return val.ToString(GetFormatSuffix(type));
     }
 
     public static UnitType GetDefaultUnitType(UnitSettings settings)
@@ -75,22 +73,22 @@ public static class UnitUtil
         };
     }
 
-    public static string GetSuffix(UnitType unitType)
-    {
-        return unitType switch
-        {
-            UnitType.Millimeters => "mm",
-            UnitType.Inches => "in",
-            _ => ""
-        };
-    }
-    
     public static string GetFormat(UnitType unitType)
     {
         return unitType switch
         {
             UnitType.Millimeters => "0.###",
             UnitType.Inches => "0.####",
+            _ => "0.####"
+        };
+    }
+    
+    public static string GetFormatSuffix(UnitType unitType)
+    {
+        return unitType switch
+        {
+            UnitType.Millimeters => "0.### mm",
+            UnitType.Inches => "0.#### in",
             _ => "0.####"
         };
     }
