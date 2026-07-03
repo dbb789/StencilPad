@@ -311,7 +311,7 @@ public class Polygon : IPolygon
         for (int i = 0; i < _vertices.Count; ++i)
         {
             var vertex = _vertices[i];
-            var newPosition = RemapPoint(vertex.Position, oldBounds, newBounds, transform);
+            var newPosition = MathUtil.RemapPoint(vertex.Position, oldBounds, newBounds, transform);
             
             _vertices.Set(i, vertex with { Position = newPosition });
         }
@@ -321,10 +321,10 @@ public class Polygon : IPolygon
             var edge = _edges[i];
             
             var controlBegin = oldVertices[i].Position + edge.ControlBeginOffset;
-            var newControlBegin = RemapPoint(controlBegin, oldBounds, newBounds, transform);
+            var newControlBegin = MathUtil.RemapPoint(controlBegin, oldBounds, newBounds, transform);
 
             var controlEnd = oldVertices[_vertices.NormalizeIndex(i + 1)].Position + edge.ControlEndOffset;
-            var newControlEnd = RemapPoint(controlEnd, oldBounds, newBounds, transform);
+            var newControlEnd = MathUtil.RemapPoint(controlEnd, oldBounds, newBounds, transform);
 
             _edges.Set(i, edge with
             {
@@ -335,20 +335,6 @@ public class Polygon : IPolygon
         
         InvalidateAllPositions?.Invoke();
         InvokeGeometryChanged();
-    }
-
-    private Unit2D RemapPoint(Unit2D localPoint,
-                              UnitBounds oldBounds,
-                              UnitBounds newBounds,
-                              UnitTransform transform)
-    {
-        var worldPoint = transform.Apply(localPoint);
-        
-        double tX = Unit.InverseLerp(oldBounds.Min.X, oldBounds.Max.X, worldPoint.X);
-        double tY = Unit.InverseLerp(oldBounds.Min.Y, oldBounds.Max.Y, worldPoint.Y);
-
-        return transform.InverseApply(new Unit2D(Unit.Lerp(newBounds.Min.X, newBounds.Max.X, tX),
-                                                 Unit.Lerp(newBounds.Min.Y, newBounds.Max.Y, tY)));
     }
 
     public Unit2D CalculateMidpoint()

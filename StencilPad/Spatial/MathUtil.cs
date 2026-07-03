@@ -229,4 +229,18 @@ public static class MathUtil
         
         return offset.NormalizedTo(offset.Magnitude * strength);
     }
+
+    public static Unit2D RemapPoint(Unit2D localPoint,
+                                    UnitBounds oldBounds,
+                                    UnitBounds newBounds,
+                                    UnitTransform transform)
+    {
+        var worldPoint = transform.Apply(localPoint);
+        
+        double tX = Unit.InverseLerp(oldBounds.Min.X, oldBounds.Max.X, worldPoint.X);
+        double tY = Unit.InverseLerp(oldBounds.Min.Y, oldBounds.Max.Y, worldPoint.Y);
+
+        return transform.InverseApply(new Unit2D(Unit.Lerp(newBounds.Min.X, newBounds.Max.X, tX),
+                                                 Unit.Lerp(newBounds.Min.Y, newBounds.Max.Y, tY)));
+    }
 }

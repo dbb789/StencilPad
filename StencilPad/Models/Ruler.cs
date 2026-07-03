@@ -126,8 +126,10 @@ public class Ruler : SheetElement<Ruler>
 
     public override void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform)
     {
-        _minMaxHandleSource.Min = transform.InverseApply(newBounds.Min);
-        _minMaxHandleSource.Max = transform.InverseApply(newBounds.Max);
+        var oldBounds = GetTransformedBounds(transform);
+        
+        _minMaxHandleSource.Min = MathUtil.RemapPoint(_minMaxHandleSource.Min, oldBounds, newBounds, transform);
+        _minMaxHandleSource.Max = MathUtil.RemapPoint(_minMaxHandleSource.Max, oldBounds, newBounds, transform);
     }
 
     public override void AssignFrom(Ruler other)
