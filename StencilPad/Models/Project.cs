@@ -9,6 +9,7 @@ public class Project : INotifyPropertyChanged
     public IEnumerable<Sheet> Sheets => _sheets.Values;
     
     private Dictionary<Guid, Sheet> _sheets;
+    private Dictionary<Type, ISheetElement> _defaultElements;
 
     public event Action<Sheet>? SheetAdded;
     public event Action<Sheet>? SheetRemoved;
@@ -103,6 +104,29 @@ public class Project : INotifyPropertyChanged
     public Project()
     {
         _sheets = [];
+        _defaultElements = [];
+    }
+
+    public void GetElementStyle<T>(T target) where T : class, ISheetElement, new()
+    {
+        if (!_defaultElements.TryGetValue(typeof(T), out var stored))
+        {
+            stored = new T();
+            _defaultElements[typeof(T)] = stored;
+        }
+        
+        target.AssignStyleFromElement(stored);
+    }
+
+    public void SetElementStyle<T>(T source) where T : class, ISheetElement, new()
+    {
+        if (!_defaultElements.TryGetValue(typeof(T), out var stored))
+        {
+            stored = new T();
+            _defaultElements[typeof(T)] = stored;
+        }
+
+        stored.AssignStyleFromElement(source);
     }
 
     public bool TryGetSheet(Guid guid, out Sheet sheet)

@@ -12,6 +12,7 @@ public class MarkerPathTool : ITool
 {
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
+                         ISettings Settings,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
                          Factory<LineToolOverlay<MarkerPath>> OverlayFactory) : IToolFactory
@@ -21,12 +22,18 @@ public class MarkerPathTool : ITool
 
         public ITool Create(IToolButton button)
         {
-            return new MarkerPathTool(Sheet, OverlayContainer, UnitSnapOverlay, OperationService, OverlayFactory);
+            return new MarkerPathTool(Sheet,
+                                      OverlayContainer,
+                                      Settings,
+                                      UnitSnapOverlay,
+                                      OperationService,
+                                      OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
+    private readonly ISettings _settings;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
     private readonly Factory<LineToolOverlay<MarkerPath>> _overlayFactory;
@@ -34,12 +41,14 @@ public class MarkerPathTool : ITool
 
     private MarkerPathTool(Sheet sheet,
                            OverlayContainer overlayContainer,
+                           ISettings settings,
                            IUnitSnapOverlay unitSnapOverlay,
                            IOperationService operationService,
                            Factory<LineToolOverlay<MarkerPath>> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
+        _settings = settings;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -75,8 +84,10 @@ public class MarkerPathTool : ITool
 
     private void PolygonCompleted(Polygon polygon)
     {
-        _operationService.Push(
-            new AddSheetElementOperation(_sheet.Id,
-                                         new MarkerPath(polygon)));
+        var element = new MarkerPath(polygon);
+        
+        _settings.GetElementStyle(element);
+
+        _operationService.Push( new AddSheetElementOperation(_sheet.Id, element));
     }
 }

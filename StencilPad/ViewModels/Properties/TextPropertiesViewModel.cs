@@ -16,14 +16,7 @@ public class TextPropertiesViewModel : ElementPropertiesViewModel<TextElement>
         set
         {
             _color = value;
-            
-            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
-
-            foreach (var element in Elements)
-            {
-                element.Color = value;
-            }
-
+            SetElementProperty(e => e.Color = value);
             OnPropertyChanged();
         }
     }
@@ -35,14 +28,7 @@ public class TextPropertiesViewModel : ElementPropertiesViewModel<TextElement>
         set
         {
             _fontName = value;
-            
-            using var context = _operationService.CreateEditContext(_sheet, Elements);
-
-            foreach (var element in Elements)
-            {
-                element.FontName = value;
-            }
-
+            SetElementProperty(e => e.FontName = value);
             OnPropertyChanged();
         }
     }
@@ -54,36 +40,24 @@ public class TextPropertiesViewModel : ElementPropertiesViewModel<TextElement>
         set
         {
             _fontSize = value;
-            
-            using var context = _operationService.CreateEditContext(_sheet, Elements);
-
-            foreach (var element in Elements)
-            {
-                element.FontSize = value;
-            }
-
+            SetElementProperty(e => e.FontSize = value);
             OnPropertyChanged();
         }
     }
     
-    private readonly Sheet _sheet;
-    private readonly IOperationService _operationService;
     private IDisposable? _dragContext;
 
     public TextPropertiesViewModel(Sheet sheet,
                                    ISettings settings,
                                    IOperationService operationService)
-        : base(sheet, settings)
+        : base(sheet, operationService, settings)
     {
-        _sheet = sheet;
-        _operationService = operationService;
-
         OnElementsChanged();
     }
     
     public void DragBegin()
     {
-        _dragContext = _operationService.CreateEditContext(_sheet, Elements);
+        _dragContext = OperationService.CreateEditContext(Sheet, Elements);
     }
 
     public void DragEnd()

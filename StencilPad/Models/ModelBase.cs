@@ -14,11 +14,6 @@ public abstract class ModelBase : INotifyPropertyChanged
         Id = Guid.NewGuid();
     }
 
-    public void NewId()
-    {
-        Id = Guid.NewGuid();
-    }
-    
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

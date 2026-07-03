@@ -17,14 +17,7 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _spacing = value;
-            
-            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
-
-            foreach (var markerPath in Elements)
-            {
-                markerPath.Spacing = value;
-            }
-
+            SetElementProperty(e => e.Spacing = value);
             OnPropertyChanged();
         }
     }
@@ -36,14 +29,7 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _offset = value;
-            
-            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
-
-            foreach (var markerPath in Elements)
-            {
-                markerPath.Offset = value;
-            }
-
+            SetElementProperty(e => e.Offset = value);
             OnPropertyChanged();
         }
     }
@@ -55,14 +41,7 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _markerColor = value;
-            
-            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
-
-            foreach (var markerPath in Elements)
-            {
-                markerPath.MarkerColor = value;
-            }
-
+            SetElementProperty(e => e.MarkerColor = value);
             OnPropertyChanged();
         }
     }
@@ -74,14 +53,7 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _lineWidth = value;
-            
-            using var context = _operationService.CreateEditContext(_sheet, Elements);
-
-            foreach (var shape in Elements)
-            {
-                shape.LineWidth = value;
-            }
-
+            SetElementProperty(e => e.LineWidth = value);
             OnPropertyChanged();
         }
     }
@@ -93,14 +65,7 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _lineColor = value;
-            
-            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
-
-            foreach (var markerPath in Elements)
-            {
-                markerPath.LineColor = value;
-            }
-
+            SetElementProperty(e => e.LineColor = value);
             OnPropertyChanged();
         }
     }
@@ -112,22 +77,13 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         set
         {
             _markerTypeIndex = value;
-            
-            using var context = _operationService.CreateEditContext(_sheet, Elements);
-
-            foreach (var markerPath in Elements)
-            {
-                markerPath.MarkerType = _markerTypeIds[value];
-            }
-
+            SetElementProperty(e => e.MarkerType = _markerTypeIds[value]);
             OnPropertyChanged();
         }
     }
 
     public IReadOnlyList<GeometryResourceId> MarkerTypeIds => _markerTypeIds;
-    
-    private readonly Sheet _sheet;
-    private readonly IOperationService _operationService;
+
     private List<GeometryResourceId> _markerTypeIds;
     private IDisposable? _dragContext;
 
@@ -135,11 +91,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
                                          ISettings settings,
                                          IResourceService resourceService,
                                          IOperationService operationService)
-        : base(sheet, settings)
+        : base(sheet, operationService, settings)
     {
-        _sheet = sheet;
-        _operationService = operationService;
-
         _markerTypeIds = new(resourceService.GetGeometryResourceIds(GeometryResourceType.Marker));
         
         OnElementsChanged();
@@ -147,7 +100,7 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
     
     public void DragBegin()
     {
-        _dragContext = _operationService.CreateEditContext(_sheet, Elements);
+        _dragContext = OperationService.CreateEditContext(Sheet, Elements);
     }
 
     public void DragEnd()

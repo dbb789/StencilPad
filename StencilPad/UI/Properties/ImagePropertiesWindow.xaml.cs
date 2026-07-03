@@ -1,4 +1,3 @@
-using System;
 using System.Windows;
 using StencilPad.Common;
 using StencilPad.Models;

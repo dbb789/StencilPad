@@ -172,14 +172,4 @@ public class ElementGroup : SheetElement<ElementGroup>
 
         ChildrenChanged?.Invoke();
     }
-
-    public override ISheetElement DeepClone()
-    {
-        var clone = new ElementGroup();
-
-        clone.Id = Id;
-        clone.AssignFrom(this);
-
-        return clone;
-    }
 }

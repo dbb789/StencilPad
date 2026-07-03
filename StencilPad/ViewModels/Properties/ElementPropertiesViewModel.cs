@@ -1,12 +1,13 @@
 using System.Collections.Specialized;
 using StencilPad.Common;
 using StencilPad.Models;
+using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.ViewModels.Properties;
 
 public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDisposable
-    where TElement : ISheetElement
+    where TElement : class, ISheetElement, new()
 {
     private bool _hasElements;
     public bool HasElements
@@ -20,16 +21,24 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
     }
     
     public UnitSettings UnitSettings => _settings.UnitSettings;
+    protected Sheet Sheet => _sheet;
+    protected IOperationService OperationService => _operationService;
     protected IEnumerable<TElement> Elements => _elements;
 
     private readonly Sheet _sheet;
+    private readonly IOperationService _operationService;
     private readonly ISettings _settings;
+    private readonly TElement _defaults;
     private readonly List<TElement> _elements;
 
-    protected ElementPropertiesViewModel(Sheet sheet, ISettings settings)
+    protected ElementPropertiesViewModel(Sheet sheet,
+                                         IOperationService operationService,
+                                         ISettings settings)
     {
         _sheet = sheet;
+        _operationService = operationService;
         _settings = settings;
+        _defaults = new();
         _elements = _sheet.Selection.OfType<TElement>().ToList();
 
         HasElements = _elements.Count > 0;
@@ -75,6 +84,20 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
         // ...
     }
 
+    protected void SetElementProperty(Action<TElement> setter)
+    {
+        using var context = _operationService.TryCreateEditContext(_sheet, _elements);
+        
+        foreach (var element in _elements)
+        {
+            setter?.Invoke(element);
+        }
+
+        _settings.GetElementStyle(_defaults);
+        setter?.Invoke(_defaults);
+        _settings.SetElementStyle(_defaults);
+    }
+    
     protected T? Mode<T>(Func<TElement, T> selector) where T : notnull
     {
         var map = new Dictionary<T, int>();

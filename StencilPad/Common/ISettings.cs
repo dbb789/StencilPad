@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using StencilPad.Models;
 using StencilPad.Spatial;
 
 namespace StencilPad.Common;
@@ -24,4 +25,7 @@ public interface ISettings
     Unit GridSpacing { get; }
     int GridSubdivisions { get; }
     double GridMinSpacingPx { get; }
+
+    void GetElementStyle<T>(T target) where T : class, ISheetElement, new();
+    void SetElementStyle<T>(T source) where T : class, ISheetElement, new();
 }

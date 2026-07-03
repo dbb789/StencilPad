@@ -94,20 +94,12 @@ public class ImageElement : SheetElement<ImageElement>
 
     public override void AssignFrom(ImageElement other)
     {
+        base.AssignFrom(other);
+        
         _boundsHandleSource.AssignFrom(other._boundsHandleSource);
 
         Transform = other.Transform;
         ImageData = other.ImageData;
         Opacity = other.Opacity;
-    }
-
-    public override ImageElement DeepClone()
-    {
-        var clone = new ImageElement();
-        
-        clone.Id = Id;
-        clone.AssignFrom(this);
-        
-        return clone;
     }
 }

@@ -178,9 +178,16 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 
     public override void AssignFrom(MarkerPath other)
     {
-        _singlePolygon.AssignFrom(other._singlePolygon);
+        base.AssignFrom(other);
         
-        Transform = other.Transform;
+        _singlePolygon.AssignFrom(other._singlePolygon);
+        AssignStyleFrom(other);
+    }
+
+    public override void AssignStyleFrom(MarkerPath other)
+    {
+        base.AssignFrom(other);
+        
         Spacing = other.Spacing;
         Offset = other.Offset;
         Balanced = other.Balanced;
@@ -189,17 +196,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         LineColor = other.LineColor;
         LineWidth = other.LineWidth;
     }
-
-    public override MarkerPath DeepClone()
-    {
-        var clone = new MarkerPath();
-
-        clone.Id = Id;
-        clone.AssignFrom(this);
-        
-        return clone;
-    }
-
+    
     private void UpdateGeometry()
     {
         _pointList.GeneratePoints(Polygon, Spacing, Offset, Balanced);

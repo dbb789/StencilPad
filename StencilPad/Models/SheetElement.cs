@@ -2,10 +2,14 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Models;
 
-public abstract class SheetElement<TSelf> : SheetElement where TSelf : SheetElement<TSelf>
+public abstract class SheetElement<TSelf> : SheetElement where TSelf : SheetElement<TSelf>, new()
 {
-    public abstract void AssignFrom(TSelf other);
-
+    public virtual void AssignFrom(TSelf other)
+    {
+        Id = other.Id;
+        Transform = other.Transform;
+    }
+    
     public override void AssignFromElement(ISheetElement other)
     {
         if (other is not TSelf tOther)
@@ -14,6 +18,30 @@ public abstract class SheetElement<TSelf> : SheetElement where TSelf : SheetElem
         }
 
         AssignFrom(tOther);
+    }
+    
+    public virtual void AssignStyleFrom(TSelf other)
+    {
+        // ...
+    }
+    
+    public override void AssignStyleFromElement(ISheetElement other)
+    {
+        if (other is not TSelf tOther)
+        {
+            throw new ArgumentException($"Expected element of type {typeof(TSelf).Name} but got {other.GetType().Name}");
+        }
+
+        AssignStyleFrom(tOther);
+    }
+
+    public override TSelf DeepClone()
+    {
+        var clone = new TSelf();
+
+        clone.AssignFrom((this as TSelf)!);
+        
+        return clone;
     }
 }
 
@@ -143,6 +171,7 @@ public abstract class SheetElement : ModelBase, ISheetElement
     public abstract UnitBounds GetTransformedBounds(UnitTransform transform);
     public abstract void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform);
     public abstract void AssignFromElement(ISheetElement other);
+    public abstract void AssignStyleFromElement(ISheetElement other);
     public abstract ISheetElement DeepClone();
 
     protected virtual void OnTransformChanged()

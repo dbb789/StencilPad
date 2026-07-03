@@ -148,23 +148,20 @@ public class TextElement : SheetElement<TextElement>
 
     public override void AssignFrom(TextElement other)
     {
-        _boundsHandleSource.AssignFrom(other._boundsHandleSource);
+        base.AssignFrom(other);
 
-        Transform = other.Transform;
+        _boundsHandleSource.AssignFrom(other._boundsHandleSource);
         Text = other.Text;
+        AssignStyleFrom(other);
+    }
+
+    public override void AssignStyleFrom(TextElement other)
+    {
+        base.AssignStyleFrom(other);
+
         FontName = other.FontName;
         FontSize = other.FontSize;
         Justification = other.Justification;
         Color = other.Color;
-    }
-
-    public override TextElement DeepClone()
-    {
-        var clone = new TextElement();
-        
-        clone.Id = Id;
-        clone.AssignFrom(this);
-        
-        return clone;
     }
 }

@@ -132,21 +132,18 @@ public class Ruler : SheetElement<Ruler>
 
     public override void AssignFrom(Ruler other)
     {
+        base.AssignFrom(other);
+        
         _minMaxHandleSource.AssignFrom(other._minMaxHandleSource);
-        Transform = other.Transform;
+        AssignStyleFrom(other);
+    }
+
+    public override void AssignStyleFrom(Ruler other)
+    {
+        base.AssignStyleFrom(other);
         
         FontName = other.FontName;
         FontSize = other.FontSize;
         Color = other.Color;
-    }
-
-    public override Ruler DeepClone()
-    {
-        var clone = new Ruler();
-        
-        clone.Id = Id;
-        clone.AssignFrom(this);
-        
-        return clone;
     }
 }

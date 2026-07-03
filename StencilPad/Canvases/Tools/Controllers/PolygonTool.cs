@@ -1,4 +1,3 @@
-using System.Windows.Media;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
@@ -16,6 +15,7 @@ public abstract class PolygonTool<TOverlay, TSheetElement> : ITool
     
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
+    private readonly ISettings _settings;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
     private readonly Factory<TOverlay> _overlayFactory;
@@ -23,12 +23,14 @@ public abstract class PolygonTool<TOverlay, TSheetElement> : ITool
 
     protected PolygonTool(Sheet sheet,
                           OverlayContainer overlayContainer,
+                          ISettings settings,
                           IUnitSnapOverlay unitSnapOverlay,
                           IOperationService operationService,
                           Factory<TOverlay> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
+        _settings = settings;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -61,6 +63,10 @@ public abstract class PolygonTool<TOverlay, TSheetElement> : ITool
 
     private void PolygonCompleted(Polygon polygon)
     {
-        _operationService.Push(new AddSheetElementOperation(_sheet.Id, new Shape(polygon)));
+        var element = new Shape(polygon);
+
+        _settings.GetElementStyle(element);
+
+        _operationService.Push(new AddSheetElementOperation(_sheet.Id, element));
     }
 }

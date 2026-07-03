@@ -18,5 +18,6 @@ public interface ISheetElement : IHandleSource<ISheetElement>
     UnitBounds GetBounds();
     void SetTransformedBounds(UnitBounds newBounds, UnitTransform transform);
     void AssignFromElement(ISheetElement other);
+    void AssignStyleFromElement(ISheetElement other);
     ISheetElement DeepClone();
 }

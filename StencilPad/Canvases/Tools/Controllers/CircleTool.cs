@@ -10,6 +10,7 @@ public class CircleTool : PolygonTool<CircleToolOverlay<Shape>, Shape>
 {
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
+                         ISettings Settings,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
                          Factory<CircleToolOverlay<Shape>> OverlayFactory) : IToolFactory
@@ -20,20 +21,23 @@ public class CircleTool : PolygonTool<CircleToolOverlay<Shape>, Shape>
         public ITool Create(IToolButton button)
         {
             return new CircleTool(Sheet,
-                                OverlayContainer,
-                                UnitSnapOverlay,
-                                OperationService,
-                                OverlayFactory);
+                                  OverlayContainer,
+                                  Settings,
+                                  UnitSnapOverlay,
+                                  OperationService,
+                                  OverlayFactory);
         }
     }
 
     private CircleTool(Sheet sheet,
                        OverlayContainer overlayContainer,
+                       ISettings settings,
                        IUnitSnapOverlay unitSnapOverlay,
                        IOperationService operationService,
                        Factory<CircleToolOverlay<Shape>> overlayFactory)
         : base(sheet,
                overlayContainer,
+               settings,
                unitSnapOverlay,
                operationService,
                overlayFactory)

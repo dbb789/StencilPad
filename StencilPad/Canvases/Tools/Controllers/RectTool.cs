@@ -10,6 +10,7 @@ public class RectTool : PolygonTool<RectToolOverlay<Shape>, Shape>
 {
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
+                         ISettings Settings,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
                          Factory<RectToolOverlay<Shape>> OverlayFactory) : IToolFactory
@@ -21,6 +22,7 @@ public class RectTool : PolygonTool<RectToolOverlay<Shape>, Shape>
         {
             return new RectTool(Sheet,
                                 OverlayContainer,
+                                Settings,
                                 UnitSnapOverlay,
                                 OperationService,
                                 OverlayFactory);
@@ -29,11 +31,13 @@ public class RectTool : PolygonTool<RectToolOverlay<Shape>, Shape>
 
     private RectTool(Sheet sheet,
                      OverlayContainer overlayContainer,
+                     ISettings settings,
                      IUnitSnapOverlay unitSnapOverlay,
                      IOperationService operationService,
                      Factory<RectToolOverlay<Shape>> overlayFactory)
         : base(sheet,
                overlayContainer,
+               settings,
                unitSnapOverlay,
                operationService,
                overlayFactory)

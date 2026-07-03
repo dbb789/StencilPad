@@ -15,36 +15,24 @@ public class ImagePropertiesViewModel : ElementPropertiesViewModel<ImageElement>
         set
         {
             _opacity = value;
-
-            using var context = _operationService.TryCreateEditContext(_sheet, Elements);
-
-            foreach (var element in Elements)
-            {
-                element.Opacity = value;
-            }
-
+            SetElementProperty(e => e.Opacity = value);
             OnPropertyChanged();
         }
     }
 
-    private readonly Sheet _sheet;
-    private readonly IOperationService _operationService;
     private IDisposable? _dragContext;
 
     public ImagePropertiesViewModel(Sheet sheet,
                                     ISettings settings,
                                     IOperationService operationService)
-        : base(sheet, settings)
+        : base(sheet, operationService, settings)
     {
-        _sheet = sheet;
-        _operationService = operationService;
-
         OnElementsChanged();
     }
 
     public void DragBegin()
     {
-        _dragContext = _operationService.CreateEditContext(_sheet, Elements);
+        _dragContext = OperationService.CreateEditContext(Sheet, Elements);
     }
 
     public void DragEnd()

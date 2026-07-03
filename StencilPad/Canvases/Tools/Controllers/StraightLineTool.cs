@@ -10,6 +10,7 @@ public class StraightLineTool : PolygonTool<LineToolOverlay<Shape>, Shape>
 {
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
+                         ISettings Settings,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
                          Factory<LineToolOverlay<Shape>> OverlayFactory) : IToolFactory
@@ -21,6 +22,7 @@ public class StraightLineTool : PolygonTool<LineToolOverlay<Shape>, Shape>
         {
             return new StraightLineTool(Sheet,
                                         OverlayContainer,
+                                        Settings,
                                         UnitSnapOverlay,
                                         OperationService,
                                         OverlayFactory);
@@ -29,11 +31,13 @@ public class StraightLineTool : PolygonTool<LineToolOverlay<Shape>, Shape>
 
     public StraightLineTool(Sheet sheet,
                            OverlayContainer overlayContainer,
+                            ISettings settings,
                            IUnitSnapOverlay unitSnapOverlay,
                            IOperationService operationService,
                            Factory<LineToolOverlay<Shape>> overlayFactory)
         : base(sheet,
                overlayContainer,
+               settings,
                unitSnapOverlay,
                operationService,
                overlayFactory)

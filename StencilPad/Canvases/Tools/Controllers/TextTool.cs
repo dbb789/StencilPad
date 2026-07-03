@@ -11,6 +11,7 @@ public class TextTool : ITool
 {
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
+                         ISettings Settings,
                          IUnitSnapOverlay UnitSnapOverlay,
                          IOperationService OperationService,
                          Factory<TextToolOverlay> OverlayFactory) : IToolFactory
@@ -20,12 +21,18 @@ public class TextTool : ITool
 
         public ITool Create(IToolButton button)
         {
-            return new TextTool(Sheet, OverlayContainer, UnitSnapOverlay, OperationService, OverlayFactory);
+            return new TextTool(Sheet,
+                                OverlayContainer,
+                                Settings,
+                                UnitSnapOverlay,
+                                OperationService,
+                                OverlayFactory);
         }
     }
 
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
+    private readonly ISettings _settings;
     private readonly IUnitSnapOverlay _unitSnapOverlay;
     private readonly IOperationService _operationService;
     private readonly Factory<TextToolOverlay> _overlayFactory;
@@ -33,12 +40,14 @@ public class TextTool : ITool
 
     private TextTool(Sheet sheet,
                      OverlayContainer overlayContainer,
+                     ISettings settings,
                      IUnitSnapOverlay unitSnapOverlay,
                      IOperationService operationService,
                      Factory<TextToolOverlay> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
+        _settings = settings;
         _unitSnapOverlay = unitSnapOverlay;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -76,6 +85,8 @@ public class TextTool : ITool
     {
         var element = new TextElement(bounds, text);
 
+        _settings.GetElementStyle(element);
+        
         _operationService.Push(new AddSheetElementOperation(_sheet.Id, element));
     }
 

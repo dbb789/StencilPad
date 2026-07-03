@@ -195,24 +195,19 @@ public class Shape : SheetElement<Shape>, IPolygonSheetElement
 
     public override void AssignFrom(Shape other)
     {
+        base.AssignFrom(other);
+        
         _polygonList.AssignFrom(other._polygonList);
+        AssignStyleFrom(other);
+    }
 
-        Transform = other.Transform;
+    public override void AssignStyleFrom(Shape other)
+    {
         FillColor = other.FillColor;
         LineColor = other.LineColor;
         LineWidth = other.LineWidth;
         LineStyle = other.LineStyle;
         StartCap = other.StartCap;
         EndCap = other.EndCap;
-    }
-    
-    public override Shape DeepClone()
-    {
-        var clone = new Shape();
-
-        clone.Id = Id;
-        clone.AssignFrom(this);
-        
-        return clone;
     }
 }

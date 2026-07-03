@@ -52,6 +52,16 @@ public class SettingsService : ISettings
     
     public double GridMinSpacingPx => _appConfigService.Config.GridMinSpacingPx;
 
+    public void GetElementStyle<T>(T target) where T : class, ISheetElement, new()
+    {
+        _project?.GetElementStyle(target);
+    }
+
+    public void SetElementStyle<T>(T source) where T : class, ISheetElement, new()
+    {
+        _project?.SetElementStyle(source);
+    }
+
     private readonly IAppConfigService _appConfigService;
     
     public event Action? Changed;
