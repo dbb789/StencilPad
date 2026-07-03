@@ -186,7 +186,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
 
     public override void AssignStyleFrom(MarkerPath other)
     {
-        base.AssignFrom(other);
+        base.AssignStyleFrom(other);
         
         Spacing = other.Spacing;
         Offset = other.Offset;
