@@ -15,6 +15,7 @@ public class ProjectSchema
     public int GridSubdivisionsImperial { get; set; } = 4;
     
     public SheetSchema[] Sheets { get; set; } = [];
+    public SheetElementSchema[] Defaults { get; set; } = [];
 
     public static ProjectSchema Pack(Project project, int version)
     {
@@ -27,7 +28,11 @@ public class ProjectSchema
             GridSubdivisionsMetric = project.GridSubdivisionsMetric,
             GridSpacingImperial = project.GridSpacingImperial,
             GridSubdivisionsImperial = project.GridSubdivisionsImperial,
-            Sheets = project.Sheets.Select(SheetSchema.Pack).ToArray()
+            Sheets = project.Sheets.Select(SheetSchema.Pack).ToArray(),
+            Defaults = project.DefaultElements
+                              .Select(SheetElementSchema.Pack)
+                              .OfType<SheetElementSchema>()
+                              .ToArray()
         };
     }
 
@@ -41,7 +46,12 @@ public class ProjectSchema
         target.GridSubdivisionsMetric = data.GridSubdivisionsMetric;
         target.GridSpacingImperial = data.GridSpacingImperial;
         target.GridSubdivisionsImperial = data.GridSubdivisionsImperial;
-        
+
+        foreach (var defaultData in data.Defaults)
+        {
+            target.SetElementStyle(defaultData.Unpack());
+        }
+
         foreach (var sheetData in data.Sheets)
         {
             target.AddSheet(SheetSchema.Unpack(sheetData));

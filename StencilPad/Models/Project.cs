@@ -7,7 +7,8 @@ namespace StencilPad.Models;
 public class Project : INotifyPropertyChanged
 {
     public IEnumerable<Sheet> Sheets => _sheets.Values;
-    
+    public IEnumerable<ISheetElement> DefaultElements => _defaultElements.Values;
+
     private Dictionary<Guid, Sheet> _sheets;
     private Dictionary<Type, ISheetElement> _defaultElements;
 
@@ -124,6 +125,25 @@ public class Project : INotifyPropertyChanged
         {
             stored = new T();
             _defaultElements[typeof(T)] = stored;
+        }
+
+        stored.AssignStyleFromElement(source);
+    }
+
+    public void SetElementStyle(ISheetElement source)
+    {
+        var type = source.GetType();
+        
+        if (!_defaultElements.TryGetValue(type, out var stored))
+        {
+            stored = Activator.CreateInstance(type) as ISheetElement;
+            
+            if (stored is null)
+            {
+                throw new InvalidOperationException($"Could not create an instance of type {type.FullName}");
+            }
+            
+            _defaultElements[type] = stored;
         }
 
         stored.AssignStyleFromElement(source);
