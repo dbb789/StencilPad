@@ -94,8 +94,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
     {
         _settings.Changed -= SettingsChanged;
         
-        _sheetResolver.SelectionAdded += OnSelectionAdded;
-        _sheetResolver.SelectionRemoved += OnSelectionRemoved;
+        _sheetResolver.SelectionAdded -= OnSelectionAdded;
+        _sheetResolver.SelectionRemoved -= OnSelectionRemoved;
 
         foreach (var resolver in _sheetResolver.Selection)
         {
