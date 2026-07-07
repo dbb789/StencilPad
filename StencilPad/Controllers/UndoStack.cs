@@ -40,6 +40,7 @@ public class UndoStack
         _stack.Add(operation);
         ++_index;
 
+        // Clear out any operations that are above the capacity of the undo stack.
         while (_stack.Count > Capacity)
         {
             _stack.RemoveAt(0);
