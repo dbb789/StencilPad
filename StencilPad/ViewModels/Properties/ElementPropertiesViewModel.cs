@@ -87,7 +87,7 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
     protected void SetElementProperty(Action<TElement> setter)
     {
         using var context = _operationService.TryCreateEditContext(_sheet, _elements);
-        
+
         foreach (var element in _elements)
         {
             setter?.Invoke(element);

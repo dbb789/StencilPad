@@ -56,12 +56,9 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
 
             if (_minX is not null)
             {
-                foreach (var element in Elements)
-                {
-                    element.Min = element.Min with { X = _minX.Value };
-                }
+                SetElementProperty(e => e.Min = e.Min with { X = _minX.Value });
             }
-
+            
             OnPropertyChanged();
         }
     }
@@ -74,15 +71,11 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
         {
             _minY = value;
 
-
             if (_minY is not null)
             {
-                foreach (var element in Elements)
-                {
-                    element.Min = element.Min with { Y = _minY.Value };
-                }
+                SetElementProperty(e => e.Min = e.Min with { Y = _minY.Value });
             }
-
+            
             OnPropertyChanged();
         }
     }
@@ -97,10 +90,7 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
 
             if (_maxX is not null)
             {
-                foreach (var element in Elements)
-                {
-                    element.Max = element.Max with { X = _maxX.Value };
-                }
+                SetElementProperty(e => e.Max = e.Max with { X = _maxX.Value });
             }
 
             OnPropertyChanged();
@@ -117,12 +107,9 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
 
             if (_maxY is not null)
             {
-                foreach (var element in Elements)
-                {
-                    element.Max = element.Max with { Y = _maxY.Value };
-                }
+                SetElementProperty(e => e.Max = e.Max with { Y = _maxY.Value });
             }
-
+            
             OnPropertyChanged();
         }
     }
@@ -142,7 +129,7 @@ public class RulerPropertiesViewModel : ElementPropertiesViewModel<Ruler>
                     var offset = element.Max - element.Min;
 
                     element.Max = element.Min + offset.NormalizedTo(_length.Value);
-                }
+                }   
             }
             
             OnPropertyChanged();
