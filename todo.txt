@@ -1,5 +1,4 @@
 Confirm exit without save
-Emacs-style undo stack
 Rulers don't always render correctly in SVG
 Include ruler label in bounds?
 Text editing still flaky

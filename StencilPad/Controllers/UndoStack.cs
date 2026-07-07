@@ -18,12 +18,25 @@ public class UndoStack
     
     public void Push(IOperation operation)
     {
-        // Clear redo operations - this is a simple list and not a tree.
-        for (var i = _stack.Count - 1; i > _index; --i)
+        // If the index isn't at the top of the undo stack, we're in the middle
+        // of a set of undo operations.
+        if (_index < _stack.Count - 1)
         {
-            _stack.RemoveAt(i);
+            // Take the existing upper section of the undo stack above the index,
+            // reverse the order and invert it so that we don't lose any history
+            // (emacs-style implementation).
+            var redoOperations = _stack.GetRange(_index + 1, _stack.Count - _index - 1);
+
+            for (var i = redoOperations.Count - 1; i >= 0; --i)
+            {
+                _stack.Add(redoOperations[i].Invert());
+            }
         }
         
+        // Now set the index to the top of the undo stack.
+        _index = _stack.Count - 1;
+
+        // And push the new operation.
         _stack.Add(operation);
         ++_index;
 
