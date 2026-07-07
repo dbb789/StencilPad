@@ -80,6 +80,18 @@ public class AppController
         NewProject();
     }
 
+    public bool ConfirmClose()
+    {
+        if (_undoStack.SaveState)
+        {
+            return true;
+        }
+
+        return _dialogService.ShowConfirmation(
+            "You have unsaved changes. Are you sure you want to close without saving?",
+            "Unsaved Changes");
+    }
+
     private void NewProject()
     {
         _undoStack.Clear();

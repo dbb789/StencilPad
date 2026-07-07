@@ -27,7 +27,17 @@ public partial class App : Application
         ConfigureServices(services, mainWindow, viewModel, project);
         
         ServiceProvider = services.BuildServiceProvider();
-        ServiceProvider.GetRequiredService<AppController>().Initialize();
+        
+        var appController = ServiceProvider.GetRequiredService<AppController>();
+        appController.Initialize();
+
+        mainWindow.Closing += (_, e) =>
+        {
+            if (!appController.ConfirmClose())
+            {
+                e.Cancel = true;
+            }
+        };
         
         mainWindow.Show();
     }
