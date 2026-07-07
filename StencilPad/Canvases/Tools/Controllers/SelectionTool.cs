@@ -14,8 +14,10 @@ public class SelectionTool : ITool
 {
     public class Factory(Sheet Sheet,
                          OverlayContainer OverlayContainer,
+                         ISettings Settings,
                          IRubberBand RubberBand,
                          SheetResolver SheetResolver,
+                         IHintService HintService,
                          IModelPropertiesService ModelPropertiesService,
                          IOperationService OperationService,
                          Factory<SelectionToolOverlay> OverlayFactory) : IToolFactory
@@ -27,8 +29,10 @@ public class SelectionTool : ITool
         {
             return new SelectionTool(Sheet,
                                      OverlayContainer,
+                                     Settings,
                                      RubberBand,
                                      SheetResolver,
+                                     HintService,
                                      ModelPropertiesService,
                                      OperationService,
                                      OverlayFactory);
@@ -37,8 +41,10 @@ public class SelectionTool : ITool
 
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
+    private readonly ISettings _settings;
     private readonly IRubberBand _rubberBand;
     private readonly SheetResolver _sheetResolver;
+    private readonly IHintService _hintService;
     private readonly IModelPropertiesService _modelPropertiesService;
     private readonly IOperationService _operationService;
     private readonly Factory<SelectionToolOverlay> _overlayFactory;
@@ -52,16 +58,20 @@ public class SelectionTool : ITool
     
     private SelectionTool(Sheet sheet,
                           OverlayContainer overlayContainer,
+                          ISettings settings,
                           IRubberBand rubberBand,
                           SheetResolver sheetResolver,
+                          IHintService hintService,
                           IModelPropertiesService modelPropertiesService,
                           IOperationService operationService,
                           Factory<SelectionToolOverlay> overlayFactory)
     {
         _sheet = sheet;
         _overlayContainer = overlayContainer;
+        _settings = settings;
         _rubberBand = rubberBand;
         _sheetResolver = sheetResolver;
+        _hintService = hintService;
         _modelPropertiesService = modelPropertiesService;
         _operationService = operationService;
         _overlayFactory = overlayFactory;
@@ -97,7 +107,8 @@ public class SelectionTool : ITool
     public void ToolEnd()
     {
         _operationService.FlushEditContext();
-        
+        _hintService.ClearHint();
+
         _rubberBand.IsActive = false;
 
         _overlayContainer.ActiveOverlay = null;
@@ -210,18 +221,21 @@ public class SelectionTool : ITool
         StartEditContext();
     }
     
-    private void SelectionDragged(Unit2D delta)
+    private void SelectionDragged(Unit2D totalDelta, Unit2D delta)
     {
         foreach (var selected in _sheet.Selection)
         {
             selected.Transform = selected.Transform with
                 { Position = selected.Transform.Position + delta };
         }
+
+        _hintService.SetHint($"Move: {UnitUtil.FormatSuffixScaled(totalDelta.X, _settings.UnitSettings)}, {UnitUtil.FormatSuffixScaled(totalDelta.Y, _settings.UnitSettings)}");
     }
     
     private void SelectionDragEnded()
     {
         FlushEditContext();
+        _hintService.ClearHint();
     }
 
     ////////////////////////////////////////
@@ -238,8 +252,20 @@ public class SelectionTool : ITool
         }
     }
 
-    private void SelectionResized(Unit2D seDelta)
+    private void SelectionResized(ISheetElement draggedElement, Unit2D seDelta)
     {
+        // Clamp resize at minimum for all elements for sanity.
+        foreach (var selected in _sheet.Selection)
+        {
+            if (!_resizeInitialBounds.TryGetValue(selected, out var initialBounds))
+            {
+                continue;
+            }
+
+            seDelta = new Unit2D(Unit.Max(Unit.FromMillimeters(0.1) - initialBounds.Size.X, seDelta.X),
+                                 Unit.Min(initialBounds.Size.Y - Unit.FromMillimeters(0.1), seDelta.Y));
+        }
+
         foreach (var selected in _sheet.Selection)
         {
             if (!_resizeInitialBounds.TryGetValue(selected, out var initialBounds))
@@ -253,11 +279,16 @@ public class SelectionTool : ITool
 
             selected.SetTransformedBounds(newBounds, selected.Transform);
         }
+
+        var size = draggedElement.GetBounds().Size;
+        
+        _hintService.SetHint($"Resize: {UnitUtil.FormatSuffixScaled(size.X, _settings.UnitSettings)} x {UnitUtil.FormatSuffixScaled(size.Y, _settings.UnitSettings)}");
     }
     
     private void SelectionResizeEnded()
     {
         FlushEditContext();
+        _hintService.ClearHint();
     }
 
     ////////////////////////////////////////
@@ -275,7 +306,7 @@ public class SelectionTool : ITool
         }
     }
 
-    private void SelectionRotated(double deltaRadians)
+    private void SelectionRotated(double totalRadians, double deltaRadians)
     {
         _rotateAccumulatedAngle += (decimal)(deltaRadians * (180.0 / Math.PI));
 
@@ -294,11 +325,14 @@ public class SelectionTool : ITool
             selected.Transform = selected.Transform with
                 { Angle = selected.Transform.Angle + effectiveDelta };
         }
+
+        _hintService.SetHint($"Rotate: {totalRadians * MathUtil.Rad2Deg:0.##}°");
     }
 
     private void SelectionRotateEnded()
     {
         FlushEditContext();
+        _hintService.ClearHint();
     }
 
     ////////////////////////////////////////

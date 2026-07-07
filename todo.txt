@@ -1,5 +1,4 @@
 Confirm exit without save
-Review multi-selection resizing behaviour
 Per-tab undo stack / emacs-style undo stack
 Rulers don't always render correctly in SVG
 Include ruler label in bounds?
