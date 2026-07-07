@@ -5,7 +5,6 @@ using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
-using StencilPad.Services;
 using StencilPad.Spatial;
 using System.Windows;
 using System.Windows.Controls;

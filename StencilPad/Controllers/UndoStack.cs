@@ -5,17 +5,31 @@ namespace StencilPad.Controllers;
 
 public class UndoStack
 {
+    public bool SaveState => _saveState;
+    
     private const int Capacity = 100;
     
     private List<IOperation> _stack;
     private int _index;
-
+    private int _saveIndex;
+    private bool _saveState;
+    
+    public event Action? SaveStateChanged;
+    
     public UndoStack()
     {
         _stack = new(16);
         _index = -1;
+        _saveIndex = -1;
     }
-    
+
+    public void MarkSavePoint()
+    {
+        _saveIndex = _index;
+
+        UpdateSaveState();
+    }
+
     public void Push(IOperation operation)
     {
         // If the index isn't at the top of the undo stack, we're in the middle
@@ -45,7 +59,10 @@ public class UndoStack
         {
             _stack.RemoveAt(0);
             --_index;
+            --_saveIndex;
         }
+        
+        UpdateSaveState();
     }
 
     public void Undo(Project project, out Sheet? targetSheet)
@@ -60,6 +77,8 @@ public class UndoStack
         _stack[_index].Invert().Execute(project, out targetSheet);
         
         --_index;
+        
+        UpdateSaveState();
     }
 
     public void Redo(Project project, out Sheet? targetSheet)
@@ -74,11 +93,27 @@ public class UndoStack
         ++_index;
         
         _stack[_index].Execute(project, out targetSheet);
+        
+        UpdateSaveState();
     }
 
     public void Clear()
     {
         _stack.Clear();
         _index = -1;
+        _saveIndex = -1;
+
+        UpdateSaveState();
+    }
+
+    private void UpdateSaveState()
+    {
+        var newSaveState = _index == _saveIndex;
+        
+        if (_saveState != newSaveState)
+        {
+            _saveState = newSaveState;
+            SaveStateChanged?.Invoke();
+        }
     }
 }

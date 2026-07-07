@@ -68,6 +68,7 @@ public class AppController
         _viewModel.ExportSvgCommand = new RelayCommand(ExportSvg);
         _viewModel.ExportPngCommand = new RelayCommand(ExportPng);
 
+        _undoStack.SaveStateChanged += UpdateTitle;
         _operationService.OperationPushed += PushOperation;
 
         _project.SheetAdded += SheetAdded;
@@ -119,6 +120,7 @@ public class AppController
         try
         {
             await _fileService.SaveAsync(_project, _currentFilePath);
+            _undoStack.MarkSavePoint();
         }
         catch (FileServiceException ex)
         {
@@ -135,6 +137,7 @@ public class AppController
             if (path is not null)
             {
                 SetCurrentFilePath(path);
+                _undoStack.MarkSavePoint();
             }
         }
         catch (FileServiceException ex)
@@ -437,8 +440,20 @@ public class AppController
     private void SetCurrentFilePath(string? path)
     {
         _currentFilePath = path;
-        _viewModel.Title = path is not null
-            ? $"{System.IO.Path.GetFileName(path)} - StencilPad"
+        UpdateTitle();
+    }
+
+    private void UpdateTitle()
+    {
+        var title = _currentFilePath is not null
+            ? $"{System.IO.Path.GetFileName(_currentFilePath)} - StencilPad"
             : "StencilPad";
+
+        if (!_undoStack.SaveState)
+        {
+            title += " *";
+        }
+
+        _viewModel.Title = title;
     }
 }
