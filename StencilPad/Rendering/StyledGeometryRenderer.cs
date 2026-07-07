@@ -1,6 +1,5 @@
 using System.Windows.Media;
 using StencilPad.Models.Resolvers;
-using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Rendering;

@@ -233,7 +233,6 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
 
                 var size = Unit2D.Abs(targetSE - _resizeInitialNW);
 
-
                 SelectionResized?.Invoke(_resizeDragState.DraggedElement, targetSE - _resizeInitialSE);
                 e.Handled = true;
             }

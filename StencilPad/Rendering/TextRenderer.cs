@@ -30,7 +30,7 @@ public class TextRenderer : ITextWalker, IWalkerRenderer
     {
         _transform = Transform.Identity;
         _style = new TextStyle();
-        _text = "";   
+        _text = "";
     }
 
     public void Dispose()

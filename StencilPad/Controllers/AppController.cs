@@ -293,7 +293,7 @@ public class AppController
 
         if (shouldExecute)
         {
-            operation.Execute(_project);
+            operation.Execute(_project, out var targetSheet);
         }
     }
 
@@ -305,7 +305,9 @@ public class AppController
             return;
         }
         
-        _undoStack.Undo(_project);
+        _undoStack.Undo(_project, out var targetSheet);
+
+        SelectSheet(targetSheet);
     }
 
     private void Redo()
@@ -316,9 +318,26 @@ public class AppController
             return;
         }
 
-        _undoStack.Redo(_project);
+        _undoStack.Redo(_project, out var targetSheet);
+        
+        SelectSheet(targetSheet);
     }
 
+    private void SelectSheet(Sheet? sheet)
+    {
+        if (sheet is null)
+        {
+            return;
+        }
+        
+        var tab = _sheetTabs.FirstOrDefault(t => t.ViewModel.Sheet == sheet);
+
+        if (tab.ViewModel is not null)
+        {
+            _viewModel.SelectedTab = tab.ViewModel;
+        }
+    }
+    
     private void DeleteSelection()
     {
         var tab = _viewModel.SelectedTab;

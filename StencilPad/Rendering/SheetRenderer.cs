@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows.Media;
 using StencilPad.Common;
 using StencilPad.Models.Resolvers;
@@ -33,6 +34,11 @@ public class SheetRenderer : IDisposable
 
     public void Dispose()
     {
+        foreach (var modelResolver in _resolver.Elements)
+        {
+            OnElementRemoved(modelResolver);
+        }
+        
         _resolver.ElementAdded -= OnElementAdded;
         _resolver.ElementRemoved -= OnElementRemoved;
     }
@@ -60,6 +66,7 @@ public class SheetRenderer : IDisposable
     {
         if (!_renderers.TryGetValue(resolver, out var renderer))
         {
+            Debug.WriteLine("Could not find renderer for resolver");
             return;
         }
 

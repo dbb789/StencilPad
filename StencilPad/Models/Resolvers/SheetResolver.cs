@@ -1,7 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
+using System.Diagnostics;
 using StencilPad.Common;
-using StencilPad.Spatial;
 using System.Collections.Specialized;
 
 namespace StencilPad.Models.Resolvers;
@@ -42,6 +41,7 @@ public class SheetResolver : IDisposable
         {
             return CreateEnumerator();
         }
+        
         IEnumerator IEnumerable.GetEnumerator()
         {
             return CreateEnumerator();
@@ -58,8 +58,8 @@ public class SheetResolver : IDisposable
 
     private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
-    private Sheet? _sheet;
     private readonly OrderedDictionary<ISheetElement, ISheetElementResolver> _resolvers = new();
+    private Sheet? _sheet;
     private int _version;
 
     public event Action<ISheetElementResolver>? ElementAdded;
@@ -109,6 +109,16 @@ public class SheetResolver : IDisposable
 
         if (_sheet is not null)
         {
+            foreach (var element in _sheet.Selection)
+            {
+                RemoveSelection(element);
+            }
+
+            foreach (var element in _sheet.Elements)
+            {
+                RemoveResolver(element);
+            }
+            
             _sheet.Elements.CollectionChanged -= OnElementsChanged;
             _sheet.Selection.CollectionChanged -= OnSelectionChanged;
         }
@@ -126,13 +136,17 @@ public class SheetResolver : IDisposable
 
         if (_sheet is not null)
         {
-            _sheet.Elements.CollectionChanged += OnElementsChanged;
-
             foreach (var element in _sheet.Elements)
             {
                 AddResolver(element);
             }
 
+            foreach (var element in _sheet.Selection)
+            {
+                AddSelection(element);
+            }
+
+            _sheet.Elements.CollectionChanged += OnElementsChanged;
             _sheet.Selection.CollectionChanged += OnSelectionChanged;
         }
     }
@@ -170,10 +184,7 @@ public class SheetResolver : IDisposable
             {
                 if (item is ISheetElement element)
                 {
-                    if (_resolvers.TryGetValue(element, out var resolver))
-                    {
-                        SelectionRemoved?.Invoke(resolver);
-                    }
+                    RemoveSelection(element);
                 }
             }
         }
@@ -184,10 +195,7 @@ public class SheetResolver : IDisposable
             {
                 if (item is ISheetElement element)
                 {
-                    if (_resolvers.TryGetValue(element, out var resolver))
-                    {
-                        SelectionAdded?.Invoke(resolver);
-                    }
+                    AddSelection(element);
                 }
             }
         }
@@ -199,9 +207,10 @@ public class SheetResolver : IDisposable
 
         if (resolver is null)
         {
+            Debug.WriteLine($"Could not create resolver for element of type {element.GetType().Name}");
             return;
         }
-
+        
         if (index < 0)
         {
             index = _resolvers.Count;
@@ -222,8 +231,35 @@ public class SheetResolver : IDisposable
             _resolvers.Remove(element);
             
             ++_version;
-            
-            ElementRemoved?.Invoke(resolver);
+            ElementRemoved?.Invoke(resolver);            
+        }
+        else
+        {
+            Debug.WriteLine("Could not find resolver for element");
+        }
+    }
+
+    private void AddSelection(ISheetElement element)
+    {
+        if (_resolvers.TryGetValue(element, out var resolver))
+        {
+            SelectionAdded?.Invoke(resolver);
+        }
+        else
+        {
+            Debug.WriteLine("Could not find resolver for selected element");
+        }
+    }
+
+    private void RemoveSelection(ISheetElement element)
+    {
+        if (_resolvers.TryGetValue(element, out var resolver))
+        {
+            SelectionRemoved?.Invoke(resolver);
+        }
+        else
+        {
+            Debug.WriteLine("Could not find resolver for selected element");
         }
     }
 }

@@ -14,13 +14,14 @@ public abstract class SheetOperation
         SheetId = sheet.Id;
     }
 
-    public void Execute(Project project)
+    public void Execute(Project project, out Sheet? targetSheet)
     {
         if (!project.TryGetSheet(SheetId, out var sheet))
         {
             throw new OperationFailedException($"Sheet with id {SheetId} not found");
         }
-
+        
+        targetSheet = sheet;
         Execute(sheet);
     }
 

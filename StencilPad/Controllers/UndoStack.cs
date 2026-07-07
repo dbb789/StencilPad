@@ -34,20 +34,24 @@ public class UndoStack
         }
     }
 
-    public void Undo(Project project)
+    public void Undo(Project project, out Sheet? targetSheet)
     {
+        targetSheet = null;
+        
         if (_index < 0)
         {
             return;
         }
 
-        _stack[_index].Invert().Execute(project);
+        _stack[_index].Invert().Execute(project, out targetSheet);
         
         --_index;
     }
 
-    public void Redo(Project project)
+    public void Redo(Project project, out Sheet? targetSheet)
     {
+        targetSheet = null;
+        
         if (_index >= _stack.Count - 1)
         {
             return;
@@ -55,7 +59,7 @@ public class UndoStack
 
         ++_index;
         
-        _stack[_index].Execute(project);
+        _stack[_index].Execute(project, out targetSheet);
     }
 
     public void Clear()

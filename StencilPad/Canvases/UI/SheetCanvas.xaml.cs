@@ -110,7 +110,7 @@ namespace StencilPad.Canvases.UI
 
             _resolver = new SheetResolver(settings, resourceService);
             _renderer = new SheetRenderer(_resolver, settings, resourceService);
-            _rendererPanel = new SheetRenderPanel(_renderer,_viewport);
+            _rendererPanel = new SheetRenderPanel(_renderer, _viewport);
             _canvasGrid.Content = _rendererPanel;
 
             _rubberBandEventPanel = new RubberBandEventPanel(_viewport);

@@ -19,11 +19,19 @@ public class BulkCommandOperation : ICommandOperation
         _operations.Add(operation);
     }
     
-    public void Execute(Project project)
+    public void Execute(Project project, out Sheet? targetSheet)
     {
+        targetSheet = null;
+        
         foreach (var op in _operations)
         {
-            op.Execute(project);
+            op.Execute(project, out var sheet);
+
+            // Target sheet is the last sheet that was modified by the operations.
+            if (sheet is not null)
+            {
+                targetSheet = sheet;
+            }
         }
     }
 

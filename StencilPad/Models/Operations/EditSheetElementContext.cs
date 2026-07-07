@@ -8,24 +8,29 @@ public class EditSheetElementContext : IEditContext
 {
     private class BulkMementoOperation : IMementoOperation
     {
+        private Sheet _targetSheet;
         private IEnumerable<IOperation> _operations;
         
-        public BulkMementoOperation(IEnumerable<IOperation> operations)
+        public BulkMementoOperation(Sheet targetSheet, IEnumerable<IOperation> operations)
         {
+            _targetSheet = targetSheet;
             _operations = operations.ToList();
         }
         
-        public void Execute(Project project)
+        public void Execute(Project project, out Sheet? targetSheet)
         {
             foreach (var op in _operations)
             {
-                op.Execute(project);
+                op.Execute(project, out var sheet);
             }
+            
+            targetSheet = _targetSheet;
         }
         
         public IOperation Invert()
         {
-            return new BulkMementoOperation(_operations.Select(op => op.Invert()).Reverse());
+            return new BulkMementoOperation(_targetSheet,
+                                            _operations.Select(op => op.Invert()).Reverse());
         }
     }
     
@@ -83,6 +88,6 @@ public class EditSheetElementContext : IEditContext
                                                          _nextElements[i]));
         }
 
-        return new BulkMementoOperation(operations);
+        return new BulkMementoOperation(_sheet, operations);
     }
 }
