@@ -23,6 +23,11 @@ public class RemoveSheetElementOperation : SheetOperation, ICommandOperation
 
     protected override void Execute(Sheet sheet)
     {
+        // NOTE: Recording the index where we actually removed the element
+        // should be fine here, since we're an ICommandOperation that gets
+        // executed immediately, so _index should be populated before any call
+        // to Invert().
+        
         _index = sheet.Elements.IndexOf(_sheetElement);
         sheet.Elements.Remove(_sheetElement);
     }

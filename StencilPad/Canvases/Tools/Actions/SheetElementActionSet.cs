@@ -140,7 +140,6 @@ public class SheetElementActionSet
                     }
                     
                     operation.Add(new AddSheetElementOperation(sheet, group));
-
                     operationService.Push(operation);
 
                     sheet.Selection.Add(group);

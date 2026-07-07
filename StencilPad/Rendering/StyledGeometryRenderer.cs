@@ -13,6 +13,8 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
         ////////////////////
         
         public Geometry? Geometry;
+        public List<(Geometry, Transform)> Overlays { get; } = [];
+        
         public bool GeometryDirty;
     }
 
@@ -37,6 +39,7 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
 
     public void Dispose()
     {
+        // ...
     }
 
     public void Render(DrawingContext dc)
@@ -52,10 +55,10 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
         
         foreach (var (_, entry) in _entryMap)
         {
-            foreach (var (resource, overlayTransform) in entry.GeometrySet.Overlays)
+            foreach (var (overlayGeometry, transform) in entry.Overlays)
             {
-                dc.PushTransform(overlayTransform.CreateGroupTransform());
-                dc.DrawGeometry(_brush, _pen, resource.Geometry);
+                dc.PushTransform(transform);
+                dc.DrawGeometry(_brush, _pen, overlayGeometry);
                 dc.Pop();
             }
         }
@@ -167,6 +170,12 @@ public class StyledGeometryRenderer : IStyledGeometryWalker, IWalkerRenderer
         geometry.Freeze();
 
         entry.Geometry = geometry;
+        entry.Overlays.Clear();
+        
+        foreach (var (resource, overlayTransform) in entry.GeometrySet.Overlays)
+        {
+            entry.Overlays.Add((resource.Geometry, overlayTransform.CreateGroupTransform()));
+        }
 
         return geometry;
     }

@@ -163,6 +163,8 @@ public class ElementGroup : SheetElement<ElementGroup>
 
     public override void AssignFrom(ElementGroup other)
     {
+        base.AssignFrom(other);
+        
         UnsubscribeChildren(_children);
         _children = new(other.Children.Select(child => child.DeepClone()));
         _groupHandleSource.SetChildren(_children);

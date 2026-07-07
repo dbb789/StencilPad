@@ -49,20 +49,21 @@ public class RulerResolver : SheetElementResolver
         _ruler.PropertyChanged -= OnPropertyChanged;
         _settings.Changed -= OnSettingsChanged;
     }
+    
     public override UnitBounds GetOutlineBounds(UnitTransform transform)
     {
         var bounds = base.GetOutlineBounds(transform);
         var capResource = _resourceSet.Get(GeometryResourceId.First);
-        var capOffset = capResource.Size.Y + _geometryStyle.LineWidth;
 
         if (capResource is not null)
         {
-            var min = transform.Apply(_ruler.Min);
-            var max = transform.Apply(_ruler.Max);
-            var direction = max - min;
+            var startCapTransform = transform * GetStartCapTransform();
 
-            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(min + direction.NormalizedTo(capOffset), capResource.Size));
-            bounds = UnitBounds.Union(bounds, UnitBounds.FromCenterSize(max - direction.NormalizedTo(capOffset), capResource.Size));
+            bounds = UnitBounds.Union(bounds, capResource.Shape.GetTransformedBounds(startCapTransform));
+
+            var endCapTransform = transform * GetEndCapTransform();
+
+            bounds = UnitBounds.Union(bounds, capResource.Shape.GetTransformedBounds(endCapTransform));
         }
 
         return bounds;
@@ -79,7 +80,6 @@ public class RulerResolver : SheetElementResolver
 
         _textWalker = walker.CreateTextWalker();
         _textWalker.SetTransform(GetTextTransform());
-        _textWalker.SetBounds(GetTextBounds());
         _textWalker.SetStyle(_textStyle);
         _textWalker.SetText(GetText());
     }
@@ -96,7 +96,6 @@ public class RulerResolver : SheetElementResolver
     {
         _geometryWalker?.Update(GeometryId, CreateGeometrySet());
         _textWalker?.SetTransform(GetTextTransform());
-        _textWalker?.SetBounds(GetTextBounds());
         _textWalker?.SetText(GetText());
 
         InvokeOutlineChanged();
@@ -134,17 +133,11 @@ public class RulerResolver : SheetElementResolver
 
     private UnitTransform GetTextTransform()
     {
-        var mid = (_ruler.Min + _ruler.Max) / 2;
+        var mid = (_ruler.Min + _ruler.Max) / 2 + Unit2D.FromMillimeters(0, -1);
         var rotation = Math.Atan2((_ruler.Max.Y - _ruler.Min.Y).Millimeters,
                                   (_ruler.Max.X - _ruler.Min.X).Millimeters) * MathUtil.Rad2Deg;
         
         return new UnitTransform(mid, rotation);
-    }
-
-    private UnitBounds GetTextBounds()
-    {
-        return UnitBounds.FromCenterSize(Unit2D.FromMillimeters(0, -6),
-                                         Unit2D.FromMillimeters(100, 10));
     }
 
     private string GetText()
