@@ -301,10 +301,16 @@ public static class SvgExporter
                 new XAttribute("dominant-baseline","hanging"),
                 _text);
 
-            if (_worldTransform.Angle != 0)
+            // SVG has no global Y-flip, so negate the angle to match WPF's flipped rendering.
+            // Then normalize to (-90°, 90°] so text is always readable.
+            // Strict < -90 (not <=) preserves the exact -90° case (vertical rulers).
+            var svgAngle = -(double)_worldTransform.Angle;
+            if (svgAngle > 90.0 || svgAngle < -90.0)
+                svgAngle -= Math.Sign(svgAngle) * 180.0;
+
+            if (svgAngle != 0.0)
             {
-                elem.Add(new XAttribute("transform",
-                    $"rotate({Num((double)_worldTransform.Angle)},{x},{y})"));
+                elem.Add(new XAttribute("transform", $"rotate({Num(svgAngle)},{x},{y})"));
             }
 
             _svg.Add(elem);
