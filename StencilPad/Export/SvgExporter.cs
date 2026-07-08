@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Windows;
 using System.Windows.Media;
 using System.Xml.Linq;
 using StencilPad.Common;
@@ -280,9 +281,24 @@ public static class SvgExporter
                 origin = _worldTransform.Position;
             }
 
-            var x = Num(origin.X.Millimeters);
-            var y = Num(origin.Y.Millimeters);
-            var fontSize = Num(Unit.FromFontSizePoints(_style.Size).Millimeters);
+            var fontSizeMm = Unit.FromFontSizePoints(_style.Size).Millimeters;
+
+            // Measure the WPF alphabetic baseline offset from the layout box top.
+            // Passing font size as mm with PixelsPerDip=1 gives all metrics directly in mm,
+            // matching how WPF's DrawText(formattedText, Point(0,0)) positions text.
+            var ft = new FormattedText(
+                _text,
+                CultureInfo.InvariantCulture,
+                FlowDirection.LeftToRight,
+                new Typeface(_style.Font),
+                fontSizeMm,
+                Brushes.Black,
+                1.0);
+
+            var x        = Num(origin.X.Millimeters);
+            var y        = Num(origin.Y.Millimeters);
+            var fontSize = Num(fontSizeMm);
+            var dy       = Num(ft.Baseline);  // shift from layout-box top to alphabetic baseline
 
             var anchor = _style.Justification switch
             {
@@ -292,13 +308,13 @@ public static class SvgExporter
             };
 
             var elem = new XElement(SvgNs + "text",
-                new XAttribute("x",                x),
-                new XAttribute("y",                y),
-                new XAttribute("font-family",      _style.Font),
-                new XAttribute("font-size",        fontSize),
-                new XAttribute("fill",             ColorToSvg(_style.Color)),
-                new XAttribute("text-anchor",      anchor),
-                new XAttribute("dominant-baseline","hanging"),
+                new XAttribute("x",           x),
+                new XAttribute("y",           y),
+                new XAttribute("dy",          dy),
+                new XAttribute("font-family", _style.Font),
+                new XAttribute("font-size",   fontSize),
+                new XAttribute("fill",        ColorToSvg(_style.Color)),
+                new XAttribute("text-anchor", anchor),
                 _text);
 
             // SVG has no global Y-flip, so negate the angle to match WPF's flipped rendering.
