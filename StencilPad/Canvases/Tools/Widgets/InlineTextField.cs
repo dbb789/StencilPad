@@ -35,7 +35,15 @@ public class InlineTextField : UserControl
         set
         {
             _rotation = value;
-            RenderTransform = new RotateTransform(_rotation);
+
+            RenderTransform = new TransformGroup
+            {
+                Children = new TransformCollection
+                {
+                    new TranslateTransform(-5, -3),
+                    new RotateTransform(_rotation)
+                }
+            };
         }
     }
 
@@ -52,8 +60,7 @@ public class InlineTextField : UserControl
         {
             Background = Brushes.White,
             BorderBrush = Brushes.CornflowerBlue,
-            MinWidth = 100,
-            Padding = new Thickness(0),
+            Padding = new Thickness(2),
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap
         };

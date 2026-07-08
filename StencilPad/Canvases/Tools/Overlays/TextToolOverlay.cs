@@ -19,7 +19,8 @@ public class TextToolOverlay : ToolOverlay, IDisposable
     private readonly IUnitSnapContext _unitSnapContext;
     private InlineTextField? _textField;
     private TextElement? _editingTextElement;
-    private Unit2D? _pendingPosition;
+    private Unit2D? _textFieldPosition;
+    private Unit2D? _textFieldSize;
 
     public event Action<UnitBounds, string>? OnTextPlaced;
     public event Action<TextElement, string>? OnTextUpdated;
@@ -38,21 +39,16 @@ public class TextToolOverlay : ToolOverlay, IDisposable
     public override void Dispose()
     {
         _viewport.ViewportChanged -= OnViewportChanged;
-        CommitOrCancel(false);
+        CancelEdit();
         
         base.Dispose();
-    }
-
-    public void Commit()
-    {
-        CommitOrCancel(true);
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         if (_textField is not null)
         {
-            CommitOrCancel(true);
+            CommitEdit();
             return;
         }
 
@@ -63,21 +59,17 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         {
             var transform = parentTransform * textElement.Transform;
             
-            _pendingPosition = transform.Apply(textElement.Bounds.NW);
-            
-            ShowTextField(_pendingPosition.Value,
+            ShowTextField(transform.Apply(textElement.Bounds.NW),
+                          textElement.Bounds.Size,
                           (double)transform.Angle,
-                          textElement.Text);
-            
-            _editingTextElement = textElement;
+                          textElement);
             return;
         }
         
-        var snapPosition = _unitSnap.UnitSnap(mousePosition, _unitSnapContext);
+        var position = _unitSnap.UnitSnap(mousePosition, _unitSnapContext) ?? mousePosition;
 
-        _pendingPosition = snapPosition.HasValue ? snapPosition.Value : mousePosition;
+        ShowTextField(position);
 
-        ShowTextField(_pendingPosition.Value);
         e.Handled = true;
     }
 
@@ -90,9 +82,7 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         {
             if (element is TextElement textElement)
             {
-                var elementBounds = textElement.GetTransformedBounds(parentTransform * textElement.Transform);
-
-                if (elementBounds.Contains(position))
+                if (textElement.Bounds.Contains((parentTransform * textElement.Transform).InverseApply(position)))
                 {
                     return (textElement, parentTransform);
                 }
@@ -122,31 +112,54 @@ public class TextToolOverlay : ToolOverlay, IDisposable
         RenderOverlay(dc);
     }
 
-    private void ShowTextField(Unit2D point, double rotation = 0.0, string text = "")
+    private void ShowTextField(Unit2D position)
     {
-        var screenPosition = _viewport.ToPoint(point);
+        _textFieldPosition = position;
+        _textFieldSize = null;
+        _editingTextElement = null;
         
         _textField = new InlineTextField
         {
-            Text = text,
+            Text = "",
+            TextFontFamily = new FontFamily(DefaultFontFamilyName),
+            TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize)),
+            Rotation = 0
+        };
+
+        _textField.Committed += CommitEdit;
+        _textField.Cancelled += CancelEdit;
+
+        Children.Add(_textField);
+
+        UpdateTextFieldPosition();
+    }
+    
+    private void ShowTextField(Unit2D position,
+                               Unit2D size,
+                               double rotation,
+                               TextElement textElement)
+    {
+        _textFieldPosition = position;
+        _textFieldSize = size;
+        _editingTextElement = textElement;
+        
+        _textField = new InlineTextField
+        {
+            Text = textElement.Text,
             TextFontFamily = new FontFamily(DefaultFontFamilyName),
             TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize)),
             Rotation = -rotation
         };
 
-        _textField.Cancelled += () => CommitOrCancel(false);
-        _textField.Committed += () => CommitOrCancel(true);
+        _textField.Committed += CommitEdit;
+        _textField.Cancelled += CancelEdit;
 
         Children.Add(_textField);
-
-        // Offset the text field slightly to the left and up to account for the
-        // widget border and so that the widget text is lined up to the rendered
-        // text.
-        SetLeft(_textField, screenPosition.X - 3);
-        SetTop(_textField, screenPosition.Y - 1);
+        
+        UpdateTextFieldPosition();
     }
 
-    private void CommitOrCancel(bool commit)
+    public void CommitEdit()
     {
         if (_textField is null)
         {
@@ -155,41 +168,61 @@ public class TextToolOverlay : ToolOverlay, IDisposable
 
         var text = _textField.Text;
         var size = _textField.TextSize;
+
+        if (_editingTextElement is not null)
+        {
+            OnTextUpdated?.Invoke(_editingTextElement, text);
+        }
+        else if (_textFieldPosition.HasValue && !string.IsNullOrWhiteSpace(text))
+        {
+            // NOTE: Click is at the top left of the text.
+            var bounds = UnitBounds.FromMinMax(_textFieldPosition.Value - new Unit2D(Unit.Zero, size.Y),
+                                               _textFieldPosition.Value + new Unit2D(size.X, Unit.Zero));
+            
+            OnTextPlaced?.Invoke(bounds, text);
+            _textFieldPosition = null;
+        }
+
+        CancelEdit();
+    }
+
+    private void CancelEdit()
+    {
+        if (_textField is null)
+        {
+            return;
+        }
         
         Children.Remove(_textField);
         _textField = null;
+    }
 
-        if (commit)
+    private void UpdateTextFieldPosition()
+    {
+        if (_textField is not null)
         {
-            if (_editingTextElement is not null)
+            _textField.TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize));
+
+            if (_textFieldPosition.HasValue)
             {
-                OnTextUpdated?.Invoke(_editingTextElement, text);
+                var screenPosition = _viewport.ToPoint(_textFieldPosition.Value);
+
+                SetLeft(_textField, screenPosition.X);
+                SetTop(_textField, screenPosition.Y);
+
             }
-            else if (_pendingPosition.HasValue && !string.IsNullOrWhiteSpace(text))
+
+            if (_textFieldSize.HasValue)
             {
-                // NOTE: Click is at the top left of the text.
-                var bounds = UnitBounds.FromMinMax(_pendingPosition.Value - new Unit2D(Unit.Zero, size.Y),
-                                                   _pendingPosition.Value + new Unit2D(size.X, Unit.Zero));
-                
-                OnTextPlaced?.Invoke(bounds, text);
-                _pendingPosition = null;
+                _textField.Width = _viewport.ToPixels(_textFieldSize.Value.X) + 12;
+                _textField.Height = _viewport.ToPixels(_textFieldSize.Value.Y) + 6;
             }
         }
     }
 
     private void OnViewportChanged()
     {
-        if (_textField is not null && _pendingPosition.HasValue)
-        {
-            _textField.TextFontSize = _viewport.ToPixels(Unit.FromFontSizePoints(DefaultFontSize));
-
-            var newScreenPos = _viewport.ToPoint(_pendingPosition.Value);
-
-            // See above.
-            SetLeft(_textField, newScreenPos.X - 3);
-            SetTop(_textField, newScreenPos.Y - 1);
-        }
-
+        UpdateTextFieldPosition();
         InvalidateVisual();
     }
 }

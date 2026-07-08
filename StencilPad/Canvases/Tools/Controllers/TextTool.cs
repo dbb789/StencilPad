@@ -73,7 +73,7 @@ public class TextTool : ITool
 
         if (_overlay is not null)
         {
-            _overlay.Commit();
+            _overlay.CommitEdit();
             _overlay.OnTextPlaced -= TextPlaced;
             _overlay.OnTextUpdated -= TextUpdated;
             _overlay.Dispose();
