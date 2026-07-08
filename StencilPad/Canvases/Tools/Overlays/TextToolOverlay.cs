@@ -2,10 +2,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using StencilPad.Canvases.Common;
+using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Models;
 using StencilPad.Spatial;
-
-using StencilPad.Canvases.Tools.Widgets;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 

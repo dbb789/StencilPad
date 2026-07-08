@@ -1,4 +1,5 @@
 using System.IO;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using StencilPad.Common;
@@ -11,16 +12,19 @@ namespace StencilPad.Services;
 
 public class ImportExportService : IImportExportService
 {
+    private readonly ILoggerFactory _loggerFactory;
     private readonly IDialogService _dialogService;
     private readonly ISettings _settings;
     private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
 
-    public ImportExportService(IDialogService dialogService,
+    public ImportExportService(ILoggerFactory loggerFactory,
+                               IDialogService dialogService,
                                ISettings settings,
                                IResourceService resourceService,
                                IOperationService operationService)
     {
+        _loggerFactory = loggerFactory;
         _dialogService = dialogService;
         _settings = settings;
         _resourceService = resourceService;
@@ -101,7 +105,9 @@ public class ImportExportService : IImportExportService
 
         try
         {
-            PngExporter.Export(sheet, dialog.FileName, _settings, _resourceService);
+            var exporter = new PngExporter(_loggerFactory);
+            
+            exporter.Export(sheet, dialog.FileName, _settings, _resourceService);
         }
         catch (Exception ex)
         {

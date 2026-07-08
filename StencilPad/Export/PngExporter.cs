@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.Extensions.Logging;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
@@ -10,15 +11,22 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Export;
 
-public static class PngExporter
+public class PngExporter
 {
     private const double Dpi = 960.0;
     private const double BaseDpi = 96.0;
 
-    public static void Export(Sheet sheet,
-                              string path,
-                              ISettings settings,
-                              IResourceService resourceService)
+    private readonly ILoggerFactory _loggerFactory;
+    
+    public PngExporter(ILoggerFactory loggerFactory)
+    {
+        _loggerFactory = loggerFactory;
+    }
+    
+    public void Export(Sheet sheet,
+                       string path,
+                       ISettings settings,
+                       IResourceService resourceService)
     {
         UnitBounds? sheetBounds = null;
 
@@ -38,7 +46,10 @@ public static class PngExporter
         double width  = size.X.Millimeters;
         double height = size.Y.Millimeters;
 
-        using var renderer = new SheetRenderer(resolver, settings, resourceService);
+        using var renderer = new SheetRenderer(_loggerFactory.CreateLogger<SheetRenderer>(),
+                                               resolver,
+                                               settings,
+                                               resourceService);
         
         var transform = new TransformGroup();
         transform.Children.Add(new ScaleTransform(1, -1));
@@ -58,8 +69,6 @@ public static class PngExporter
             renderer.Render(dc);
             dc.Pop();
         }
-
-        renderer.Dispose();
 
         double scale = Dpi / BaseDpi;
         int widthPx  = (int)Math.Round(width * scale);

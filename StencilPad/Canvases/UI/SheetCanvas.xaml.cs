@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
@@ -90,7 +91,8 @@ namespace StencilPad.Canvases.UI
         public event Action? CanvasReady;
 
         public SheetCanvas()
-            : this(App.ServiceProvider.GetRequiredService<ISettings>(),
+            : this(App.ServiceProvider.GetRequiredService<ILoggerFactory>(),
+                   App.ServiceProvider.GetRequiredService<ISettings>(),
                    App.ServiceProvider.GetRequiredService<IResourceService>())
         {
             // Slightly nasty to do things this way but it avoids a ton of
@@ -100,7 +102,8 @@ namespace StencilPad.Canvases.UI
             // funny machinery just to instantiate it.
         }
         
-        public SheetCanvas(ISettings settings,
+        public SheetCanvas(ILoggerFactory loggerFactory,
+                           ISettings settings,
                            IResourceService resourceService)
         {   
             _viewport = new VisualViewport();
@@ -109,7 +112,10 @@ namespace StencilPad.Canvases.UI
             _canvasGrid = new CanvasGrid(settings, _viewport);
 
             _resolver = new SheetResolver(settings, resourceService);
-            _renderer = new SheetRenderer(_resolver, settings, resourceService);
+            _renderer = new SheetRenderer(loggerFactory.CreateLogger<SheetRenderer>(),
+                                          _resolver,
+                                          settings,resourceService);
+            
             _rendererPanel = new SheetRenderPanel(_renderer, _viewport);
             _canvasGrid.Content = _rendererPanel;
 

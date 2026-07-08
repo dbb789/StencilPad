@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using StencilPad.ViewModels;
 using StencilPad.Canvases.Tools.Controllers;
 using StencilPad.Canvases.UI;
@@ -116,6 +117,11 @@ public class SheetTabController : IDisposable
         services.AddSingleton<IOperationService>(_operationService);
         services.AddSingleton<IModelPropertiesService>(_modelPropertiesService);
         services.AddSingleton<IHintService>(_hintService);
+
+        services.AddLogging(builder =>
+        {
+            builder.AddDebug();
+        });
 
         FactoryUtil.AddFactory<ToolController>(services);
 

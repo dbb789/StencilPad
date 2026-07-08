@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using StencilPad.Common;
 using StencilPad.Controllers;
 using StencilPad.Models;
@@ -74,6 +75,11 @@ public partial class App : Application
         services.AddSingleton<IResourceService, ResourceService>();
         services.AddSingleton<ISettings, SettingsService>();
 
+        services.AddLogging(builder =>
+        {
+            builder.AddDebug();
+        });
+        
         services.AddSingleton<IOperationService, OperationService>();
         services.AddSingleton<SheetTabController.Factory>();
         services.AddSingleton<AppController>();

@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.Windows.Media;
+using Microsoft.Extensions.Logging;
 using StencilPad.Common;
 using StencilPad.Models.Resolvers;
 
@@ -7,6 +7,7 @@ namespace StencilPad.Rendering;
 
 public class SheetRenderer : IDisposable
 {
+    private readonly ILogger<SheetRenderer> _logger;
     private readonly SheetResolver _resolver;
     private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
@@ -14,10 +15,12 @@ public class SheetRenderer : IDisposable
     
     public event Action? RendererDirty;
 
-    public SheetRenderer(SheetResolver resolver,
+    public SheetRenderer(ILogger<SheetRenderer> logger,
+                         SheetResolver resolver,
                          ISettings settings,
                          IResourceSet resourceSet)
     {
+        _logger = logger;
         _resolver = resolver;
         _settings = settings;
         _resourceSet = resourceSet;
@@ -66,7 +69,7 @@ public class SheetRenderer : IDisposable
     {
         if (!_renderers.TryGetValue(resolver, out var renderer))
         {
-            Debug.WriteLine("Could not find renderer for resolver");
+            _logger.LogError("Could not find renderer for resolver {ResolverType}.", resolver.GetType().Name);
             return;
         }
 

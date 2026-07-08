@@ -1,6 +1,9 @@
+using System.Globalization;
 using StencilPad.Common;
 using StencilPad.Spatial;
 using System.ComponentModel;
+using System.Windows;
+using System.Windows.Media;
 
 namespace StencilPad.Models.Resolvers;
 
@@ -65,6 +68,8 @@ public class RulerResolver : SheetElementResolver
 
             bounds = UnitBounds.Union(bounds, capResource.Shape.GetTransformedBounds(endCapTransform));
         }
+
+        bounds = bounds.Extend((transform * GetTextTransform()).Apply(new Unit2D(Unit.Zero, -MeasureTextHeight())));
 
         return bounds;
     }
@@ -131,9 +136,30 @@ public class RulerResolver : SheetElementResolver
         _textWalker?.SetText(GetText());
     }
 
+    private Unit MeasureTextHeight()
+    {
+        var text = GetText();
+
+        if (string.IsNullOrEmpty(text))
+        {
+            return Unit.Zero;
+        }
+
+        var ft = new FormattedText(
+            text,
+            CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(_ruler.FontName),
+            Unit.FromFontSizePoints(_ruler.FontSize).Millimeters,
+            Brushes.Black,
+            1.0);
+
+        return Unit.FromMillimeters(ft.Height);
+    }
+
     private UnitTransform GetTextTransform()
     {
-        var mid = (_ruler.Min + _ruler.Max) / 2 + Unit2D.FromMillimeters(0, -1);
+        var mid = (_ruler.Min + _ruler.Max) / 2;
         var rotation = Math.Atan2((_ruler.Max.Y - _ruler.Min.Y).Millimeters,
                                   (_ruler.Max.X - _ruler.Min.X).Millimeters) * MathUtil.Rad2Deg;
         
