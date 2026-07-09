@@ -9,7 +9,7 @@ public interface IDialogService
                                                              int currentSubdivisions,
                                                              UnitSettings unitSettings);
     Fraction? ShowUnitScaleDialog(Fraction current);
-    bool ShowConfirmation(string message, string title);
+    bool ShowConfirmation(string message, string title, bool defaultYes = true);
     void ShowWarning(string message, string title);
     void ShowError(string message, string title);
 }

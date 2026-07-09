@@ -62,11 +62,16 @@ public class WpfDialogService : IDialogService
         return null;
     }
 
-    public bool ShowConfirmation(string message, string title)
+    public bool ShowConfirmation(string message, string title, bool defaultYes = true)
     {
-        return MessageBox.Show(_owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
+        return MessageBox.Show(_owner,
+                               message,
+                               title,
+                               MessageBoxButton.YesNo,
+                               MessageBoxImage.Question,
+                               defaultYes ? MessageBoxResult.Yes : MessageBoxResult.No) == MessageBoxResult.Yes;
     }
-
+    
     public void ShowWarning(string message, string title)
     {
         MessageBox.Show(_owner, message, title, MessageBoxButton.OK, MessageBoxImage.Warning);

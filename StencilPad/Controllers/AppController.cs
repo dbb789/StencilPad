@@ -89,7 +89,8 @@ public class AppController
 
         return _dialogService.ShowConfirmation(
             "You have unsaved changes. Are you sure you want to close without saving?",
-            "Unsaved Changes");
+            "Unsaved Changes",
+            false);
     }
 
     private void NewProject()
