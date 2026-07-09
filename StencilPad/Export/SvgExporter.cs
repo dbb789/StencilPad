@@ -22,26 +22,29 @@ public static class SvgExporter
 
         foreach (var element in sheet.Elements)
         {
-            sheetBounds = UnitBounds.Union(sheetBounds, element.GetBounds());
+            using var resolver = ResolverFactory.Create(element, settings, resourceService);
+            
+            if (resolver is not null)
+            {
+                sheetBounds = UnitBounds.Union(sheetBounds, resolver.GetOutlineBounds());
+            }
         }
-
+        
         var bounds = sheetBounds ??
             UnitBounds.FromCenterSize(Unit2D.Zero,
-                                      new Unit2D(Unit.FromMillimeters(98),
-                                                 Unit.FromMillimeters(98)));
+                                      new Unit2D(Unit.FromMillimeters(10),
+                                                 Unit.FromMillimeters(10)));
 
-        bounds = bounds.Pad(Unit.FromMillimeters(1));
-
-        double width   = bounds.Size.X.Millimeters;
-        double height  = bounds.Size.Y.Millimeters;
+        double width = bounds.Size.X.Millimeters;
+        double height = bounds.Size.Y.Millimeters;
         double offsetX = bounds.Min.X.Millimeters;
         double offsetY = bounds.Min.Y.Millimeters;
 
         var svg = new XElement(SvgNs + "svg",
-            new XAttribute("width",   Mm(width)),
-            new XAttribute("height",  Mm(height)),
+            new XAttribute("width", Mm(width)),
+            new XAttribute("height", Mm(height)),
             new XAttribute("viewBox", $"{Num(offsetX)} {Num(offsetY)} {Num(width)} {Num(height)}"));
-
+        
         using (var modelWalker = new SvgModelWalker(svg))
         {
             foreach (var element in sheet.Elements)
@@ -59,6 +62,7 @@ public static class SvgExporter
         var doc = new XDocument(new XDeclaration("1.0", "utf-8", null), svg);
 
         using var stream = File.Create(path);
+        
         doc.Save(stream);
     }
 
