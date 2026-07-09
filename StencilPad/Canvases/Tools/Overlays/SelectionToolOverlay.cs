@@ -350,7 +350,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IGlobalC
         ];
 
         int closestIndex = -1;
-        Unit2D smallestDelta = Unit2D.Square(Unit.FromMillimeters(1000));
+        Unit2D smallestDelta = Unit2D.FromSquare(Unit.FromMillimeters(1000));
 
         for (int i = 0; i < corners.Length; ++i)
         {

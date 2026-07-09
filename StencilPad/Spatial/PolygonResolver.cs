@@ -8,7 +8,6 @@ public class PolygonResolver : IGeometryResolver
     private List<Unit> _scaledCornerTangents;
     private List<Unit2D> _edgeBegin;
     private List<Unit2D> _edgeEnd;
-    private List<Bezier2D?> _clippedBeziers;
     private int _edgeCount;
     private int _cornerCount;
     
@@ -20,7 +19,6 @@ public class PolygonResolver : IGeometryResolver
         _scaledCornerTangents = new();
         _edgeBegin = new();
         _edgeEnd = new();
-        _clippedBeziers = new();
         _edgeCount = 0;
         _cornerCount = 0;
     }
@@ -162,12 +160,13 @@ public class PolygonResolver : IGeometryResolver
         
         if (edge.Type == EdgeType.Bezier)
         {
-            var bezier = _clippedBeziers[index]!.Value;
+            var p0 = edgeBegin;
+            var p3 = EdgeEnd(index);
+            var p1 = p0 + edge.ControlBeginOffset;
+            var p2 = p3 + edge.ControlEndOffset;
+            
             next = walker.Segment(segmentIndex,
-                                  PolygonSegment.FromBezier(new Bezier2D(edgeBegin,
-                                                                         bezier.P1,
-                                                                         bezier.P2,
-                                                                         EdgeEnd(index))));
+                                  PolygonSegment.FromBezier(new Bezier2D(p0, p1, p2, p3)));
             ++segmentIndex;
         }
         else
@@ -228,12 +227,14 @@ public class PolygonResolver : IGeometryResolver
         
         if (edge.Type == EdgeType.Bezier)
         {
-            var bezier = _clippedBeziers[index]!.Value;
+            var p0 = EdgeEnd(index);
+            var p3 = edgeBegin;
+            var p1 = p0 + edge.ControlEndOffset;
+            var p2 = p3 + edge.ControlBeginOffset;
+            
             next = walker.Segment(segmentIndex,
-                                  PolygonSegment.FromBezier(new Bezier2D(EdgeEnd(index),
-                                                                         bezier.P2,
-                                                                         bezier.P1,
-                                                                         edgeBegin)));
+                                  PolygonSegment.FromBezier(new Bezier2D(p0, p1, p2, p3)));
+
             --segmentIndex;
         }
         else
@@ -301,7 +302,6 @@ public class PolygonResolver : IGeometryResolver
         _cornerTangents.Clear();
         _edgeBegin.Clear();
         _edgeEnd.Clear();
-        _clippedBeziers.Clear();
         
         if (_polygon is null)
         {
@@ -325,11 +325,6 @@ public class PolygonResolver : IGeometryResolver
         }
 
         _cornerCount = 0;
-
-        for (int i = 0; i < _polygon.Vertices.Count; ++i)
-        {
-            _clippedBeziers.Add(CalculateClippedBezier(i));
-        }
 
         for (int i = 0; i < _polygon.Vertices.Count - 1; ++i)
         {
@@ -523,39 +518,5 @@ public class PolygonResolver : IGeometryResolver
             : _polygon.Vertices[nextIndex].Position - vertex.Position;
 
         return Unit2D.SignedAngle(incomingDir, outgoingDir);
-    }
-
-    private Bezier2D? CalculateClippedBezier(int index)
-    {
-        if (index >= _polygon.Edges.Count)
-        {
-            return null;
-        }
-
-        var edge = _polygon.Edges[index];
-
-        if (edge.Type != EdgeType.Bezier)
-        {
-            return null;
-        }
-
-        var p0 = _polygon.Vertices[index].Position;
-        var nextIndex = NormalizeVertexIndex(index + 1);
-        var p3 = _polygon.Vertices[nextIndex].Position;
-        var c1 = p0 + edge.ControlBeginOffset;
-        var c2 = p3 + edge.ControlEndOffset;
-
-        var beginArmLength = edge.ControlBeginOffset.Magnitude;
-        var endArmLength   = edge.ControlEndOffset.Magnitude;
-
-        double tBegin = beginArmLength > Unit.Epsilon
-            ? Math.Clamp(_scaledCornerTangents[index] / beginArmLength, 0.0, 1.0)
-            : 0.0;
-
-        double tEnd = endArmLength > Unit.Epsilon
-            ? Math.Clamp(1.0 - _scaledCornerTangents[nextIndex] / endArmLength, 0.0, 1.0)
-            : 1.0;
-
-        return new Bezier2D(p0, c1, c2, p3).Subsegment(tBegin, tEnd);
     }
 }

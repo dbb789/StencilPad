@@ -7,10 +7,28 @@ public readonly record struct Unit2D(Unit X, Unit Y)
 {
     public static readonly Unit2D Zero = new(Unit.Zero, Unit.Zero);
 
-    public static Unit2D FromMillimeters(double x, double y) => new(Unit.FromMillimeters(x), Unit.FromMillimeters(y));
-    public static Unit2D FromInches(double x, double y) => new(Unit.FromInches(x), Unit.FromInches(y));
+    public static Unit2D FromMillimeters(double x, double y)
+    {
+        return new(Unit.FromMillimeters(x), Unit.FromMillimeters(y));
+    }
 
-    public Point Millimeters => new(X.Millimeters, Y.Millimeters);
+    public static Unit2D FromInches(double x, double y)
+    {
+        return new(Unit.FromInches(x), Unit.FromInches(y));
+    }
+
+    public static Unit2D FromSquare(Unit side)
+    {
+        return new(side, side);
+    }
+
+    public Point Millimeters
+    {
+        get
+        {
+            return new(X.Millimeters, Y.Millimeters);
+        }
+    }
 
     public Unit Magnitude
     {
@@ -47,11 +65,6 @@ public readonly record struct Unit2D(Unit X, Unit Y)
         return new(Unit.Abs(u.X), Unit.Abs(u.Y));
     }
     
-    public static Unit2D Square(Unit side)
-    {
-        return new(side, side);
-    }
-
     public static double Determinant(Unit2D a, Unit2D b)
     {
         return (a.X.Millimeters * b.Y.Millimeters) - (a.Y.Millimeters * b.X.Millimeters);
@@ -61,12 +74,22 @@ public readonly record struct Unit2D(Unit X, Unit Y)
     {
         return (a.X.Millimeters * b.X.Millimeters) + (a.Y.Millimeters * b.Y.Millimeters);
     }
-        
+
+    // Signed angle between two vectors in radians.
     public static double SignedAngle(Unit2D a, Unit2D b)
     {
         return Math.Atan2(Determinant(a, b), Dot(a, b));
     }
-    
+
+    // Convenience method to get signed angle between three points in radians.
+    public static double SignedAngle(Unit2D start, Unit2D mid, Unit2D end)
+    {
+        var a = mid - start;
+        var b = end - mid;
+
+        return SignedAngle(a, b);
+    }
+
     public static Unit2D Snap(Unit2D value, Unit snap)
     {
         return new(Unit.Snap(value.X, snap), Unit.Snap(value.Y, snap));
