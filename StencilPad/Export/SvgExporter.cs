@@ -32,8 +32,8 @@ public static class SvgExporter
         
         var bounds = sheetBounds ??
             UnitBounds.FromCenterSize(Unit2D.Zero,
-                                      new Unit2D(Unit.FromMillimeters(10),
-                                                 Unit.FromMillimeters(10)));
+                                      new Unit2D(Unit.FromMillimeters(100),
+                                                 Unit.FromMillimeters(100)));
 
         double width = bounds.Size.X.Millimeters;
         double height = bounds.Size.Y.Millimeters;
