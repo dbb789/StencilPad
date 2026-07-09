@@ -39,8 +39,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         
         var maxBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
         var initialBounds = UnitBounds.FromCenterSize(Unit2D.Zero,
-                                                      new Unit2D(Unit.FromMillimeters(400),
-                                                                 Unit.FromMillimeters(400)));
+                                                      Unit2D.FromMillimeters(400, 400));
 
         _sheet = null;
         _byHandle = new();
