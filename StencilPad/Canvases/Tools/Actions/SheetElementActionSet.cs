@@ -182,7 +182,7 @@ public class SheetElementActionSet
             null,
             new MultiSheetElementAction
             {
-                Name = "Mirror X",
+                Name = "Flip Horizontal",
                 Action = (sheet, elements) =>
                 {
                     using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -204,7 +204,7 @@ public class SheetElementActionSet
             },
             new MultiSheetElementAction
             {
-                Name = "Mirror Y",
+                Name = "Flip Vertical",
                 Action = (sheet, elements) =>
                 {
                     using var editContext = operationService.CreateEditContext(sheet, elements);
