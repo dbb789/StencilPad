@@ -1,5 +1,5 @@
 using System.Collections.Specialized;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Spatial;
@@ -16,6 +16,7 @@ public class HandleMap : IHandleMap, IUnitSnap
 
     public ReadOnlyFlatSet<IHandleMapEntry> SelectedHandles => _selectedHandles;
 
+    private readonly ILogger<HandleMap> _logger;
     private readonly ISettings _settings;
     private readonly Dictionary<Handle, HandleMapEntry> _byHandle;
     private readonly DynamicQuadTree<HandleMapEntry> _byPosition;
@@ -31,8 +32,9 @@ public class HandleMap : IHandleMap, IUnitSnap
     public event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
     public event Action? HandleSelectionChanged;
 
-    public HandleMap(ISettings settings)
+    public HandleMap(ILogger<HandleMap> logger, ISettings settings)
     {
+        _logger = logger;
         _settings = settings;
         
         var maxBounds = UnitBounds.FromCenterSize(Unit2D.Zero, SheetFormat.MaxSize);
@@ -218,7 +220,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                     }
                     else
                     {
-                        Debug.WriteLine($"HandleMap: Failed to clear selection for handle {handle} from element {element}");
+                        _logger.LogError("Failed to clear selection for handle {Handle} from element {Element}", handle, element);
                     }
                 });
             }
@@ -236,7 +238,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                     }
                     else
                     {
-                        Debug.WriteLine($"HandleMap: Failed to set selection for handle {handle} from element {element}");
+                        _logger.LogError("HandleMap: Failed to set selection for handle {Handle} from element {Element}", handle, element);
                     }
                 });
             }
@@ -284,7 +286,7 @@ public class HandleMap : IHandleMap, IUnitSnap
 
         if (_byHandle.ContainsKey(handle))
         {
-            Debug.WriteLine($"HandleMap: Attempted to add duplicate handle {handle} from element {element}");
+            _logger.LogError("Attempted to add duplicate handle {Handle} from element {Element}", handle, element);
             return;
         }
         
@@ -315,7 +317,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
         else
         {
-            Debug.WriteLine($"HandleMap: Attempted to remove unknown handle {handle} from element {element}");
+            _logger.LogError("Attempted to remove unknown handle {Handle} from element {Element}", handle, element);
         }
     }
 
@@ -353,7 +355,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
         else
         {
-            Debug.WriteLine($"HandleMap: Received HandleSelectionChanged for unknown handle {handle}");
+            _logger.LogError("HandleMap: Received HandleSelectionChanged for unknown handle {Handle}", handle);
         }
     }
 
@@ -369,20 +371,21 @@ public class HandleMap : IHandleMap, IUnitSnap
             }
             else
             {
-                Debug.WriteLine($"HandleMap: Failed to move handle {handle} from {entry.Position} to new position {position} during transform change");
+                _logger.LogError("Failed to move handle {Handle} from {EntryPosition} to new position {Position} during transform change",
+                                 handle, entry.Position, position);
                 
                 _byPosition.VisitAllValues((pos, e) =>
                 {
                     if (e.Handle == handle)
                     {
-                        Debug.WriteLine($"HandleMap: Found handle {handle} at position {pos} during visit");
+                        _logger.LogError("Found handle {Handle} at position {Position} during visit", handle, pos);
                     }
                 });
             }
         }
         else
         {
-            Debug.WriteLine($"HandleMap: Received TransformChanged for unknown handle {handle}");
+            _logger.LogError("Received TransformChanged for unknown handle {Handle}", handle);
         }
     }
 }

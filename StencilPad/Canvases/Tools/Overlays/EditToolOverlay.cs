@@ -165,7 +165,7 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
         {
             return;
         }
-        
+
         _dragState.OnDragStart(mousePosition,
                                handle,
                                handle.Position);

@@ -107,7 +107,8 @@ namespace StencilPad.Canvases.UI
                            IResourceService resourceService)
         {   
             _viewport = new VisualViewport();
-            _handleMap = new HandleMap(settings);
+            _handleMap = new HandleMap(loggerFactory.CreateLogger<HandleMap>(),
+                                       settings);
 
             _canvasGrid = new CanvasGrid(settings, _viewport);
 
