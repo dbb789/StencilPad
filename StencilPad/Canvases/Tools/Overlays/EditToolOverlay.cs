@@ -159,9 +159,9 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
         var clickSizeUnit = _viewport.FromPixels(_handleSize + 4);
         var clickSize = new Unit2D(clickSizeUnit, clickSizeUnit);
 
-        var handle = _handleMap.GetClosestHandle(UnitBounds.FromCenterSize(clickPosition, clickSize));
+        var handle = _handleMap.GetClosestEditingHandle(UnitBounds.FromCenterSize(clickPosition, clickSize));
 
-        if (handle is null || !handle.Editing)
+        if (handle is null)
         {
             return;
         }

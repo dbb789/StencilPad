@@ -56,7 +56,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         _byPosition.Query(bounds, x => results.Add(x));
     }
 
-    public HandleMapEntry? GetClosestHandle(UnitBounds bounds)
+    public HandleMapEntry? GetClosestEditingHandle(UnitBounds bounds)
     {
         _queryResults.Clear();
         _byPosition.Query(bounds, x => _queryResults.Add(x));
@@ -69,6 +69,12 @@ public class HandleMap : IHandleMap, IUnitSnap
         for (int i = _queryResults.Count - 1; i >= 0; i--)
         {
             var result = _queryResults[i];
+
+            if (!result.Editing)
+            {
+                continue;
+            }
+            
             var distance = (result.Position - bounds.Center).Magnitude;
 
             if (closest is null || distance < closestDistance)
@@ -237,7 +243,7 @@ public class HandleMap : IHandleMap, IUnitSnap
                     }
                     else
                     {
-                        _logger.LogError("HandleMap: Failed to set selection for handle {Handle} from element {Element}", handle, element);
+                        _logger.LogError("Failed to set selection for handle {Handle} from element {Element}", handle, element);
                     }
                 });
             }
@@ -354,7 +360,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
         else
         {
-            _logger.LogError("HandleMap: Received HandleSelectionChanged for unknown handle {Handle}", handle);
+            _logger.LogError("Received HandleSelectionChanged for unknown handle {Handle}", handle);
         }
     }
 
