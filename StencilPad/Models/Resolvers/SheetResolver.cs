@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using StencilPad.Common;
 using System.Collections.Specialized;
 
@@ -56,28 +56,33 @@ public class SheetResolver : IDisposable
     public ElementsView Elements => new(this);
     public SelectedView Selection => new(this);
 
+    private readonly ILogger<SheetResolver> _logger;
     private readonly ISettings _settings;
     private readonly IResourceSet _resourceSet;
     private readonly OrderedDictionary<ISheetElement, ISheetElementResolver> _resolvers = new();
     private Sheet? _sheet;
     private int _version;
 
-    public event Action<ISheetElementResolver>? ElementAdded;
+    public event Action<ISheetElementResolver, int>? ElementAdded;
     public event Action<ISheetElementResolver>? ElementRemoved;
     public event Action<ISheetElementResolver>? SelectionAdded;
     public event Action<ISheetElementResolver>? SelectionRemoved;
 
-    public SheetResolver(ISettings settings,
+    public SheetResolver(ILogger<SheetResolver> logger,
+                         ISettings settings,
                          IResourceSet resourceSet)
     {
+        _logger = logger;
         _settings = settings;
         _resourceSet = resourceSet;
     }
     
-    public SheetResolver(Sheet sheet,
+    public SheetResolver(ILogger<SheetResolver> logger,
+                         Sheet sheet,
                          ISettings settings,
                          IResourceSet resourceSet)
     {
+        _logger = logger;
         _settings = settings;
         _resourceSet = resourceSet;
 
@@ -207,7 +212,7 @@ public class SheetResolver : IDisposable
 
         if (resolver is null)
         {
-            Debug.WriteLine($"Could not create resolver for element of type {element.GetType().Name}");
+            _logger.LogError("Could not create resolver for element of type {SheetElement}", element.GetType().Name);
             return;
         }
         
@@ -220,7 +225,7 @@ public class SheetResolver : IDisposable
         
         ++_version;
         
-        ElementAdded?.Invoke(resolver);
+        ElementAdded?.Invoke(resolver, index);
     }
 
     private void RemoveResolver(ISheetElement element)
@@ -235,7 +240,7 @@ public class SheetResolver : IDisposable
         }
         else
         {
-            Debug.WriteLine("Could not find resolver for element");
+            _logger.LogError("Could not find resolver for element of type {SheetElement}", element.GetType().Name);
         }
     }
 
@@ -247,7 +252,7 @@ public class SheetResolver : IDisposable
         }
         else
         {
-            Debug.WriteLine("Could not find resolver for selected element");
+             _logger.LogError("Could not find resolver for selected element of type {SheetElement}", element.GetType().Name);
         }
     }
 
@@ -259,7 +264,7 @@ public class SheetResolver : IDisposable
         }
         else
         {
-            Debug.WriteLine("Could not find resolver for selected element");
+            _logger.LogError("Could not find resolver for selected element of type {SheetElement}", element.GetType().Name);
         }
     }
 }

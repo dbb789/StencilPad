@@ -30,7 +30,10 @@ public class PngExporter
     {
         UnitBounds? sheetBounds = null;
 
-        using var resolver = new SheetResolver(sheet, settings, resourceService);
+        using var resolver = new SheetResolver(_loggerFactory.CreateLogger<SheetResolver>(),
+                                               sheet,
+                                               settings,
+                                               resourceService);
 
         foreach (var elementResolver in resolver.Elements)
         {

@@ -111,7 +111,10 @@ namespace StencilPad.Canvases.UI
 
             _canvasGrid = new CanvasGrid(settings, _viewport);
 
-            _resolver = new SheetResolver(settings, resourceService);
+            _resolver = new SheetResolver(loggerFactory.CreateLogger<SheetResolver>(),
+                                          settings,
+                                          resourceService);
+            
             _renderer = new SheetRenderer(loggerFactory.CreateLogger<SheetRenderer>(),
                                           _resolver,
                                           settings,resourceService);

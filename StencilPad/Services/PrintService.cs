@@ -32,7 +32,11 @@ public class PrintService : IPrintService
     {
         return PrintAsync(documentName, sheet.Format, (dc) =>
         {
-            using var resolver = new SheetResolver(sheet, _settings, _resourceService);
+            using var resolver = new SheetResolver(_loggerFactory.CreateLogger<SheetResolver>(),
+                                                   sheet,
+                                                   _settings,
+                                                   _resourceService);
+            
             using var renderer = new SheetRenderer(_loggerFactory.CreateLogger<SheetRenderer>(),
                                                    resolver,
                                                    _settings,

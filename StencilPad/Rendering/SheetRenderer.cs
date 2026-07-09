@@ -26,9 +26,11 @@ public class SheetRenderer : IDisposable
         _resourceSet = resourceSet;
         _renderers = new();
 
+        int index = 0;
+        
         foreach (var modelResolver in _resolver.Elements)
         {
-            OnElementAdded(modelResolver);
+            OnElementAdded(modelResolver, index++);
         }
         
         _resolver.ElementAdded += OnElementAdded;
@@ -54,13 +56,13 @@ public class SheetRenderer : IDisposable
         }
     }
 
-    private void OnElementAdded(ISheetElementResolver resolver)
+    private void OnElementAdded(ISheetElementResolver resolver, int index)
     {
         var renderer = new ModelRenderer(_resourceSet);
 
         renderer.RendererDirty += InvokeRendererDirty;
         resolver.Attach(renderer);
-        _renderers.Add(resolver, renderer);
+        _renderers.Insert(index, resolver, renderer);
         
         InvokeRendererDirty();
     }

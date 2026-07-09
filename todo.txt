@@ -1,4 +1,3 @@
 Rulers don't always render correctly in SVG
 Arc issues in SVG.
 Can't grab some handles
-Some issues with send to back
