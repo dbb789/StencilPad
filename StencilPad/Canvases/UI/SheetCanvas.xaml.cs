@@ -93,7 +93,9 @@ namespace StencilPad.Canvases.UI
         public SheetCanvas()
             : this(App.ServiceProvider.GetRequiredService<ILoggerFactory>(),
                    App.ServiceProvider.GetRequiredService<ISettings>(),
-                   App.ServiceProvider.GetRequiredService<IResourceService>())
+                   App.ServiceProvider.GetRequiredService<IResourceService>(),
+                   App.ServiceProvider.GetRequiredService<SheetResolver.Factory>(),
+                   App.ServiceProvider.GetRequiredService<SheetRenderer.Factory>())
         {
             // Slightly nasty to do things this way but it avoids a ton of
             // component plumbing just to get the SheetRenderer into the
@@ -104,7 +106,9 @@ namespace StencilPad.Canvases.UI
         
         public SheetCanvas(ILoggerFactory loggerFactory,
                            ISettings settings,
-                           IResourceService resourceService)
+                           IResourceService resourceService,
+                           SheetResolver.Factory sheetResolverFactory,
+                           SheetRenderer.Factory sheetRendererFactory)
         {   
             _viewport = new VisualViewport();
             _handleMap = new HandleMap(loggerFactory.CreateLogger<HandleMap>(),
@@ -112,13 +116,8 @@ namespace StencilPad.Canvases.UI
 
             _canvasGrid = new CanvasGrid(settings, _viewport);
 
-            _resolver = new SheetResolver(loggerFactory.CreateLogger<SheetResolver>(),
-                                          settings,
-                                          resourceService);
-            
-            _renderer = new SheetRenderer(loggerFactory.CreateLogger<SheetRenderer>(),
-                                          _resolver,
-                                          settings,resourceService);
+            _resolver = sheetResolverFactory.Create();
+            _renderer = sheetRendererFactory.Create(_resolver);
             
             _rendererPanel = new SheetRenderPanel(_renderer, _viewport);
             _canvasGrid.Content = _rendererPanel;

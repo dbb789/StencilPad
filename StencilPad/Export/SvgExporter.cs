@@ -4,10 +4,8 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Xml.Linq;
-using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
-using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Export;
@@ -16,18 +14,22 @@ public class SvgExporter
 {
     private static readonly XNamespace SvgNs = "http://www.w3.org/2000/svg";
 
-    public void Export(Sheet sheet, ISettings settings, IResourceService resourceService, string path)
+    private readonly SheetResolver.Factory _sheetResolverFactory;
+
+    public SvgExporter(SheetResolver.Factory sheetResolverFactory)
+    {
+        _sheetResolverFactory = sheetResolverFactory;
+    }
+    
+    public void Export(Sheet sheet, string path)
     {
         UnitBounds? sheetBounds = null;
 
-        foreach (var element in sheet.Elements)
+        using var resolver = _sheetResolverFactory.Create(sheet);
+
+        foreach (var elementResolver in resolver.Elements)
         {
-            using var resolver = ResolverFactory.Create(element, settings, resourceService);
-            
-            if (resolver is not null)
-            {
-                sheetBounds = UnitBounds.Union(sheetBounds, resolver.GetOutlineBounds());
-            }
+            sheetBounds = UnitBounds.Union(sheetBounds, elementResolver.GetOutlineBounds());
         }
         
         var bounds = sheetBounds ??
@@ -47,15 +49,10 @@ public class SvgExporter
         
         using (var modelWalker = new SvgModelWalker(svg))
         {
-            foreach (var element in sheet.Elements)
+            foreach (var elementResolver in resolver.Elements)
             {
-                using var resolver = ResolverFactory.Create(element, settings, resourceService);
-
-                if (resolver is not null)
-                {
-                    resolver.Attach(modelWalker);
-                    resolver.Detach();
-                }
+                elementResolver.Attach(modelWalker);
+                elementResolver.Detach();
             }
         }
 

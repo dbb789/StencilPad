@@ -7,6 +7,16 @@ namespace StencilPad.Rendering;
 
 public class SheetRenderer : IDisposable
 {
+    public class Factory(ILogger<SheetRenderer> Logger,
+                         ISettings Settings,
+                         IResourceSet ResourceSet)
+    {
+        public SheetRenderer Create(SheetResolver resolver)
+        {
+            return new(Logger, resolver, Settings, ResourceSet);
+        }
+    }
+    
     private readonly ILogger<SheetRenderer> _logger;
     private readonly SheetResolver _resolver;
     private readonly ISettings _settings;
@@ -15,10 +25,10 @@ public class SheetRenderer : IDisposable
     
     public event Action? RendererDirty;
 
-    public SheetRenderer(ILogger<SheetRenderer> logger,
-                         SheetResolver resolver,
-                         ISettings settings,
-                         IResourceSet resourceSet)
+    private SheetRenderer(ILogger<SheetRenderer> logger,
+                          SheetResolver resolver,
+                          ISettings settings,
+                          IResourceSet resourceSet)
     {
         _logger = logger;
         _resolver = resolver;

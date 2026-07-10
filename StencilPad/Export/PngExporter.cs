@@ -1,12 +1,9 @@
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Microsoft.Extensions.Logging;
-using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
-using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Export;
@@ -16,24 +13,21 @@ public class PngExporter
     private const double Dpi = 960.0;
     private const double BaseDpi = 96.0;
 
-    private readonly ILoggerFactory _loggerFactory;
+    private readonly SheetResolver.Factory _sheetResolverFactory;
+    private readonly SheetRenderer.Factory _sheetRendererFactory;
     
-    public PngExporter(ILoggerFactory loggerFactory)
+    public PngExporter(SheetResolver.Factory sheetResolverFactory,
+                       SheetRenderer.Factory sheetRendererFactory)
     {
-        _loggerFactory = loggerFactory;
+        _sheetResolverFactory = sheetResolverFactory;
+        _sheetRendererFactory = sheetRendererFactory;
     }
     
-    public void Export(Sheet sheet,
-                       string path,
-                       ISettings settings,
-                       IResourceService resourceService)
+    public void Export(Sheet sheet, string path)
     {
         UnitBounds? sheetBounds = null;
 
-        using var resolver = new SheetResolver(_loggerFactory.CreateLogger<SheetResolver>(),
-                                               sheet,
-                                               settings,
-                                               resourceService);
+        using var resolver = _sheetResolverFactory.Create(sheet);
 
         foreach (var elementResolver in resolver.Elements)
         {
@@ -49,10 +43,7 @@ public class PngExporter
         double width  = size.X.Millimeters;
         double height = size.Y.Millimeters;
 
-        using var renderer = new SheetRenderer(_loggerFactory.CreateLogger<SheetRenderer>(),
-                                               resolver,
-                                               settings,
-                                               resourceService);
+        using var renderer = _sheetRendererFactory.Create(resolver);
         
         var transform = new TransformGroup();
         transform.Children.Add(new ScaleTransform(1, -1));

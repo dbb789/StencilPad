@@ -7,6 +7,21 @@ namespace StencilPad.Models.Resolvers;
 
 public class SheetResolver : IDisposable
 {
+    public class Factory(ILogger<SheetResolver> Logger,
+                         ISettings Settings,
+                         IResourceSet ResourceSet)
+    {
+        public SheetResolver Create()
+        {
+            return new(Logger, Settings, ResourceSet);
+        }
+
+        public SheetResolver Create(Sheet sheet)
+        {
+            return new(Logger, sheet, Settings, ResourceSet);
+        }
+    }
+    
     public struct ElementsView(SheetResolver SheetResolver) : IEnumerable<ISheetElementResolver>
     {
         public SheetResolverEnumerator<SheetElementList.Enumerator> GetEnumerator()
@@ -68,19 +83,19 @@ public class SheetResolver : IDisposable
     public event Action<ISheetElementResolver>? SelectionAdded;
     public event Action<ISheetElementResolver>? SelectionRemoved;
 
-    public SheetResolver(ILogger<SheetResolver> logger,
-                         ISettings settings,
-                         IResourceSet resourceSet)
+    private SheetResolver(ILogger<SheetResolver> logger,
+                          ISettings settings,
+                          IResourceSet resourceSet)
     {
         _logger = logger;
         _settings = settings;
         _resourceSet = resourceSet;
     }
     
-    public SheetResolver(ILogger<SheetResolver> logger,
-                         Sheet sheet,
-                         ISettings settings,
-                         IResourceSet resourceSet)
+    private SheetResolver(ILogger<SheetResolver> logger,
+                          Sheet sheet,
+                          ISettings settings,
+                          IResourceSet resourceSet)
     {
         _logger = logger;
         _settings = settings;

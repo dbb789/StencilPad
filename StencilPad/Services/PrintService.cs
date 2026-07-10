@@ -1,10 +1,7 @@
-using System.Diagnostics;
-using System.Printing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Extensions.Logging;
-using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
@@ -13,34 +10,26 @@ namespace StencilPad.Services;
 
 public class PrintService : IPrintService
 {
-    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<PrintService> _logger;
-    private readonly ISettings _settings;
-    private readonly IResourceService _resourceService;
-    
-    public PrintService(ILoggerFactory loggerFactory,
-                        ISettings settings,
-                        IResourceService resourceService)
+    private readonly SheetResolver.Factory _sheetResolverFactory;
+    private readonly SheetRenderer.Factory _sheetRendererFactory;
+
+    public PrintService(ILogger<PrintService> logger,
+                        SheetResolver.Factory sheetResolverFactory,
+                        SheetRenderer.Factory sheetRendererFactory)
     {
-        _loggerFactory = loggerFactory;
-        _logger = loggerFactory.CreateLogger<PrintService>();
-        _settings = settings;
-        _resourceService = resourceService;
+        _logger = logger;
+        _sheetResolverFactory = sheetResolverFactory;
+        _sheetRendererFactory = sheetRendererFactory;
+
     }
     
     public Task<bool> PrintAsync(string documentName, Sheet sheet)
     {
         return PrintAsync(documentName, sheet.Format, (dc) =>
         {
-            using var resolver = new SheetResolver(_loggerFactory.CreateLogger<SheetResolver>(),
-                                                   sheet,
-                                                   _settings,
-                                                   _resourceService);
-            
-            using var renderer = new SheetRenderer(_loggerFactory.CreateLogger<SheetRenderer>(),
-                                                   resolver,
-                                                   _settings,
-                                                   _resourceService);
+            using var resolver = _sheetResolverFactory.Create(sheet);
+            using var renderer = _sheetRendererFactory.Create(resolver);
 
             dc.PushTransform(new ScaleTransform(1, -1));
 
