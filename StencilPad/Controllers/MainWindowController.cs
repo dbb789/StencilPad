@@ -283,10 +283,10 @@ public class MainWindowController
         }
         
         var newName = _dialogService.ShowRenameDialog(selectedSheet.Name);
-        
+
         if (newName != null)
         {
-            selectedSheet.Name = newName;
+            _operationService.Push(new RenameSheetOperation(selectedSheet, newName));
         }
     }
 
