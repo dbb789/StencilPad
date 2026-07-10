@@ -54,7 +54,9 @@ public class ProjectSchema
 
         foreach (var sheetData in data.Sheets)
         {
-            target.AddSheet(SheetSchema.Unpack(sheetData));
+            var sheet = SheetSchema.Unpack(sheetData);
+
+            target.Sheets.Add(sheet.Id, sheet);
         }
     }
 }

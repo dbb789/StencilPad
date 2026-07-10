@@ -16,7 +16,7 @@ public abstract class SheetOperation
 
     public void Execute(Project project, out Sheet? targetSheet)
     {
-        if (!project.TryGetSheet(SheetId, out var sheet))
+        if (!project.Sheets.TryGetValue(SheetId, out var sheet))
         {
             throw new OperationFailedException($"Sheet with id {SheetId} not found");
         }

@@ -21,52 +21,23 @@ public partial class App : Application
 
         var services = new ServiceCollection();
 
-        var project = new Project();
-        var viewModel = new MainWindowViewModel { Project = project };
-        var mainWindow = new MainWindow { DataContext = viewModel };
-        
-        ConfigureServices(services, mainWindow, viewModel, project);
+        ConfigureServices(services);
         
         ServiceProvider = services.BuildServiceProvider();
         
         var appController = ServiceProvider.GetRequiredService<AppController>();
-        appController.Initialize();
-
-        mainWindow.Closing += (_, e) =>
-        {
-            if (!appController.ConfirmClose())
-            {
-                e.Cancel = true;
-            }
-        };
         
-        mainWindow.Show();
+        appController.Initialize();
     }
 
-    private static void ConfigureServices(IServiceCollection services,
-                                          MainWindow mainWindow,
-                                          MainWindowViewModel viewModel,
-                                          Project project)
-    {
-        services.AddSingleton<IDialogService>(sp => 
-        {
-            return new WpfDialogService(mainWindow);
-        });
-
-        services.AddSingleton<IModelPropertiesService>(sp =>
-        {
-            var settings = sp.GetRequiredService<ISettings>();
-            var resourceService = sp.GetRequiredService<IResourceService>();
-            var operationService = sp.GetRequiredService<IOperationService>();
-
-            return new WpfModelPropertiesService(mainWindow,
-                                                 settings,
-                                                 resourceService,
-                                                 operationService);
-        });
-        
-        services.AddSingleton<Project>(project);
-        services.AddSingleton<MainWindowViewModel>(viewModel);
+    private static void ConfigureServices(IServiceCollection services)
+    {        
+        services.AddSingleton<Project>();
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<MainWindow>();
+        services.AddSingleton<IWpfDialogParent>(x => x.GetService<MainWindow>()!);
+        services.AddSingleton<IDialogService, WpfDialogService>();
+        services.AddSingleton<IModelPropertiesService, WpfModelPropertiesService>();
         services.AddSingleton<IAppConfigService, AppConfigService>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IFileService, FileService>();
@@ -74,15 +45,15 @@ public partial class App : Application
         services.AddSingleton<IPrintService, PrintService>();
         services.AddSingleton<IResourceService, ResourceService>();
         services.AddSingleton<ISettings, SettingsService>();
+        services.AddSingleton<IOperationService, OperationService>();
+        services.AddSingleton<SheetTabController.Factory>();
+        services.AddSingleton<MainWindowController>();
+        services.AddSingleton<AppController>();
 
         services.AddLogging(builder =>
         {
             builder.AddDebug();
         });
-        
-        services.AddSingleton<IOperationService, OperationService>();
-        services.AddSingleton<SheetTabController.Factory>();
-        services.AddSingleton<AppController>();
     }
 }
 

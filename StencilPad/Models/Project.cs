@@ -6,14 +6,12 @@ namespace StencilPad.Models;
 
 public class Project : INotifyPropertyChanged
 {
-    public IEnumerable<Sheet> Sheets => _sheets;
+    public ObservableKeyedCollection<Guid, Sheet> Sheets => _sheets;
     public IEnumerable<ISheetElement> DefaultElements => _defaultElements.Values;
 
     private ObservableKeyedCollection<Guid, Sheet> _sheets;
     private Dictionary<Type, ISheetElement> _defaultElements;
 
-    public event Action<Sheet>? SheetAdded;
-    public event Action<Sheet>? SheetRemoved;
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private UnitSystem _unitSystem = UnitSystem.Metric;
@@ -108,6 +106,12 @@ public class Project : INotifyPropertyChanged
         _defaultElements = [];
     }
 
+    public void Clear()
+    {
+        _sheets.Clear();
+        _defaultElements.Clear();
+    }
+    
     public void GetElementStyle<T>(T target) where T : class, ISheetElement, new()
     {
         if (!_defaultElements.TryGetValue(typeof(T), out var stored))
@@ -147,39 +151,6 @@ public class Project : INotifyPropertyChanged
         }
 
         stored.AssignStyleFromElement(source);
-    }
-
-    public bool TryGetSheet(Guid guid, out Sheet sheet)
-    {
-        return _sheets.TryGetValue(guid, out sheet!);
-    }
-
-    public void AddSheet(Sheet sheet)
-    {
-        _sheets.Add(sheet.Id, sheet);
-        SheetAdded?.Invoke(sheet);
-    }
-
-    public void RemoveSheet(Sheet sheet)
-    {
-        if (_sheets.Remove(sheet.Id))
-        {
-            SheetRemoved?.Invoke(sheet);
-        }
-        else
-        {
-            throw new InvalidOperationException($"No sheet with ID {sheet.Id} exists in the project.");
-        }
-    }
-    
-    public void Clear()
-    {
-        foreach (var sheet in _sheets)
-        {
-            SheetRemoved?.Invoke(sheet);
-        }
-        
-        _sheets.Clear();
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

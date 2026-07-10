@@ -3,8 +3,10 @@ using System.Windows.Media;
 
 namespace StencilPad.UI;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, IWpfDialogParent
 {
+    public Window Window => this;
+    
     public MainWindow()
     {
         InitializeComponent();

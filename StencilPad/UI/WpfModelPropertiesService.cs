@@ -15,12 +15,12 @@ public class WpfModelPropertiesService : IModelPropertiesService
     private readonly IOperationService _operationService;
     private Window? _openWindow;
 
-    public WpfModelPropertiesService(Window owner,
+    public WpfModelPropertiesService(IWpfDialogParent parent,
                                      ISettings settings,
                                      IResourceService resourceService,
                                      IOperationService operationService)
     {
-        _owner = owner;
+        _owner = parent.Window;
         _settings = settings;
         _resourceService = resourceService;
         _operationService = operationService;

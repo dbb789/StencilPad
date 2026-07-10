@@ -8,9 +8,9 @@ public class WpfDialogService : IDialogService
 {
     private readonly Window _owner;
 
-    public WpfDialogService(Window owner)
+    public WpfDialogService(IWpfDialogParent parent)
     {
-        _owner = owner;
+        _owner = parent.Window;
     }
 
     public string? ShowRenameDialog(string currentName)

@@ -182,12 +182,7 @@ public class SheetResolver : IDisposable
 
         if (e.Action == NotifyCollectionChangedAction.Reset)
         {
-            foreach (var resolver in _resolvers.Values.ToList())
-            {
-                RemoveResolver(resolver.Element);
-            }
-
-            _resolvers.Clear();
+            throw new NotImplementedException("Reset action is not implemented.");
         }
     }
 
@@ -223,6 +218,11 @@ public class SheetResolver : IDisposable
 
     private void AddResolver(ISheetElement element, int index = -1)
     {
+        if (index < 0)
+        {
+            index = _resolvers.Count;
+        }
+
         var resolver = ResolverFactory.Create(element, _settings, _resourceSet);
 
         if (resolver is null)
@@ -231,11 +231,6 @@ public class SheetResolver : IDisposable
             return;
         }
         
-        if (index < 0)
-        {
-            index = _resolvers.Count;
-        }
-
         _resolvers.Insert(index, element, resolver);
         
         ++_version;
