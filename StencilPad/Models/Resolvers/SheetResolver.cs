@@ -179,6 +179,16 @@ public class SheetResolver : IDisposable
                 }
             }
         }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var resolver in _resolvers.Values.ToList())
+            {
+                RemoveResolver(resolver.Element);
+            }
+
+            _resolvers.Clear();
+        }
     }
 
     private void OnSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -203,6 +213,11 @@ public class SheetResolver : IDisposable
                     AddSelection(element);
                 }
             }
+        }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            throw new NotImplementedException("Reset action is not implemented.");
         }
     }
 

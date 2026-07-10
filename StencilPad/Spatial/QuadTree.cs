@@ -68,6 +68,12 @@ public class QuadTree<T> : IDisposable where T : notnull
         return true;
     }
 
+    public void Clear()
+    {
+        _root.Clear();
+        _lookup.Clear();
+    }
+
     public void Query(UnitBounds bounds, Action<T> func)
     {
         _root.Query(bounds, func);

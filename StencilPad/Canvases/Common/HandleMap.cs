@@ -109,10 +109,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         
         if (_sheet is not null)
         {
-            foreach (var element in _sheet.Elements)
-            {
-                Remove(element);
-            }
+            Clear();
 
             _sheet.Elements.CollectionChanged -= OnSheetElementsChanged;
             _sheet.Selection.CollectionChanged -= OnSheetSelectionChanged;
@@ -206,6 +203,11 @@ public class HandleMap : IHandleMap, IUnitSnap
                 Add(element);
             }
         }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            throw new NotImplementedException("Reset action not implemented.");
+        }
     }
 
     private void OnSheetSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -247,6 +249,11 @@ public class HandleMap : IHandleMap, IUnitSnap
                     }
                 });
             }
+        }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            throw new NotImplementedException("Reset action not implemented.");
         }
         
         SheetSelectionChanged?.Invoke();
@@ -326,6 +333,13 @@ public class HandleMap : IHandleMap, IUnitSnap
         }
     }
 
+    public void Clear()
+    {
+        _byHandle.Clear();
+        _byPosition.Clear();
+        _selectedHandles.Clear();
+    }
+    
     private void OnHandleAdded(ISheetElement element, Handle handle, Unit2D position, bool selected)
     {
         Add(element, handle, position, selected);

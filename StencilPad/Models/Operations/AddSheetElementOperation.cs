@@ -27,11 +27,11 @@ public class AddSheetElementOperation : SheetOperation, ICommandOperation
     {
         if (_index == -1)
         {
-            sheet.Elements.Add(_sheetElement);
+            sheet.Elements.Add(_sheetElement.Id, _sheetElement);
         }
         else
         {
-            sheet.Elements.Insert(_index, _sheetElement);
+            sheet.Elements.Insert(_index, _sheetElement.Id, _sheetElement);
         }
     }
     

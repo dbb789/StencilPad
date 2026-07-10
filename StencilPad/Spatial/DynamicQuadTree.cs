@@ -50,6 +50,11 @@ public class DynamicQuadTree<T> where T : notnull
         return _tree.Move(newPoint, value);
     }
 
+    public void Clear()
+    {
+        _tree.Clear();
+    }
+    
     public void Query(UnitBounds bounds, Action<T> func)
     {
         _tree.Query(bounds, func);

@@ -117,6 +117,11 @@ public abstract class ToolOverlay : Canvas
                 }
             }
         }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            throw new NotImplementedException("Reset action is not implemented.");
+        }
     }
     
     private void AddRenderer(ISheetElement element)

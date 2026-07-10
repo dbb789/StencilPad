@@ -29,7 +29,7 @@ public class RemoveSheetElementOperation : SheetOperation, ICommandOperation
         // to Invert().
         
         _index = sheet.Elements.IndexOf(_sheetElement);
-        sheet.Elements.Remove(_sheetElement);
+        sheet.Elements.Remove(_sheetElement.Id);
     }
     
     public override IOperation Invert()

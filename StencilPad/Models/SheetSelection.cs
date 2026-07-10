@@ -41,7 +41,7 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
             {
                 var id = _enumerator.Current;
                 
-                if (_parent._elements.TryGetElement(id, out var element))
+                if (_parent._elements.TryGetValue(id, out var element))
                 {
                     _current = element;
 
@@ -83,7 +83,7 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
     public bool Add(ISheetElement element)
     {
-        if (!_elements.TryGetElement(element.Id, out var existingElement))
+        if (!_elements.TryGetValue(element.Id, out var existingElement))
         {
             throw new ArgumentException("Element does not exist in parent collection.", nameof(element));
         }
@@ -107,7 +107,7 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
 
     private bool Remove(Guid id)
     {
-        if (!_elements.TryGetElement(id, out var existingElement))
+        if (!_elements.TryGetValue(id, out var existingElement))
         {
             throw new ArgumentException("Element does not exist in parent collection.", nameof(id));
         }

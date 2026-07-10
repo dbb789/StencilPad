@@ -75,6 +75,11 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
             }
         }
 
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            throw new NotImplementedException("Reset action is not implemented.");
+        }
+        
         HasElements = _elements.Count > 0;
         OnElementsChanged();
     }

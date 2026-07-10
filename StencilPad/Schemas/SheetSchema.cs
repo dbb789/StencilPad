@@ -34,7 +34,9 @@ public class SheetSchema
 
         foreach (var element in data.Elements)
         {
-            sheet.Elements.Add(element.Unpack());
+            var sheetElement = element.Unpack();
+
+            sheet.Elements.Add(sheetElement.Id, sheetElement);
         }
 
         return sheet;

@@ -6,10 +6,10 @@ namespace StencilPad.Models;
 
 public class Project : INotifyPropertyChanged
 {
-    public IEnumerable<Sheet> Sheets => _sheets.Values;
+    public IEnumerable<Sheet> Sheets => _sheets;
     public IEnumerable<ISheetElement> DefaultElements => _defaultElements.Values;
 
-    private Dictionary<Guid, Sheet> _sheets;
+    private ObservableKeyedCollection<Guid, Sheet> _sheets;
     private Dictionary<Type, ISheetElement> _defaultElements;
 
     public event Action<Sheet>? SheetAdded;
@@ -156,11 +156,6 @@ public class Project : INotifyPropertyChanged
 
     public void AddSheet(Sheet sheet)
     {
-        if (_sheets.ContainsKey(sheet.Id))
-        {
-            throw new InvalidOperationException($"A sheet with ID {sheet.Id} already exists in the project.");
-        }
-
         _sheets.Add(sheet.Id, sheet);
         SheetAdded?.Invoke(sheet);
     }
@@ -179,10 +174,12 @@ public class Project : INotifyPropertyChanged
     
     public void Clear()
     {
-        foreach (var sheet in _sheets.Values.ToList())
+        foreach (var sheet in _sheets)
         {
-            RemoveSheet(sheet);
+            SheetRemoved?.Invoke(sheet);
         }
+        
+        _sheets.Clear();
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

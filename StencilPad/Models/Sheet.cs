@@ -42,7 +42,7 @@ public class Sheet : ModelBase
 
     public bool AssignElement(ISheetElement newElement)
     {
-        if (Elements.TryGetElement(newElement.Id, out var element))
+        if (Elements.TryGetValue(newElement.Id, out var element))
         {
             element.AssignFromElement(newElement);
 
