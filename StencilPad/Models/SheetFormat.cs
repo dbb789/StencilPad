@@ -66,4 +66,12 @@ public record SheetFormat
 
         return size;
     }
+
+    public SheetFormat DeepClone()
+    {
+        return new SheetFormat(SizeType, Orientation)
+        {
+            CustomSize = CustomSize
+        };
+    }
 }

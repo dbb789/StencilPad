@@ -51,4 +51,26 @@ public class Sheet : ModelBase
 
         return false;
     }
+
+    public Sheet DeepClone()
+    {
+        var clone = new Sheet
+        {
+            Id = Id,
+            Name = Name,
+            Format = Format.DeepClone()
+        };
+
+        foreach (var element in Elements)
+        {
+            clone.Elements.Add(element.Id, element.DeepClone());
+        }
+
+        foreach (var selected in Selection)
+        {
+            clone.Selection.Add(selected);
+        }
+
+        return clone;
+    }
 }

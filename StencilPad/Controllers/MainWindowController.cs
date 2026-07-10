@@ -89,7 +89,10 @@ public class MainWindowController
         
         _project.Clear();
         SetCurrentFilePath(null);
-        AddNewSheet();
+
+        var sheet = new Sheet { Name = $"Sheet {_project.Sheets.Count() + 1}" };
+
+        _project.Sheets.Add(sheet.Id, sheet);
     }
 
     private async Task OpenProject()
@@ -266,8 +269,8 @@ public class MainWindowController
     private void AddNewSheet()
     {
         var sheet = new Sheet { Name = $"Sheet {_project.Sheets.Count() + 1}" };
-        
-        _project.Sheets.Add(sheet.Id, sheet);
+
+        _operationService.Push(new AddSheetOperation(sheet));
     }
 
     private void RenameActiveSheet()
@@ -303,7 +306,7 @@ public class MainWindowController
             return;
         }
 
-        _project.Sheets.Remove(selectedSheet.Id);
+        _operationService.Push(new RemoveSheetOperation(selectedSheet));
     }
 
     private async void PrintSelectedTabAsync()
