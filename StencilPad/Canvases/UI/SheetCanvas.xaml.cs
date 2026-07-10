@@ -3,14 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Overlays;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Rendering;
-using StencilPad.Services;
 using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.UI
@@ -91,9 +89,8 @@ namespace StencilPad.Canvases.UI
         public event Action? CanvasReady;
 
         public SheetCanvas()
-            : this(App.ServiceProvider.GetRequiredService<ILoggerFactory>(),
-                   App.ServiceProvider.GetRequiredService<ISettings>(),
-                   App.ServiceProvider.GetRequiredService<IResourceService>(),
+            : this(App.ServiceProvider.GetRequiredService<ISettings>(),
+                   App.ServiceProvider.GetRequiredService<HandleMap.Factory>(),
                    App.ServiceProvider.GetRequiredService<SheetResolver.Factory>(),
                    App.ServiceProvider.GetRequiredService<SheetRenderer.Factory>())
         {
@@ -104,15 +101,13 @@ namespace StencilPad.Canvases.UI
             // funny machinery just to instantiate it.
         }
         
-        public SheetCanvas(ILoggerFactory loggerFactory,
-                           ISettings settings,
-                           IResourceService resourceService,
+        public SheetCanvas(ISettings settings,
+                           HandleMap.Factory handleMapFactory,
                            SheetResolver.Factory sheetResolverFactory,
                            SheetRenderer.Factory sheetRendererFactory)
         {   
             _viewport = new VisualViewport();
-            _handleMap = new HandleMap(loggerFactory.CreateLogger<HandleMap>(),
-                                       settings);
+            _handleMap = handleMapFactory.Create();
 
             _canvasGrid = new CanvasGrid(settings, _viewport);
 

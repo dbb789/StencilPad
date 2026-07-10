@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using StencilPad.Canvases.Common;
 using StencilPad.Common;
 using StencilPad.Controllers;
 using StencilPad.Export;
@@ -52,6 +53,7 @@ public partial class App : Application
         services.AddSingleton<IResourceSet>(x => x.GetService<IResourceService>()!);
         services.AddSingleton<ISettings, SettingsService>();
         services.AddSingleton<IOperationService, OperationService>();
+        services.AddSingleton<HandleMap.Factory>();
         services.AddSingleton<SheetResolver.Factory>();
         services.AddSingleton<SheetRenderer.Factory>();
         services.AddSingleton<SheetTabController.Factory>();

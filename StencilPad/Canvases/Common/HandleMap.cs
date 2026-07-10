@@ -8,6 +8,14 @@ namespace StencilPad.Canvases.Common;
 
 public class HandleMap : IHandleMap, IUnitSnap
 {
+    public class Factory(ILogger<HandleMap> Logger, ISettings Settings)
+    {
+        public HandleMap Create()
+        {
+            return new(Logger, Settings);
+        }
+    }
+    
     public Sheet? Sheet
     {
         get => _sheet;
@@ -32,7 +40,7 @@ public class HandleMap : IHandleMap, IUnitSnap
     public event Action<ISheetElement, Handle, Unit2D>? HandleMoved;
     public event Action? HandleSelectionChanged;
 
-    public HandleMap(ILogger<HandleMap> logger, ISettings settings)
+    private HandleMap(ILogger<HandleMap> logger, ISettings settings)
     {
         _logger = logger;
         _settings = settings;
