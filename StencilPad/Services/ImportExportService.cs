@@ -1,5 +1,4 @@
 using System.IO;
-using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using StencilPad.Common;
@@ -12,23 +11,26 @@ namespace StencilPad.Services;
 
 public class ImportExportService : IImportExportService
 {
-    private readonly ILoggerFactory _loggerFactory;
     private readonly IDialogService _dialogService;
     private readonly ISettings _settings;
     private readonly IResourceService _resourceService;
     private readonly IOperationService _operationService;
+    private readonly PngExporter _pngExporter;
+    private readonly SvgExporter _svgExporter;
 
-    public ImportExportService(ILoggerFactory loggerFactory,
-                               IDialogService dialogService,
+    public ImportExportService(IDialogService dialogService,
                                ISettings settings,
                                IResourceService resourceService,
-                               IOperationService operationService)
+                               IOperationService operationService,
+                               PngExporter pngExporter,
+                               SvgExporter svgExporter)
     {
-        _loggerFactory = loggerFactory;
         _dialogService = dialogService;
         _settings = settings;
         _resourceService = resourceService;
         _operationService = operationService;
+        _pngExporter = pngExporter;
+        _svgExporter = svgExporter;
     }
     
     public async Task ImportImageAsync(Sheet sheet, IViewport viewport)
@@ -81,7 +83,7 @@ public class ImportExportService : IImportExportService
 
         try
         {
-            SvgExporter.Export(sheet, _settings, _resourceService, dialog.FileName);
+            _svgExporter.Export(sheet, _settings, _resourceService, dialog.FileName);
         }
         catch (Exception ex)
         {
@@ -105,9 +107,7 @@ public class ImportExportService : IImportExportService
 
         try
         {
-            var exporter = new PngExporter(_loggerFactory);
-            
-            exporter.Export(sheet, dialog.FileName, _settings, _resourceService);
+            _pngExporter.Export(sheet, dialog.FileName, _settings, _resourceService);
         }
         catch (Exception ex)
         {

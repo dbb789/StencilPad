@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using StencilPad.Common;
 using StencilPad.Controllers;
+using StencilPad.Export;
 using StencilPad.Models;
 using StencilPad.UI;
 using StencilPad.UI.Dialogs;
@@ -41,6 +42,8 @@ public partial class App : Application
         services.AddSingleton<IAppConfigService, AppConfigService>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IFileService, FileService>();
+        services.AddSingleton<PngExporter>();
+        services.AddSingleton<SvgExporter>();
         services.AddSingleton<IImportExportService, ImportExportService>();
         services.AddSingleton<IPrintService, PrintService>();
         services.AddSingleton<IResourceService, ResourceService>();

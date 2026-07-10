@@ -12,11 +12,11 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Export;
 
-public static class SvgExporter
+public class SvgExporter
 {
     private static readonly XNamespace SvgNs = "http://www.w3.org/2000/svg";
 
-    public static void Export(Sheet sheet, ISettings settings, IResourceService resourceService, string path)
+    public void Export(Sheet sheet, ISettings settings, IResourceService resourceService, string path)
     {
         UnitBounds? sheetBounds = null;
 
