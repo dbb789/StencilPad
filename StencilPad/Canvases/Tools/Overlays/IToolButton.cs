@@ -1,6 +1,6 @@
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public interface IToolButton : IDisposable
+public interface IToolButton
 {
     bool IsEnabled { get; set; }
 }

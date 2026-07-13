@@ -21,8 +21,4 @@ public class ToolViewModel : ViewModelBase, IToolButton
         get => _tooltip;
         set => SetProperty(ref _tooltip, value);
     }
-
-    public void Dispose()
-    {
-    }
 }
