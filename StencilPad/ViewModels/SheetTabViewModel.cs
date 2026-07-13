@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Windows.Input;
 using StencilPad.Canvases.UI;
 using StencilPad.Models;
 using StencilPad.Spatial;
@@ -72,6 +73,8 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
         }
     }
     
+    public ICommand ToggleSelectCommand { get; set; } = null!;
+
     public ToolPanelViewModel ToolPanelViewModel { get; }
 
     public IViewport? Viewport { get; set; }

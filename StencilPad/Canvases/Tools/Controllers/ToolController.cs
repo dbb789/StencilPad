@@ -40,6 +40,32 @@ public class ToolController : IDisposable
         _toolPanelViewModel.SelectedTool = null;
     }
 
+    public void ToggleSelect()
+    {
+        if (_selectedTool is SelectionTool)
+        {
+            SelectTool<EditTool>();
+        }
+        else
+        {
+            SelectTool<SelectionTool>();
+        }
+    }
+
+    public void SelectTool<TTool>() where TTool : ITool
+    {
+        foreach (var tool in _toolPanelViewModel.Tools)
+        {
+            if (tool.IsEnabled &&
+                _toolButtons.TryGetValue(tool, out var toolInstance) &&
+                toolInstance is TTool)
+            {
+                _toolPanelViewModel.SelectedTool = tool;
+                return;
+            }
+        }
+    }
+
     public void ActivateCurrentTool()
     {
         var selectedTool = _toolPanelViewModel.SelectedTool;

@@ -54,6 +54,11 @@ public class SheetTabController : IDisposable
         _hintService.HintChanged += OnHintTextChanged;
         _tabViewModel.CanvasAttached += OnCanvasAttached;
         _tabViewModel.CanvasDetached += OnCanvasDetached;
+
+        tabViewModel.ToggleSelectCommand = new RelayCommand(() =>
+        {
+            _toolController?.ToggleSelect();
+        });
     }
 
     public void Dispose()
