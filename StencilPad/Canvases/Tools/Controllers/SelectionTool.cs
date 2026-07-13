@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Overlays;
@@ -12,7 +12,8 @@ namespace StencilPad.Canvases.Tools.Controllers;
 
 public class SelectionTool : ITool
 {
-    public class Factory(Sheet Sheet,
+    public class Factory(ILogger<SelectionTool> Logger,
+                         Sheet Sheet,
                          OverlayContainer OverlayContainer,
                          ISettings Settings,
                          IRubberBand RubberBand,
@@ -27,7 +28,8 @@ public class SelectionTool : ITool
 
         public ITool Create(IToolButton button)
         {
-            return new SelectionTool(Sheet,
+            return new SelectionTool(Logger,
+                                     Sheet,
                                      OverlayContainer,
                                      Settings,
                                      RubberBand,
@@ -39,6 +41,7 @@ public class SelectionTool : ITool
         }
     }
 
+    private readonly ILogger<SelectionTool> _logger;
     private readonly Sheet _sheet;
     private readonly OverlayContainer _overlayContainer;
     private readonly ISettings _settings;
@@ -56,7 +59,8 @@ public class SelectionTool : ITool
 
     private IDisposable? _editContext;
     
-    private SelectionTool(Sheet sheet,
+    private SelectionTool(ILogger<SelectionTool> logger,
+                          Sheet sheet,
                           OverlayContainer overlayContainer,
                           ISettings settings,
                           IRubberBand rubberBand,
@@ -66,6 +70,7 @@ public class SelectionTool : ITool
                           IOperationService operationService,
                           Factory<SelectionToolOverlay> overlayFactory)
     {
+        _logger = logger;
         _sheet = sheet;
         _overlayContainer = overlayContainer;
         _settings = settings;
@@ -341,8 +346,7 @@ public class SelectionTool : ITool
     {
         if (_editContext is not null)
         {
-            // This would generally indicate that click events are firing in a funny order.
-            Debug.WriteLine("Warning: Starting new edit context without flushing previous one. This should never happen.");
+            _logger.LogError("Starting new edit context without flushing previous one.");
 
             // _sheet.Selection has possibly changed since the last edit context
             // was created, so we should probably just flush it before starting

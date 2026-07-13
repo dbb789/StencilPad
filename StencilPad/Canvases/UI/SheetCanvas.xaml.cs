@@ -132,18 +132,6 @@ namespace StencilPad.Canvases.UI
             
             InitializeComponent();
 
-            Focusable = true;
-            PreviewMouseDown += (_, _) => Focus();
-
-            CommandBindings.Add(new CommandBinding(
-                GlobalCommands.SelectAll,
-                (_, _) => (_overlayContainer.ActiveOverlay as IGlobalCommandTarget)?.SelectAll(),
-                (_, e) => e.CanExecute = _overlayContainer.ActiveOverlay is IGlobalCommandTarget));
-            CommandBindings.Add(new CommandBinding(
-                GlobalCommands.ClearSelection,
-                (_, _) => (_overlayContainer.ActiveOverlay as IGlobalCommandTarget)?.ClearSelection(),
-                (_, e) => e.CanExecute = _overlayContainer.ActiveOverlay is IGlobalCommandTarget));
-
             _viewport.Visual = this;
 
             CanvasRoot.Children.Add(_canvasGrid);

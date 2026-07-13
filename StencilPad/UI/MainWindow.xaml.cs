@@ -12,18 +12,6 @@ public partial class MainWindow : Window, IWpfDialogParent
         InitializeComponent();
     }
 
-    private SheetTab? GetActiveSheetTab()
-    {
-        if (SheetTabs.SelectedIndex < 0)
-        {
-            return null;
-        }
-        
-        var tabItem = SheetTabs.ItemContainerGenerator.ContainerFromIndex(SheetTabs.SelectedIndex) as System.Windows.Controls.TabItem;
-        
-        return FindVisualChild<SheetTab>(tabItem);
-    }
-
     private static T? FindVisualChild<T>(DependencyObject? parent) where T : DependencyObject
     {
         if (parent == null)

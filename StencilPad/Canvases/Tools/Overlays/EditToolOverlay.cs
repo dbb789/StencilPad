@@ -12,7 +12,7 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 
-public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarget, IDisposable
+public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IDisposable
 {
     // Limit mouse move event handling to 60hz so we don't clog up WPF.
     private const long MouseMoveEventThrottleMs = 16;
@@ -74,6 +74,16 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IGlobalCommandTarg
 
         BuildPens();
         
+        CommandBindings.Add(new CommandBinding(
+                                GlobalCommands.SelectAll,
+                                (_, _) => SelectAll(),
+                                (_, e) => e.CanExecute = true));
+        
+        CommandBindings.Add(new CommandBinding(
+                                GlobalCommands.ClearSelection,
+                                (_, _) => ClearSelection(),
+                                (_, e) => e.CanExecute = true));
+
         RegisterOverlay(PolygonToolOverlayRenderer.Factory);
         RegisterOverlay(TextElementToolOverlayRenderer.Factory);
         RegisterOverlay(ImageElementToolOverlayRenderer.Factory);

@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace StencilPad.ViewModels;
+namespace StencilPad.Common;
 
 public class RelayCommand<T> : ICommand
 {
