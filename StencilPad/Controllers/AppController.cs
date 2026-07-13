@@ -35,6 +35,11 @@ public class AppController
         _mainWindow.Show();
     }
 
+    public async void OpenFile(string filename)
+    {
+        await _mainWindowController.OpenProject(filename);
+    }
+    
     public bool ConfirmClose()
     {
         if (_mainWindowController.SaveState)

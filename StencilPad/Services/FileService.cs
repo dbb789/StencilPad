@@ -24,11 +24,20 @@ public class FileService : IFileService
             return null;
         }
 
+        var filename = dialog.FileName;
+        
+        await OpenAsync(filename, target);
+        
+        return filename;
+    }
+    
+    public async Task OpenAsync(string filename, Project target)
+    {
         ProjectSchema schema;
 
         try
         {
-            schema = await SchemaUtil.LoadProjectAsync(dialog.FileName);
+            schema = await SchemaUtil.LoadProjectAsync(filename);
         }
         catch (Exception e)
         {
@@ -43,8 +52,6 @@ public class FileService : IFileService
 
         target.Clear(); // Safety
         ProjectSchema.Unpack(schema, target);
-
-        return dialog.FileName;
     }
 
     public async Task SaveAsync(Project project, string filePath)

@@ -114,6 +114,24 @@ public class MainWindowController
         }
     }
 
+    public async Task OpenProject(string filename)
+    {
+        try
+        {
+            filename = System.IO.Path.GetFullPath(filename);
+            
+            await _fileService.OpenAsync(filename, _project);
+
+            _undoStack.Clear();
+            _operationService.DiscardEditContext();
+            SetCurrentFilePath(filename);
+        }
+        catch (FileServiceException ex)
+        {
+            _dialogService.ShowError(ex.Message, "Cannot Open File");
+        }
+    }
+
     private async Task SaveProject()
     {
         if (_currentFilePath is null)

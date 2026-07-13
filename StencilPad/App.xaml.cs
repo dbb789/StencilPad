@@ -32,6 +32,11 @@ public partial class App : Application
         var appController = ServiceProvider.GetRequiredService<AppController>();
         
         appController.Initialize();
+
+        if (e.Args.Length > 0)
+        {
+            appController.OpenFile(e.Args[0]);
+        }
     }
 
     private static void ConfigureServices(IServiceCollection services)
