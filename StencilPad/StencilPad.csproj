@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <PackageIcon>StencilPad.png</PackageIcon>
     <ApplicationIcon>Resources\StencilPad.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
