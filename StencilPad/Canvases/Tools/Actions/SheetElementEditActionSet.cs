@@ -5,7 +5,8 @@ using StencilPad.Spatial;
 
 namespace StencilPad.Canvases.Tools.Actions;
 
-public class SheetElementEditActionSet
+public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesService,
+                                       IOperationService operationService)
 {
     private static Func<IPolygonSheetElement, bool> OneOrMoreVerticesSelected = e =>
     {
@@ -31,8 +32,6 @@ public class SheetElementEditActionSet
     {
         return e.PolygonSet.Any(p => (p.GetSelectedEdges().Count() == 1) && p.Closed);
     };
-
-    public IEnumerable<ISheetElementAction?> Actions { get; }
 
     private class CornerPropertiesAction : ISheetElementAction
     {
@@ -73,123 +72,121 @@ public class SheetElementEditActionSet
             _modelPropertiesService.ShowVertexCornerProperties(sheet);
         }
     }
-    
-    public SheetElementEditActionSet(IModelPropertiesService modelPropertiesService,
-                                     IOperationService operationService)
+
+    public readonly ISheetElementAction CornerProperties = new CornerPropertiesAction(modelPropertiesService);
+
+    public readonly ISheetElementAction InsertPoint = new SheetElementAction<IPolygonSheetElement>(operationService)
     {
-        Actions = [
-            new CornerPropertiesAction(modelPropertiesService),
-            null,
-            new SheetElementAction<IPolygonSheetElement>(operationService)
+        Name = "Insert Point",
+        Enabled = OneOrMoreEdgesSelected,
+        Action = e =>
+        {
+            foreach (var polygon in e.PolygonSet)
             {
-                Name = "Insert Point",
-                Enabled = OneOrMoreEdgesSelected,
-                Action = e =>
+                foreach (var edgeIndex in polygon.GetSelectedEdges().OrderByDescending(x => x))
                 {
-                    foreach (var polygon in e.PolygonSet)
-                    {
-                        foreach (var edgeIndex in polygon.GetSelectedEdges().OrderByDescending(x => x))
-                        {
-                            var start = polygon.Vertices.At(edgeIndex).Position;
-                            var end = polygon.Vertices.At(edgeIndex + 1).Position;
-                            var vertex = new Vertex((start + end) / 2);
+                    var start = polygon.Vertices.At(edgeIndex).Position;
+                    var end = polygon.Vertices.At(edgeIndex + 1).Position;
+                    var vertex = new Vertex((start + end) / 2);
 
-                            polygon.InsertVertex(edgeIndex + 1, vertex);
-                        }
-                    }
+                    polygon.InsertVertex(edgeIndex + 1, vertex);
                 }
-            },
-            new SheetElementAction<IPolygonSheetElement>(operationService)
+            }
+        }
+    };
+
+    public readonly ISheetElementAction DeletePoints = new SheetElementAction<IPolygonSheetElement>(operationService)
+    {
+        Name = "Delete Points",
+        Enabled = e => OneOrMoreVerticesSelected(e) && CanDeleteVertices(e),
+        Action = e =>
+        {
+            foreach (var polygon in e.PolygonSet)
             {
-                Name = "Delete Points",
-                Enabled = e => OneOrMoreVerticesSelected(e) && CanDeleteVertices(e),
-                Action = e =>
+                // Vertex indices are reordered after each deletion, so we need
+                // to loop until there are no selected vertices left.
+                while (polygon.Vertices.Count > 2)
                 {
-                    foreach (var polygon in e.PolygonSet)
+                    var selectedVertices = polygon.GetSelectedVertices();
+
+                    if (!selectedVertices.Any())
                     {
-                        // Vertex indices are reordered after each deletion, so we need
-                        // to loop until there are no selected vertices left.
-                        while (polygon.Vertices.Count > 2)
-                        {
-                            var selectedVertices = polygon.GetSelectedVertices();
-
-                            if (!selectedVertices.Any())
-                            {
-                                break;
-                            }
-
-                            polygon.DeleteVertex(selectedVertices.First());
-                        }
+                        break;
                     }
+
+                    polygon.DeleteVertex(selectedVertices.First());
                 }
-            },
-            null,
-            new SheetElementAction<IPolygonSheetElement>(operationService)
+            }
+        }
+    };
+
+    public readonly ISheetElementAction OpenPath = new SheetElementAction<IPolygonSheetElement>(operationService)
+    {
+        Name = "Open Path",
+        Enabled = e => CanOpenPolygon(e),
+        Action = e =>
+        {
+            foreach (var polygon in e.PolygonSet)
             {
-                Name = "Open Path",
-                Enabled = e => CanOpenPolygon(e),
-                Action = e =>
+                if (polygon.Closed && polygon.GetSelectedEdges().Count() == 1)
                 {
-                    foreach (var polygon in e.PolygonSet)
-                    {
-                        if (polygon.Closed && polygon.GetSelectedEdges().Count() == 1)
-                        {
-                            polygon.Open(polygon.GetSelectedEdges().First());
-                        }
-                    }
+                    polygon.Open(polygon.GetSelectedEdges().First());
                 }
-            },
-            new SheetElementAction<IPolygonSheetElement>(operationService)
-            {
-                Name = "Close Path",
-                Enabled = PolygonOpen,
-                Action = e =>
-                {
-                    foreach (var polygon in e.PolygonSet)
-                    {
-                        if (!polygon.Closed)
-                        {
-                            polygon.Close();
-                        }
-                    }
-                }
-            },
-            new SheetElementAction<IPolygonSheetElement>(operationService)
-            {
-                Name = "Set As Straight",
-                Enabled = OneOrMoreEdgesSelected,
-                Action = e =>
-                {
-                    foreach (var polygon in e.PolygonSet)
-                    {
-                        foreach (var edgeIndex in polygon.GetSelectedEdges())
-                        {
-                            polygon.Edges[edgeIndex] = polygon.Edges[edgeIndex] with { Type = EdgeType.Straight };
-                        }
-                    }
-                }
-            },
-            new SheetElementAction<IPolygonSheetElement>(operationService)
-            {
-                Name = "Set As Curve",
-                Enabled = OneOrMoreEdgesSelected,
-                Action = e =>
-                {
-                    foreach (var polygon in e.PolygonSet)
-                    {
-                        foreach (var edgeIndex in polygon.GetSelectedEdges())
-                        {
-                            var edge = polygon.Edges[edgeIndex];
+            }
+        }
+    };
 
-                            polygon.Edges[edgeIndex] = edge with { Type = EdgeType.Bezier };
-
-                            polygon.CalculateControlPoints(edgeIndex, true);
-                        }
-                    }
+    public readonly ISheetElementAction ClosePath = new SheetElementAction<IPolygonSheetElement>(operationService)
+    {
+        Name = "Close Path",
+        Enabled = PolygonOpen,
+        Action = e =>
+        {
+            foreach (var polygon in e.PolygonSet)
+            {
+                if (!polygon.Closed)
+                {
+                    polygon.Close();
                 }
-            } ];
-    }
+            }
+        }
+    };
 
+    public readonly ISheetElementAction SetAsStraight = new SheetElementAction<IPolygonSheetElement>(operationService)
+    {
+        Name = "Set As Straight",
+        Enabled = OneOrMoreEdgesSelected,
+        Action = e =>
+        {
+            foreach (var polygon in e.PolygonSet)
+            {
+                foreach (var edgeIndex in polygon.GetSelectedEdges())
+                {
+                    polygon.Edges[edgeIndex] = polygon.Edges[edgeIndex] with { Type = EdgeType.Straight };
+                }
+            }
+        }
+    };
+
+    public readonly ISheetElementAction SetAsCurve = new SheetElementAction<IPolygonSheetElement>(operationService)
+    {
+        Name = "Set As Curve",
+        Enabled = OneOrMoreEdgesSelected,
+        Action = e =>
+        {
+            foreach (var polygon in e.PolygonSet)
+            {
+                foreach (var edgeIndex in polygon.GetSelectedEdges())
+                {
+                    var edge = polygon.Edges[edgeIndex];
+
+                    polygon.Edges[edgeIndex] = edge with { Type = EdgeType.Bezier };
+
+                    polygon.CalculateControlPoints(edgeIndex, true);
+                }
+            }
+        }
+    };
 
     public static void ConfigureServices(IServiceCollection services)
     {

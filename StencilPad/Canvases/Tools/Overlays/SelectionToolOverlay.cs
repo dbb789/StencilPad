@@ -1,6 +1,7 @@
 using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
+using StencilPad.Canvases.Tools.Widgets;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
@@ -74,10 +75,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         BuildPens();
 
+        BuildInputBindings(actionSet);
+        
         ContextMenu = new ContextMenu();
         ContextMenuOpening += (_, _) => BuildContextMenu(actionSet);
-
-        BuildInputBindings(actionSet);
 
         CommandBindings.Add(new CommandBinding(
                                 GlobalCommands.SelectAll,
@@ -115,45 +116,43 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
     private void BuildInputBindings(SheetElementActionSet actionSet)
     {
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.ShapeProperties,
-                                                             actionSet.MarkerPathProperties,
-                                                             actionSet.TextProperties,
-                                                             actionSet.RulerProperties,
-                                                             actionSet.ImageProperties),
-                                         Key.P,
-                                         ModifierKeys.Control));
-        
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.CombineShapes),
-                                         Key.C,
-                                         ModifierKeys.Control | ModifierKeys.Shift));
+        var builder = new InputBindingsBuilder(_sheet, ActionInvoked, InputBindings);
 
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.Ungroup),
-                                         Key.U,
-                                         ModifierKeys.Control));
-        
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.Group),
-                                         Key.G,
-                                         ModifierKeys.Control));
+        builder.Add(Key.P,
+                    ModifierKeys.Control,
+                    actionSet.ShapeProperties,
+                    actionSet.MarkerPathProperties,
+                    actionSet.TextProperties,
+                    actionSet.RulerProperties,
+                    actionSet.ImageProperties);
 
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.Ungroup),
-                                         Key.U,
-                                         ModifierKeys.Control));
+        builder.Add(Key.C,
+                    ModifierKeys.Control | ModifierKeys.Shift,
+                    actionSet.CombineShapes);
 
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.FlipHorizontal),
-                                         Key.H,
-                                         ModifierKeys.Control | ModifierKeys.Shift));
+        builder.Add(Key.G,
+                    ModifierKeys.Control,
+                    actionSet.Group);
 
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.FlipVertical),
-                                         Key.V,
-                                         ModifierKeys.Control | ModifierKeys.Shift));
+        builder.Add(Key.U,
+                    ModifierKeys.Control,
+                    actionSet.Ungroup);
 
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.BringToFront),
-                                         Key.F,
-                                         ModifierKeys.Control));
+        builder.Add(Key.H,
+                    ModifierKeys.Control | ModifierKeys.Shift,
+                    actionSet.FlipHorizontal);
 
-        InputBindings.Add(new KeyBinding(CreateActionCommand(actionSet.SendToBack),
-                                         Key.B,
-                                         ModifierKeys.Control));
+        builder.Add(Key.V,
+                    ModifierKeys.Control | ModifierKeys.Shift,
+                    actionSet.FlipVertical);
+
+        builder.Add(Key.F,
+                    ModifierKeys.Control,
+                    actionSet.BringToFront);
+
+        builder.Add(Key.B,
+                    ModifierKeys.Control,
+                    actionSet.SendToBack);
     }
 
     private RelayCommand CreateActionCommand(params ISheetElementAction [] actionSet)
@@ -181,8 +180,10 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         }
 
         ContextMenu.Items.Clear();
+        
+        var builder = new ContextMenuBuilder(_sheet, ActionInvoked);
 
-        if (AddContextMenuItemSet(
+        if (builder.AddContextMenuItemSet(
                 ContextMenu.Items,
                 (actionSet.ShapeProperties, "Shape Properties…", "Ctrl+P"),
                 (actionSet.MarkerPathProperties, "Marker Path Properties…", "Ctrl+P"),
@@ -194,15 +195,17 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             ContextMenu.Items.Add(new Separator());
         }
 
-        AddContextMenuItemSet(ContextMenu.Items,
-                              (actionSet.Group, "Group", "Ctrl+G"),
-                              (actionSet.Ungroup, "Ungroup", "Ctrl+U"));
+        builder.AddContextMenuItemSet(
+            ContextMenu.Items,
+            (actionSet.Group, "Group", "Ctrl+G"),
+            (actionSet.Ungroup, "Ungroup", "Ctrl+U"));
         
         ContextMenu.Items.Add(new Separator());
 
-        AddContextMenuItemSet(ContextMenu.Items,
-                              (actionSet.FlipHorizontal, "Flip Horizontal", "Ctrl+Shift+H"),
-                              (actionSet.FlipVertical, "Flip Vertical", "Ctrl+Shift+V"));
+        builder.AddContextMenuItemSet(
+            ContextMenu.Items,
+            (actionSet.FlipHorizontal, "Flip Horizontal", "Ctrl+Shift+H"),
+            (actionSet.FlipVertical, "Flip Vertical", "Ctrl+Shift+V"));
 
         ContextMenu.Items.Add(new Separator());
 
@@ -210,62 +213,28 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
         ContextMenu.Items.Add(justifyGroup);
 
-        AddContextMenuItemSet(justifyGroup.Items,
-                              (actionSet.JustifyLeft, "Left", ""),
-                              (actionSet.JustifyCenter, "Centre", ""),
-                              (actionSet.JustifyRight, "Right", ""));
+        builder.AddContextMenuItemSet(
+            justifyGroup.Items,
+            (actionSet.JustifyLeft, "Left", ""),
+            (actionSet.JustifyCenter, "Centre", ""),
+            (actionSet.JustifyRight, "Right", ""));
 
         justifyGroup.Items.Add(new Separator());
         
-        AddContextMenuItemSet(justifyGroup.Items,
-                              (actionSet.JustifyTop, "Top", ""),
-                              (actionSet.JustifyMiddle, "Middle", ""),
-                              (actionSet.JustifyBottom, "Bottom", ""));
+        builder.AddContextMenuItemSet(
+            justifyGroup.Items,
+            (actionSet.JustifyTop, "Top", ""),
+            (actionSet.JustifyMiddle, "Middle", ""),
+            (actionSet.JustifyBottom, "Bottom", ""));
         
         ContextMenu.Items.Add(new Separator());
 
-        AddContextMenuItemSet(ContextMenu.Items,
-                              (actionSet.BringToFront, "Bring to Front", "Ctrl+F"),
-                              (actionSet.SendToBack, "Send to Back", "Ctrl+B"));
+        builder.AddContextMenuItemSet(
+            ContextMenu.Items,
+            (actionSet.BringToFront, "Bring to Front", "Ctrl+F"),
+            (actionSet.SendToBack, "Send to Back", "Ctrl+B"));
     }
     
-    public bool AddContextMenuItemSet(ItemCollection items,
-                                      params (ISheetElementAction Action, string Title, string InputGestureText)[] actions)
-    {
-        bool addedAny = false;
-
-        foreach (var action in actions)
-        {
-            if (AddContextMenuItem(items, action.Action, action.Title, action.InputGestureText))
-            {
-                addedAny = true;
-            }
-        }
-
-        return addedAny;
-    }
-
-    public bool AddContextMenuItem(ItemCollection items, ISheetElementAction action, string title, string inputGestureText = "")
-    {
-        if (action is null || !action.IsVisible(_sheet, _sheet.Selection))
-        {
-            return false;
-        }
-
-        var menuItem = new MenuItem
-        {
-            Header = title,
-            IsEnabled = action.IsEnabled(_sheet, _sheet.Selection),
-            InputGestureText = inputGestureText
-        };
-
-        menuItem.Click += (_, _) => ActionInvoked?.Invoke(action);
-
-        items.Add(menuItem);
-
-        return true;
-    }
-
     private void BuildPens()
     {
         var selectionColor = _settings.SelectionColor;

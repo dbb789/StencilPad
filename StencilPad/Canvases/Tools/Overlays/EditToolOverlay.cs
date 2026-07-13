@@ -88,9 +88,11 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IDisposable
         RegisterOverlay(TextElementToolOverlayRenderer.Factory);
         RegisterOverlay(ImageElementToolOverlayRenderer.Factory);
 
-        ContextMenu = new ContextMenu();
-        ContextMenuOpening += (s, e) => RebuildContextMenu(s, e, actionSet.Actions);
+        BuildInputBindings(actionSet);
         
+        ContextMenu = new ContextMenu();
+        ContextMenuOpening += (s, e) => BuildContextMenu(actionSet);
+
         _settings.Changed += SettingsChanged;
     }
 
@@ -147,18 +149,46 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IDisposable
         _handleMap.ClearSelection();
     }
 
-    private void RebuildContextMenu(object sender,
-                                    ContextMenuEventArgs e,
-                                    IEnumerable<ISheetElementAction?> actions)
+    private void BuildInputBindings(SheetElementEditActionSet actionSet)
     {
-        if (!ContextMenuUtil.RebuildContextMenu(ContextMenu,
-                                                _sheet,
-                                                _sheet.Selection,
-                                                actions,
-                                                ActionInvoked))
+        var builder = new InputBindingsBuilder(_sheet, ActionInvoked, InputBindings);
+
+        builder.Add(Key.P, ModifierKeys.Control, actionSet.CornerProperties);
+        builder.Add(Key.I, ModifierKeys.Control, actionSet.InsertPoint);
+        builder.Add(Key.Delete, ModifierKeys.None, actionSet.DeletePoints);
+        builder.Add(Key.O, ModifierKeys.Control | ModifierKeys.Shift, actionSet.OpenPath);
+        builder.Add(Key.C, ModifierKeys.Control | ModifierKeys.Shift, actionSet.ClosePath);
+        builder.Add(Key.S, ModifierKeys.Control | ModifierKeys.Shift, actionSet.SetAsStraight);
+        builder.Add(Key.U, ModifierKeys.Control | ModifierKeys.Shift, actionSet.SetAsCurve);
+    }
+    
+    private void BuildContextMenu(SheetElementEditActionSet actionSet)
+    {
+        if (_sheet.Selection.Count == 0)
         {
-            e.Handled = true;
+            ContextMenu.IsEnabled = false;
+            return;
         }
+
+        ContextMenu.Items.Clear();
+
+        var builder = new ContextMenuBuilder(_sheet, ActionInvoked);
+        
+        if (builder.AddContextMenuItemSet(
+                ContextMenu.Items,
+                (actionSet.CornerProperties, "Corner Properties…", "Ctrl+P")))
+        {
+            ContextMenu.Items.Add(new Separator());
+        }
+
+        builder.AddContextMenuItemSet(
+            ContextMenu.Items,
+            (actionSet.InsertPoint, "Insert Point", "Ctrl+I"),
+            (actionSet.DeletePoints, "Delete Point", "Delete"),
+            (actionSet.OpenPath, "Open Path", "Ctrl+Shift+O"),
+            (actionSet.ClosePath, "Close Path", "Ctrl+Shift+C"),
+            (actionSet.SetAsStraight, "Set as Straight", "Ctrl+Shift+S"),
+            (actionSet.SetAsCurve, "Set as Curve", "Ctrl+Shift+U"));
     }
     
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

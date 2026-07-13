@@ -101,7 +101,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction Group = new MultiSheetElementAction
+    public readonly ISheetElementAction Group = new MultiSheetElementAction
     {
         Name = "Group",
         Enabled = elements => elements.Count() > 1,
@@ -146,7 +146,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction Ungroup = new MultiSheetElementAction
+    public readonly ISheetElementAction Ungroup = new MultiSheetElementAction
     {
         Name = "Ungroup",
         Enabled = elements => elements.Any(e => e is ElementGroup),
@@ -181,7 +181,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction FlipHorizontal = new MultiSheetElementAction
+    public readonly ISheetElementAction FlipHorizontal = new MultiSheetElementAction
     {
         Name = "Flip Horizontal",
         Action = (sheet, elements) =>
@@ -204,7 +204,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction FlipVertical = new MultiSheetElementAction
+    public readonly ISheetElementAction FlipVertical = new MultiSheetElementAction
     {
         Name = "Flip Vertical",
         Action = (sheet, elements) =>
@@ -227,7 +227,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction JustifyTop = new MultiSheetElementAction
+    public readonly ISheetElementAction JustifyTop = new MultiSheetElementAction
     {
         Name = "Justify Top",
         Action = (sheet, elements) =>
@@ -239,7 +239,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction JustifyMiddle = new MultiSheetElementAction
+    public readonly ISheetElementAction JustifyMiddle = new MultiSheetElementAction
     {
         Name = "Justify Middle",
         Action = (sheet, elements) =>
@@ -251,7 +251,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction JustifyBottom = new MultiSheetElementAction
+    public readonly ISheetElementAction JustifyBottom = new MultiSheetElementAction
     {
         Name = "Justify Bottom",
         Action = (sheet, elements) =>
@@ -263,7 +263,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction JustifyLeft = new MultiSheetElementAction
+    public readonly ISheetElementAction JustifyLeft = new MultiSheetElementAction
     {
         Name = "Justify Left",
         Action = (sheet, elements) =>
@@ -275,7 +275,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction JustifyCenter = new MultiSheetElementAction
+    public readonly ISheetElementAction JustifyCenter = new MultiSheetElementAction
     {
         Name = "Justify Centre",
         Action = (sheet, elements) =>
@@ -287,7 +287,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction JustifyRight = new MultiSheetElementAction
+    public readonly ISheetElementAction JustifyRight = new MultiSheetElementAction
     {
         Name = "Justify Right",
         Action = (sheet, elements) =>
@@ -299,7 +299,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction BringToFront = new MultiSheetElementAction
+    public readonly ISheetElementAction BringToFront = new MultiSheetElementAction
     {
         Name = "Bring to Front",
         Action = (sheet, elements) =>
@@ -322,7 +322,7 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
         }
     };
 
-    public ISheetElementAction SendToBack = new MultiSheetElementAction
+    public readonly ISheetElementAction SendToBack = new MultiSheetElementAction
     {
         Name = "Send to Back",
         Action = (sheet, elements) =>
