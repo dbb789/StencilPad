@@ -11,6 +11,9 @@
     "Markers":
     [
         { "Id": 1001, "Filename": "Marker0.spad" },
-        { "Id": 1002, "Filename": "Marker1.spad" }
+        { "Id": 1002, "Filename": "Marker1.spad" },
+        { "Id": 1003, "Filename": "Marker2.spad" },
+        { "Id": 1004, "Filename": "Marker3.spad" },
+        { "Id": 1005, "Filename": "Marker4.spad" }
     ]
 }

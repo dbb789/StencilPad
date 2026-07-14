@@ -85,7 +85,7 @@ public class MainWindowController
 
     private void NewProject()
     {
-        if (!_dialogService.ShowConfirmation(
+        if (!SaveState && !_dialogService.ShowConfirmation(
             "You have unsaved changes. Are you sure you want to create a new project?",
             "Unsaved Changes",
             false))
@@ -111,7 +111,7 @@ public class MainWindowController
 
     private async Task OpenProject()
     {
-        if (!_dialogService.ShowConfirmation(
+        if (!SaveState && !_dialogService.ShowConfirmation(
             "You have unsaved changes. Are you sure you want to open a new file?",
             "Unsaved Changes",
             false))
