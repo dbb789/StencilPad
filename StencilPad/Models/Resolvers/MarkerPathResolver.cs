@@ -122,12 +122,14 @@ public class MarkerPathResolver : SheetElementResolver
             _pathStyle = CreatePathStyle();
             _pathGeometryWalker?.SetStyle(_pathStyle);
         }
-        else if (IsMarkerStyleProperty(e.PropertyName))
+
+        if (IsMarkerStyleProperty(e.PropertyName))
         {
             _markerStyle = CreateMarkerStyle();
             _markerGeometryWalker?.SetStyle(_markerStyle);
         }
-        else if (e.PropertyName == nameof(MarkerPath.MarkerType))
+        
+        if (e.PropertyName == nameof(MarkerPath.MarkerType))
         {
             _markerGeometryWalker?.Update(GeometryId, CreateMarkerGeometrySet());
         }
@@ -169,6 +171,7 @@ public class MarkerPathResolver : SheetElementResolver
         return new GeometryStyle
         {
             LineColor = _markerPath.MarkerColor,
+            LineWidth = _markerPath.LineWidth
         };
     }
 
@@ -180,6 +183,7 @@ public class MarkerPathResolver : SheetElementResolver
 
     private static bool IsMarkerStyleProperty(string? propertyName)
     {
-        return propertyName == nameof(MarkerPath.MarkerColor);
+        return propertyName == nameof(MarkerPath.MarkerColor) ||
+            propertyName == nameof(MarkerPath.LineWidth);
     }
 }

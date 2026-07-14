@@ -49,6 +49,11 @@ public class CapDistanceWalker : IGeometryWalker
     private bool WalkLine(int segmentIndex, Line line)
     {
         var lineLength = line.Length;
+
+        if (lineLength <= Unit.Epsilon)
+        {
+            return true;
+        }
         
         if (_distance <= lineLength)
         {

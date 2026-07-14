@@ -27,7 +27,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         }
     }
 
-    private Unit _offset = Unit.FromMillimeters(2);
+    private Unit _offset = Unit.Zero;
     public Unit Offset
     {
         get => _offset;

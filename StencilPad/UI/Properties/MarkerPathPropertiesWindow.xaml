@@ -40,6 +40,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="8"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Spacing:"
@@ -67,6 +69,11 @@
                     <widgets:GeometryDropdown x:Name="MarkerTypeDropdown"
                                               Grid.Row="6" Grid.Column="2"
                                               SelectedIndex="{Binding MarkerTypeIndex}"/>
+
+                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Balance Markers:"
+                               VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="8" Grid.Column="2"
+                              IsChecked="{Binding Balanced}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Marker Colour">

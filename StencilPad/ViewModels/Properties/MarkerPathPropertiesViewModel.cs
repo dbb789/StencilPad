@@ -82,6 +82,18 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         }
     }
 
+    private bool _balanced;
+    public bool Balanced
+    {
+        get => _balanced;
+        set
+        {
+            _balanced = value;
+            SetElementProperty(e => e.Balanced = value);
+            OnPropertyChanged();
+        }
+    }
+    
     public IReadOnlyList<GeometryResourceId> MarkerTypeIds => _markerTypeIds;
 
     private List<GeometryResourceId> _markerTypeIds;
@@ -127,5 +139,8 @@ public class MarkerPathPropertiesViewModel : ElementPropertiesViewModel<MarkerPa
         
         _markerTypeIndex = Mode(e => _markerTypeIds.IndexOf(e.MarkerType));
         OnPropertyChanged(nameof(MarkerTypeIndex));
+
+        _balanced = Mode(e => e.Balanced);
+        OnPropertyChanged(nameof(Balanced));
     }
 }
