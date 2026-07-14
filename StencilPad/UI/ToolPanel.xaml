@@ -63,7 +63,8 @@
             <DataTemplate>
                 <Button Style="{StaticResource ToolButtonStyle}"
                         Command="{Binding DataContext.SelectToolCommand, ElementName=Root}"
-                        CommandParameter="{Binding}">
+                        CommandParameter="{Binding}"
+                        ToolTip="{Binding Tooltip}">
                     <Image Source="{Binding Icon}"/>
                 </Button>
             </DataTemplate>
