@@ -147,6 +147,12 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IDisposable
 
     public void SelectAll()
     {
+        if (_handleMap.SelectedHandles.Count == _handleMap.HandleCount)
+        {
+            _handleMap.ClearSelection();
+            return;
+        }
+        
         _handleMap.SelectAll();
     }
     

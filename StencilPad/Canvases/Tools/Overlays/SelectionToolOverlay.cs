@@ -531,6 +531,13 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
     public void SelectAll()
     {
+        // Toggle selection if everything is already selected.
+        if (_sheet.Selection.Count == _sheet.Elements.Count)
+        {
+            _sheet.Selection.Clear();
+            return;
+        }
+        
         _sheet.Selection.Clear();
 
         foreach (var element in _sheet.Elements)

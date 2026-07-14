@@ -22,6 +22,7 @@ public class HandleMap : IHandleMap, IUnitSnap
         set => SetSheet(value);
     }
 
+    public int HandleCount => _byHandle.Count;
     public ReadOnlyFlatSet<IHandleMapEntry> SelectedHandles => _selectedHandles;
 
     private readonly ILogger<HandleMap> _logger;
