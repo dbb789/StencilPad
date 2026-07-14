@@ -158,17 +158,16 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
             foreach (var group in groups)
             {
-                foreach (var child in group.Children)
-                {
-                    added.Add(child.DeepClone());
-                }
-
                 operation.Add(new RemoveSheetElementOperation(sheet, group));
 
-                foreach (var element in added)
+                foreach (var child in group.Children)
                 {
+                    var element = child.DeepClone();
+                    
                     element.Transform = group.Transform * element.Transform;
                     operation.Add(new AddSheetElementOperation(sheet, element));
+
+                    added.Add(element);
                 }
             }
 

@@ -39,7 +39,7 @@
                   SelectedValuePath="Value"
                   DisplayMemberPath="Description"/>
 
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Corner Size:"
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Corner Radius:"
                    VerticalAlignment="Center"/>
         <widgets:CornerSizeField Grid.Row="2" Grid.Column="2" MinWidth="180"
                                  Value="{Binding CornerSize}"/>
