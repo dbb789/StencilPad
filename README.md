@@ -27,3 +27,76 @@ If you've found yourself looking for something that'll let you quickly draw diag
 ## Prerequisites
 - .NET 10.0 SDK
 - Visual Studio 2026
+
+## Keyboard Shortcuts
+
+### File
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+N` | New Project |
+| `Ctrl+O` | Open Project |
+| `Ctrl+S` | Save |
+| `Ctrl+Shift+S` | Save As |
+| `Ctrl+P` | Print |
+
+### Edit
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+X` | Cut |
+| `Ctrl+C` | Copy |
+| `Ctrl+V` | Paste |
+| `Delete` | Delete |
+| `Ctrl+A` | Select All |
+
+### Sheet
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+T` | Add Sheet |
+
+### Canvas / View
+
+| Shortcut | Action |
+|---|---|
+| `Escape` | Cancel current operation |
+| `Tab` | Toggle between Select and Edit tool |
+| `F1` | Toggle grid visibility |
+| `F2` | Toggle grid lock (snap to grid) |
+| `F3` | Toggle point lock (snap to points) |
+
+### Selection Tool (objects selected)
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+P` | Open properties for the selected element (shape, text, ruler, image, etc.) |
+| `Ctrl+Shift+C` | Combine Shapes |
+| `Ctrl+G` | Group |
+| `Ctrl+U` | Ungroup |
+| `Ctrl+Shift+H` | Flip Horizontal |
+| `Ctrl+Shift+V` | Flip Vertical |
+| `Ctrl+F` | Bring to Front |
+| `Ctrl+B` | Send to Back |
+
+#### Modifier keys while dragging (Selection Tool)
+
+| Key held | Effect |
+|---|---|
+| `Shift` | Constrains drag movement to the nearest axis |
+| `Shift` | Constrains resize to the original aspect ratio |
+| `Shift` | Snaps rotation to the configured angle increment |
+
+### Edit Tool (point editing)
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+P` | Corner Properties |
+| `Ctrl+I` | Insert Point |
+| `Delete` | Delete selected point(s) |
+| `Ctrl+Shift+O` | Open Path |
+| `Ctrl+Shift+C` | Close Path |
+| `Ctrl+Shift+S` | Set selected segment as Straight |
+| `Ctrl+Shift+U` | Set selected segment as Curve |
