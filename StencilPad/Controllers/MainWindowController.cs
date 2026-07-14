@@ -479,7 +479,7 @@ public class MainWindowController
 
         var viewport = _viewModel.SelectedTab?.Viewport;
 
-        if (viewport is not null)
+        if (viewport is null)
         {
             return;
         }
