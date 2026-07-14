@@ -10,6 +10,7 @@ namespace StencilPad.Services;
 
 public class ClipboardService : IClipboardService
 {
+    private const string ClipboardDataFormat = "stencilpad.data";
     private static readonly Unit2D PasteMajorOffset = Unit2D.FromMillimeters(-5, -5);
     private static readonly Unit2D PasteMinorOffset = Unit2D.FromMillimeters(5, -5);
 
@@ -82,12 +83,12 @@ public class ClipboardService : IClipboardService
             .Where(s => s is not null)
             .ToArray();
 
-        Clipboard.SetText(JsonSerializer.Serialize(schemas, SchemaJsonOptions.Default));
+        Clipboard.SetData(ClipboardDataFormat, JsonSerializer.Serialize(schemas, SchemaJsonOptions.Default));
     }
     
     private IEnumerable<ISheetElement> UnpackFromClipboard()
     {
-        if (!Clipboard.ContainsText())
+        if (!Clipboard.ContainsData(ClipboardDataFormat))
         {
             return Enumerable.Empty<ISheetElement>();
         }
@@ -96,7 +97,7 @@ public class ClipboardService : IClipboardService
 
         try
         {
-            schemas = JsonSerializer.Deserialize<SheetElementSchema[]>(Clipboard.GetText(),
+            schemas = JsonSerializer.Deserialize<SheetElementSchema[]>(Clipboard.GetData(ClipboardDataFormat) as string ?? "",
                                                                        SchemaJsonOptions.Default);
         }
         catch (JsonException je)
