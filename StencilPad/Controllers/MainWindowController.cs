@@ -178,7 +178,7 @@ public class MainWindowController
     {
         try
         {
-            var path = await _fileService.SaveAsAsync(_project);
+            var path = await _fileService.SaveAsAsync(_project, _currentFilePath);
 
             if (path is not null)
             {

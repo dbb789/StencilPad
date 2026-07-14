@@ -76,15 +76,22 @@ public class FileService : IFileService
         }
     }
 
-    public async Task<string?> SaveAsAsync(Project project)
+    public async Task<string?> SaveAsAsync(Project project, string? filePath = null)
     {
         var dialog = new SaveFileDialog
         {
             Filter = FileFilter,
-            DefaultExt = FileExtension
+            DefaultExt = FileExtension,
         };
 
-        if (dialog.ShowDialog() != true)
+        if (!string.IsNullOrEmpty(filePath))
+        {
+            filePath = Path.GetFullPath(filePath);
+            dialog.InitialDirectory = Path.GetDirectoryName(filePath);
+            dialog.FileName = Path.GetFileName(filePath);
+        }
+        
+        if (dialog.ShowDialog() != true || string.IsNullOrEmpty(dialog.FileName))
         {
             return null;
         }
