@@ -80,10 +80,23 @@ public class MainWindowController
 
     public void Initialize()
     {
-        NewProject();
+        ClearProject();
     }
 
     private void NewProject()
+    {
+        if (!_dialogService.ShowConfirmation(
+            "You have unsaved changes. Are you sure you want to create a new project?",
+            "Unsaved Changes",
+            false))
+        {
+            return;
+        }
+
+        ClearProject();
+    }
+    
+    private void ClearProject()
     {
         _undoStack.Clear();
         _operationService.DiscardEditContext();
@@ -98,6 +111,14 @@ public class MainWindowController
 
     private async Task OpenProject()
     {
+        if (!_dialogService.ShowConfirmation(
+            "You have unsaved changes. Are you sure you want to open a new file?",
+            "Unsaved Changes",
+            false))
+        {
+            return;
+        }
+
         try
         {
             var path = await _fileService.OpenAsync(_project);
