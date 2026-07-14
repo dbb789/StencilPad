@@ -40,6 +40,13 @@ public class ToolController : IDisposable
         _toolPanelViewModel.SelectedTool = null;
     }
 
+    public void CancelCurrent()
+    {
+        _selectedTool?.ToolEnd();
+        _modelPropertiesService.CloseAll();
+        _selectedTool?.ToolBegin();
+    }
+
     public void ToggleSelect()
     {
         if (_selectedTool is SelectionTool)
@@ -52,7 +59,7 @@ public class ToolController : IDisposable
         }
     }
 
-    public void SelectTool<TTool>() where TTool : ITool
+    private void SelectTool<TTool>() where TTool : ITool
     {
         foreach (var tool in _toolPanelViewModel.Tools)
         {

@@ -54,10 +54,45 @@ public class SheetTabController : IDisposable
         _hintService.HintChanged += OnHintTextChanged;
         _tabViewModel.CanvasAttached += OnCanvasAttached;
         _tabViewModel.CanvasDetached += OnCanvasDetached;
+        
+        tabViewModel.CancelCommand = new RelayCommand(() =>
+        {
+            _toolController?.CancelCurrent();
+        });
 
         tabViewModel.ToggleSelectCommand = new RelayCommand(() =>
         {
             _toolController?.ToggleSelect();
+        });
+
+        tabViewModel.ToggleGridCommand = new RelayCommand(() =>
+        {
+            if (_currentCanvas is null)
+            {
+                return;
+            }
+
+            _currentCanvas.ShowGrid = !_currentCanvas.ShowGrid;
+        });
+
+        tabViewModel.ToggleGridLockCommand = new RelayCommand(() =>
+        {
+            if (_currentCanvas is null)
+            {
+                return;
+            }
+
+            _currentCanvas.SnapToGrid = !_currentCanvas.SnapToGrid;
+        });
+
+        tabViewModel.TogglePointLockCommand = new RelayCommand(() =>
+        {
+            if (_currentCanvas is null)
+            {
+                return;
+            }
+
+            _currentCanvas.SnapToPoint = !_currentCanvas.SnapToPoint;
         });
     }
 

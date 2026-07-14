@@ -65,17 +65,20 @@
         </ListBox.ItemContainerStyle>
 
         <ToggleButton Style="{StaticResource ToolButtonStyle}" 
-                      IsChecked="{Binding ShowGrid, ElementName=Root}">
+                      IsChecked="{Binding ShowGrid, ElementName=Root}"
+                      ToolTip="Show Grid (F1)">
             <Image Source="pack://application:,,,/Resources/Icons/ShowGrid.png"/>
         </ToggleButton>
 
         <ToggleButton Style="{StaticResource ToolButtonStyle}" 
-                      IsChecked="{Binding SnapToGrid, ElementName=Root}">
+                      IsChecked="{Binding SnapToGrid, ElementName=Root}"
+                      ToolTip="Lock to Grid (F2)">
             <Image Source="pack://application:,,,/Resources/Icons/SnapToGrid.png"/>
         </ToggleButton>
 
         <ToggleButton Style="{StaticResource ToolButtonStyle}" 
-                      IsChecked="{Binding SnapToPoint, ElementName=Root}">
+                      IsChecked="{Binding SnapToPoint, ElementName=Root}"
+                      ToolTip="Lock to Point (F3)">
             <Image Source="pack://application:,,,/Resources/Icons/SnapToPoint.png"/>
         </ToggleButton>
     </ListBox>

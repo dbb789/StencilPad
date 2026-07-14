@@ -72,8 +72,12 @@ public class SheetTabViewModel : ViewModelBase, IDisposable
             }
         }
     }
-    
+
+    public ICommand CancelCommand { get; set; } = null!;
     public ICommand ToggleSelectCommand { get; set; } = null!;
+    public ICommand ToggleGridCommand { get; set; } = null!;
+    public ICommand ToggleGridLockCommand { get; set; } = null!;
+    public ICommand TogglePointLockCommand { get; set; } = null!;
 
     public ToolPanelViewModel ToolPanelViewModel { get; }
 

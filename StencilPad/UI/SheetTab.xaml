@@ -5,7 +5,11 @@
              xmlns:local="clr-namespace:StencilPad.UI">
 
     <UserControl.InputBindings>
+        <KeyBinding Command="{Binding CancelCommand}" Key="Escape"/>
         <KeyBinding Command="{Binding ToggleSelectCommand}" Key="Tab"/>
+        <KeyBinding Command="{Binding ToggleGridCommand}" Key="F1"/>
+        <KeyBinding Command="{Binding ToggleGridLockCommand}" Key="F2"/>
+        <KeyBinding Command="{Binding TogglePointLockCommand}" Key="F3"/>
     </UserControl.InputBindings>
     
     <DockPanel Background="#F0F0F0">
