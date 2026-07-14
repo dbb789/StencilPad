@@ -71,7 +71,8 @@ public class MainWindowController
         _viewModel.ImportImageCommand = new RelayCommand(ImportImageAsync);
         _viewModel.ExportSvgCommand = new RelayCommand(ExportSvg);
         _viewModel.ExportPngCommand = new RelayCommand(ExportPng);
-
+        _viewModel.SheetTabReordered = ReorderSheet;
+        
         _undoStack.SaveStateChanged += UpdateTitle;
         _operationService.OperationPushed += PushOperation;
 
@@ -304,6 +305,11 @@ public class MainWindowController
 
         tabToRemove.Controller.Dispose();
         tabToRemove.ViewModel.Dispose();
+    }
+
+    private void ReorderSheet(int fromIndex, int toIndex)
+    {
+        _operationService.Push(new ReorderSheetOperation(fromIndex, toIndex));
     }
 
     private void AddNewSheet()

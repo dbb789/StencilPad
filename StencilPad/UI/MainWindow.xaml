@@ -148,6 +148,10 @@
                             <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
                     </Style.Triggers>
+                    
+                    <Setter Property="AllowDrop" Value="True"/>
+                    <EventSetter Event="PreviewMouseMove" Handler="TabItemDrag"/>
+                    <EventSetter Event="Drop" Handler="TabItemDrop"/>
                 </Style>
             </TabControl.ItemContainerStyle>
             <TabControl.ItemTemplate>

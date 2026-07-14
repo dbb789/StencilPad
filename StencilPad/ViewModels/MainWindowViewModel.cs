@@ -49,7 +49,9 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand ImportImageCommand { get; set; } = null!;
     public ICommand ExportSvgCommand { get; set; } = null!;
     public ICommand ExportPngCommand { get; set; } = null!;
-    
+    public Action<int, int>? SheetTabReordered = null;
+
     public MainWindowViewModel()
     { }
+
 }
