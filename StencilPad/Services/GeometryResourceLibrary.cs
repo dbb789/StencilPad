@@ -9,7 +9,7 @@ namespace StencilPad.Services;
 
 public static class GeometryResourceLibrary
 {
-    private static readonly string ResourcesDirectory = "Resources";
+    private static readonly string ResourcesDirectory = Path.Combine(Path.GetDirectoryName(Environment.ProcessPath) ?? "", "Resources");
     private static readonly string GeometryDirectory = Path.Combine(ResourcesDirectory, "Geometry");
     private static readonly string LibraryIndex = Path.Combine(GeometryDirectory, "Index.json");
     

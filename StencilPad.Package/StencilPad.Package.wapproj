@@ -128,6 +128,8 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StencilPad\StencilPad.csproj" />
+    <ProjectReference Include="..\StencilPad\StencilPad.csproj">
+      <TrustLevel>Full</TrustLevel>
+    </ProjectReference>
   </ItemGroup>
 </Project>
