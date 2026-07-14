@@ -91,7 +91,13 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IDisposable
         BuildInputBindings(actionSet);
         
         ContextMenu = new ContextMenu();
-        ContextMenuOpening += (s, e) => BuildContextMenu(actionSet);
+        ContextMenuOpening += (_, e) =>
+        {
+            if (!BuildContextMenu(actionSet))
+            {
+                e.Handled = true;
+            }
+        };
 
         _settings.Changed += SettingsChanged;
     }
@@ -162,12 +168,11 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IDisposable
         builder.Add(Key.U, ModifierKeys.Control | ModifierKeys.Shift, actionSet.SetAsCurve);
     }
     
-    private void BuildContextMenu(SheetElementEditActionSet actionSet)
+    private bool BuildContextMenu(SheetElementEditActionSet actionSet)
     {
-        if (_sheet.Selection.Count == 0)
+        if (_handleMap.SelectedHandles.Count == 0)
         {
-            ContextMenu.IsEnabled = false;
-            return;
+            return false;
         }
 
         ContextMenu.Items.Clear();
@@ -189,6 +194,8 @@ public class EditToolOverlay : ToolOverlay, IUnitSnapContext, IDisposable
             (actionSet.ClosePath, "Close Path", "Ctrl+Shift+C"),
             (actionSet.SetAsStraight, "Set as Straight", "Ctrl+Shift+S"),
             (actionSet.SetAsCurve, "Set as Curve", "Ctrl+Shift+U"));
+
+        return true;
     }
     
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

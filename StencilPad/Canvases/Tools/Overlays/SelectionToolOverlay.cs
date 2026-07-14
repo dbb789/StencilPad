@@ -78,8 +78,14 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         BuildInputBindings(actionSet);
         
         ContextMenu = new ContextMenu();
-        ContextMenuOpening += (_, _) => BuildContextMenu(actionSet);
-
+        ContextMenuOpening += (_, e) =>
+        {
+            if (!BuildContextMenu(actionSet))
+            {
+                e.Handled = true;
+            }
+        };
+        
         CommandBindings.Add(new CommandBinding(
                                 GlobalCommands.SelectAll,
                                 (_, _) => SelectAll(),
@@ -171,12 +177,11 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         });
     }
 
-    private void BuildContextMenu(SheetElementActionSet actionSet)
+    private bool BuildContextMenu(SheetElementActionSet actionSet)
     {
         if (_sheet.Selection.Count == 0)
         {
-            ContextMenu.IsEnabled = false;
-            return;
+            return false;
         }
 
         ContextMenu.Items.Clear();
@@ -233,6 +238,8 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
             ContextMenu.Items,
             (actionSet.BringToFront, "Bring to Front", "Ctrl+F"),
             (actionSet.SendToBack, "Send to Back", "Ctrl+B"));
+
+        return true;
     }
     
     private void BuildPens()
