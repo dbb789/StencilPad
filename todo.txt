@@ -1,2 +1,6 @@
 Rulers don't always render correctly in SVG
 Arc issues in SVG.
+Rulers should always default to one orientation.
+MarkerPath doesn't always show the last marker.
+MarkerPath sometimes fails to generate markers on reload (offset == 0?).
+Wireframe doesn't update on drag on images
