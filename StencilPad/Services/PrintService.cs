@@ -77,7 +77,7 @@ public class PrintService : IPrintService
             }
 
             _logger.LogInformation("Print cancelled by user");
-            return false;
+            return true;
         }
         catch (Exception e)
         {
