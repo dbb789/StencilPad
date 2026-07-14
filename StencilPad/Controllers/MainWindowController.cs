@@ -330,18 +330,14 @@ public class MainWindowController
 
     private async void PrintSelectedTabAsync()
     {
-        var selectedTab = _viewModel.SelectedTab;
-        
-        if (selectedTab is null)
+        var sheet = SelectedSheet();
+
+        if (sheet is null)
         {
-            _dialogService.ShowWarning("No sheet selected.", "Print Failed");
             return;
         }
 
-        var sheet = selectedTab.Sheet;
-        var documentName = selectedTab.Header;
-        
-        var success = await _printService.PrintAsync(documentName, sheet);
+        var success = await _printService.PrintAsync(sheet.Name, sheet);
 
         if (!success)
         {
@@ -402,22 +398,22 @@ public class MainWindowController
     
     private void DeleteSelection()
     {
-        var tab = _viewModel.SelectedTab;
+        var sheet = SelectedSheet();
 
-        if (tab is null || tab.Sheet.Selection.Count == 0)
+        if (sheet is null || sheet.Selection.Count == 0)
         {
             return;
         }
 
-        var operations = tab.Sheet.Selection
-            .Select(e => new RemoveSheetElementOperation(tab.Sheet, e));
+        var operations = sheet.Selection
+            .Select(e => new RemoveSheetElementOperation(sheet, e));
 
         _operationService.Push(new BulkCommandOperation(operations));
     }
 
     private void CopyToClipboard()
     {
-        var sheet = _viewModel.SelectedTab?.Sheet;
+        var sheet = SelectedSheet();
 
         if (sheet is null)
         {
@@ -429,7 +425,7 @@ public class MainWindowController
 
     private void CutToClipboard()
     {
-        var sheet = _viewModel.SelectedTab?.Sheet;
+        var sheet = SelectedSheet();
 
         if (sheet is null)
         {
@@ -441,7 +437,7 @@ public class MainWindowController
 
     private void PasteFromClipboard()
     {
-        var sheet = _viewModel.SelectedTab?.Sheet;
+        var sheet = SelectedSheet();
 
         if (sheet is null)
         {
@@ -453,47 +449,50 @@ public class MainWindowController
     
     private async void ImportImageAsync()
     {
-        var tab = _viewModel.SelectedTab;
-        
-        if (tab is null)
+        var sheet = SelectedSheet();
+
+        if (sheet is null)
         {
             return;
         }
 
-        var viewport = tab.Viewport;
+        var viewport = _viewModel.SelectedTab?.Viewport;
 
         if (viewport is not null)
         {
-            await _importExportService.ImportImageAsync(tab.Sheet, viewport);
+            return;
         }
+
+        await _importExportService.ImportImageAsync(sheet, viewport);
     }
 
     private void ExportSvg()
     {
-        var tab = _viewModel.SelectedTab;
-        
-        if (tab is null)
+        var sheet = SelectedSheet();
+
+        if (sheet is null)
         {
             return;
         }
-
-        var sheet = tab.Sheet;
 
         _importExportService.ExportSvg(sheet);
     }
 
     private void ExportPng()
     {
-        var tab = _viewModel.SelectedTab;
-        
-        if (tab is null)
+        var sheet = SelectedSheet();
+
+        if (sheet is null)
         {
             return;
         }
-
-        var sheet = tab.Sheet;
-
+        
         _importExportService.ExportPng(sheet);
+    }
+
+    private Sheet? SelectedSheet()
+    {
+        return _viewModel.SelectedTab?.Sheet;
     }
 
     private void SetCurrentFilePath(string? path)
