@@ -129,13 +129,13 @@ public static class MathUtil
         // the control points are perfectly in line with the start and end
         // points, which means the derivative is a linear function rather than a
         // quadratic one.
-        if (Math.Abs(a) < 1e-10)
+        if (Math.Abs(a) < Epsilon)
         {
             // if B = 0 then that rearranges to C = 0, which is only true when C
             // is also zero, which means every value of x is a solution. In this
             // case we return null for both values to indicate that there are
             // either no solutions or infinite solutions.
-            if (Math.Abs(b) < 1e-10)
+            if (Math.Abs(b) < Epsilon)
             {
                 return (null, null);
             }
