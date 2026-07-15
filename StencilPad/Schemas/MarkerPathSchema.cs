@@ -7,7 +7,7 @@ namespace StencilPad.Schemas;
 public class MarkerPathSchema : SheetElementSchema
 {
     public PolygonSchema Ply { get; set; } = new();
-    public Unit Spc { get; set; } = Unit.FromMillimeters(2);
+    public Unit Spc { get; set; } = Unit.FromMillimeters(0);
     public Unit Offs { get; set; } = Unit.FromMillimeters(4);
     public bool Bal { get; set; } = true;
     public int MkrT { get; set; } = 0;
