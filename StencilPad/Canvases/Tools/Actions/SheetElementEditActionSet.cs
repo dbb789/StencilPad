@@ -35,8 +35,6 @@ public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesSe
 
     private class CornerPropertiesAction : ISheetElementAction
     {
-        public string Name => "Corner Properties…";
-
         private IModelPropertiesService _modelPropertiesService;
 
         public CornerPropertiesAction(IModelPropertiesService modelPropertiesService)
@@ -77,7 +75,6 @@ public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesSe
 
     public readonly ISheetElementAction InsertPoint = new SheetElementAction<IPolygonSheetElement>(operationService)
     {
-        Name = "Insert Point",
         Enabled = OneOrMoreEdgesSelected,
         Action = e =>
         {
@@ -97,7 +94,6 @@ public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesSe
 
     public readonly ISheetElementAction DeletePoints = new SheetElementAction<IPolygonSheetElement>(operationService)
     {
-        Name = "Delete Points",
         Enabled = e => OneOrMoreVerticesSelected(e) && CanDeleteVertices(e),
         Action = e =>
         {
@@ -122,7 +118,6 @@ public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesSe
 
     public readonly ISheetElementAction OpenPath = new SheetElementAction<IPolygonSheetElement>(operationService)
     {
-        Name = "Open Path",
         Enabled = e => CanOpenPolygon(e),
         Action = e =>
         {
@@ -138,7 +133,6 @@ public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesSe
 
     public readonly ISheetElementAction ClosePath = new SheetElementAction<IPolygonSheetElement>(operationService)
     {
-        Name = "Close Path",
         Enabled = PolygonOpen,
         Action = e =>
         {
@@ -154,7 +148,6 @@ public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesSe
 
     public readonly ISheetElementAction SetAsStraight = new SheetElementAction<IPolygonSheetElement>(operationService)
     {
-        Name = "Set As Straight",
         Enabled = OneOrMoreEdgesSelected,
         Action = e =>
         {
@@ -170,7 +163,6 @@ public class SheetElementEditActionSet(IModelPropertiesService modelPropertiesSe
 
     public readonly ISheetElementAction SetAsCurve = new SheetElementAction<IPolygonSheetElement>(operationService)
     {
-        Name = "Set As Curve",
         Enabled = OneOrMoreEdgesSelected,
         Action = e =>
         {

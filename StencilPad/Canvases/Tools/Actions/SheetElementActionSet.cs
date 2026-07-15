@@ -11,7 +11,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 {
     public readonly ISheetElementAction ShapeProperties = new MultiSheetElementAction<Shape>
     {
-        Name = "Shape Properties…",
         Action = (sheet, _) =>
         {
             modelPropertiesService.ShowShapeProperties(sheet);
@@ -20,7 +19,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction MarkerPathProperties = new MultiSheetElementAction<MarkerPath>
     {
-        Name = "Marker Path Properties…",
         Action = (sheet, _) =>
         {
             modelPropertiesService.ShowMarkerPathProperties(sheet);
@@ -29,7 +27,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction TextProperties = new MultiSheetElementAction<TextElement>
     {
-        Name = "Text Properties…",
         Action = (sheet, _) =>
         {
             modelPropertiesService.ShowTextProperties(sheet);
@@ -38,7 +35,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction RulerProperties = new MultiSheetElementAction<Ruler>
     {
-        Name = "Ruler Properties…",
         Action = (sheet, _) =>
         {
             modelPropertiesService.ShowRulerProperties(sheet);
@@ -47,7 +43,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction ImageProperties = new MultiSheetElementAction<ImageElement>
     {
-        Name = "Image Properties…",
         Action = (sheet, _) =>
         {
             modelPropertiesService.ShowImageProperties(sheet);
@@ -56,7 +51,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction CombineShapes = new MultiSheetElementAction<Shape>
     {
-        Name = "Combine Shapes",
         Enabled = elements => elements.Count() > 1,
         Action = (sheet, elements) =>
         {
@@ -103,7 +97,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction Group = new MultiSheetElementAction
     {
-        Name = "Group",
         Enabled = elements => elements.Count() > 1,
         Action = (sheet, elements) =>
         {
@@ -148,7 +141,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction Ungroup = new MultiSheetElementAction
     {
-        Name = "Ungroup",
         Enabled = elements => elements.Any(e => e is ElementGroup),
         Action = (sheet, elements) =>
         {
@@ -182,7 +174,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction FlipHorizontal = new MultiSheetElementAction
     {
-        Name = "Flip Horizontal",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -205,7 +196,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction FlipVertical = new MultiSheetElementAction
     {
-        Name = "Flip Vertical",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -228,7 +218,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction JustifyTop = new MultiSheetElementAction
     {
-        Name = "Justify Top",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -240,7 +229,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction JustifyMiddle = new MultiSheetElementAction
     {
-        Name = "Justify Middle",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -252,7 +240,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction JustifyBottom = new MultiSheetElementAction
     {
-        Name = "Justify Bottom",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -264,7 +251,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction JustifyLeft = new MultiSheetElementAction
     {
-        Name = "Justify Left",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -276,7 +262,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction JustifyCenter = new MultiSheetElementAction
     {
-        Name = "Justify Centre",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -288,7 +273,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction JustifyRight = new MultiSheetElementAction
     {
-        Name = "Justify Right",
         Action = (sheet, elements) =>
         {
             using var editContext = operationService.CreateEditContext(sheet, elements);
@@ -300,7 +284,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction BringToFront = new MultiSheetElementAction
     {
-        Name = "Bring to Front",
         Action = (sheet, elements) =>
         {
             var operation = new BulkCommandOperation();
@@ -323,7 +306,6 @@ public class SheetElementActionSet(IModelPropertiesService modelPropertiesServic
 
     public readonly ISheetElementAction SendToBack = new MultiSheetElementAction
     {
-        Name = "Send to Back",
         Action = (sheet, elements) =>
         {
             var operation = new BulkCommandOperation();

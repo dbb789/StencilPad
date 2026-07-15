@@ -5,8 +5,6 @@ namespace StencilPad.Canvases.Tools.Actions;
 
 public class SheetElementAction<TInterface> : ISheetElementAction
 {
-    public string Name { get; init;  } = "";
-    
     public Func<TInterface, bool>? Enabled { get; init; }
     public Action<TInterface>? Action { get; init;  }
 
