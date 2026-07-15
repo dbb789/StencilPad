@@ -1,11 +1,10 @@
 using System.Collections;
-using System.Collections.Specialized;
 
 namespace StencilPad.Models;
 
-// Tracks a selection of sheet elements by ID based on a parent
-// ObservableCollection, but exposes selected elements as ISheetElement.
-public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChanged
+// Tracks a selection of sheet elements by ID based on a parent, but exposes
+// selected elements as ISheetElement.
+public class SheetSelection : IEnumerable<ISheetElement>, IObservableList<ISheetElement>
 {
     public struct Enumerator : IEnumerator<ISheetElement>
     {
@@ -69,8 +68,8 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
     private readonly SheetElementList _elements;
     private readonly HashSet<Guid> _selectedIds;
     private int _version;
-    
-    public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
+    public event Action<ObservableListChangedArgs<ISheetElement>>? ListChanged;
     
     public SheetSelection(SheetElementList elements)
     {
@@ -92,7 +91,7 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
         {
             ++_version;
 
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, existingElement));
+            ListChanged?.Invoke(ObservableListChangedArgs<ISheetElement>.Add(existingElement, _selectedIds.Count - 1));
 
             return true;
         }
@@ -116,8 +115,7 @@ public class SheetSelection : IEnumerable<ISheetElement>, INotifyCollectionChang
         {
             ++_version;
 
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, existingElement));
-
+            ListChanged?.Invoke(ObservableListChangedArgs<ISheetElement>.Remove(existingElement));
             return true;
         }
 

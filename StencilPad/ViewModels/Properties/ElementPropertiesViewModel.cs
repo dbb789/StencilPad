@@ -43,41 +43,32 @@ public abstract class ElementPropertiesViewModel<TElement> : ViewModelBase, IDis
 
         HasElements = _elements.Count > 0;
         
-        _sheet.Selection.CollectionChanged += SelectionChanged;
+        _sheet.Selection.ListChanged += SelectionChanged;
     }
 
     public void Dispose()
     {
-        _sheet.Selection.CollectionChanged -= SelectionChanged;
+        _sheet.Selection.ListChanged -= SelectionChanged;
     }
 
-    private void SelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void SelectionChanged(ObservableListChangedArgs<ISheetElement> e)
     {
-        if (e.OldItems != null)
-        {
-            foreach (var item in e.OldItems)
-            {
-                if (item is TElement element)
-                {
-                    _elements.Remove(element);
-                }
-            }
-        }
+        var item = e.Item as TElement;
 
-        if (e.NewItems != null)
+        if (item is null)
         {
-            foreach (var item in e.NewItems)
-            {
-                if (item is TElement element)
-                {
-                    _elements.Add(element);
-                }
-            }
+            return;
         }
-
-        if (e.Action == NotifyCollectionChangedAction.Reset)
+        
+        switch (e.Action)
         {
-            throw new NotImplementedException("Reset action is not implemented.");
+        case ObservableListChangedAction.Add:
+            _elements.Add(item);
+            break;
+            
+        case ObservableListChangedAction.Remove:
+            _elements.Remove(item);
+            break;
         }
         
         HasElements = _elements.Count > 0;

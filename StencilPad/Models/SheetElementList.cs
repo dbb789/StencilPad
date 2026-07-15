@@ -1,6 +1,6 @@
 namespace StencilPad.Models;
 
-public class SheetElementList : ObservableKeyedCollection<Guid, ISheetElement>
+public class SheetElementList : ObservableKeyedList<Guid, ISheetElement>
 {
     // ...
 }

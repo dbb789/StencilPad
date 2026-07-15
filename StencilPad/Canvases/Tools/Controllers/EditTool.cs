@@ -67,12 +67,12 @@ public class EditTool : ITool
         _selection = new(GetEditableSelection());
         _originalPositions = new(64);
         _button.IsEnabled = _selection.Count > 0;
-        _sheet.Selection.CollectionChanged += OnSelectionChanged;
+        _sheet.Selection.ListChanged += OnSelectionChanged;
     }
 
     public void Dispose()
     {
-        _sheet.Selection.CollectionChanged -= OnSelectionChanged;
+        _sheet.Selection.ListChanged -= OnSelectionChanged;
     }
 
     public void ToolBegin()
@@ -253,7 +253,7 @@ public class EditTool : ITool
         }
     }
     
-    private void OnSelectionChanged(object? sender, EventArgs e)
+    private void OnSelectionChanged(ObservableListChangedArgs<ISheetElement> e)
     {
         _selection.Clear();
         _selection.AddRange(GetEditableSelection());

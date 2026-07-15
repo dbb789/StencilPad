@@ -96,8 +96,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
                                 (_, _) => ClearSelection(),
                                 (_, e) => e.CanExecute = _sheet.Selection.Count > 0));
 
-        _sheetResolver.SelectionAdded += OnSelectionAdded;
-        _sheetResolver.SelectionRemoved += OnSelectionRemoved;
+        _sheetResolver.SelectionChanged += OnSelectionChanged;
 
         foreach (var resolver in _sheetResolver.Selection)
         {
@@ -111,8 +110,7 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
     {
         _settings.Changed -= SettingsChanged;
         
-        _sheetResolver.SelectionAdded -= OnSelectionAdded;
-        _sheetResolver.SelectionRemoved -= OnSelectionRemoved;
+        _sheetResolver.SelectionChanged -= OnSelectionChanged;
 
         foreach (var resolver in _sheetResolver.Selection)
         {
@@ -515,6 +513,21 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
         return null;
     }
 
+    private void OnSelectionChanged(ObservableListChangedArgs<ISheetElementResolver> e)
+    {
+        // NOTE: Ordering shouldn't matter here, so it's ignored.
+        switch (e.Action)
+        {
+        case ObservableListChangedAction.Add:
+            OnSelectionAdded(e.Item);
+            break;
+            
+        case ObservableListChangedAction.Remove:
+            OnSelectionRemoved(e.Item);
+            break;
+        }
+    }
+    
     private void OnSelectionAdded(ISheetElementResolver resolver)
     {
         resolver.OutlineChanged += ForceRedraw;

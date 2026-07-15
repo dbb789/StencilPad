@@ -1,9 +1,8 @@
 using System.Collections;
-using System.Collections.Specialized;
 
 namespace StencilPad.Models;
 
-public class ObservableKeyedCollection<TKey, TValue> : IEnumerable<TValue>, INotifyCollectionChanged
+public class ObservableKeyedList<TKey, TValue> : IEnumerable<TValue>, IObservableList<TValue>
     where TKey : notnull
 {
     public struct Enumerator : IEnumerator<TValue>
@@ -11,11 +10,11 @@ public class ObservableKeyedCollection<TKey, TValue> : IEnumerable<TValue>, INot
         public TValue Current => _parent[_index];
         object? IEnumerator.Current => _parent[_index];
 
-        private readonly ObservableKeyedCollection<TKey, TValue> _parent;
+        private readonly ObservableKeyedList<TKey, TValue> _parent;
         private readonly int _version;
         private int _index;
         
-        public Enumerator(ObservableKeyedCollection<TKey, TValue> parent)
+        public Enumerator(ObservableKeyedList<TKey, TValue> parent)
         {
             _parent = parent;
             _version = _parent._version;
@@ -57,9 +56,9 @@ public class ObservableKeyedCollection<TKey, TValue> : IEnumerable<TValue>, INot
     // NOTE: Strictly defined to be called before CollectionChanged.
     public event Action<TValue>? ElementRemoving;
     
-    public event NotifyCollectionChangedEventHandler? CollectionChanged;
-    
-    public ObservableKeyedCollection()
+    public event Action<ObservableListChangedArgs<TValue>>? ListChanged;
+
+    public ObservableKeyedList()
     {
         _collection = new();
         _version = 0;
@@ -74,8 +73,8 @@ public class ObservableKeyedCollection<TKey, TValue> : IEnumerable<TValue>, INot
     {
         _collection.Add(key, value);
         ++_version;
-        
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, value));
+
+        ListChanged?.Invoke(ObservableListChangedArgs<TValue>.Add(value, _collection.Count - 1));
     }
 
     public bool Remove(TKey key)
@@ -85,8 +84,8 @@ public class ObservableKeyedCollection<TKey, TValue> : IEnumerable<TValue>, INot
             ElementRemoving?.Invoke(value);
             _collection.Remove(key);
             ++_version;
-            
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, value));
+
+            ListChanged?.Invoke(ObservableListChangedArgs<TValue>.Remove(value));
 
             return true;
         }
@@ -98,8 +97,8 @@ public class ObservableKeyedCollection<TKey, TValue> : IEnumerable<TValue>, INot
     {
         _collection.Insert(index, key, value);
         ++_version;
-        
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, value, index));
+
+        ListChanged?.Invoke(ObservableListChangedArgs<TValue>.Add(value, index));
     }
 
     public void Move(int oldIndex, int newIndex)
@@ -108,8 +107,8 @@ public class ObservableKeyedCollection<TKey, TValue> : IEnumerable<TValue>, INot
 
         _collection.RemoveAt(oldIndex);
         _collection.Insert(newIndex, kvp.Key, kvp.Value);
-        
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, kvp.Value, newIndex, oldIndex));
+
+        ListChanged?.Invoke(ObservableListChangedArgs<TValue>.Move(kvp.Value, oldIndex, newIndex));
     }
 
     public void Clear()

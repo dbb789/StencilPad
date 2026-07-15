@@ -120,8 +120,8 @@ public class HandleMap : IHandleMap, IUnitSnap
         {
             Clear();
 
-            _sheet.Elements.CollectionChanged -= OnSheetElementsChanged;
-            _sheet.Selection.CollectionChanged -= OnSheetSelectionChanged;
+            _sheet.Elements.ListChanged -= OnSheetElementsChanged;
+            _sheet.Selection.ListChanged -= OnSheetSelectionChanged;
         }
         
         _sheet = sheet;
@@ -133,8 +133,8 @@ public class HandleMap : IHandleMap, IUnitSnap
                 Add(element);
             }
             
-            _sheet.Elements.CollectionChanged += OnSheetElementsChanged;
-            _sheet.Selection.CollectionChanged += OnSheetSelectionChanged;
+            _sheet.Elements.ListChanged += OnSheetElementsChanged;
+            _sheet.Selection.ListChanged += OnSheetSelectionChanged;
         }
     }
 
@@ -194,77 +194,57 @@ public class HandleMap : IHandleMap, IUnitSnap
 
         return closestSnap;
     }
-    
-    private void OnSheetElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+
+    private void OnSheetElementsChanged(ObservableListChangedArgs<ISheetElement> e)
     {
-        if (e.OldItems is not null)
+        switch (e.Action)
         {
-            foreach (SheetElement element in e.OldItems)
-            {
-                Remove(element);
-            }
-        }
-
-        if (e.NewItems is not null)
-        {
-            foreach (SheetElement element in e.NewItems)
-            {
-                Add(element);
-            }
-        }
-
-        if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            throw new NotImplementedException("Reset action not implemented.");
+        case ObservableListChangedAction.Add:
+            Add(e.Item);
+            break;
+            
+        case ObservableListChangedAction.Remove:
+            Remove(e.Item);
+            break;
         }
     }
-
-    private void OnSheetSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    
+    private void OnSheetSelectionChanged(ObservableListChangedArgs<ISheetElement> e)
     {
-        if (e.OldItems is not null)
+        switch (e.Action)
         {
-            foreach (SheetElement element in e.OldItems)
+        case ObservableListChangedAction.Add:
+            e.Item.QueryHandles((handle, localPosition, selected) =>
             {
-                element.QueryHandles((handle, localPosition, selected) =>
+                if (_byHandle.TryGetValue(handle, out var entry))
                 {
-                    if (_byHandle.TryGetValue(handle, out var entry))
-                    {
-                        entry.Editing = false;
-                        entry.Selected = false;
+                    entry.Editing = true;
+                }
+                else
+                {
+                    _logger.LogError("Failed to set selection for handle {Handle} from element {Element}", handle, e.Item);
+                }
+            });
+            break;
 
-                        element.SetHandleSelected(handle, false);
-                    }
-                    else
-                    {
-                        _logger.LogError("Failed to clear selection for handle {Handle} from element {Element}", handle, element);
-                    }
-                });
-            }
-        }
-
-        if (e.NewItems is not null)
-        {
-            foreach (SheetElement element in e.NewItems)
+        case ObservableListChangedAction.Remove:
+            e.Item.QueryHandles((handle, localPosition, selected) =>
             {
-                element.QueryHandles((handle, localPosition, selected) =>
+                if (_byHandle.TryGetValue(handle, out var entry))
                 {
-                    if (_byHandle.TryGetValue(handle, out var entry))
-                    {
-                        entry.Editing = true;
-                    }
-                    else
-                    {
-                        _logger.LogError("Failed to set selection for handle {Handle} from element {Element}", handle, element);
-                    }
-                });
-            }
+                    entry.Editing = false;
+                    entry.Selected = false;
+
+                    e.Item.SetHandleSelected(handle, false);
+                }
+                else
+                {
+                    _logger.LogError("Failed to clear selection for handle {Handle} from element {Element}", handle, e.Item);
+                }
+            });
+            break;
         }
 
-        if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            throw new NotImplementedException("Reset action not implemented.");
-        }
-        
         SheetSelectionChanged?.Invoke();
     }
     

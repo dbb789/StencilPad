@@ -1,6 +1,7 @@
 using System.Windows.Media;
 using Microsoft.Extensions.Logging;
 using StencilPad.Common;
+using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 
 namespace StencilPad.Rendering;
@@ -43,8 +44,7 @@ public class SheetRenderer : IDisposable
             OnElementAdded(modelResolver, index++);
         }
         
-        _resolver.ElementAdded += OnElementAdded;
-        _resolver.ElementRemoved += OnElementRemoved;
+        _resolver.ElementsChanged += OnElementsChanged;
     }
 
     public void Dispose()
@@ -53,9 +53,8 @@ public class SheetRenderer : IDisposable
         {
             OnElementRemoved(modelResolver);
         }
-        
-        _resolver.ElementAdded -= OnElementAdded;
-        _resolver.ElementRemoved -= OnElementRemoved;
+
+        _resolver.ElementsChanged -= OnElementsChanged;
     }
 
     public void Render(DrawingContext dc)
@@ -63,6 +62,24 @@ public class SheetRenderer : IDisposable
         foreach (var (_, renderer) in _renderers)
         {
             renderer.Render(dc);
+        }
+    }
+
+    private void OnElementsChanged(ObservableListChangedArgs<ISheetElementResolver> e)
+    {
+        switch (e.Action)
+        {
+        case ObservableListChangedAction.Add:
+            OnElementAdded(e.Item, e.NewIndex);
+            break;
+            
+        case ObservableListChangedAction.Remove:
+            OnElementRemoved(e.Item);
+            break;
+
+        case ObservableListChangedAction.Move:
+            OnElementMoved(e.OldIndex, e.NewIndex);
+            break;
         }
     }
 
@@ -89,6 +106,16 @@ public class SheetRenderer : IDisposable
         renderer.Dispose();
         _renderers.Remove(resolver);
         
+        InvokeRendererDirty();
+    }
+
+    private void OnElementMoved(int oldIndex, int newIndex)
+    {
+        var kvp = _renderers.GetAt(oldIndex);
+        
+        _renderers.RemoveAt(oldIndex);
+        _renderers.Insert(newIndex, kvp.Key, kvp.Value);
+
         InvokeRendererDirty();
     }
     

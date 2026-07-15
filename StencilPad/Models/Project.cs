@@ -6,10 +6,10 @@ namespace StencilPad.Models;
 
 public class Project : INotifyPropertyChanged
 {
-    public ObservableKeyedCollection<Guid, Sheet> Sheets => _sheets;
+    public ObservableKeyedList<Guid, Sheet> Sheets => _sheets;
     public IEnumerable<ISheetElement> DefaultElements => _defaultElements.Values;
 
-    private ObservableKeyedCollection<Guid, Sheet> _sheets;
+    private ObservableKeyedList<Guid, Sheet> _sheets;
     private Dictionary<Type, ISheetElement> _defaultElements;
 
     public event PropertyChangedEventHandler? PropertyChanged;

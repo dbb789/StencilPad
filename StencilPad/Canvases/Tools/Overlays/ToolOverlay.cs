@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Windows.Controls;
 using System.Windows.Media;
 using StencilPad.Spatial;
@@ -29,12 +28,12 @@ public abstract class ToolOverlay : Canvas
             AddRenderer(element);
         }
 
-        GetCollection().CollectionChanged += ElementsChanged;        
+        GetList().ListChanged += ElementsChanged;        
     }
 
     public virtual void Dispose()
     {
-        GetCollection().CollectionChanged -= ElementsChanged;
+        GetList().ListChanged -= ElementsChanged;
         
         foreach (var (_, renderer) in _renderers)
         {
@@ -50,7 +49,7 @@ public abstract class ToolOverlay : Canvas
         return _selectionOnly ? _sheet.Selection : _sheet.Elements;
     }
     
-    private INotifyCollectionChanged GetCollection()
+    private IObservableList<ISheetElement> GetList()
     {
         return _selectionOnly ? _sheet.Selection : _sheet.Elements;
     }
@@ -94,33 +93,18 @@ public abstract class ToolOverlay : Canvas
         dc.Pop();
     }
     
-    private void ElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void ElementsChanged(ObservableListChangedArgs<ISheetElement> e)
     {
-        if (e.OldItems is not null)
+        // NOTE: We're currently ignoring ordering here as it generally shouldn't matter.
+        switch (e.Action)
         {
-            foreach (var item in e.OldItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    RemoveRenderer(element);
-                }
-            }
-        }
-
-        if (e.NewItems is not null)
-        {
-            foreach (var item in e.NewItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    AddRenderer(element);
-                }
-            }
-        }
-
-        if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            throw new NotImplementedException("Reset action is not implemented.");
+        case ObservableListChangedAction.Add:
+            AddRenderer(e.Item);
+            break;
+            
+        case ObservableListChangedAction.Remove:
+            RemoveRenderer(e.Item);
+            break;
         }
     }
     

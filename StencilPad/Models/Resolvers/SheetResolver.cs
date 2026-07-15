@@ -78,10 +78,8 @@ public class SheetResolver : IDisposable
     private Sheet? _sheet;
     private int _version;
 
-    public event Action<ISheetElementResolver, int>? ElementAdded;
-    public event Action<ISheetElementResolver>? ElementRemoved;
-    public event Action<ISheetElementResolver>? SelectionAdded;
-    public event Action<ISheetElementResolver>? SelectionRemoved;
+    public event Action<ObservableListChangedArgs<ISheetElementResolver>>? ElementsChanged;
+    public event Action<ObservableListChangedArgs<ISheetElementResolver>>? SelectionChanged;
 
     private SheetResolver(ILogger<SheetResolver> logger,
                           ISettings settings,
@@ -139,8 +137,8 @@ public class SheetResolver : IDisposable
                 RemoveResolver(element);
             }
             
-            _sheet.Elements.CollectionChanged -= OnElementsChanged;
-            _sheet.Selection.CollectionChanged -= OnSelectionChanged;
+            _sheet.Elements.ListChanged -= OnElementsChanged;
+            _sheet.Selection.ListChanged -= OnSelectionChanged;
         }
 
         foreach (var resolver in _resolvers.Values)
@@ -161,73 +159,47 @@ public class SheetResolver : IDisposable
                 AddResolver(element);
             }
 
+            int index = 0;
+            
             foreach (var element in _sheet.Selection)
             {
-                AddSelection(element);
+                AddSelection(element, index++);
             }
 
-            _sheet.Elements.CollectionChanged += OnElementsChanged;
-            _sheet.Selection.CollectionChanged += OnSelectionChanged;
+            _sheet.Elements.ListChanged += OnElementsChanged;
+            _sheet.Selection.ListChanged += OnSelectionChanged;
         }
     }
 
-    private void OnElementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void OnElementsChanged(ObservableListChangedArgs<ISheetElement> e)
     {
-        if (e.OldItems is not null)
+        switch (e.Action)
         {
-            foreach (var item in e.OldItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    RemoveResolver(element);
-                }
-            }
-        }
-
-        if (e.NewItems is not null)
-        {
-            foreach (var item in e.NewItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    AddResolver(element, e.NewStartingIndex);
-                }
-            }
-        }
-
-        if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            throw new NotImplementedException("Reset action is not implemented.");
+        case ObservableListChangedAction.Add:
+            AddResolver(e.Item, e.NewIndex);
+            break;
+            
+        case ObservableListChangedAction.Remove:
+            RemoveResolver(e.Item);
+            break;
+            
+        case ObservableListChangedAction.Move:
+            MoveResolver(e.OldIndex, e.NewIndex);
+            break;
         }
     }
 
-    private void OnSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void OnSelectionChanged(ObservableListChangedArgs<ISheetElement> e)
     {
-        if (e.OldItems is not null)
+        switch (e.Action)
         {
-            foreach (var item in e.OldItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    RemoveSelection(element);
-                }
-            }
-        }
-
-        if (e.NewItems is not null)
-        {
-            foreach (var item in e.NewItems)
-            {
-                if (item is ISheetElement element)
-                {
-                    AddSelection(element);
-                }
-            }
-        }
-
-        if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            throw new NotImplementedException("Reset action is not implemented.");
+        case ObservableListChangedAction.Add:
+            AddSelection(e.Item, e.NewIndex);
+            break;
+            
+        case ObservableListChangedAction.Remove:
+            RemoveSelection(e.Item);
+            break;
         }
     }
 
@@ -249,8 +221,8 @@ public class SheetResolver : IDisposable
         _resolvers.Insert(index, element, resolver);
         
         ++_version;
-        
-        ElementAdded?.Invoke(resolver, index);
+
+        ElementsChanged?.Invoke(ObservableListChangedArgs<ISheetElementResolver>.Add(resolver, index));
     }
 
     private void RemoveResolver(ISheetElement element)
@@ -261,7 +233,7 @@ public class SheetResolver : IDisposable
             _resolvers.Remove(element);
             
             ++_version;
-            ElementRemoved?.Invoke(resolver);            
+            ElementsChanged?.Invoke(ObservableListChangedArgs<ISheetElementResolver>.Remove(resolver));
         }
         else
         {
@@ -269,11 +241,22 @@ public class SheetResolver : IDisposable
         }
     }
 
-    private void AddSelection(ISheetElement element)
+    private void MoveResolver(int prevIndex, int newIndex)
+    {
+        var kvp = _resolvers.GetAt(prevIndex);
+        
+        _resolvers.RemoveAt(prevIndex);
+        _resolvers.Insert(newIndex, kvp.Key, kvp.Value);
+        
+        ++_version;
+        ElementsChanged?.Invoke(ObservableListChangedArgs<ISheetElementResolver>.Move(kvp.Value, prevIndex, newIndex));
+    }
+
+    private void AddSelection(ISheetElement element, int index)
     {
         if (_resolvers.TryGetValue(element, out var resolver))
         {
-            SelectionAdded?.Invoke(resolver);
+            SelectionChanged?.Invoke(ObservableListChangedArgs<ISheetElementResolver>.Add(resolver, index));
         }
         else
         {
@@ -285,7 +268,7 @@ public class SheetResolver : IDisposable
     {
         if (_resolvers.TryGetValue(element, out var resolver))
         {
-            SelectionRemoved?.Invoke(resolver);
+            SelectionChanged?.Invoke(ObservableListChangedArgs<ISheetElementResolver>.Remove(resolver));
         }
         else
         {

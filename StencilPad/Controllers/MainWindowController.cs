@@ -76,7 +76,7 @@ public class MainWindowController
         _undoStack.SaveStateChanged += UpdateTitle;
         _operationService.OperationPushed += PushOperation;
 
-        _project.Sheets.CollectionChanged += SheetsChanged;
+        _project.Sheets.ListChanged += SheetsChanged;
     }
 
     public void Initialize()
@@ -241,33 +241,23 @@ public class MainWindowController
         }
     }
 
-    private void SheetsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void SheetsChanged(ObservableListChangedArgs<Sheet> e)
     {
-        if (e.OldItems is not null)
+        switch (e.Action)
         {
-            foreach (var item in e.OldItems)
-            {
-                if (item is Sheet sheet)
-                {
-                    RemoveSheet(sheet);
-                }
-            }
-        }
+        case ObservableListChangedAction.Add:
+            AddSheet(e.Item, e.NewIndex);
+            break;
 
-        if (e.NewItems is not null)
-        {
-            foreach (var item in e.NewItems)
-            {
-                if (item is Sheet sheet)
-                {
-                    AddSheet(sheet, e.NewStartingIndex);
-                }
-            }
-        }
+        case ObservableListChangedAction.Remove:
+            RemoveSheet(e.Item);
+            break;
 
-        if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            throw new NotImplementedException("Reset action is not implemented.");
+        case ObservableListChangedAction.Move:
+            // TODO: Handle sheet reordering in the UI.
+            RemoveSheet(e.Item);
+            AddSheet(e.Item, e.NewIndex);
+            break;
         }
     }
     
