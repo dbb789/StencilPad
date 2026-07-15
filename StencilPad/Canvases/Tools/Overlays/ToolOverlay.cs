@@ -2,6 +2,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using StencilPad.Spatial;
 using StencilPad.Models;
+using StencilPad.Collections;
 
 namespace StencilPad.Canvases.Tools.Overlays;
 

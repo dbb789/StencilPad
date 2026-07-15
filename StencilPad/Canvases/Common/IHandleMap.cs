@@ -1,3 +1,4 @@
+using StencilPad.Collections;
 using StencilPad.Models;
 using StencilPad.Spatial;
 

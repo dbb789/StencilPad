@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using StencilPad.Collections;
 using StencilPad.Spatial;
 
 namespace StencilPad.Models;

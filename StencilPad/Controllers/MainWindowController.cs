@@ -7,6 +7,7 @@ using StencilPad.Models.Operations;
 using StencilPad.Services;
 using StencilPad.ViewModels;
 using StencilPad.Spatial;
+using StencilPad.Collections;
 
 namespace StencilPad.Controllers;
 

@@ -1,4 +1,4 @@
-namespace StencilPad.Spatial;
+namespace StencilPad.Collections;
 
 public interface IObjectPool<T>
 {

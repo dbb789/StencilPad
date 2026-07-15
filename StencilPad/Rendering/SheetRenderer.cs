@@ -1,7 +1,7 @@
 using System.Windows.Media;
 using Microsoft.Extensions.Logging;
+using StencilPad.Collections;
 using StencilPad.Common;
-using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 
 namespace StencilPad.Rendering;

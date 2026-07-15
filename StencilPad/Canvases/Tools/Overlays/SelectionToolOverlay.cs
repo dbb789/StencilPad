@@ -2,6 +2,7 @@ using StencilPad.Canvases.Common;
 using StencilPad.Canvases.Tools.Actions;
 using StencilPad.Canvases.Tools.Common;
 using StencilPad.Canvases.Tools.Widgets;
+using StencilPad.Collections;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;

@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using StencilPad.Collections;
 using StencilPad.Spatial;
 
 namespace StencilPad.Benchmarks;

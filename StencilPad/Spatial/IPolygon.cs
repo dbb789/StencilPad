@@ -1,3 +1,5 @@
+using StencilPad.Collections;
+
 namespace StencilPad.Spatial;
 
 public interface IPolygon

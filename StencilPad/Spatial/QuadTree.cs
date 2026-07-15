@@ -1,3 +1,5 @@
+using StencilPad.Collections;
+
 namespace StencilPad.Spatial;
 
 public class QuadTree<T> : IDisposable where T : notnull

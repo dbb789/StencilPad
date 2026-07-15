@@ -1,5 +1,6 @@
 namespace StencilPad.Tests.Spatial;
 
+using StencilPad.Collections;
 using StencilPad.Spatial;
 
 public class QuadTreeTests

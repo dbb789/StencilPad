@@ -1,4 +1,4 @@
-namespace StencilPad.Models;
+namespace StencilPad.Collections;
 
 // CollectionChangedEventArgs is bloated, allocates on the heap, and isn't type
 // safe. Although non standard, this wildly simplifies everything else, should

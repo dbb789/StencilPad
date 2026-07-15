@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace StencilPad.Models;
+namespace StencilPad.Collections;
 
 public class ObservableKeyedList<TKey, TValue> : IEnumerable<TValue>, IObservableList<TValue>
     where TKey : notnull

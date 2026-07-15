@@ -1,4 +1,4 @@
-namespace StencilPad.Spatial;
+namespace StencilPad.Collections;
 
 public class KeyedList<T> : IKeyedList<T>
 {

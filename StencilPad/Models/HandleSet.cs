@@ -1,5 +1,5 @@
 using System.Collections;
-using StencilPad.Spatial;
+using StencilPad.Collections;
 
 namespace StencilPad.Models;
 

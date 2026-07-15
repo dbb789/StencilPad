@@ -1,6 +1,6 @@
-namespace StencilPad.Tests.Spatial;
+namespace StencilPad.Tests.Collections;
 
-using StencilPad.Spatial;
+using StencilPad.Collections;
 using NUnit.Framework;
 
 [TestFixture]

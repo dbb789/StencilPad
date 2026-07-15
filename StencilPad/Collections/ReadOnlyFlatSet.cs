@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace StencilPad.Spatial;
+namespace StencilPad.Collections;
 
 public class ReadOnlyFlatSet<T> : IEnumerable<T>
 {

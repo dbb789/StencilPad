@@ -1,4 +1,4 @@
-namespace StencilPad.Models;
+namespace StencilPad.Collections;
 
 public enum ObservableListChangedAction
 {

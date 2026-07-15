@@ -1,3 +1,5 @@
+using StencilPad.Collections;
+
 namespace StencilPad.Spatial;
 
 public struct QuadTreeNodeSet<T> where T : notnull

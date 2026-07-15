@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using StencilPad.Collections;
 using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Services;

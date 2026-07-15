@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace StencilPad.Spatial;
+namespace StencilPad.Collections;
 
 public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
 {
