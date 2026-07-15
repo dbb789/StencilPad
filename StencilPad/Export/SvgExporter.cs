@@ -492,13 +492,10 @@ public class SvgExporter
             }
 
             var end = _transform.Apply(arc.End);
-            var r   = arc.Radius.Millimeters;
+            var r = arc.Radius.Millimeters;
+            var sweep  = MathUtil.SignedAngleDifference(arc.EndAngle, arc.StartAngle) > 0 ? 0 : 1;
 
-            var totalAngle  = arc.EndAngle - arc.StartAngle;
-            var largeArc    = Math.Abs(totalAngle) > Math.PI ? 1 : 0;
-            var sweep       = totalAngle > 0 ? 1 : 0;
-
-            _sb.Append($" A {Num(r)},{Num(r)} 0 {largeArc} {sweep} {Num(end.X.Millimeters)},{Num(end.Y.Millimeters)}");
+            _sb.Append($" A {Num(r)},{Num(r)} 0 0 {sweep} {Num(end.X.Millimeters)},{Num(end.Y.Millimeters)}");
         }
     }
 
