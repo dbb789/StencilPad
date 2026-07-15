@@ -469,21 +469,21 @@ public class SelectionToolOverlay : FrameworkElement, IUnitSnapContext, IDisposa
 
     private Unit2D SnapBoundsCenter(UnitBounds bounds)
     {
-        Span<Unit2D> corners =
+        Span<Unit2D> points =
         [
-            bounds.NW, bounds.NE, bounds.SW, bounds.SE
+            bounds.NW, bounds.NE, bounds.SW, bounds.SE, bounds.Center
         ];
 
         int closestIndex = -1;
         Unit2D smallestDelta = Unit2D.FromSquare(Unit.FromMillimeters(1000));
 
-        for (int i = 0; i < corners.Length; ++i)
+        for (int i = 0; i < points.Length; ++i)
         {
-            var snapPosition = _unitSnap.UnitSnap(corners[i], this);
+            var snapPosition = _unitSnap.UnitSnap(points[i], this);
 
             if (snapPosition.HasValue)
             {
-                var delta = snapPosition.Value - corners[i];
+                var delta = snapPosition.Value - points[i];
 
                 if (delta.SqrMagnitude < smallestDelta.SqrMagnitude)
                 {
