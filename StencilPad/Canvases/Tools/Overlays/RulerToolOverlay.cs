@@ -64,7 +64,7 @@ public class RulerToolOverlay : Canvas, IDisposable
         }
         else if ((_start.Value - _currentSnappedMousePosition).Magnitude > Unit.FromMillimeters(1))
         {
-            OnRulerPlaced?.Invoke(_start.Value, _currentSnappedMousePosition);
+            OnRulerPlaced?.Invoke(_previewRuler.Min, _previewRuler.Max);
             _start = null;
         }
 
@@ -99,13 +99,17 @@ public class RulerToolOverlay : Canvas, IDisposable
         var min = _start.Value;
         var max = _currentSnappedMousePosition;
 
-        // Force the ruler to a sane default orientation so that the label isn't
-        // upside down.
-        if (min.X > max.X)
+        // Force the ruler to a sane consistent default orientation so that the
+        // label isn't upside down.
+        if (min.X.ApproximatelyEquals(max.X) && min.Y < max.Y)
         {
             (min, max) = (max, min);
         }
-        
+        else if (min.X > max.X)
+        {
+            (min, max) = (max, min);
+        }
+
         _previewRuler.Min = min;
         _previewRuler.Max = max;
 
