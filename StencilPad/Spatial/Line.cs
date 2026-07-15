@@ -38,7 +38,7 @@ public readonly struct Line
         double dx = bx - ax, dy = by - ay;
         double lenSq = dx * dx + dy * dy;
 
-        double t = lenSq > 1e-20
+        double t = lenSq > MathUtil.Epsilon
             ? Math.Clamp(((px - ax) * dx + (py - ay) * dy) / lenSq, 0.0, 1.0)
             : 0.0;
 
@@ -93,7 +93,7 @@ public readonly struct Line
 
         double det = adx * bdy - ady * bdx;
 
-        if (Math.Abs(det) < 1e-10)
+        if (Math.Abs(det) < MathUtil.Epsilon)
         {
             return null;
         }
