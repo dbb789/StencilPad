@@ -1,4 +1,3 @@
 Rulers don't always render correctly in SVG
 Arc issues in SVG.
 Rulers should always default to one orientation.
-MarkerPath doesn't always show the last marker.

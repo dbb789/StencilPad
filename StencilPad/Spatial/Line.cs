@@ -50,7 +50,7 @@ public readonly struct Line
     public double? FromRadius(Unit2D startPoint, Unit radius, double start, double end)
     {
         var (t0, t1) = MathUtil.GetCircleLineIntersectionFractions(startPoint, radius, this);
-
+        
         if (t0 < start || t0 > end)
         {
             t0 = null;

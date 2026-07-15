@@ -4,6 +4,7 @@ public static class MathUtil
 {
     public const double Deg2Rad = Math.PI / 180.0;
     public const double Rad2Deg = 180.0 / Math.PI;
+    public const double Epsilon = 1e-10;
     public const decimal Kappa = 0.5522847498307933984022516322796m;
 
     public static (double?, double?) GetCircleLineIntersectionFractions(Unit2D center,
@@ -89,7 +90,7 @@ public static class MathUtil
         double r0mm = r0.Millimeters;
         double r1mm = r1.Millimeters;
 
-        if (d < 1e-10 || d > r0mm + r1mm || d < Math.Abs(r0mm - r1mm))
+        if (d < Epsilon || d > r0mm + r1mm || d < Math.Abs(r0mm - r1mm))
         {
             return (null, null);
         }
@@ -105,7 +106,7 @@ public static class MathUtil
         double px = c0.X.Millimeters + a * dx / d;
         double py = c0.Y.Millimeters + a * dy / d;
 
-        if (h2 < 1e-20)
+        if (h2 < Epsilon)
         {
             return (Unit2D.FromMillimeters(px, py), null);
         }
@@ -172,17 +173,43 @@ public static class MathUtil
     {
         var (t0, t1) = SolveQuadratic(a, b, c);
 
-        if (t0 < 0 || t0 > 1)
+        return (Approximate01(t0), Approximate01(t1));
+    }
+
+    // Enforces that t is within the range [0, 1] with a small epsilon
+    // tolerance. Returns null if t is outside this range.
+    private static double? Approximate01(double? t)
+    {
+        if (t is null)
         {
-            t0 = null;
+            return null;
+        }
+        
+        if (t < 0)
+        {
+            if (t > -Epsilon)
+            {
+                return 0;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        if (t1 < 0 || t1 > 1)
+        if (t > 1)
         {
-            t1 = null;
+            if (t < 1 + Epsilon)
+            {
+                return 1;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        return (t0, t1);
+        return t;
     }
 
     public static double NormalizeAngle(double angleRadians)
@@ -211,7 +238,7 @@ public static class MathUtil
     {
         double angleDiff = SignedAngleDifference(a, b);
         
-        if (Math.Abs(angleDiff) < 1e-10)
+        if (Math.Abs(angleDiff) < Epsilon)
         {
             return 0;
         }
