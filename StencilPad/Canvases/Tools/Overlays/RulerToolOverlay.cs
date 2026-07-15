@@ -96,8 +96,18 @@ public class RulerToolOverlay : Canvas, IDisposable
             return;
         }
 
-        _previewRuler.Min = _start.Value;
-        _previewRuler.Max = _currentSnappedMousePosition;
+        var min = _start.Value;
+        var max = _currentSnappedMousePosition;
+
+        // Force the ruler to a sane default orientation so that the label isn't
+        // upside down.
+        if (min.X > max.X)
+        {
+            (min, max) = (max, min);
+        }
+        
+        _previewRuler.Min = min;
+        _previewRuler.Max = max;
 
         dc.PushTransform(_viewport.MillimetersToPixelsTransform);
         _previewRenderer.Render(dc);
