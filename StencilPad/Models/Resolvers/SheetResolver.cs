@@ -1,7 +1,6 @@
 using System.Collections;
 using Microsoft.Extensions.Logging;
 using StencilPad.Common;
-using System.Collections.Specialized;
 using StencilPad.Collections;
 
 namespace StencilPad.Models.Resolvers;

@@ -132,6 +132,7 @@ public class MarkerPath : SheetElement<MarkerPath>, IPolygonSheetElement
         _singlePolygon = new(polygon);
         _singlePolygon.Polygon.GeometryChanged += _ => UpdateGeometry();
         _pointList = new();
+        _pointList.GeneratePoints(Polygon, Spacing, Offset, Balanced);
 
         SetHandleSource(_singlePolygon.HandleSource);
     }
