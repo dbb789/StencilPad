@@ -42,10 +42,23 @@ public class SvgExporter
         double offsetX = bounds.Min.X.Millimeters;
         double offsetY = bounds.Min.Y.Millimeters;
 
+        // NOTE: We're flipping the Y coords in the SVG by applying a
+        // scale(1,-1) transform to the root <svg> element given that
+        // StencilPad's coordinate system has Y increasing upwards, while SVG
+        // has Y increasing downwards. Ideally we should transform the
+        // coordinates of each element instead.
+        //
+        // This currently gives us flipped text in Inkscape but it's fine in
+        // Chrome and Edge, so this is probably an Inkscape limitation. We
+        // should fix it on our end though.
+        //
+        // We're also flipping this transform in the <text> elements to ensure
+        // that text is rendered upright.
         var svg = new XElement(SvgNs + "svg",
             new XAttribute("width", Mm(width)),
             new XAttribute("height", Mm(height)),
-            new XAttribute("viewBox", $"{Num(offsetX)} {Num(offsetY)} {Num(width)} {Num(height)}"));
+            new XAttribute("viewBox", $"{Num(offsetX)} {Num(offsetY)} {Num(width)} {Num(height)}"),
+            new XAttribute("transform", "scale(1,-1)"));
         
         using (var modelWalker = new SvgModelWalker(svg))
         {
@@ -297,7 +310,7 @@ public class SvgExporter
                 1.0);
 
             var x        = Num(origin.X.Millimeters);
-            var y        = Num(origin.Y.Millimeters);
+            var y        = Num(-origin.Y.Millimeters);
             var fontSize = Num(fontSizeMm);
             var dy       = Num(ft.Baseline);  // shift from layout-box top to alphabetic baseline
 
@@ -327,7 +340,11 @@ public class SvgExporter
 
             if (svgAngle != 0.0)
             {
-                elem.Add(new XAttribute("transform", $"rotate({Num(svgAngle)},{x},{y})"));
+                elem.Add(new XAttribute("transform", $"scale(1,-1), rotate({Num(svgAngle)},{x},{y})"));
+            }
+            else
+            {
+                elem.Add(new XAttribute("transform", "scale(1,-1)"));
             }
 
             _svg.Add(elem);
@@ -432,12 +449,12 @@ public class SvgExporter
                 if (!_started)
                 {
                     var from = _transform.Apply(line.Start);
-                    _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                    _sb.Append($"M {Coord(from)}");
                     _started = true;
                 }
 
                 var to = _transform.Apply(line.End);
-                _sb.Append($" L {Num(to.X.Millimeters)},{Num(to.Y.Millimeters)}");
+                _sb.Append($" L {Coord(to)}");
             }
             else if (segment.IsBezier)
             {
@@ -446,7 +463,7 @@ public class SvgExporter
                 if (!_started)
                 {
                     var from = _transform.Apply(b.P0);
-                    _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                    _sb.Append($"M {Coord(from)}");
                     _started = true;
                 }
 
@@ -454,9 +471,7 @@ public class SvgExporter
                 var p2 = _transform.Apply(b.P2);
                 var p3 = _transform.Apply(b.P3);
 
-                _sb.Append($" C {Num(p1.X.Millimeters)},{Num(p1.Y.Millimeters)}");
-                _sb.Append($" {Num(p2.X.Millimeters)},{Num(p2.Y.Millimeters)}");
-                _sb.Append($" {Num(p3.X.Millimeters)},{Num(p3.Y.Millimeters)}");
+                _sb.Append($" C {Coord(p1)} {Coord(p2)} {Coord(p3)}");
             }
             else if (segment.IsArc)
             {
@@ -487,7 +502,7 @@ public class SvgExporter
             if (!_started)
             {
                 var from = _transform.Apply(arc.Start);
-                _sb.Append($"M {Num(from.X.Millimeters)},{Num(from.Y.Millimeters)}");
+                _sb.Append($"M {Coord(from)}");
                 _started = true;
             }
 
@@ -495,7 +510,7 @@ public class SvgExporter
             var r = arc.Radius.Millimeters;
             var sweep  = MathUtil.SignedAngleDifference(arc.EndAngle, arc.StartAngle) > 0 ? 0 : 1;
 
-            _sb.Append($" A {Num(r)},{Num(r)} 0 0 {sweep} {Num(end.X.Millimeters)},{Num(end.Y.Millimeters)}");
+            _sb.Append($" A {Num(r)},{Num(r)} 0 0 {sweep} {Coord(end)}");
         }
     }
 
@@ -504,6 +519,8 @@ public class SvgExporter
         return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
     }
 
+    private static string Coord(Unit2D point) => $"{Num(point.X.Millimeters)},{Num(point.Y.Millimeters)}";
+    
     private static string Mm(double value) => $"{Num(value)}mm";
 
     private static string Num(double value) => value.ToString("G6", CultureInfo.InvariantCulture);
