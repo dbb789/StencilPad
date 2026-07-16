@@ -9,6 +9,11 @@ public static class ColorUtil
     {
         return $"#{color.R:X2}{color.G:X2}{color.B:X2}{color.A:X2}";
     }
+    
+    public static string ToHexStringOpaque(Color color)
+    {
+        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+    }
 
     public static bool TryParseHex(string text, out Color color)
     {
