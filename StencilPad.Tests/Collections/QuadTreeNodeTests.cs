@@ -241,6 +241,30 @@ public class QuadTreeNodeTests
         Assert.That(node.IsLeaf, Is.False);
     }
 
+    [Test]
+    public void Prune_CascadesToParent()
+    {
+        var (node, _) = MakeNode<string>(nodeCapacity: 1);
+        var lookup = new Dictionary<string, QuadTreeNode<string>>();
+
+        // Insert items in the same general region to trigger deep subdivides
+        node.Insert(U2(-20, -20), "a", lookup);
+        node.Insert(U2(-21, -21), "b", lookup); // Triggers subdivide
+        node.Insert(U2(-22, -22), "c", lookup); // Triggers another subdivide
+
+        Assert.That(node.IsLeaf, Is.False);
+
+        lookup["a"].RemoveDirect("a");
+        lookup["b"].RemoveDirect("b");
+        lookup["c"].RemoveDirect("c");
+
+        // Pruning the bottom-most leaf's parent should cascade all the way up to root
+        var leafParent = lookup["a"].Parent;
+        leafParent?.Prune();
+
+        Assert.That(node.IsLeaf, Is.True);
+    }
+
     // --- Clear ---
 
     [Test]
