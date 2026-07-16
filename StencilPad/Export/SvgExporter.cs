@@ -4,6 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Xml.Linq;
+using StencilPad.Common;
 using StencilPad.Models;
 using StencilPad.Models.Resolvers;
 using StencilPad.Spatial;
@@ -229,8 +230,8 @@ public class SvgExporter
 
         private XElement BuildPathElement(string pathData, bool closed)
         {
-            var fill        = closed && _style.FillColor.A != 0 ? ColorToSvg(_style.FillColor) : "none";
-            var stroke      = ColorToSvg(_style.LineColor);
+            var fill        = closed && _style.FillColor.A != 0 ? ColorUtil.ToHexString(_style.FillColor) : "none";
+            var stroke      = _style.FillColor.A != 0 ? ColorUtil.ToHexString(_style.LineColor) : "none";
             var strokeWidth = Num(_style.LineWidth.Millimeters);
 
             var path = new XElement(SvgNs + "path",
@@ -327,7 +328,7 @@ public class SvgExporter
                 new XAttribute("dy",          dy),
                 new XAttribute("font-family", _style.Font),
                 new XAttribute("font-size",   fontSize),
-                new XAttribute("fill",        ColorToSvg(_style.Color)),
+                new XAttribute("fill",        ColorUtil.ToHexString(_style.Color)),
                 new XAttribute("text-anchor", anchor),
                 _text);
 
@@ -374,7 +375,7 @@ public class SvgExporter
             if (_bounds is null || _imageData is null || _imageData.Length == 0) return;
 
             var b = _bounds.Value;
-            var mime = DetectMimeType(_imageData);
+            var mime = ImageUtil.GetMimeType(_imageData);
             var base64 = Convert.ToBase64String(_imageData);
 
             var x      = Num(b.Min.X.Millimeters);
@@ -404,18 +405,6 @@ public class SvgExporter
                 elem.Add(new XAttribute("transform", $"translate({tx},{ty})"));
 
             _svg.Add(elem);
-        }
-
-        private static string DetectMimeType(byte[] data)
-        {
-            if (data.Length >= 4 &&
-                data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
-                return "image/png";
-
-            if (data.Length >= 2 && data[0] == 0xFF && data[1] == 0xD8)
-                return "image/jpeg";
-
-            return "image/png";
         }
     }
 
@@ -512,11 +501,6 @@ public class SvgExporter
 
             _sb.Append($" A {Num(r)},{Num(r)} 0 0 {sweep} {Coord(end)}");
         }
-    }
-
-    private static string ColorToSvg(Color color)
-    {
-        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
     }
 
     private static string Coord(Unit2D point) => $"{Num(point.X.Millimeters)},{Num(point.Y.Millimeters)}";

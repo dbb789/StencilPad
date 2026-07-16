@@ -7,7 +7,7 @@ public static class ColorUtil
 {
     public static string ToHexString(Color color)
     {
-        return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+        return $"#{color.R:X2}{color.G:X2}{color.B:X2}{color.A:X2}";
     }
 
     public static bool TryParseHex(string text, out Color color)
@@ -31,10 +31,10 @@ public static class ColorUtil
         }
         
         if (s.Length == 8 &&
-            byte.TryParse(s[0..2], NumberStyles.HexNumber, null, out var a2) &&
             byte.TryParse(s[2..4], NumberStyles.HexNumber, null, out var r2) &&
             byte.TryParse(s[4..6], NumberStyles.HexNumber, null, out var g2) &&
-            byte.TryParse(s[6..8], NumberStyles.HexNumber, null, out var b2))
+            byte.TryParse(s[6..8], NumberStyles.HexNumber, null, out var b2) &&
+            byte.TryParse(s[0..2], NumberStyles.HexNumber, null, out var a2))
         {
             color = Color.FromArgb(a2, r2, g2, b2);
             return true;
