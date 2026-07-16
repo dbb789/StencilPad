@@ -212,14 +212,31 @@ public static class MathUtil
         return t;
     }
 
+    // Normalizes an angle in radians to the range [0, 2 * PI].
     public static double NormalizeAngle(double angleRadians)
     {
         return ((angleRadians % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     }
 
+    // Calculates the signed difference between two angles in radians returning
+    // a value in the range [-PI, PI].
     public static double SignedAngleDifference(double a, double b)
     {
-        return ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+        a = NormalizeAngle(a);
+        b = NormalizeAngle(b);
+
+        double diff = b - a;
+
+        if (diff > Math.PI)
+        {
+            diff -= 2 * Math.PI;
+        }
+        else if (diff < -Math.PI)
+        {
+            diff += 2 * Math.PI;
+        }
+
+        return diff;
     }
 
     public static double AngleDifference(double a, double b)
