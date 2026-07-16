@@ -220,4 +220,96 @@ public class QuadTreeTests
 
         Assert.That(() => tree.Dispose(), Throws.Nothing);
     }
+    private class TrackingNodePool<TNode> : IObjectPool<QuadTreeNode<TNode>> where TNode : notnull
+    {
+        private readonly int _nodeCapacity;
+        public int ActiveNodes { get; private set; }
+        public int TotalAllocated { get; private set; }
+
+        public TrackingNodePool(int nodeCapacity)
+        {
+            _nodeCapacity = nodeCapacity;
+        }
+
+        public QuadTreeNode<TNode>? TryGet()
+        {
+            ActiveNodes++;
+            TotalAllocated++;
+            return new QuadTreeNode<TNode>(this, _nodeCapacity); 
+        }
+
+        public void Recycle(QuadTreeNode<TNode> obj)
+        {
+            ActiveNodes--;
+        }
+    }
+
+    [Test]
+    public void StressTest_MassiveInsertAndRemove_LeavesZeroDanglingNodes()
+    {
+        int nodeCapacity = 4;
+        var trackingPool = new TrackingNodePool<string>(nodeCapacity);
+        
+        using var tree = new QuadTree<string>(trackingPool, Bounds(0, 0, 1000, 1000), nodeCapacity, maxDepth: 8);
+
+        var random = new Random(42); // Fixed seed for reproducibility
+        int elementCount = 10000;
+        var elements = new List<(string id, Unit2D point)>();
+
+        // 1. Insert a massive number of randomly generated elements
+        for (int i = 0; i < elementCount; i++)
+        {
+            string id = $"item_{i}";
+            // Generate points within [-500, 500]
+            double x = (random.NextDouble() * 1000) - 500;
+            double y = (random.NextDouble() * 1000) - 500;
+            var point = U2(x, y);
+
+            elements.Add((id, point));
+            tree.Insert(point, id);
+        }
+
+        // 2. Verify significant churn occurred
+        Assert.That(trackingPool.TotalAllocated, Is.GreaterThan(1000), 
+            "Test did not generate enough subdivisions to be a meaningful stress test.");
+
+        // 3. Verify tree holds all elements
+        var results = new List<string>();
+        tree.Query(Bounds(0, 0, 1000, 1000), results.Add);
+        Assert.That(results.Count, Is.EqualTo(elementCount));
+
+        // 3.5 Verify each element can be found using a very tight bounding box
+        foreach (var (id, point) in elements)
+        {
+            var tinyBounds = UnitBounds.FromCenterSize(point, U2(0.002, 0.002));
+            var localResults = new List<string>();
+            tree.Query(tinyBounds, localResults.Add);
+            
+            Assert.That(localResults, Does.Contain(id), 
+                $"Element {id} at {point.X.Millimeters}, {point.Y.Millimeters} was not found by a localized query!");
+        }
+
+        // 4. Remove all elements in a random order and verify they are un-queryable
+        for (int i = elements.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (elements[i], elements[j]) = (elements[j], elements[i]);
+        }
+
+        foreach (var (id, point) in elements)
+        {
+            tree.Remove(id);
+
+            var tinyBounds = UnitBounds.FromCenterSize(point, U2(0.002, 0.002));
+            var localResults = new List<string>();
+            tree.Query(tinyBounds, localResults.Add);
+
+            Assert.That(localResults, Does.Not.Contain(id), 
+                $"Element {id} was still found by a localized query after being removed!");
+        }
+
+        // 5. Verify the tree fully collapsed and recycled all dynamically allocated child nodes
+        Assert.That(trackingPool.ActiveNodes, Is.EqualTo(0), 
+            $"Not all child nodes were recycled after removing all elements! ({trackingPool.ActiveNodes} left dangling)");
+    }
 }
