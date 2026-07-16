@@ -1,1 +1,1 @@
-SVG has flipped text in inkscape.
+Needs application-wide config dialog
