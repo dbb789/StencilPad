@@ -1,5 +1,6 @@
-namespace StencilPad.Tests.Spatial;
+namespace StencilPad.Tests.Collections;
 
+using StencilPad.Collections;
 using StencilPad.Spatial;
 
 public class DynamicQuadTreeTests
