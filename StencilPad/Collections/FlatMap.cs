@@ -135,6 +135,7 @@ public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
         }
         
         --_dataLength;
+        _data[_dataLength] = default;
     }
 
     public bool TryGetValue(TKey key, out TValue value)
@@ -161,6 +162,7 @@ public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
 
 	public void Clear()
 	{
+        Array.Clear(_data, 0, _dataLength);
 		_dataLength = 0;
 	}
 
@@ -176,6 +178,10 @@ public class FlatMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
         if (_data.Length < other._dataLength)
         {
             _data = new KeyValuePair<TKey, TValue>[other._dataLength];
+        }
+        else if (_dataLength > other._dataLength)
+        {
+            Array.Clear(_data, other._dataLength, _dataLength - other._dataLength);
         }
 
         Array.Copy(other._data, _data, other._dataLength);

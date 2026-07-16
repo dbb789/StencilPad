@@ -71,6 +71,7 @@ public class FlatSet<T> : ReadOnlyFlatSet<T>
         }
         
         --_dataLength;
+        _data[_dataLength] = default!;
     }
 
     public void AssignFrom(FlatSet<T> other)
@@ -78,6 +79,10 @@ public class FlatSet<T> : ReadOnlyFlatSet<T>
         if (_data.Length < other._dataLength)
         {
             _data = new T[other._dataLength];
+        }
+        else if (_dataLength > other._dataLength)
+        {
+            Array.Clear(_data, other._dataLength, _dataLength - other._dataLength);
         }
 
         Array.Copy(other._data, _data, other._dataLength);
@@ -91,6 +96,7 @@ public class FlatSet<T> : ReadOnlyFlatSet<T>
 
 	public void Clear()
 	{
-		_dataLength = 0;
+        Array.Clear(_data, 0, _dataLength);
+        _dataLength = 0;
 	}
 }
