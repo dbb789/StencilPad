@@ -85,11 +85,14 @@ public class QuadTreeNode<T> where T : notnull
 
     public void Prune()
     {
-        if (_hasChildren && _children.Empty())
+        if (!_hasChildren || !_children.Empty())
         {
-            _children.Recycle();
-            _hasChildren = false;
+            return;
         }
+
+        _children.Recycle();
+        _hasChildren = false;
+        _parent?.Prune();
     }
 
     public void Query(UnitBounds bounds, Action<T> func)
