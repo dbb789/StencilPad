@@ -33,12 +33,6 @@ public static class MathUtil
                                                                Unit radius,
                                                                Line line)
     {
-        Unit2D d = line.End - line.Start;
-        double dx = d.X.Millimeters;
-        double dy = d.Y.Millimeters;
-        double p0X = line.Start.X.Millimeters;
-        double p0Y = line.Start.Y.Millimeters;
-
         var (t0, t1) = GetCircleLineIntersectionFractions(center, radius, line);
         
         Unit2D? i0 = null;
@@ -46,12 +40,12 @@ public static class MathUtil
 
         if (t0 is not null)
         {
-            i0 = Unit2D.FromMillimeters(p0X + t0.Value * dx, p0Y + t0.Value * dy);
+            i0 = line.At(t0.Value);
         }
 
         if (t1 is not null)
         {
-            i1 = Unit2D.FromMillimeters(p0X + t1.Value * dx, p0Y + t1.Value * dy);
+            i1 = line.At(t1.Value);
         }
         
         return (i0, i1);
